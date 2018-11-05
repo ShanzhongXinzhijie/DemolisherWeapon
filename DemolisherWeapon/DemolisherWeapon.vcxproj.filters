@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="system">
+      <UniqueIdentifier>{f934a5fd-3201-4637-a8b8-106e0ed160da}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="system\GraphicsEngine.h" />
+    <ClInclude Include="DWstdafx.h" />
+    <ClInclude Include="Graphic\Model\SkinModel.h" />
+    <ClInclude Include="math\kMath.h" />
+    <ClInclude Include="math\Matrix.h" />
+    <ClInclude Include="math\Vector.h" />
+    <ClInclude Include="FPS\CFpsCounter.h" />
+    <ClInclude Include="Engine.h" />
+    <ClInclude Include="Graphic\Model\SkinModelDataManager.h" />
+    <ClInclude Include="Graphic\Model\Skeleton.h" />
+    <ClInclude Include="Graphic\Model\SkinModelEffect.h" />
+    <ClInclude Include="Graphic\Shader\Shader.h" />
+    <ClInclude Include="Graphic\Shader\ShaderResources.h" />
+    <ClInclude Include="Graphic\Model\SkinModelShaderConst.h" />
+    <ClInclude Include="util\Util.h" />
+    <ClInclude Include="system\GameObject.h" />
+    <ClInclude Include="Render\IRander.h" />
+    <ClInclude Include="Render\D3Render.h" />
+    <ClInclude Include="Camera\CameraManager.h" />
+    <ClInclude Include="Render\GBufferRender.h" />
+    <ClInclude Include="Render\DefferdRender.h" />
+    <ClInclude Include="Graphic\CPrimitive.h" />
+    <ClInclude Include="Render\MotionBlurRender.h" />
+    <ClInclude Include="Render\FinalRender.h" />
+    <ClInclude Include="physics\CapsuleCollider.h" />
+    <ClInclude Include="physics\CollisionAttr.h" />
+    <ClInclude Include="physics\ICollider.h" />
+    <ClInclude Include="physics\MeshCollider.h" />
+    <ClInclude Include="physics\Physics.h" />
+    <ClInclude Include="physics\PhysicsStaticObject.h" />
+    <ClInclude Include="physics\RigidBody.h" />
+    <ClInclude Include="Render\ShadowMapRender.h" />
+    <ClInclude Include="Graphic\Model\animation\Animation.h" />
+    <ClInclude Include="Graphic\Model\animation\AnimationClip.h" />
+    <ClInclude Include="Graphic\Model\animation\AnimationPlayController.h" />
+    <ClInclude Include="Input\MouseCursor.h" />
+    <ClInclude Include="Input\XInput.h" />
+    <ClInclude Include="Input\Input.h" />
+    <ClInclude Include="Input\KeyState.h" />
+    <ClInclude Include="Graphic\Light\Lights.h" />
+    <ClInclude Include="Render\AmbientOcclusionRender.h" />
+    <ClInclude Include="Graphic\Model\Render\CSkinModelRender.h" />
+    <ClInclude Include="Graphic\Model\animation\AnimationController.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="system\GraphicsEngine.cpp" />
+    <ClCompile Include="DWstdafx.cpp" />
+    <ClCompile Include="Graphic\Model\SkinModel.cpp" />
+    <ClCompile Include="math\kMath.cpp" />
+    <ClCompile Include="math\Matrix.cpp" />
+    <ClCompile Include="math\Vector.cpp" />
+    <ClCompile Include="FPS\CFpsCounter.cpp" />
+    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="Graphic\Model\SkinModelDataManager.cpp" />
+    <ClCompile Include="Graphic\Model\Skeleton.cpp" />
+    <ClCompile Include="Graphic\Model\SkinModelEffect.cpp" />
+    <ClCompile Include="Graphic\Shader\Shader.cpp" />
+    <ClCompile Include="Graphic\Shader\ShaderResources.cpp" />
+    <ClCompile Include="system\GameObject.cpp" />
+    <ClCompile Include="Render\IRander.cpp" />
+    <ClCompile Include="Render\D3Render.cpp" />
+    <ClCompile Include="Camera\CameraManager.cpp" />
+    <ClCompile Include="Render\GBufferRender.cpp" />
+    <ClCompile Include="Render\DefferdRender.cpp" />
+    <ClCompile Include="Graphic\CPrimitive.cpp" />
+    <ClCompile Include="Render\MotionBlurRender.cpp" />
+    <ClCompile Include="Render\FinalRender.cpp" />
+    <ClCompile Include="physics\CapsuleCollider.cpp" />
+    <ClCompile Include="physics\MeshCollider.cpp" />
+    <ClCompile Include="physics\Physics.cpp" />
+    <ClCompile Include="physics\PhysicsStaticObject.cpp" />
+    <ClCompile Include="physics\RigidBody.cpp" />
+    <ClCompile Include="Render\ShadowMapRender.cpp" />
+    <ClCompile Include="Graphic\Model\animation\Animation.cpp" />
+    <ClCompile Include="Graphic\Model\animation\AnimationClip.cpp" />
+    <ClCompile Include="Graphic\Model\animation\AnimationPlayController.cpp" />
+    <ClCompile Include="Input\MouseCursor.cpp" />
+    <ClCompile Include="Input\XInput.cpp" />
+    <ClCompile Include="Input\Input.cpp" />
+    <ClCompile Include="Input\KeyState.cpp" />
+    <ClCompile Include="Graphic\Light\Lights.cpp" />
+    <ClCompile Include="Render\AmbientOcclusionRender.cpp" />
+    <ClCompile Include="Graphic\Model\Render\CSkinModelRender.cpp" />
+    <ClCompile Include="Graphic\Model\animation\AnimationController.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Preset\Font\myfile.spritefont" />
+    <CustomBuild Include="Preset\shader\model.fx" />
+    <CustomBuild Include="Preset\shader\motionblurCS.fx" />
+    <CustomBuild Include="Preset\shader\motionblurPS.fx" />
+    <CustomBuild Include="Preset\shader\primitive.fx" />
+    <CustomBuild Include="Preset\shader\shadowblurCS.fx" />
+    <CustomBuild Include="Preset\shader\shadowblurPS.fx" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Preset\shader\ambientocclusionCS.fx" />
+    <FxCompile Include="Preset\shader\defferd.fx" />
+  </ItemGroup>
+</Project>
