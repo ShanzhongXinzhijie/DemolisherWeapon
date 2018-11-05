@@ -8,12 +8,5 @@
 
 namespace DemolisherWeapon {
 
-/*!
-	* @brief	デストラクタ。
-	*/
-CapsuleCollider::~CapsuleCollider()
-{
-	delete shape;
-}
 
 }

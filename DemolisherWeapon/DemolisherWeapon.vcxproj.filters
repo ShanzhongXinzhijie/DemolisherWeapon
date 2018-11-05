@@ -34,7 +34,6 @@
     <ClInclude Include="physics\CapsuleCollider.h" />
     <ClInclude Include="physics\CollisionAttr.h" />
     <ClInclude Include="physics\ICollider.h" />
-    <ClInclude Include="physics\MeshCollider.h" />
     <ClInclude Include="physics\Physics.h" />
     <ClInclude Include="physics\PhysicsStaticObject.h" />
     <ClInclude Include="physics\RigidBody.h" />
@@ -50,6 +49,14 @@
     <ClInclude Include="Render\AmbientOcclusionRender.h" />
     <ClInclude Include="Graphic\Model\Render\CSkinModelRender.h" />
     <ClInclude Include="Graphic\Model\animation\AnimationController.h" />
+    <ClInclude Include="physics\PhysicsBaseObject.h" />
+    <ClInclude Include="level\Level.h" />
+    <ClInclude Include="level\MapChip.h" />
+    <ClInclude Include="physics\BoxCollider.h" />
+    <ClInclude Include="physics\SphereCollider.h" />
+    <ClInclude Include="physics\MeshCollider.h" />
+    <ClInclude Include="physics\MeshCollider.h" />
+    <ClInclude Include="physics\character\CCharacterController.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -75,7 +82,6 @@
     <ClCompile Include="Render\MotionBlurRender.cpp" />
     <ClCompile Include="Render\FinalRender.cpp" />
     <ClCompile Include="physics\CapsuleCollider.cpp" />
-    <ClCompile Include="physics\MeshCollider.cpp" />
     <ClCompile Include="physics\Physics.cpp" />
     <ClCompile Include="physics\PhysicsStaticObject.cpp" />
     <ClCompile Include="physics\RigidBody.cpp" />
@@ -91,6 +97,14 @@
     <ClCompile Include="Render\AmbientOcclusionRender.cpp" />
     <ClCompile Include="Graphic\Model\Render\CSkinModelRender.cpp" />
     <ClCompile Include="Graphic\Model\animation\AnimationController.cpp" />
+    <ClCompile Include="physics\PhysicsBaseObject.cpp" />
+    <ClCompile Include="level\Level.cpp" />
+    <ClCompile Include="level\MapChip.cpp" />
+    <ClCompile Include="physics\BoxCollider.cpp" />
+    <ClCompile Include="physics\SphereCollider.cpp" />
+    <ClCompile Include="physics\MeshCollider.cpp" />
+    <ClCompile Include="physics\MeshCollider.cpp" />
+    <ClCompile Include="physics\character\CCharacterController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
@@ -100,9 +114,7 @@
     <CustomBuild Include="Preset\shader\primitive.fx" />
     <CustomBuild Include="Preset\shader\shadowblurCS.fx" />
     <CustomBuild Include="Preset\shader\shadowblurPS.fx" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Preset\shader\ambientocclusionCS.fx" />
-    <FxCompile Include="Preset\shader\defferd.fx" />
+    <CustomBuild Include="Preset\shader\ambientocclusionCS.fx" />
+    <CustomBuild Include="Preset\shader\defferd.fx" />
   </ItemGroup>
 </Project>

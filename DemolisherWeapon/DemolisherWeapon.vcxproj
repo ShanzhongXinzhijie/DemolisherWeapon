@@ -168,8 +168,14 @@
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="physics\character\CCharacterController.h" />
+    <ClInclude Include="physics\BoxCollider.h" />
     <ClInclude Include="Graphic\Model\animation\AnimationController.h" />
     <ClInclude Include="Graphic\Model\Render\CSkinModelRender.h" />
+    <ClInclude Include="level\Level.h" />
+    <ClInclude Include="level\MapChip.h" />
+    <ClInclude Include="physics\MeshCollider.h" />
+    <ClInclude Include="physics\PhysicsBaseObject.h" />
     <ClInclude Include="Render\AmbientOcclusionRender.h" />
     <ClInclude Include="Camera\CameraManager.h" />
     <ClInclude Include="Graphic\Model\animation\Animation.h" />
@@ -181,7 +187,6 @@
     <ClInclude Include="physics\CapsuleCollider.h" />
     <ClInclude Include="physics\CollisionAttr.h" />
     <ClInclude Include="physics\ICollider.h" />
-    <ClInclude Include="physics\MeshCollider.h" />
     <ClInclude Include="physics\Physics.h" />
     <ClInclude Include="physics\PhysicsStaticObject.h" />
     <ClInclude Include="physics\RigidBody.h" />
@@ -196,6 +201,7 @@
     <ClInclude Include="Engine.h" />
     <ClInclude Include="FPS\CFpsCounter.h" />
     <ClInclude Include="Render\IRander.h" />
+    <ClInclude Include="physics\SphereCollider.h" />
     <ClInclude Include="system\GameObject.h" />
     <ClInclude Include="Graphic\Model\Skeleton.h" />
     <ClInclude Include="Graphic\Model\SkinModel.h" />
@@ -214,8 +220,14 @@
     <ClInclude Include="Input\XInput.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="physics\character\CCharacterController.cpp" />
+    <ClCompile Include="physics\BoxCollider.cpp" />
     <ClCompile Include="Graphic\Model\animation\AnimationController.cpp" />
     <ClCompile Include="Graphic\Model\Render\CSkinModelRender.cpp" />
+    <ClCompile Include="level\Level.cpp" />
+    <ClCompile Include="level\MapChip.cpp" />
+    <ClCompile Include="physics\MeshCollider.cpp" />
+    <ClCompile Include="physics\PhysicsBaseObject.cpp" />
     <ClCompile Include="Render\AmbientOcclusionRender.cpp" />
     <ClCompile Include="Camera\CameraManager.cpp" />
     <ClCompile Include="Graphic\Model\animation\Animation.cpp" />
@@ -225,7 +237,6 @@
     <ClCompile Include="Input\KeyState.cpp" />
     <ClCompile Include="Graphic\Light\Lights.cpp" />
     <ClCompile Include="physics\CapsuleCollider.cpp" />
-    <ClCompile Include="physics\MeshCollider.cpp" />
     <ClCompile Include="physics\Physics.cpp" />
     <ClCompile Include="physics\PhysicsStaticObject.cpp" />
     <ClCompile Include="physics\RigidBody.cpp" />
@@ -243,6 +254,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Render\IRander.cpp" />
+    <ClCompile Include="physics\SphereCollider.cpp" />
     <ClCompile Include="system\GameObject.cpp" />
     <ClCompile Include="Graphic\Model\Skeleton.cpp" />
     <ClCompile Include="Graphic\Model\SkinModel.cpp" />

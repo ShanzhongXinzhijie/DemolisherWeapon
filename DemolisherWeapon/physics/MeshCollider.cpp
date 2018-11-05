@@ -1,33 +1,32 @@
 #include "DWstdafx.h"
-#include "Physics/MeshCollider.h"
-
+#include "MeshCollider.h"
 
 namespace DemolisherWeapon {
 
-MeshCollider::MeshCollider() 
-{
-}
-
-
-MeshCollider::~MeshCollider()
-{
-
-}
-
-/*!
- * @brief	CSkinModelからメッシュコライダーを生成。
- *@param[in]	model		スキンモデル。
- */
-void MeshCollider::CreateFromSkinModel( const SkinModel& model, const CMatrix* offsetMatrix )
-{
-	CMatrix mBias;
-	mBias.MakeRotationX(CMath::PI * -0.5f);
-	if (offsetMatrix != nullptr) {
-		mBias.Mul(mBias , (*offsetMatrix));
+	MeshCollider::MeshCollider()
+	{
 	}
-	m_stridingMeshInterface = std::make_unique<btTriangleIndexVertexArray>();
 
-	model.FindMesh([&](const auto& mesh){
+
+	MeshCollider::~MeshCollider()
+	{
+
+	}
+
+	/*!
+	 * @brief	CSkinModelからメッシュコライダーを生成。
+	 *@param[in]	model		スキンモデル。
+	 */
+	void MeshCollider::CreateFromSkinModel(const SkinModel& model, const CMatrix* offsetMatrix)
+	{
+		CMatrix mBias;
+		mBias.MakeRotationX(CMath::PI * -0.5f);
+		if (offsetMatrix != nullptr) {
+			mBias.Mul(mBias, (*offsetMatrix));
+		}
+		m_stridingMeshInterface = std::make_unique<btTriangleIndexVertexArray>();
+
+		model.FindMesh([&](const auto& mesh) {
 
 			ID3D11DeviceContext* deviceContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 			//頂点バッファを作成。
@@ -90,8 +89,8 @@ void MeshCollider::CreateFromSkinModel( const SkinModel& model, const CMatrix* o
 			indexedMesh.m_vertexStride = sizeof(CVector3);
 			m_stridingMeshInterface->addIndexedMesh(indexedMesh);
 		}
-	);
-	m_meshShape = std::make_unique<btBvhTriangleMeshShape>(m_stridingMeshInterface.get(), true);
-}
+		);
+		m_meshShape = std::make_unique<btBvhTriangleMeshShape>(m_stridingMeshInterface.get(), true);
+	}
 
 }

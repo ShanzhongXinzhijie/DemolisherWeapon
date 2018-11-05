@@ -3,8 +3,9 @@
 namespace DemolisherWeapon{
 
 class RigidBody;
+class CCharacterController;
 
-class PhysicsWorld
+class CPhysicsWorld
 {
 	btDefaultCollisionConfiguration*		collisionConfig = nullptr;
 	btCollisionDispatcher*					collisionDispatcher = nullptr;	//!<衝突解決処理。
@@ -12,10 +13,17 @@ class PhysicsWorld
 	btSequentialImpulseConstraintSolver*	constraintSolver = nullptr;		//!<コンストレイントソルバー。拘束条件の解決処理。
 	btDiscreteDynamicsWorld*				dynamicWorld = nullptr;			//!<ワールド。
 public:
-	~PhysicsWorld();
+	~CPhysicsWorld();
 	void Init();
 	void Update();
 	void Release();
+	/*!
+	* @brief	重力を設定。。
+	*/
+	void SetGravity(CVector3 g)
+	{
+		dynamicWorld->setGravity(btVector3(g.x, g.y, g.z));
+	}
 	/*!
 	* @brief	ダイナミックワールドを取得。
 	*/
@@ -31,6 +39,23 @@ public:
 	* @brief	剛体を破棄。
 	*/
 	void RemoveRigidBody(RigidBody& rb);
+	/*!
+	* @brief	コリジョンオブジェクトをワールドに登録。
+	*@param[in]	colliObj	コリジョンオブジェクト。
+	*/
+	void AddCollisionObject(btCollisionObject& colliObj)
+	{
+		dynamicWorld->addCollisionObject(&colliObj);
+	}
+	/*!
+	* @brief	コリジョンオブジェクトをワールドから削除。
+	*@param[in]	colliObj	コリジョンオブジェクト。
+	*/
+	void RemoveCollisionObject(btCollisionObject& colliObj)
+	{
+		dynamicWorld->removeCollisionObject(&colliObj);
+	}
+
 	void ConvexSweepTest(
 		const btConvexShape* castShape,
 		const btTransform& convexFromWorld,
@@ -48,6 +73,18 @@ public:
 	{
 		dynamicWorld->contactTest(colObj, resultCallback);
 	}
+	void ContactTest(
+		btCollisionObject* colObj,
+		std::function<void(const btCollisionObject& contactCollisionObject)> cb
+	);
+	void ContactTest(
+		RigidBody& rb,
+		std::function<void(const btCollisionObject& contactCollisionObject)> cb
+	);
+	void ContactTest(
+		CCharacterController& charaCon,
+		std::function<void(const btCollisionObject& contactCollisionObject)> cb
+	);
 };
 
 }

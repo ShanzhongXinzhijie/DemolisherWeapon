@@ -1,14 +1,30 @@
 #include "DWstdafx.h"
 #include "physics/Physics.h"
 #include "Physics/RigidBody.h"
+#include "Physics/character/CCharacterController.h"
 
 namespace DemolisherWeapon {
 
-PhysicsWorld::~PhysicsWorld()
+namespace {
+	struct MyContactResultCallback : public btCollisionWorld::ContactResultCallback {
+		using ContantTestCallback = std::function<void(const btCollisionObject& contactCollisionObject)>;
+		ContantTestCallback  m_cb;
+		btCollisionObject* m_me = nullptr;
+		virtual	btScalar	addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0, const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1) override
+		{
+			if (m_me == colObj0Wrap->getCollisionObject()) {
+				m_cb(*colObj1Wrap->getCollisionObject());
+			}
+			return 0.0f;
+		}
+	};
+}
+
+CPhysicsWorld::~CPhysicsWorld()
 {
 	Release();
 }
-void PhysicsWorld::Release()
+void CPhysicsWorld::Release()
 {
 	delete dynamicWorld;
 	delete constraintSolver;
@@ -22,7 +38,7 @@ void PhysicsWorld::Release()
 	collisionDispatcher = nullptr;
 	collisionConfig = nullptr;
 }
-void PhysicsWorld::Init()
+void CPhysicsWorld::Init()
 {
 	Release();
 	//•¨—ƒGƒ“ƒWƒ“‚ð‰Šú‰»B
@@ -47,17 +63,48 @@ void PhysicsWorld::Init()
 
 	dynamicWorld->setGravity(btVector3(0, -10, 0));
 }
-void PhysicsWorld::Update()
+void CPhysicsWorld::Update()
 {
 	dynamicWorld->stepSimulation(1.0f/ GetStandardFrameRate());
 }
-void PhysicsWorld::AddRigidBody(RigidBody& rb)
+void CPhysicsWorld::AddRigidBody(RigidBody& rb)
 {
-	dynamicWorld->addRigidBody(rb.GetBody());
+	if (rb.IsAddPhysicsWorld() == false) {
+		dynamicWorld->addRigidBody(rb.GetBody());
+		rb.SetMarkAddPhysicsWorld();
+	}
 }
-void PhysicsWorld::RemoveRigidBody(RigidBody& rb)
+void CPhysicsWorld::RemoveRigidBody(RigidBody& rb)
 {
-	dynamicWorld->removeRigidBody(rb.GetBody());
+	if (rb.IsAddPhysicsWorld() == true) {
+		dynamicWorld->removeRigidBody(rb.GetBody());
+		rb.SetUnmarkAddPhysicsWorld();
+	}
+}
+
+void CPhysicsWorld::ContactTest(
+	btCollisionObject* colObj,
+	std::function<void(const btCollisionObject& contactCollisionObject)> cb
+) {
+	MyContactResultCallback myContactResultCallback;
+	myContactResultCallback.m_cb = cb;
+	myContactResultCallback.m_me = colObj;
+	dynamicWorld->contactTest(colObj, myContactResultCallback);
+}
+
+void CPhysicsWorld::ContactTest(
+	RigidBody& rb,
+	std::function<void(const btCollisionObject& contactCollisionObject)> cb
+)
+{
+	ContactTest(rb.GetBody(), cb);
+}
+void CPhysicsWorld::ContactTest(
+	CCharacterController& charaCon,
+	std::function<void(const btCollisionObject& contactCollisionObject)> cb
+)
+{
+	ContactTest(*charaCon.GetRigidBody(), cb);
 }
 
 }

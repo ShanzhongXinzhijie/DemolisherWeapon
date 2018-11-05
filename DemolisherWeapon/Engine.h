@@ -27,7 +27,7 @@ struct InitEngineParameter {
 
 class GameLoop {
 public:
-	GameLoop(GameObjectManager* gom, PhysicsWorld* m_physics) {
+	GameLoop(GameObjectManager* gom, CPhysicsWorld* m_physics) {
 		m_gameObjectManager_Ptr = gom;
 		m_physics_Ptr = m_physics;
 	};
@@ -51,7 +51,7 @@ private:
 	bool DispatchWindowMessage();
 
 	GameObjectManager* m_gameObjectManager_Ptr;
-	PhysicsWorld* m_physics_Ptr;
+	CPhysicsWorld* m_physics_Ptr;
 
 	float m_runframecnt = 1.0f;
 	bool m_noVariableFramerateOnce = true;
@@ -109,7 +109,7 @@ public:
 		return m_graphicsEngine;
 	}
 	//物理エンジンの取得
-	PhysicsWorld& GetPhysicsWorld() {
+	CPhysicsWorld& GetPhysicsWorld() {
 		return m_physics;
 	}
 	//ゲームオブジェクトマネージャーの取得
@@ -157,7 +157,7 @@ private:
 
 	//処理クラス
 	GraphicsEngine m_graphicsEngine;
-	PhysicsWorld m_physics;
+	CPhysicsWorld m_physics;
 	GameObjectManager m_gameObjectManager;
 	GameLoop m_gameLoop;
 

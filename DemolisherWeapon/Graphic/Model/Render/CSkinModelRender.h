@@ -38,9 +38,28 @@ public:
 		SetRot(rot);
 		SetScale(scale);
 	}
+	//座標・回転・拡大の取得
+	const CVector3& GetPos() const{
+		return m_pos ;
+	}
+	const CQuaternion& GetRot() const {
+		return m_rot;
+	}
+	const CVector3& GetScale() const {
+		return m_scale;
+	}
+	void GetPRS(CVector3* pos, CQuaternion* rot, CVector3* scale) const{
+		*pos = GetPos();
+		*rot = GetRot();
+		*scale = GetScale();
+	}
 
 	//スキンモデルの取得
 	SkinModel& GetSkinModel() {
+		return m_model;
+	}
+	const SkinModel& GetSkinModel() const
+	{
 		return m_model;
 	}
 	//アニメーションコントローラーの取得

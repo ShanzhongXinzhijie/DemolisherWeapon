@@ -114,7 +114,8 @@ public:
 		float v[3];
 		struct { float x, y, z; };
 	};
-	
+	//static const CVector3 Zero;
+
 public:
 	//XMVECTORへの暗黙の変換。
 	operator DirectX::XMVECTOR() const
@@ -158,6 +159,13 @@ public:
 		dst.y = y;
 		dst.z = z;
 	}
+	template<>
+	void CopyTo(btVector3& dst) const
+	{
+		dst.setX(x);
+		dst.setY(y);
+		dst.setZ(z);
+	}
 	/*!
 	* @brief	ベクトルの各要素を設定。
 	*/
@@ -172,11 +180,11 @@ public:
 	{
 		Set(_v.x, _v.y, _v.z);
 	}
-	/*template<>
+	template<>
 	void Set(btVector3& _v)
 	{
 		Set(_v.x(), _v.y(), _v.z());
-	}*/
+	}
 	
 	/*!
 	 * @brief	ベクトルを加算。
@@ -446,6 +454,24 @@ public:
 	{
 		Set(v);
 	}
+
+	template<class TVector4>
+	void CopyTo(TVector4& dst) const
+	{
+		dst.x = x;
+		dst.y = y;
+		dst.z = z;
+		dst.w = w;
+	}
+	template<>
+	void CopyTo(btQuaternion& dst) const
+	{
+		dst.setX(x);
+		dst.setY(y);
+		dst.setZ(z);
+		dst.setW(w);
+	}
+
 	/*!
 	 *@brief	ベクトルの各要素を設定。
 	 */
@@ -594,6 +620,13 @@ public:
 		x = axis.x * s;
 		y = axis.y * s;
 		z = axis.z * s;
+	}
+	void Set(const btQuaternion& rot)
+	{
+		x = rot.x();
+		y = rot.y();
+		z = rot.z();
+		w = rot.w();
 	}
 
 	//任意の軸周りの回転クォータニオンを取得
