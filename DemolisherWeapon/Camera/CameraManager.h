@@ -21,6 +21,9 @@ public:
 	void PreLoopUpdate()override {
 		m_projMatOld = m_projMat, m_viewMatOld = m_viewMat;
 	};
+	void Update()override {
+		UpdateMatrix();
+	}
 
 	void UpdateMatrix() {
 		UpdateViewMatrix();

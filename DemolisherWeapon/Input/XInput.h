@@ -1,11 +1,34 @@
 #pragma once
 
+namespace DemolisherWeapon {
+
+enum enXInputButton {
+	enButtonUp,			//!<上。
+	enButtonDown,		//!<下。
+	enButtonLeft,		//!<左。
+	enButtonRight,		//!<右。
+	enButtonA,			//!<Aボタン。
+	enButtonB,			//!<Bボタン。
+	enButtonX,			//!<Xボタン。
+	enButtonY,			//!<Yボタン。
+	enButtonSelect,		//!<セレクトボタン。
+	enButtonStart,		//!<スタートボタン。
+	enButtonRB1,		//!<RB1ボタン。
+	enButtonRT,			//!<RT ボタン。
+	enButtonRSB,		//!<RSBボタン。
+	enButtonLB1,		//!<LB1ボタン。
+	enButtonLT,			//!<LT ボタン。
+	enButtonLSB,		//!<LSBボタン。
+	enButtonNum,		//!<ボタンの数。
+};
+
+enum enLR {
+	L, R, enLRNUM,
+};
+
 class XInputPad
 {
-public:
-	enum enLR {
-		L, R, enLRNUM,
-	};
+public:	
 
 	void Init(DWORD padnum) {
 		m_padNum = padnum;
@@ -13,13 +36,9 @@ public:
 
 	void Update();
 
-	bool GetButton(DWORD button) const{
-		if (!m_state.isConnect) { return false; }
-		if ((m_state.state.Gamepad.wButtons & button) != 0) {
-			return true;
-		}
-		return false;
-	}
+	//入力を取得
+	bool GetButton(enXInputButton button) const;
+
 	CVector2 GetStick(enLR lr) const{
 		if (!m_state.isConnect) { return CVector2::Zero(); }
 		return m_state.m_stick[lr];
@@ -77,3 +96,5 @@ private:
 
 	XInputPad m_pad[MAX_CONTROLLERS];
 };
+
+}

@@ -1,6 +1,47 @@
 #include "DWstdafx.h"
 #include "XInput.h"
 
+namespace DemolisherWeapon {
+
+namespace {
+	struct VirtualPadToXPad {
+		enXInputButton vButton;		//!<仮想ボタン。
+		DWORD		   xButton;		//!<XBoxコントローラのボタン。
+	};
+	const VirtualPadToXPad vPadToXPadTable[enButtonNum] = {
+		{ enButtonUp		, XINPUT_GAMEPAD_DPAD_UP },
+		{ enButtonDown		, XINPUT_GAMEPAD_DPAD_DOWN },
+		{ enButtonLeft		, XINPUT_GAMEPAD_DPAD_LEFT },
+		{ enButtonRight		, XINPUT_GAMEPAD_DPAD_RIGHT },
+		{ enButtonA			, XINPUT_GAMEPAD_A },
+		{ enButtonB			, XINPUT_GAMEPAD_B },
+		{ enButtonY			, XINPUT_GAMEPAD_Y },
+		{ enButtonX			, XINPUT_GAMEPAD_X },
+		{ enButtonSelect	, XINPUT_GAMEPAD_BACK },
+		{ enButtonStart		, XINPUT_GAMEPAD_START },
+		{ enButtonRB1		, XINPUT_GAMEPAD_RIGHT_SHOULDER },
+		{ enButtonRT		, 0 },
+		{ enButtonRSB		, XINPUT_GAMEPAD_RIGHT_THUMB },
+		{ enButtonLB1		, XINPUT_GAMEPAD_LEFT_SHOULDER },
+		{ enButtonLT		, 0 },
+		{ enButtonLSB		, XINPUT_GAMEPAD_LEFT_THUMB },
+	};
+}
+
+bool XInputPad::GetButton(enXInputButton button) const {
+	if (!m_state.isConnect) { return false; }//接続してない
+
+	for (const auto& vPadToXPad : vPadToXPadTable) {
+		if (button == vPadToXPad.vButton) {
+			if ((m_state.state.Gamepad.wButtons & vPadToXPad.xButton ) != 0) {
+				return true;
+			}
+			break;
+		}
+	}
+
+	return false;
+}
 
 void XInputPad::Update() {
 	DWORD dwResult;
@@ -35,3 +76,5 @@ void XInputPad::Update() {
 		}
 	}
 }*/
+
+}

@@ -227,6 +227,11 @@ static inline KeyState& GetKeyState() {
 static inline XInputManager& GetXInputManager() {
 	return GetEngine().GetXInputManager();
 }
+//XInputパッドの取得
+static inline XInputPad& Pad(int padNo)
+{
+	return GetEngine().GetXInputManager().GetPad(padNo);
+}
 
 //マウスホイール回転数(ノッチ数)のリセット
 static inline void ResetMouseWheelNotch() {
