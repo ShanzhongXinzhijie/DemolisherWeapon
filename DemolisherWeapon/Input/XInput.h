@@ -64,6 +64,11 @@ public:
 private:
 	DWORD m_padNum;
 
+	//デッドゾーンズ
+	int m_LEFT_THUMB_DEADZONE = XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+	int m_RIGHT_THUMB_DEADZONE = XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
+	int m_TRIGGER_THRESHOLD = XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+
 	struct PadState{
 		bool isConnect = false;
 		XINPUT_STATE state;

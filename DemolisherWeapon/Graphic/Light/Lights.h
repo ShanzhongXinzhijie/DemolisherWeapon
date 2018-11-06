@@ -17,6 +17,7 @@ public:
 	CDirectionLight(const CVector3& color, const CVector3& dir) {
 		m_struct.color = color;
 		m_struct.direction = dir;
+		m_struct.direction.Normalize();
 	};
 
 	void PostLoopUpdate()override;
@@ -26,6 +27,7 @@ public:
 	}
 	void SetDirection(const CVector3& dir) {
 		m_struct.direction = dir;
+		m_struct.direction.Normalize();
 	}
 
 	const SDirectionLight& GetStruct() { return m_struct; }
@@ -58,6 +60,7 @@ public:
 		m_pos = pos;
 		m_struct.range = range;
 		m_struct.attenuation = attenuation;
+		m_struct.attenuation = max(0.001f, m_struct.attenuation);
 	};
 
 	void PostLoopUpdate()override;
@@ -73,6 +76,7 @@ public:
 	}
 	void SetAttenuation(const float attenuation) {
 		m_struct.attenuation = attenuation;
+		m_struct.attenuation = max(0.001f, m_struct.attenuation);
 	}
 
 	const SPointLight& GetStruct() { return m_struct; }

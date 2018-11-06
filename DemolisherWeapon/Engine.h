@@ -199,6 +199,11 @@ static inline void SetMainCamera(GameObj::ICamera* cam)
 	GetEngine().GetGraphicsEngine().GetCameraManager().SetMainCamera(cam);
 }
 
+//アンビエントライトを設定
+static inline void SetAmbientLight(const CVector3& color) {
+	GetEngine().GetGraphicsEngine().GetLightManager().SetAmbientLight(color);
+}
+
 //ゲームオブジェクトの登録
 template <typename T>
 static inline void AddGO(T* go) {

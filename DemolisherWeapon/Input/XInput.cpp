@@ -33,6 +33,18 @@ bool XInputPad::GetButton(enXInputButton button) const {
 
 	for (const auto& vPadToXPad : vPadToXPadTable) {
 		if (button == vPadToXPad.vButton) {
+			if (vPadToXPad.vButton == enButtonRT) {
+				if (GetTrigger(R) > m_TRIGGER_THRESHOLD / 255.0f) {
+					return true;
+				}
+				break;
+			}
+			if (vPadToXPad.vButton == enButtonLT) {
+				if (GetTrigger(L) > m_TRIGGER_THRESHOLD / 255.0f) {
+					return true;
+				}
+				break;
+			}
 			if ((m_state.state.Gamepad.wButtons & vPadToXPad.xButton ) != 0) {
 				return true;
 			}
@@ -51,10 +63,28 @@ void XInputPad::Update() {
 	{
 		m_state.isConnect = true;
 
+		//デッドゾーンやんけ!
+		if ((m_state.state.Gamepad.sThumbLX < m_LEFT_THUMB_DEADZONE &&
+			m_state.state.Gamepad.sThumbLX > -m_LEFT_THUMB_DEADZONE) &&
+			(m_state.state.Gamepad.sThumbLY < m_LEFT_THUMB_DEADZONE &&
+				m_state.state.Gamepad.sThumbLY > -m_LEFT_THUMB_DEADZONE))
+		{
+			m_state.state.Gamepad.sThumbLX = 0;
+			m_state.state.Gamepad.sThumbLY = 0;
+		}
+		if ((m_state.state.Gamepad.sThumbRX < m_RIGHT_THUMB_DEADZONE &&
+			m_state.state.Gamepad.sThumbRX > -m_RIGHT_THUMB_DEADZONE) &&
+			(m_state.state.Gamepad.sThumbRY < m_RIGHT_THUMB_DEADZONE &&
+				m_state.state.Gamepad.sThumbRY > -m_RIGHT_THUMB_DEADZONE))
+		{
+			m_state.state.Gamepad.sThumbRX = 0;
+			m_state.state.Gamepad.sThumbRY = 0;
+		}
+
 		m_state.m_stick[L].x = m_state.state.Gamepad.sThumbLX / 32768.0f;
 		m_state.m_stick[L].y = m_state.state.Gamepad.sThumbLY / 32768.0f;
 		m_state.m_stick[R].x = m_state.state.Gamepad.sThumbRX / 32768.0f;
-		m_state.m_stick[R].y = m_state.state.Gamepad.sThumbRY / 32768.0f;
+		m_state.m_stick[R].y = m_state.state.Gamepad.sThumbRY / 32768.0f;		
 
 		m_state.m_trigger[L] = m_state.state.Gamepad.bLeftTrigger  / 255.0f;
 		m_state.m_trigger[R] = m_state.state.Gamepad.bRightTrigger / 255.0f;		
