@@ -3,17 +3,17 @@
 
 namespace DemolisherWeapon {
 
-MouseCursor::MouseCursor()
+CMouseCursor::CMouseCursor()
 {
 }
 
 
-MouseCursor::~MouseCursor()
+CMouseCursor::~CMouseCursor()
 {
 }
 
 
-void MouseCursor::Update() {
+void CMouseCursor::Update() {
 	//クライアント上のカーソル座標を取得
 	POINT p;
 	GetCursorPos(&p);
@@ -38,7 +38,7 @@ void MouseCursor::Update() {
 }
 
 //マウスカーソルを指定位置にセット
-void MouseCursor::SetMouseCursor(const CVector2& vec) {
+void CMouseCursor::SetMouseCursor(const CVector2& vec) {
 	//スクリーン上の座標に変換してセット
 	POINT p = { (LONG)(GetEngine().GetWindowSize().x*vec.x), (LONG)(GetEngine().GetWindowSize().y*vec.y) };
 	m_mouseClientPos.x = (float)p.x;

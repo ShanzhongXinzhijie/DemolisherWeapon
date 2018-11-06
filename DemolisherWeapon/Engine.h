@@ -118,7 +118,7 @@ public:
 	}	
 
 	//マウスカーソルマネージャーの取得
-	MouseCursor& GetMouseCursorManager() {
+	CMouseCursor& GetMouseCursorManager() {
 		return m_mouseCursorManager;
 	}
 	//キーステートマネージャーの取得
@@ -162,7 +162,7 @@ private:
 	GameLoop m_gameLoop;
 
 	//入力クラス
-	MouseCursor m_mouseCursorManager;
+	CMouseCursor m_mouseCursorManager;
 	KeyState m_keyState;
 	XInputManager m_xinputManager;
 	static int m_wheelNotch, m_wheelRot;//マウスホイールの回転量(縦)
@@ -221,12 +221,19 @@ static inline T* AddGO(T* go) {
 }*/
 
 //マウスカーソルマネージャーを取得
-static inline MouseCursor& GetMouseCursorManager() {
+static inline CMouseCursor& MouseCursor() {
+	return GetEngine().GetMouseCursorManager();
+}
+static inline CMouseCursor& GetMouseCursorManager() {
 	return GetEngine().GetMouseCursorManager();
 }
 //キーステートマネージャーを取得
 static inline KeyState& GetKeyState() {
 	return GetEngine().GetKeyState();
+}
+//キーボード入力を取得
+static inline bool GetKeyInput(int n) {
+	return GetEngine().GetKeyState().GetInput(n);
 }
 //XInputマネージャーの取得
 static inline XInputManager& GetXInputManager() {

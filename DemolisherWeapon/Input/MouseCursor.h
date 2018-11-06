@@ -2,13 +2,15 @@
 
 namespace DemolisherWeapon {
 
-class MouseCursor
+class CMouseCursor
 {
 public:
-	MouseCursor();
-	~MouseCursor();
+	CMouseCursor();
+	~CMouseCursor();
 
+	//エンジン内部で使ってます
 	void Update();
+
 	//カーソル移動量のリセット
 	void ResetMouseMove() {
 		m_mouseMove = CVector2::Zero();
