@@ -257,4 +257,9 @@ static inline int GetMouseWheel_H_Notch() { return GetEngine().GetMouseWheel_H_N
 //動作フレームレートを取得
 static inline int GetStandardFrameRate() { return GetEngine().GetStandardFrameRate(); }
 
+//1フレームの動作時間(秒)
+static inline float GetDeltaTimeSec() {
+	return 1.0f / GetStandardFrameRate();
+}
+
 }
