@@ -201,6 +201,8 @@ public:
 	virtual void PostLoopUpdate() {};
 	//virtual void Rengoku() {};
 
+	virtual void PostRender() {};
+
 private:
 	//bool m_enable = true;
 	bool m_isStart = false;
@@ -256,6 +258,7 @@ public:
 			}
 		}
 	}
+	void PostRender();
 
 	//€‚Ìˆ—	
 	/*void Hell() {

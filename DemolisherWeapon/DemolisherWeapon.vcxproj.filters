@@ -57,11 +57,11 @@
     <ClInclude Include="physics\MeshCollider.h" />
     <ClInclude Include="physics\MeshCollider.h" />
     <ClInclude Include="physics\character\CCharacterController.h" />
-    <ClInclude Include="Font\CFont.h" />
     <ClInclude Include="physics\PhysicsGhostObject.h" />
     <ClInclude Include="physics\PhysicsDynamicObject.h" />
     <ClInclude Include="physics\PhysicsDebugDraw.h" />
     <ClInclude Include="Render\PhysicsDebugDrawRender.h" />
+    <ClInclude Include="Graphic\Font\CFont.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -110,11 +110,11 @@
     <ClCompile Include="physics\MeshCollider.cpp" />
     <ClCompile Include="physics\MeshCollider.cpp" />
     <ClCompile Include="physics\character\CCharacterController.cpp" />
-    <ClCompile Include="Font\CFont.cpp" />
     <ClCompile Include="physics\PhysicsGhostObject.cpp" />
     <ClCompile Include="physics\PhysicsDynamicObject.cpp" />
     <ClCompile Include="physics\PhysicsDebugDraw.cpp" />
     <ClCompile Include="Render\PhysicsDebugDrawRender.cpp" />
+    <ClCompile Include="Graphic\Font\CFont.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

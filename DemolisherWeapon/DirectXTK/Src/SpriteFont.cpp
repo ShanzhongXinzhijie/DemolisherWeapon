@@ -317,6 +317,21 @@ void XM_CALLCONV SpriteFont::DrawString(_In_ SpriteBatch* spriteBatch, _In_z_ wc
 
     XMVECTOR baseOffset = origin;
 
+	//•¶š—ñ‚Ì•‚Æ‚‚³‚ğ‹‚ß‚éB
+	float strWidth = 0.0f;
+	float strHeight = 0.0f;
+	pImpl->ForEachGlyph(text, [&](Glyph const* glyph, float x, float y, float advance)
+	{
+		strWidth = std::max<float>(strWidth, x + advance);
+		strHeight = std::max<float>(strHeight, y + glyph->Subrect.bottom - glyph->Subrect.top);
+	});
+	//‹‚Ü‚Á‚½•¶š’·‚©‚çbaseOffset‚ğŒvZ‚·‚éB
+	XMFLOAT2 _origin;
+	XMStoreFloat2(&_origin, origin);
+	_origin.x = strWidth * _origin.x;
+	_origin.y = strHeight * _origin.y;
+	baseOffset = XMLoadFloat2(&_origin);
+
     // If the text is mirrored, offset the start position accordingly.
     if (effects)
     {

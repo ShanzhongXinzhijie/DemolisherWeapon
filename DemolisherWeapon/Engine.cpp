@@ -207,6 +207,9 @@ void GameLoop::Run() {
 		//レンダリング
 		GetEngine().GetGraphicsEngine().RunRenderManager();
 
+		//ゲームオブジェクトによるポスト描画
+		m_gameObjectManager_Ptr->PostRender();
+
 		//FPS表示		
 		m_fpscounter.Draw();
 

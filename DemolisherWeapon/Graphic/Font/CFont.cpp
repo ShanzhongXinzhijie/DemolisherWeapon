@@ -20,21 +20,21 @@ namespace DemolisherWeapon {
 		wchar_t const* text,
 		const CVector2& pos,
 		const CVector4& color,
-		float rotation,
 		const CVector2& scale,
 		const CVector2& pivot,
+		float rotation,
 		float layerDepth
 	) {
-		DrawScreenPos(text, { pos.x * m_screenSize.x, pos.y * m_screenSize.y }, color, rotation, scale, pivot, layerDepth);
+		DrawScreenPos(text, { pos.x * m_screenSize.x, pos.y * m_screenSize.y }, color, scale, pivot, rotation, layerDepth);
 	}
 
 	void CFont::DrawScreenPos(
 		wchar_t const* text,
 		const CVector2& pos,
 		const CVector4& color,
-		float rotation,
 		const CVector2& scale,
 		const CVector2& pivot,
+		float rotation,
 		float layerDepth
 	) {
 		if (text == nullptr) {

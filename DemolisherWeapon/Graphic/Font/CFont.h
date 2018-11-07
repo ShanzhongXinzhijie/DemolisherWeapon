@@ -21,9 +21,9 @@ namespace DemolisherWeapon {
 			wchar_t const* text,
 			const CVector2& pos,
 			const CVector4& color = CVector4::White(),
-			float rotation = 0.0f,
 			const CVector2& scale = CVector2::One(),
 			const CVector2& pivot = CVector2::Zero(),
+			float rotation = 0.0f,
 			float layerDepth = 0.5f
 		);
 		//const CVector2& pos をスクリーン座標で指定する版。右下の座標=画面解像度　
@@ -31,9 +31,9 @@ namespace DemolisherWeapon {
 			wchar_t const* text,
 			const CVector2& pos,
 			const CVector4& color = CVector4::White(),
-			float rotation = 0.0f,
 			const CVector2& scale = CVector2::One(),
 			const CVector2& pivot = CVector2::Zero(),
+			float rotation = 0.0f,
 			float layerDepth = 0.5f
 		);
 

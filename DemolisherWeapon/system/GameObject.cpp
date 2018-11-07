@@ -11,4 +11,15 @@ namespace DemolisherWeapon {
 		m_receiver->SetStatus(status);
 	}
 
+	void GameObjectManager::PostRender() {
+		GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin();
+
+		for (auto& go : m_gameObjectList) {
+			if (go.isEnable && go.gameObject->GetIsStart()) {
+				go.gameObject->PostRender();
+			}
+		}
+
+		GetEngine().GetGraphicsEngine().GetSpriteBatch()->End();
+	}
 }

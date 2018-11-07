@@ -64,7 +64,7 @@ void CFpsCounter::Draw() {
 	wchar_t output[256];
 	swprintf_s(output, L"%.1fFPS\nMAX:%.1f\nMIN:%.1f\nAVG:%.1f\nX%.4f", m_fps, s_max, s_min, s_avg, m_runframecnt);
 
-	GetEngine().GetGraphicsEngine().GetSpriteFont()->DrawString(GetEngine().GetGraphicsEngine().GetSpriteBatch(), output, { 0.0f,0.0f }, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 1.0f)); //DirectX::XMVectorScale(m_font->MeasureString(output), 0.0f));
+	GetEngine().GetGraphicsEngine().GetSpriteFont()->DrawString(GetEngine().GetGraphicsEngine().GetSpriteBatch(), output, { 0.0f,0.0f }, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f)); //DirectX::XMVectorScale(m_font->MeasureString(output), 0.0f));
 
 	GetEngine().GetGraphicsEngine().GetSpriteBatch()->End();
 }

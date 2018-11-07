@@ -168,7 +168,7 @@
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Font\CFont.h" />
+    <ClInclude Include="Graphic\Font\CFont.h" />
     <ClInclude Include="Render\PhysicsDebugDrawRender.h" />
     <ClInclude Include="physics\PhysicsDebugDraw.h" />
     <ClInclude Include="physics\PhysicsDynamicObject.h" />
@@ -225,7 +225,7 @@
     <ClInclude Include="Input\XInput.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Font\CFont.cpp" />
+    <ClCompile Include="Graphic\Font\CFont.cpp" />
     <ClCompile Include="Render\PhysicsDebugDrawRender.cpp" />
     <ClCompile Include="physics\PhysicsDebugDraw.cpp" />
     <ClCompile Include="physics\PhysicsDynamicObject.cpp" />
