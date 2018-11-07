@@ -20,10 +20,12 @@ namespace DemolisherWeapon {
 		//デバッグ表示のモードを設定する
 		void SetDebugMode(int debugMode)
 		{
+			m_enable = true;
 			m_physicsDrawer.setDebugMode(debugMode);
 		}
 
 	private:
+		bool m_enable = false;
 		PhysicsDebugDraw m_physicsDrawer;
 	};
 

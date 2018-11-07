@@ -20,16 +20,18 @@ namespace DemolisherWeapon {
 	}
 
 	void  PhysicsDebugDrawRender::Render() {
-		//レンダーターゲットとか設定		
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(
-			1,
-			&GetEngine().GetGraphicsEngine().GetFinalRender().GetFRT().GetRTV(), 
-			GetEngine().GetGraphicsEngine().GetGBufferRender().GetDSV()
-		);
+		if (m_enable) {
+			//レンダーターゲットとか設定		
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(
+				1,
+				&GetEngine().GetGraphicsEngine().GetFinalRender().GetFRT().GetRTV(),
+				GetEngine().GetGraphicsEngine().GetGBufferRender().GetDSV()
+			);
 
-		//描画しなさい
-		m_physicsDrawer.BeginDraw();
-		GetEngine().GetPhysicsWorld().GetDynamicWorld()->debugDrawWorld();
-		m_physicsDrawer.EndDraw();
+			//描画しなさい
+			m_physicsDrawer.BeginDraw();
+			GetEngine().GetPhysicsWorld().GetDynamicWorld()->debugDrawWorld();
+			m_physicsDrawer.EndDraw();
+		}
 	}
 }
