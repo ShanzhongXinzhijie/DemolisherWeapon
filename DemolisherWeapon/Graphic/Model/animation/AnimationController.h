@@ -20,6 +20,11 @@ public:
 		return m_animations[index];
 	}
 
+	//アニメーションが再生中か調べる
+	bool IsPlaying() const {
+		return m_animations[0].IsPlaying();
+	}
+
 	//アニメーションを再生
 	void Play(int clipNo, float interpolateTime = 0.0f) {
 		m_animations[0].Play(clipNo, interpolateTime);
