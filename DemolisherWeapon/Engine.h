@@ -17,12 +17,14 @@ struct InitEngineParameter {
 	float SDUnityChanScale = 1.0f;	//SDユニティちゃんの大きさ(距離の基準値になる)
 	int limitFps = 60;				//フレームレート上限
 	int standardFps = 60;			//動作フレームレート
-	int	screenWidth = 1280;			//!<スクリーンの幅。
-	int	screenHeight = 720;			//!<スクリーンの高さ。
-	int frameBufferWidth = 1280;	//!<フレームバッファの幅。これが内部解像度。
-	int frameBufferHeight = 720;	//!<フレームバッファの高さ。これが内部解像度。
-	int refleshRate = 60;
-	bool isWindowMode = TRUE;
+	int	screenWidth = 1280;			//ウィンドウの幅
+	int	screenHeight = 720;			//ウィンドウの高さ
+	int frameBufferWidth = 1280;	//フレームバッファの幅。これが内部解像度。
+	int frameBufferHeight = 720;	//フレームバッファの高さ。これが内部解像度。
+	int refleshRate = 60;			//リフレッシュレート
+	bool isWindowMode = TRUE;		//ウィンドウモードか？
+
+	CVector3 defaultAmbientLight = {0.3f,0.3f,0.3f};//デフォルトのアンビエントライト
 };
 
 class GameLoop {
@@ -176,6 +178,11 @@ static inline Engine& GetEngine()
 {
 	return Engine::GetInstance();
 }
+//物理エンジンの取得
+static inline CPhysicsWorld& GetPhysicsWorld()
+{
+	return GetEngine().GetPhysicsWorld();
+}
 
 //3Dモデルレンダーに描画するモデルを登録
 static inline void AddDrawModelToD3Render(SkinModel* sm) 
@@ -186,6 +193,10 @@ static inline void AddDrawModelToD3Render(SkinModel* sm)
 static inline void AddDrawModelToShadowMapRender(SkinModel* sm)
 {
 	GetEngine().GetGraphicsEngine().AddDrawModelToShadowMapRender(sm);
+}
+//物理エンジンのデバッグ表示のモードを設定する
+static inline void SetPhysicsDebugDrawMode(int debugMode) {
+	GetEngine().GetGraphicsEngine().SetPhysicsDebugDrawMode(debugMode);
 }
 
 //メインカメラを取得

@@ -38,7 +38,7 @@ void CPrimitive::Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* v
 	}	
 
 	//インデックスバッファの作成
-	{
+	if(numIndex > 0){
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 		bd.Usage = D3D11_USAGE_DEFAULT;
@@ -50,13 +50,17 @@ void CPrimitive::Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* v
 		InitData.pSysMem = index;
 
 		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bd, &InitData, &m_indexBuffer);
+
+		m_numIndex = numIndex;
 	}
-	m_numIndex = numIndex;
 
 	m_isInit = true;
 }
+void CPrimitive::Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* vertex) {
+	Init(topology, numVertex, vertex, 0, nullptr);
+}
 
-void CPrimitive::Draw() {
+void CPrimitive::Draw(int numVertex) {
 	if (m_isInit) {
 
 		//頂点バッファを設定
@@ -70,22 +74,42 @@ void CPrimitive::Draw() {
 			&offset
 		);
 		//インデックスバッファを設定
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->IASetIndexBuffer(
-			m_indexBuffer,
-			DXGI_FORMAT_R32_UINT,
-			0
-		);
+		if (m_numIndex > 0) {
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->IASetIndexBuffer(
+				m_indexBuffer,
+				DXGI_FORMAT_R32_UINT,
+				0
+			);
+		}
 		//トポロジーを設定
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->IASetPrimitiveTopology(m_topology);
 
 		//描画
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->DrawIndexed(
-			m_numIndex,
-			0,
-			0
-		);
-
+		if (m_numIndex > 0) {
+			//インデックス使用
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->DrawIndexed(
+				m_numIndex,
+				0,
+				0
+			);
+		}
+		else {
+			//通常
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->Draw(numVertex,0);
+		}
 	}
+}
+void CPrimitive::DrawIndexed() {
+	if (m_numIndex <= 0) {
+#ifdef _DEBUG
+		char message[256];
+		strcpy_s(message, "DrawIndexedに失敗(Draw()を使うべきでは?)\n");
+		OutputDebugStringA(message);
+#endif
+		return;
+	}
+
+	Draw(-1);	
 }
 
 }

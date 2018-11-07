@@ -119,17 +119,20 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	//ウィンドウを初期化。
 	InitWindow(hInstance, hPrevInstance, lpCmdLine, nCmdShow, appName, initParam.screenWidth, initParam.screenHeight);
 
-	//DirectXの初期化。
-	m_graphicsEngine.Init(m_hWnd, initParam.frameBufferWidth, initParam.frameBufferHeight, initParam.refleshRate, initParam.isWindowMode);
-
 	//Bulletの初期化
 	m_physics.Init();
+
+	//DirectXの初期化。
+	m_graphicsEngine.Init(m_hWnd, initParam.frameBufferWidth, initParam.frameBufferHeight, initParam.refleshRate, initParam.isWindowMode);
 
 	//ゲームループの初期化
 	m_gameLoop.Init(initParam.limitFps, initParam.standardFps);
 
 	//距離のスケールを設定
 	m_distanceScale = initParam.SDUnityChanScale;
+
+	//アンビエントライト
+	SetAmbientLight(initParam.defaultAmbientLight);
 }
 
 

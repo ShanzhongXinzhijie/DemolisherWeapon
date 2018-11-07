@@ -1,13 +1,14 @@
 #pragma once
 
 #include"Render/IRander.h"
-//#include"Render/D3Render.h"
 #include"Render/GBufferRender.h"
 #include"Render/ShadowMapRender.h"
 #include"Render/AmbientOcclusionRender.h"
 #include"Render/DefferdRender.h"
 #include"Render/FinalRender.h"
 #include"Render/MotionBlurRender.h"
+#include"Render/PhysicsDebugDrawRender.h"
+
 #include"Camera/CameraManager.h"
 #include"Graphic/Light/Lights.h"
 #include"Graphic/CPrimitive.h"
@@ -82,7 +83,7 @@ public:
 
 	//フルスクリーン描画
 	void DrawFullScreen() {
-		m_fullscreen.Draw();
+		m_fullscreen.DrawIndexed();
 	}
 
 	//3Dモデルレンダーに描画するモデルを登録
@@ -104,6 +105,15 @@ public:
 	//アンビエントオクルージョンレンダーの取得
 	AmbientOcclusionRender& GetAmbientOcclusionRender() {
 		return m_ambientOcclusionRender;
+	}
+	//PhysicsDebugDrawRenderの取得
+	//PhysicsDebugDrawRender& GetPhysicsDebugDrawRender() {
+	//	return m_physicsDebugDrawRender;
+	//}
+	void SetPhysicsDebugDrawMode(int debugMode) {
+#ifdef _DEBUG	
+		m_physicsDebugDrawRender.SetDebugMode(debugMode);
+#endif
 	}
 	//ファイナルレンダーの取得
 	FinalRender& GetFinalRender() {
@@ -146,12 +156,14 @@ private:
 
 	//レンダー
 	RanderManager m_renderManager;
-	//D3Render m_d3render;//3Dモデルレンダー
 	GBufferRender m_gbufferRender;
 	ShadowMapRender m_shadowMapRender;
 	AmbientOcclusionRender m_ambientOcclusionRender;
 	DefferdRender m_defferdRender;
 	MotionBlurRender m_motionBlurRender;
+#ifdef _DEBUG
+	PhysicsDebugDrawRender m_physicsDebugDrawRender;
+#endif
 	FinalRender m_finalRender;
 
 	//カメラマネージャー

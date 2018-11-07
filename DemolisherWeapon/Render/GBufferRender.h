@@ -33,6 +33,7 @@ public:
 	ID3D11ShaderResourceView*& GetDepthStencilSRV() {
 		return m_depthStencilSRV;
 	}
+	ID3D11DepthStencilView* GetDSV() { return m_depthStencilView; }
 
 	void Render()override;
 

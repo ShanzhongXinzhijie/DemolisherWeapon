@@ -22,6 +22,12 @@ public:
 
 	void PostLoopUpdate()override;
 
+	//有効・無効を設定
+	void SetActiveFlag(bool active) {
+		m_active = active;
+	};
+
+	//パラメーター設定
 	void SetColor(const CVector3& color) {
 		m_struct.color = color;
 	}
@@ -30,9 +36,12 @@ public:
 		m_struct.direction.Normalize();
 	}
 
-	const SDirectionLight& GetStruct() { return m_struct; }
+
+	const SDirectionLight& GetStruct() const{ return m_struct; }
+	bool GetActiveFlag() const { return m_active; }
 
 private:
+	bool m_active = true;
 	SDirectionLight m_struct;
 };
 
@@ -46,8 +55,8 @@ struct SPointLight {
 	CVector3	color;			//!<ライトのカラー。
 	//CVector4	attn;			//!<減衰定数。xはポイントライトの影響が届く範囲。yはポイントライトの減衰率に影響を与えます。
 								//!<yが大きくなると、減衰が強くなります。1.0で線形の減衰率になります。z,wは未使用。
-	float range;
-	float attenuation;
+	float range = 0.0f;
+	float attenuation = 1.0f;
 };
 
 namespace GameObj {
@@ -65,6 +74,12 @@ public:
 
 	void PostLoopUpdate()override;
 
+	//有効・無効を設定
+	void SetActiveFlag(bool active) {
+		m_active = active;
+	};
+
+	//パラメーター設定
 	void SetColor(const CVector3& color) {
 		m_struct.color = color;
 	}
@@ -79,9 +94,12 @@ public:
 		m_struct.attenuation = max(0.001f, m_struct.attenuation);
 	}
 
-	const SPointLight& GetStruct() { return m_struct; }
+
+	const SPointLight& GetStruct() const{ return m_struct; }
+	bool GetActiveFlag() const { return m_active; }
 
 private:
+	bool m_active = true;
 	SPointLight m_struct;
 	CVector3 m_pos;
 };

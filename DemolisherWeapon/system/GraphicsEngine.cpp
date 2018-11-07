@@ -226,6 +226,11 @@ void GraphicsEngine::Init(HWND hWnd, int bufferW, int bufferH, int refreshRate, 
 	m_renderManager.AddRender(3, &m_defferdRender);
 	m_renderManager.AddRender(4, &m_motionBlurRender);
 
+#ifdef _DEBUG
+	m_physicsDebugDrawRender.Init();
+	m_renderManager.AddRender(999, &m_physicsDebugDrawRender);
+#endif
+
 	m_finalRender.Init();
 	m_renderManager.AddRender(1000, &m_finalRender);
 

@@ -112,15 +112,17 @@ void LightManager::UpdateBuffers() {
 	{
 		int i = 0;
 		for (auto& DL : m_directionLights) {
-			m_rawDirectionLights[i] = DL->GetStruct();
-			i++;
-			if (i >= DIRLIGHT_NUM) { 
+			if (DL->GetActiveFlag()) {
+				m_rawDirectionLights[i] = DL->GetStruct();
+				i++;
+				if (i >= DIRLIGHT_NUM) {
 #ifdef _DEBUG
-				char message[256];
-				strcpy_s(message, "【多い】ディレクションライトが多い【やめろ】\n");
-				OutputDebugStringA(message);
+					char message[256];
+					strcpy_s(message, "【多い】ディレクションライトが多い【やめろ】\n");
+					OutputDebugStringA(message);
 #endif
-				break; 
+					break;
+				}
 			}
 		}
 		m_directionLights.clear();
@@ -130,15 +132,17 @@ void LightManager::UpdateBuffers() {
 	{
 		int i = 0;
 		for (auto& PL : m_pointLights) {
-			m_rawPointLights[i] = PL->GetStruct();
-			i++;
-			if (i >= POILIGHT_NUM) {
+			if (PL->GetActiveFlag()) {
+				m_rawPointLights[i] = PL->GetStruct();
+				i++;
+				if (i >= POILIGHT_NUM) {
 #ifdef _DEBUG
-				char message[256];
-				strcpy_s(message, "【多い】ポイントライトが多い【やめろ】\n");
-				OutputDebugStringA(message);
+					char message[256];
+					strcpy_s(message, "【多い】ポイントライトが多い【やめろ】\n");
+					OutputDebugStringA(message);
 #endif
-				break;
+					break;
+				}
 			}
 		}
 		m_pointLights.clear();

@@ -103,6 +103,11 @@ public:
 		static const CVector2 zero = { 0.0f,  0.0f };
 		return zero;
 	}
+	static CVector2 One()
+	{
+		static const CVector2 one = { 1.0f,  1.0f };
+		return one;
+	}
 };
 /*!
  * @brief	ベクトル。
