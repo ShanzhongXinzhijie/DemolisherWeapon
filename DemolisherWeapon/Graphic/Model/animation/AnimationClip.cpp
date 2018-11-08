@@ -72,11 +72,11 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 			CMatrix mBias = CMatrix::Identity();
 			if (m_changeUpAxis == enZtoY) {
 				//Z to Y-up
-				mBias.MakeRotationX(CMath::PI * 0.5f);
+				mBias.MakeRotationX(CMath::PI * -0.5f);
 			}
 			if (m_changeUpAxis == enYtoZ) {
 				//Y to Z-up
-				mBias.MakeRotationX(CMath::PI * -0.5f);
+				mBias.MakeRotationX(CMath::PI * 0.5f);
 			}
 			keyframe->transform.Mul(mBias, keyframe->transform);
 		}
