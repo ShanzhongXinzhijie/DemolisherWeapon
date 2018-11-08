@@ -148,38 +148,42 @@ div.WordSection1
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoTocHeading>目次</p>
   <p class=MsoToc1><span lang=EN-US><span class=MsoHyperlink><a
-  href="#_Toc529278166"><span lang=EN-US><span lang=EN-US>【GameObject</span></span><span
+  href="#_Toc529459892"><span lang=EN-US><span lang=EN-US>【GameObject</span></span><span
   lang=EN-US><span lang=EN-US>】</span></span><span style='color:windowtext;
   display:none;text-decoration:none'>... </span><span
   style='color:windowtext;display:none;text-decoration:none'>1</span></a></span></span></p>
   <p class=MsoToc1><span class=MsoHyperlink><span lang=EN-US><a
-  href="#_Toc529278167"><span lang=EN-US><span lang=EN-US>【カメラ】</span></span><span
+  href="#_Toc529459893"><span lang=EN-US><span lang=EN-US>【カメラ】</span></span><span
   style='color:windowtext;display:none;text-decoration:none'>... </span><span
   style='color:windowtext;display:none;text-decoration:none'>1</span></a></span></span></p>
   <p class=MsoToc1><span class=MsoHyperlink><span lang=EN-US><a
-  href="#_Toc529278168"><span lang=EN-US><span lang=EN-US>【入力】</span></span><span
+  href="#_Toc529459894"><span lang=EN-US><span lang=EN-US>【入力】</span></span><span
   style='color:windowtext;display:none;text-decoration:none'>... </span><span
   style='color:windowtext;display:none;text-decoration:none'>1</span></a></span></span></p>
   <p class=MsoToc1><span class=MsoHyperlink><span lang=EN-US><a
-  href="#_Toc529278169"><span lang=EN-US><span lang=EN-US>【アニメー<span
-  lang=EN-US>シ<span lang=EN-US>ョン】</span></span></span></span><span
+  href="#_Toc529459895"><span lang=EN-US><span lang=EN-US>【3D</span></span><span
+  lang=EN-US><span lang=EN-US>モデル】</span></span><span style='color:windowtext;
+  display:none;text-decoration:none'>... </span><span
+  style='color:windowtext;display:none;text-decoration:none'>1</span></a></span></span></p>
+  <p class=MsoToc1><span class=MsoHyperlink><span lang=EN-US><a
+  href="#_Toc529459896"><span lang=EN-US><span lang=EN-US>【アニメーション】</span></span><span
   style='color:windowtext;display:none;text-decoration:none'>... </span><span
   style='color:windowtext;display:none;text-decoration:none'>1</span></a></span></span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <h1><a name="_Toc529278166"></a><a name="_Toc529277850">【<span lang=EN-US>GameObject</span>】</a></h1>
+  <h1><a name="_Toc529459892"></a><a name="_Toc529277850">【<span lang=EN-US>GameObject</span>】</a></h1>
   <p class=MsoNormal><span lang=EN-US>NewGO</span>はないです。</p>
   <p class=MsoNormal><span lang=EN-US>IGameObject</span>は勝手にゲームループで動きます。通常のクラスや型と同じように扱ってください。</p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoNormal><span lang=EN-US>AddGO</span>がありますが使う必要はないです。</p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <h1><a name="_Toc529278167"></a><a name="_Toc529277851">【カメラ】</a></h1>
+  <h1><a name="_Toc529459893"></a><a name="_Toc529277851">【カメラ】</a></h1>
   <p class=MsoNormal><span lang=EN-US style='background:#FFD966'>GameObj::PerspectiveCamera</span><span
   style='background:#FFD966'>等のカメラを作り、<span lang=EN-US>SetMainCamera</span>で設定してください。</span></p>
   <p class=MsoNormal><span style='background:#FFD966'>デフォルトではカメラが存在しません。</span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <h1><a name="_Toc529278168"></a><a name="_Toc529277852">【入力】</a></h1>
+  <h1><a name="_Toc529459894"></a><a name="_Toc529277852">【入力】</a></h1>
   <p class=MsoNormal>パッドの入力を取得</p>
   <p class=MsoNormal>→<span lang=EN-US>Pad()</span></p>
   <p class=MsoNormal>キーボード・マウスボタンの入力を取得</p>
@@ -195,7 +199,10 @@ div.WordSection1
   <p class=MsoNormal>キーコンフィグできる入力クラスみたいなのいる<span lang=EN-US>?(</span>欲しい人連絡ください<span
   lang=EN-US>)</span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <h1><a name="_Toc529278169"></a><a name="_Toc529277853">【アニメーション】</a></h1>
+  <h1><a name="_Toc529459895">【<span lang=EN-US>3D</span>モデル】</a></h1>
+  <p class=MsoNormal style='background:#FFD966'>ボーンが存在するモデルは必ず<span lang=EN-US>tks</span>ファイルを作成してください。</p>
+  <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+  <h1><a name="_Toc529459896"></a><a name="_Toc529277853">【アニメーション】</a></h1>
   <p class=MsoNormal>サンプルです</p>
   <table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0
    style='border-collapse:collapse;border:none'>
@@ -260,7 +267,14 @@ div.WordSection1
     lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:darkslategray'>enAnimationClip_walk</span><span
     lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>].Load(</span><span
     lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:#A31515'>L&quot;Resource/animData/walk.tka&quot;</span><span
-    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>);</span></p>
+    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:#0D0D0D'>,</span><span
+    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:#A31515'> </span><span
+    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:#0000CC'>false</span><span
+    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>, </span><span
+    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:darkslategray'>enZtoY</span><span
+    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>);</span><span
+    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:green'>//</span><span
+    style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:green'>第三引数でアニメーションの上方向軸を変換できます</span></p>
     <p class=MsoNormal align=left style='text-align:left;text-autospace:none'><span
     lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>m_animationClips[</span><span
     lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:darkslategray'>enAnimationClip_walk</span><span
@@ -274,10 +288,10 @@ div.WordSection1
     <p class=MsoNormal align=left style='text-align:left;text-autospace:none'><span
     lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>m_model.Init(</span><span
     lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:#A31515'>L&quot;Resource/modelData/unityChan.cmo&quot;</span><span
-    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>,
-    m_animationClips, </span><span lang=EN-US style='font-size:9.5pt;
-    font-family:"ＭＳ ゴシック";color:darkslategray'>enAnimationClip_num</span><span
-    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>, </span><span
+    lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>, m_animationClips,
+    </span><span lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";
+    color:darkslategray'>enAnimationClip_num</span><span lang=EN-US
+    style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>, </span><span
     lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:darkslategray'>enFbxUpAxisY</span><span
     lang=EN-US style='font-size:9.5pt;font-family:"ＭＳ ゴシック";color:black'>);</span></p>
     <p class=MsoNormal align=left style='text-align:left;text-autospace:none'><span
