@@ -12,6 +12,8 @@ namespace DemolisherWeapon {
 class Skeleton;
 class SkinModel;
 
+using AnimationEventListener = std::function<void(const wchar_t* clipName, const wchar_t* eventName)>;
+
 /*!
 * @brief	アニメーションクラス。
 */
@@ -19,14 +21,14 @@ class Animation {
 public:
 	Animation();
 	~Animation();
+
 	/*!
-		*@brief	初期化。
-		*@param[in]	skinModel		アニメーションさせるスキンモデル。
-		*@param[in]	animeClipList	アニメーションクリップの配列。
-		*@param[in]	numAnimClip		アニメーションクリップの数。
+	*@brief	初期化。
+	*@param[in]	skinModel		アニメーションさせるスキンモデル。
+	*@param[in]	animeClipList	アニメーションクリップの配列。
+	*@param[in]	numAnimClip		アニメーションクリップの数。
 	*/
 	void Init(SkinModel& skinModel, AnimationClip animClipList[], int numAnimClip);
-
 		
 	/*!
 	*@brief	アニメーションの再生。
@@ -44,6 +46,26 @@ public:
 	{
 		int lastIndex = GetLastAnimationControllerIndex();
 		return m_animationPlayControllerPtr[lastIndex]->IsPlaying();
+	}
+
+	/*!
+	*@brief	アニメーションイベントリスナーを登録。
+	*@return
+	* 登録されたリスナー。
+	*/
+	void AddAnimationEventListener(AnimationEventListener eventListener)
+	{
+		m_animationEventListeners.push_back(eventListener);
+	}
+
+	/*!
+	* @brief	アニメーションイベントをリスナーに通知。
+	*/
+	void NotifyAnimationEventToListener(const wchar_t* clipName, const wchar_t* eventName)
+	{
+		for (auto& listener : m_animationEventListeners) {
+			listener(clipName, eventName);
+		}
 	}
 	
 	/*!
@@ -118,12 +140,12 @@ private:
 		m_interpolateTime = 0.0f;
 	}
 	/*!
-		* @brief	ローカルポーズの更新。
-		*/
+	* @brief	ローカルポーズの更新。
+	*/
 	void UpdateLocalPose(float deltaTime);
 	/*!
-		* @brief	グローバルポーズの更新。
-		*/
+	* @brief	グローバルポーズの更新。
+	*/
 	void UpdateGlobalPose();
 		
 private:
@@ -171,9 +193,12 @@ private:
 	float m_interpolateTimeEnd = 0.0f;
 	bool m_isInterpolate = false;				//!<補間中？
 
+	//出力するグローバルポーズ
 	std::vector<CQuaternion> m_GlobalRotation;
 	std::vector<CVector3> m_GlobalTranslation;
 	std::vector<CVector3> m_GlobalScale;
+
+	std::vector<AnimationEventListener>	m_animationEventListeners;	//!<アニメーションイベントリスナーのリスト。
 
 };
 

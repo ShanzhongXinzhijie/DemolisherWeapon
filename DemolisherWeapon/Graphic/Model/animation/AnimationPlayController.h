@@ -88,9 +88,15 @@ public:
 private:
 	
 	/*!
+	*@brief	アニメーションイベントを起動する。
+	*/
+	void InvokeAnimationEvent(Animation* animation);
+
+	/*!
 	*@brief	ループ再生開始する時の処理。
 	*/
 	void StartLoop();
+
 private:
 	AnimationClip*			m_animationClip = nullptr;		//!<アニメーションクリップ。
 	int						m_currentKeyFrameNo = 0;		//!<現在再生中のキーフレーム番号。

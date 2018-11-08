@@ -17,8 +17,10 @@ AnimationClip::~AnimationClip()
 	}
 }
 
-void AnimationClip::Load(const wchar_t* filePath, bool loop)
+void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationClipUpAxis changeUpAxis)
 {
+	m_changeUpAxis = changeUpAxis;
+
 	FILE* fp;
 	if (_wfopen_s(&fp, filePath, L"rb") != 0) {
 #ifdef _DEBUG
@@ -64,6 +66,21 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop)
 			keyframe->transform.m[j][1] = keyframes[i].transform[j].y;
 			keyframe->transform.m[j][2] = keyframes[i].transform[j].z;
 		}
+
+		//ルートボーンに軸バイアスを掛ける
+		if (m_changeUpAxis != enNonChange && keyframe->boneIndex == 0) {
+			CMatrix mBias = CMatrix::Identity();
+			if (m_changeUpAxis == enZtoY) {
+				//Z to Y-up
+				mBias.MakeRotationX(CMath::PI * 0.5f);
+			}
+			if (m_changeUpAxis == enYtoZ) {
+				//Y to Z-up
+				mBias.MakeRotationX(CMath::PI * -0.5f);
+			}
+			keyframe->transform.Mul(mBias, keyframe->transform);
+		}
+
 		//新しく作ったキーフレームを可変長配列に追加。
 		m_keyframes.push_back(keyframe);
 	}

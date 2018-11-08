@@ -111,6 +111,12 @@ public:
 		CastStatus();
 	};
 
+	IGameObject(const IGameObject& go) = delete;//コピーコンストラクタ
+	IGameObject& operator=(const IGameObject&) = delete;
+
+	IGameObject(IGameObject&&)noexcept = delete;// {};//ムーブコンストラクタ
+	IGameObject& operator=(IGameObject&&)noexcept = delete;// {};
+
 private:
 
 	//開始

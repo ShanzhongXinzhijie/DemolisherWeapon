@@ -72,7 +72,7 @@ public:
 		m_struct.attenuation = max(0.001f, m_struct.attenuation);
 	};
 
-	void PostLoopUpdate()override;
+	void PostLoopUpdate()override final;
 
 	//—LŒøE–³Œø‚ğİ’è
 	void SetActiveFlag(bool active) {

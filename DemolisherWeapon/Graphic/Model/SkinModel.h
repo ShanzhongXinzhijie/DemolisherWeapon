@@ -90,6 +90,10 @@ public:
 		m_isMotionBlur = flag;
 	}
 
+	const EnFbxUpAxis& GetFBXUpAxis()const {
+		return m_enFbxUpAxis;
+	}
+
 private:
 	/*!
 	*@brief	サンプラステートの初期化。

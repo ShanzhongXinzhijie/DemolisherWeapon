@@ -6,6 +6,15 @@ namespace DemolisherWeapon {
 	IGameObject::IGameObject(bool isRegister) {
 		if (isRegister) { AddGO(this); }
 	}
+	/*IGameObject::IGameObject(const IGameObject& go) {//コピーコンストラクタ
+		if (go.IsRegistered()) { AddGO(this); }
+	}*/
+	/*{
+		bool m_isStart = false;
+		GORegister* m_register = nullptr;//マネージャーに登録されているか(ポインタ)
+		GOStatus m_status;//状態
+		std::list<GOStatusCaster> m_statusCaster;//状態を送信する
+	}*/
 
 	void GOStatusCaster::Cast(const GOStatus& status) {
 		m_receiver->SetStatus(status);
