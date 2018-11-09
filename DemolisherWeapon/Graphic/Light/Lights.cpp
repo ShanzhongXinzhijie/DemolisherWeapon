@@ -7,7 +7,9 @@ namespace GameObj {
 
 void CDirectionLight::PostLoopUpdate(){
 	//“o˜^
-	GetEngine().GetGraphicsEngine().GetLightManager().AddDirectionLight(this);
+	if (GetActiveFlag()) {
+		GetEngine().GetGraphicsEngine().GetLightManager().AddDirectionLight(this);
+	}
 };
 
 void CPointLight::PostLoopUpdate(){
@@ -20,7 +22,9 @@ void CPointLight::PostLoopUpdate(){
 	//GetMainCamera()->GetViewMatrix().Mul(m_struct.positionInView);
 
 	//“o˜^
-	GetEngine().GetGraphicsEngine().GetLightManager().AddPointLight(this);
+	if (GetActiveFlag()) {
+		GetEngine().GetGraphicsEngine().GetLightManager().AddPointLight(this);
+	}
 };
 
 }

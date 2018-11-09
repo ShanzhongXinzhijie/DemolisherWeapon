@@ -127,6 +127,9 @@ public:
 	*@param[in]	filePath	ファイルパス。
 	*/
 	void Load(const wchar_t* filePath, bool loop = false, EnChangeAnimationClipUpAxis changeUpAxis = enNonChange);
+	void Load(const wchar_t* filePath, EnChangeAnimationClipUpAxis changeUpAxis) {
+		Load(filePath, false, changeUpAxis);
+	};
 
 	/*!
 	*@brief	ループする？
