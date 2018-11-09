@@ -79,12 +79,66 @@ public:
 		xmv = DirectX::XMVectorScale(xmv, s);
 		DirectX::XMStoreFloat2(&vec, xmv);
 	}
+	//ベクトル同士の乗算。
+	void Multiply(const CVector2& _v)
+	{
+		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat2(&vec);
+		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat2(&_v.vec);
+		DirectX::XMVECTOR xmvr = DirectX::XMVectorMultiply(xmv0, xmv1);
+		DirectX::XMStoreFloat2(&vec, xmvr);
+	}
+	void Multiply(const CVector2& v0, const CVector2& v1)
+	{
+		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat2(&v0.vec);
+		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat2(&v1.vec);
+		DirectX::XMVECTOR xmvr = DirectX::XMVectorMultiply(xmv0, xmv1);
+		DirectX::XMStoreFloat2(&vec, xmvr);
+	}
+	/*!
+	* @brief	除算。
+	*/
+	void Div(float d)
+	{
+		float scale = 1.0f / d;
+		Scale(scale);
+	}
+
 	/*!
 	 *@brief	加算代入演算子。
 	 */
 	const CVector2& operator+=(const CVector2& _v)
 	{
 		Add(_v);
+		return *this;
+	}
+	/*!
+	*@brief　乗算代入演算子。
+	*/
+	const CVector2& operator*=(float s)
+	{
+		Scale(s);
+		return *this;
+	}
+	//乗算代入演算子(ベクトル同士)。
+	const CVector2& operator*=(const CVector2& _v)
+	{
+		Multiply(_v);
+		return *this;
+	}
+	/*!
+	*@brief	減算代入演算子。
+	*/
+	const CVector2& operator-=(const CVector2& _v)
+	{
+		Subtract(_v);
+		return *this;
+	}
+	/*!
+	 *@brief	除算代入演算子。
+	 */
+	const CVector2& operator/=(const float s)
+	{
+		Div(s);
 		return *this;
 	}
 
@@ -286,6 +340,21 @@ public:
 		xmv = DirectX::XMVectorScale(xmv, s);
 		DirectX::XMStoreFloat3(&vec, xmv);
 	}
+	//ベクトル同士の乗算。
+	void Multiply(const CVector3& _v)
+	{
+		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat3(&vec);
+		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat3(&_v.vec);
+		DirectX::XMVECTOR xmvr = DirectX::XMVectorMultiply(xmv0, xmv1);
+		DirectX::XMStoreFloat3(&vec, xmvr);
+	}
+	void Multiply(const CVector3& v0, const CVector3& v1)
+	{
+		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat3(&v0.vec);
+		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat3(&v1.vec);
+		DirectX::XMVECTOR xmvr = DirectX::XMVectorMultiply(xmv0, xmv1);
+		DirectX::XMStoreFloat3(&vec, xmvr);
+	}
 	/*!
 	* @brief	法線を正規化。
 	*/
@@ -344,6 +413,12 @@ public:
 	const CVector3& operator*=(float s) 
 	{
 		Scale(s);
+		return *this;
+	}
+	//乗算代入演算子(ベクトル同士)。
+	const CVector3& operator*=(const CVector3& _v)
+	{
+		Multiply(_v);
 		return *this;
 	}
 	/*!
@@ -584,6 +659,69 @@ public:
 		xmv = DirectX::XMVectorScale(xmv, s);
 		DirectX::XMStoreFloat4(&vec, xmv);
 	}
+	//ベクトル同士の乗算。
+	void Multiply(const CVector4& _v)
+	{
+		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat4(&vec);
+		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat4(&_v.vec);
+		DirectX::XMVECTOR xmvr = DirectX::XMVectorMultiply(xmv0, xmv1);
+		DirectX::XMStoreFloat4(&vec, xmvr);
+	}
+	void Multiply(const CVector4& v0, const CVector4& v1)
+	{
+		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat4(&v0.vec);
+		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat4(&v1.vec);
+		DirectX::XMVECTOR xmvr = DirectX::XMVectorMultiply(xmv0, xmv1);
+		DirectX::XMStoreFloat4(&vec, xmvr);
+	}
+	/*!
+	* @brief	除算。
+	*/
+	void Div(float d)
+	{
+		float scale = 1.0f / d;
+		Scale(scale);
+	}
+
+	/*!
+	 *@brief	加算代入演算子。
+	 */
+	const CVector4& operator+=(const CVector4& _v)
+	{
+		Add(_v);
+		return *this;
+	}
+	/*!
+	*@brief　乗算代入演算子。
+	*/
+	const CVector4& operator*=(float s)
+	{
+		Scale(s);
+		return *this;
+	}
+	//乗算代入演算子(ベクトル同士)。
+	const CVector4& operator*=(const CVector4& _v)
+	{
+		Multiply(_v);
+		return *this;
+	}
+	/*!
+	*@brief	減算代入演算子。
+	*/
+	const CVector4& operator-=(const CVector4& _v)
+	{
+		Subtract(_v);
+		return *this;
+	}
+	/*!
+	 *@brief	除算代入演算子。
+	 */
+	const CVector4& operator/=(const float s)
+	{
+		Div(s);
+		return *this;
+	}
+
 	static CVector4 White()
 	{
 		static const CVector4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -750,6 +888,14 @@ static inline TVector operator*(const TVector& v, float s)
 	TVector result;
 	result = v;
 	result.Scale(s);
+	return result;
+}
+//ベクトル同士の乗算。
+template<class TVector>
+static inline TVector operator*(const TVector& v0, const TVector& v1)
+{
+	TVector result;
+	result.Multiply(v0, v1);
 	return result;
 }
 /*!
