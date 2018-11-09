@@ -43,6 +43,12 @@ public:
 		m_currentKeyFrameNo = 0;
 		m_time = 0.0f;
 		m_isPlaying = true;
+
+		//アニメーションイベントの発生フラグをすべてfalseにする。
+		auto& animEventArray = m_animationClip->GetAnimationEvent();
+		for (auto i = 0; i < m_animationClip->GetNumAnimationEvent(); i++) {
+			animEventArray[i].SetInvokedFlag(false);
+		}
 	}
 	void SetInterpolateTime(float interpolateTime)
 	{

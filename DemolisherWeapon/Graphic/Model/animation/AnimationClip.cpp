@@ -6,6 +6,7 @@
 #include "AnimationClip.h"
 #include "Graphic/Model/skeleton.h"
 
+#include <filesystem>
 
 namespace DemolisherWeapon {
 
@@ -33,17 +34,37 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 #endif
 		return;
 	}
+
+	//クリップ名記録
+	std::experimental::filesystem::path ps = filePath;
+	m_clipName = ps.stem();
 	
 	//アニメーションクリップのヘッダーをロード。
 	AnimClipHeader header;
 	fread(&header, sizeof(header), 1, fp);
 		
+	//アニメーションイベント
 	if (header.numAnimationEvent > 0) {
-		//アニメーションイベントは未対応。
-		//就職作品でチャレンジしてみよう。
-		std::abort();
-	}
+		m_animationEvent = std::make_unique<AnimationEvent[]>(header.numAnimationEvent);
+		//アニメーションイベントがあるなら、イベント情報をロードする。
+		for (auto i = 0; i < (int)header.numAnimationEvent; i++) {
+			AnimationEventData animEvent;
+			fread(&animEvent, sizeof(animEvent), 1, fp);
+			//イベント名をロードする。
+			static char eventName[256];
+			static wchar_t wEventName[256];
+			fread(eventName, animEvent.eventNameLength + 1, 1, fp);
+			
+			//mbstowcs(wEventName, eventName, 255);
+			//マルチバイト文字列をワイド文字列に変換する。
+			size_t rval = 0;
+			mbstowcs_s(&rval, wEventName, 256, eventName, animEvent.eventNameLength + 1);
 
+			m_animationEvent[i].SetInvokeTime(animEvent.invokeTime);
+			m_animationEvent[i].SetEventName(wEventName);
+		}
+	}
+	m_numAnimationEvent = header.numAnimationEvent;
 
 	//中身コピーするためのメモリをドカッと確保。
 	KeyframeRow* keyframes = new KeyframeRow[header.numKey];

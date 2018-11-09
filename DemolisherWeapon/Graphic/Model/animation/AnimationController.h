@@ -9,6 +9,7 @@ public:
 	AnimationController();
 	~AnimationController();
 
+	//初期化
 	void Init(SkinModel& skinModel, AnimationClip animClipList[], int numAnimClip);
 
 	//アニメーションを追加
@@ -36,6 +37,18 @@ public:
 	}
 	void SetSpeed(int index,float speedScale) {
 		m_animPlaySpeedSec[index] = speedScale;
+	}
+
+	/*!
+	*@brief	アニメーションイベントを監視する関数を登録。
+	*@details
+	* アニメーションイベントが打ち込まれたフレームまでアニメーションを
+	* 再生すると、登録されている関数が呼び出されます。
+	*@param[in]		eventListener		イベントを監視する関数オブジェクト。
+	*/
+	void AddAnimationEventListener(std::function<void(const wchar_t* clipName, const wchar_t* eventName)> eventListener)
+	{
+		m_animations[0].AddAnimationEventListener(eventListener);
 	}
 
 	void Update();

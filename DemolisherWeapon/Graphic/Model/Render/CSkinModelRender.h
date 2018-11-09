@@ -62,10 +62,11 @@ public:
 	{
 		return m_model;
 	}
+
 	//アニメーションコントローラーの取得
 	AnimationController& GetAnimCon() {
 		return m_animCon;
-	}
+	}	
 
 	//描画を行うか設定
 	void SetIsDraw(bool flag) {
