@@ -122,8 +122,8 @@ void SkinModel::UpdateWorldMatrix(CVector3 position, CQuaternion rotation, CVect
 	//最初のワールド座標更新なら...
 	if (m_isFirstWorldMatRef) {
 		m_isFirstWorldMatRef = false;
-		m_worldMatrixOld = m_worldMatrix;
-		m_skeleton.UpdateBoneMatrixOld();
+		//旧座標の更新
+		UpdateOldMatrix();
 	}
 }
 void SkinModel::Draw(bool reverseCull)
@@ -167,10 +167,8 @@ void SkinModel::Draw(bool reverseCull)
 		(m_enFbxCoordinate == enFbxRightHanded)!=reverseCull
 	);
 
-	//前回のワールド行列を記録
-	m_worldMatrixOld = m_worldMatrix;
-	//ボーン
-	m_skeleton.UpdateBoneMatrixOld();
+	//旧座標の更新
+	//UpdateOldMatrix();
 }
 
 }

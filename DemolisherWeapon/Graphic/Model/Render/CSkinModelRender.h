@@ -13,6 +13,7 @@ public:
 	~CSkinModelRender();
 
 private:
+	void PreLoopUpdate()override final;
 	void Update()override final;
 	void PostUpdate()override final;
 	void PostLoopUpdate()override final;	

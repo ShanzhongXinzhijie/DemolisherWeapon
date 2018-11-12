@@ -11,6 +11,13 @@ CSkinModelRender::~CSkinModelRender()
 {
 }
 
+void CSkinModelRender::PreLoopUpdate() {
+	if (!m_isInit) { return; }
+
+	//‹ŒÀ•W‚ÌXV
+	m_model.UpdateOldMatrix();
+}
+
 void CSkinModelRender::Update() {
 	if (!m_isInit) { return; }
 
