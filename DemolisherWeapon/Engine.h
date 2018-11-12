@@ -15,6 +15,7 @@ namespace DemolisherWeapon {
 
 struct InitEngineParameter {
 	float SDUnityChanScale = 1.0f;	//SDユニティちゃんの大きさ(距離の基準値になる)
+	//メモ: 1m = 78.74fくらい?(Unityちゃんが全長1.5mくらいになる
 	int limitFps = 60;				//フレームレート上限
 	int standardFps = 60;			//動作フレームレート
 	int	screenWidth = 1280;			//ウィンドウの幅
