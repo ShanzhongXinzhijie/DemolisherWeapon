@@ -8,7 +8,7 @@ namespace DemolisherWeapon {
 	{
 		
 		wchar_t filePath[256];
-		swprintf_s(filePath, L"Assets/modelData/%s.cmo", objData.name);
+		swprintf_s(filePath, L"Resource/modelData/%s.cmo", objData.name);
 		m_model.Init(filePath);
 		m_model.SetPRS(objData.position, objData.rotation, objData.scale);
 		//シャドウマップに書き込むか設定

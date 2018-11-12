@@ -71,12 +71,12 @@ namespace DemolisherWeapon {
 		/*!
 		* @brief	レベルを初期化。
 		*@param[in]	levelDataFilePath		tklファイルのファイルパス。
-		*@param[in]	chipSetting				マップチップの設定。
 		*@param[in] hookFunc				オブジェクトを作成する時の処理をフックするための関数オブジェクト。
 		*									フックしないならnullptrを指定すればよい、
 		*									詳細はHookWhenBuildObjectFuncのコメントを参照。
+		*@param[in]	chipSetting				マップチップの設定。
 		*/
-		void Init(const wchar_t* levelDataFilePath, HookWhenBuildObjectFunc hookFunc = nullptr, const MapChipSetting& chipSetting = {});
+		void Init(const wchar_t* levelDataFilePath, HookWhenBuildObjectFunc hookFunc = nullptr, const MapChipSetting& chipSetting = {}, const CVector3& offsetPos = CVector3::Zero(), CQuaternion offsetRot = CQuaternion::Identity(), float offsetScale = 1.0f);
 		
 	private:
 		std::vector<MapChipPtr> m_mapChipArray;		//!<マップチップの可変長配列。

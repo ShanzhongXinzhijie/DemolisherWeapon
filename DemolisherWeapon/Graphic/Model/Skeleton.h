@@ -3,6 +3,8 @@
  */
 #pragma once
 
+#include"CoordinateSystemBias.h"
+
 namespace DemolisherWeapon {
 
 /*!
@@ -38,6 +40,7 @@ public:
 	 */
 	void SetLocalMatrix(const CMatrix& m)
 	{
+		//ImNonCalc();
 		m_localMatrix = m;
 	}
 	/*!
@@ -52,6 +55,7 @@ public:
 	*/
 	void SetWorldMatrix(const CMatrix& m)
 	{
+		ImNonCalc();
 		m_worldMatrix = m;
 	}
 	/*!
@@ -118,7 +122,39 @@ public:
 	*@param[out]	rot			回転量の格納先。
 	*@param[out]	scale		拡大率の格納先。
 	*/
-	void CalcWorldTRS(CVector3& trans, CQuaternion& rot, CVector3& scale);
+	void CalcWorldTRS();
+	void CalcWorldTRS(CVector3& trans, CQuaternion& rot, CVector3& scale) {
+		CalcWorldTRS();
+		trans = m_positoin;
+		rot = m_rotation;
+		scale = m_scale;
+	};
+	//ワールド空間での位置を取得
+	const CVector3& GetPosition(){
+		CalcWorldTRS();
+		return m_positoin;
+	}
+	//ワールド空間での回転を取得
+	const CQuaternion& GetRotation() {
+		CalcWorldTRS();
+		return m_rotation;
+	}
+	//ワールド空間での拡大を取得
+	const CVector3& GetScale() {
+		CalcWorldTRS();
+		return m_scale;
+	}
+
+	//座標系をセット
+	void SetCoordinateSystem(EnFbxUpAxis fbxUpAxis,	EnFbxCoordinateSystem fbxCoordinate) {
+		m_isUseBias = true;
+		m_enFbxUpAxis = fbxUpAxis;
+		m_enFbxCoordinate = fbxCoordinate;
+	}
+
+private:
+
+	void ImNonCalc() { m_isCalced = false; }
 	
 private:
 
@@ -133,6 +169,11 @@ private:
 	CVector3		m_scale = CVector3::One();				//!<このボーンの拡大率。最後にCalcWorldTRSを実行したときの結果が格納されている。
 	CQuaternion		m_rotation = CQuaternion::Identity();	//!<このボーンの回転。最後にCalcWorldTRSを実行したときの結果が格納されている。
 	std::vector<Bone*>	m_children;		//!<子供。
+
+	bool m_isCalced = false;//CalcWorldTRS済みか?
+	bool m_isUseBias = false;
+	EnFbxUpAxis			  m_enFbxUpAxis = enFbxUpAxisZ;			//FBXの上方向
+	EnFbxCoordinateSystem m_enFbxCoordinate = enFbxRightHanded;	//FBXの座標系
 };
 /*!
  *@brief	スケルトン。

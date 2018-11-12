@@ -16,8 +16,11 @@ SkinModel::~SkinModel()
 		m_samplerState->Release();
 	}
 }
-void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis)
+void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate)
 {
+	m_enFbxUpAxis = enFbxUpAxis;
+	m_enFbxCoordinate = enFbxCoordinate;
+
 	//スケルトンのデータを読み込む。
 	InitSkeleton(filePath);
 
@@ -28,9 +31,7 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis)
 	InitSamplerState();
 
 	//SkinModelDataManagerを使用してCMOファイルのロード。
-	m_modelDx = m_skinModelDataManager.Load(filePath, m_skeleton);
-
-	m_enFbxUpAxis = enFbxUpAxis;
+	m_modelDx = m_skinModelDataManager.Load(filePath, m_skeleton);	
 }
 void SkinModel::InitSkeleton(const wchar_t* filePath)
 {
@@ -52,6 +53,12 @@ void SkinModel::InitSkeleton(const wchar_t* filePath)
 		sprintf_s(message, "tksファイルの読み込みに失敗しました。%ls\n", skeletonFilePath.c_str());
 		OutputDebugStringA(message);
 #endif
+	}
+	else {
+		int numBone = m_skeleton.GetNumBones();
+		for (int i = 0; i < numBone; i++) {			
+			m_skeleton.GetBone(i)->SetCoordinateSystem(m_enFbxUpAxis, m_enFbxCoordinate);
+		}
 	}
 }
 void SkinModel::InitConstantBuffer()
@@ -84,26 +91,30 @@ void SkinModel::InitSamplerState()
 }
 void SkinModel::UpdateWorldMatrix(CVector3 position, CQuaternion rotation, CVector3 scale)
 {
-	//3dsMaxと軸を合わせるためのバイアス。
-	CMatrix mBias = CMatrix::Identity();
-	if (m_enFbxUpAxis == enFbxUpAxisZ) {
-		//Z-up
-		mBias.MakeRotationX(CMath::PI * -0.5f);
-	}
+	CMatrix mBiasRot;
+	CMatrix mBiasScr;
+
+	CoordinateSystemBias::GetBias(mBiasRot, mBiasScr, m_enFbxUpAxis, m_enFbxCoordinate);
+
 	CMatrix transMatrix, rotMatrix, scaleMatrix;
 	//平行移動行列を作成する。
 	transMatrix.MakeTranslation( position );
 	//回転行列を作成する。
 	rotMatrix.MakeRotationFromQuaternion( rotation );
-	rotMatrix.Mul(mBias, rotMatrix);
+	//rotMatrix.Mul(mBiasRot, rotMatrix);
 	//拡大行列を作成する。
 	scaleMatrix.MakeScaling(scale);
+	//scaleMatrix.Mul(mBiasScr, scaleMatrix);
 
 	//ワールド行列を作成する。
 	//拡大×回転×平行移動の順番で乗算するように！
 	//順番を間違えたら結果が変わるよ。
 	m_worldMatrix.Mul(scaleMatrix, rotMatrix);
 	m_worldMatrix.Mul(m_worldMatrix, transMatrix);
+
+	//バイアス適応
+	mBiasRot.Mul(mBiasScr, mBiasRot);
+	m_worldMatrix.Mul(mBiasRot, m_worldMatrix);
 
 	//スケルトンの更新。
 	m_skeleton.Update(m_worldMatrix);
@@ -153,7 +164,7 @@ void SkinModel::Draw(bool reverseCull)
 		GetMainCamera()->GetViewMatrix(),
 		GetMainCamera()->GetProjMatrix(),
 		false,
-		reverseCull
+		(m_enFbxCoordinate == enFbxRightHanded)!=reverseCull
 	);
 
 	//前回のワールド行列を記録

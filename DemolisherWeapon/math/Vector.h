@@ -855,6 +855,19 @@ public:
 		DirectX::XMVECTOR xmv = DirectX::XMVector3Rotate(_v, *this);
 		DirectX::XMStoreFloat3(&_v.vec, xmv);
 	}
+
+	//ƒxƒNƒgƒ‹‚ð‹t‰ñ“]
+	void InverseMultiply(CVector4& _v)
+	{
+		DirectX::XMVECTOR xmv = DirectX::XMVector3InverseRotate(_v, *this);
+		DirectX::XMStoreFloat4(&_v.vec, xmv);
+	}
+	void InverseMultiply(CVector3& _v)
+	{
+		DirectX::XMVECTOR xmv = DirectX::XMVector3InverseRotate(_v, *this);
+		DirectX::XMStoreFloat3(&_v.vec, xmv);
+	}
+
 	static CQuaternion Identity()
 	{
 		static const CQuaternion identity = { 0.0f,  0.0f, 0.0f, 1.0f };

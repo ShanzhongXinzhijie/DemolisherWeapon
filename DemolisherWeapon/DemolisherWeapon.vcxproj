@@ -168,6 +168,7 @@
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Graphic\Model\CoordinateSystemBias.h" />
     <ClInclude Include="Graphic\Font\CFont.h" />
     <ClInclude Include="Render\PhysicsDebugDrawRender.h" />
     <ClInclude Include="physics\PhysicsDebugDraw.h" />

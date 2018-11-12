@@ -8,24 +8,51 @@
 
 namespace DemolisherWeapon {
 
-void Bone::CalcWorldTRS(CVector3& trans, CQuaternion& rot, CVector3& scale)
+void Bone::CalcWorldTRS()
 {
-	CMatrix mWorld = m_worldMatrix;
-	//行列から拡大率を取得する。
-	scale.x = mWorld.v[0].Length();
-	scale.y = mWorld.v[1].Length();
-	scale.z = mWorld.v[2].Length();
-	m_scale = scale;
-	//行列から平行移動量を取得する。
-	trans.Set(mWorld.v[3]);
-	m_positoin = trans;
-	//行列から拡大率と平行移動量を除去して回転量を取得する。
-	mWorld.v[0].Normalize();
-	mWorld.v[1].Normalize();
-	mWorld.v[2].Normalize();
-	mWorld.v[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
-	rot.SetRotation(mWorld);
-	m_rotation = rot;
+	if (!m_isCalced) {
+		CMatrix mWorld = m_worldMatrix;		
+
+		//バイアスを消す
+		CMatrix mBiasScr;
+		CMatrix mBiasRot;
+
+		if (m_isUseBias) {
+			//左手座標系に変換
+			if (m_enFbxCoordinate == enFbxRightHanded) {
+				mWorld.m[2][0] *= -1.0f;
+				mWorld.m[2][1] *= -1.0f;
+				mWorld.m[2][2] *= -1.0f;
+				mWorld.m[2][3] *= -1.0f;
+			}
+
+			CoordinateSystemBias::GetBias(mBiasRot, mBiasScr, m_enFbxUpAxis, m_enFbxCoordinate, true);
+		}
+
+		//拡大のバイアス解除
+		//mWorld.Mul(mBiasScr, mWorld);
+
+		//行列から拡大率を取得する。
+		m_scale.x = mWorld.v[0].Length();
+		m_scale.y = mWorld.v[1].Length();
+		m_scale.z = mWorld.v[2].Length();
+
+		//行列から平行移動量を取得する。
+		m_positoin.Set(mWorld.v[3]);
+
+		//行列から拡大率と平行移動量を除去して回転量を取得する。
+		mWorld.v[0].Normalize();
+		mWorld.v[1].Normalize();
+		mWorld.v[2].Normalize();
+		mWorld.v[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+		
+		//回転のバイアス解除
+		mWorld.Mul(mBiasRot, mWorld);
+
+		m_rotation.SetRotation(mWorld);
+		
+		m_isCalced = true;
+	}
 }
 Skeleton::Skeleton()
 {

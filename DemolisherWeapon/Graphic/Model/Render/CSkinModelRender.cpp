@@ -12,11 +12,27 @@ CSkinModelRender::~CSkinModelRender()
 }
 
 void CSkinModelRender::Update() {
-	m_animCon.Update();
-	UpdateWorldMatrix();
+	if (!m_isInit) { return; }
+
+	if (!m_isUpdated) {
+		m_animCon.Update();
+	}
+	if(!m_isUpdated || !m_isUpdatedWorldMatrix){
+		UpdateWorldMatrix();
+	}
+
+	m_isUpdated = true;
+}
+
+void CSkinModelRender::PostUpdate() {
+	if (!m_isInit) { return; }
+
+	ImNonUpdate();
 }
 
 void CSkinModelRender::PostLoopUpdate() {
+	if (!m_isInit) { return; }
+	
 	if (!m_isDraw) { return; }
 	if (m_isShadowCaster) { AddDrawModelToShadowMapRender(&m_model); }
 	AddDrawModelToD3Render(&m_model);
@@ -25,10 +41,13 @@ void CSkinModelRender::PostLoopUpdate() {
 void CSkinModelRender::Init(const wchar_t* filePath,
 	AnimationClip* animationClips,
 	int numAnimationClips,
-	EnFbxUpAxis fbxUpAxis) {
+	EnFbxUpAxis fbxUpAxis,
+	EnFbxCoordinateSystem fbxCoordinate) {
+
+	if (m_isInit) { return; }
 
 	//モデル読み込み
-	m_model.Init(filePath, fbxUpAxis);
+	m_model.Init(filePath, fbxUpAxis, fbxCoordinate);
 	m_model.SetMotionBlurFlag(true);
 
 	//アニメーションの初期化。
@@ -39,6 +58,8 @@ void CSkinModelRender::Init(const wchar_t* filePath,
 			numAnimationClips	//アニメーションクリップの数。
 		);
 	}
+
+	m_isInit = true;
 }
 
 }

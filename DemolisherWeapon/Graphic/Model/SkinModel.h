@@ -7,13 +7,6 @@
 namespace DemolisherWeapon {
 
 /*!
-*@brief	FBXの上方向。
-*/
-enum EnFbxUpAxis {
-	enFbxUpAxisY,		//Y-up
-	enFbxUpAxisZ,		//Z-up
-};
-/*!
 *@brief	スキンモデルクラス。
 */
 class SkinModel
@@ -31,7 +24,7 @@ public:
 	*@param[in]	filePath		ロードするcmoファイルのファイルパス。
 	*@param[in] enFbxUpAxis		fbxの上軸。デフォルトはenFbxUpAxisZ。
 	*/
-	void Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis = enFbxUpAxisZ);
+	void Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis = enFbxUpAxisZ, EnFbxCoordinateSystem enFbxCoordinate = enFbxRightHanded);
 	/*!
 	*@brief	モデルをワールド座標系に変換するためのワールド行列を更新する。
 	*@param[in]	position	モデルの座標。
@@ -93,6 +86,9 @@ public:
 	const EnFbxUpAxis& GetFBXUpAxis()const {
 		return m_enFbxUpAxis;
 	}
+	const EnFbxCoordinateSystem& GetFBXCoordinateSystem()const {
+		return m_enFbxCoordinate;
+	}
 
 private:
 	/*!
@@ -131,6 +127,7 @@ private:
 	bool m_isMotionBlur = true;//モーションブラー有効か
 
 	EnFbxUpAxis			m_enFbxUpAxis = enFbxUpAxisZ;	//!<FBXの上方向。
+	EnFbxCoordinateSystem m_enFbxCoordinate = enFbxRightHanded;//FBXの座標系
 	ID3D11Buffer*		m_cb = nullptr;					//!<定数バッファ。
 	Skeleton			m_skeleton;						//!<スケルトン。
 	DirectX::Model*		m_modelDx;						//!<DirectXTKが提供するモデルクラス。

@@ -62,6 +62,7 @@
     <ClInclude Include="physics\PhysicsDebugDraw.h" />
     <ClInclude Include="Render\PhysicsDebugDrawRender.h" />
     <ClInclude Include="Graphic\Font\CFont.h" />
+    <ClInclude Include="Graphic\Model\CoordinateSystemBias.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />

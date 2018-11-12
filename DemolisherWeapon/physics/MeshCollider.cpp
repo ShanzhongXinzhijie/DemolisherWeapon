@@ -19,11 +19,15 @@ namespace DemolisherWeapon {
 	 */
 	void MeshCollider::CreateFromSkinModel(const SkinModel& model, const CMatrix* offsetMatrix)
 	{
-		CMatrix mBias;
-		mBias.MakeRotationX(CMath::PI * -0.5f);
+		CMatrix mBias, mBiasScr;
+
+		CoordinateSystemBias::GetBias(mBias, mBiasScr, model.GetFBXUpAxis(), model.GetFBXCoordinateSystem());
+		mBias.Mul(mBiasScr, mBias);
+
 		if (offsetMatrix != nullptr) {
 			mBias.Mul(mBias, (*offsetMatrix));
 		}
+
 		m_stridingMeshInterface = std::make_unique<btTriangleIndexVertexArray>();
 
 		model.FindMesh([&](const auto& mesh) {
