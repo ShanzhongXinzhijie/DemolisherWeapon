@@ -35,6 +35,7 @@ public:
 	* @brief	„‘Ì‚ğ“o˜^B
 	*/
 	void AddRigidBody(RigidBody& rb);
+	void AddRigidBody(RigidBody& rb, short group, short mask);
 	/*!
 	* @brief	„‘Ì‚ğ”jŠüB
 	*/

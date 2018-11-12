@@ -74,6 +74,13 @@ void CPhysicsWorld::AddRigidBody(RigidBody& rb)
 		rb.SetMarkAddPhysicsWorld();
 	}
 }
+void CPhysicsWorld::AddRigidBody(RigidBody& rb, short group, short mask)
+{
+	if (rb.IsAddPhysicsWorld() == false) {
+		dynamicWorld->addRigidBody(rb.GetBody(), group, mask);
+		rb.SetMarkAddPhysicsWorld();
+	}
+}
 void CPhysicsWorld::RemoveRigidBody(RigidBody& rb)
 {
 	if (rb.IsAddPhysicsWorld() == true) {
