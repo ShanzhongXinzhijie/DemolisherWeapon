@@ -66,7 +66,7 @@ public:
 	{
 		dynamicWorld->convexSweepTest(castShape, convexFromWorld, convexToWorld, resultCallback, allowedCcdPenetration);
 	}
-	void ContactText(
+	void ContactTest(
 		btCollisionObject* colObj, 
 		btCollisionWorld::ContactResultCallback& resultCallback
 	)

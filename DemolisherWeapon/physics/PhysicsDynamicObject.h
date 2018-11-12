@@ -13,7 +13,7 @@ namespace DemolisherWeapon {
 	* privateŒp³‚ğs‚Á‚Ä‚¢‚éB
 	*/
 	class PhysicsDynamicObject :
-		public PhysicsBaseObject
+		private PhysicsBaseObject
 	{
 	public:
 		/*!

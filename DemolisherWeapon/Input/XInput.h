@@ -38,6 +38,7 @@ public:
 
 	//“ü—Í‚ðŽæ“¾
 	bool GetButton(enXInputButton button) const;
+	//bool IsTrigger(enXInputButton button) const;
 
 	CVector2 GetStick(enLR lr) const{
 		if (!m_state.isConnect) { return CVector2::Zero(); }
