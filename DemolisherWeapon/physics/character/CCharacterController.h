@@ -82,14 +82,22 @@ namespace DemolisherWeapon {
 		* @brief	剛体を物理エンジンから削除。。
 		*/
 		void RemoveRigidBoby();
+
+		//壁から余分に押し出す距離を設定
+		void SetOffset(float offset) {
+			m_offsetOffset = offset;
+		}
+
 	private:
 		bool				m_isInited = false;				//!<初期化済み？
 		CVector3 			m_position = CVector3::Zero();	//!<座標。
 		bool 				m_isJump = false;				//!<ジャンプ中？
 		bool				m_isOnGround = true;			//!<地面の上にいる？
-		CapsuleCollider	m_collider;						//!<コライダー。
+		CapsuleCollider		m_collider;						//!<コライダー。
 		float				m_radius = 0.0f;				//!<カプセルコライダーの半径。
 		float				m_height = 0.0f;				//!<カプセルコライダーの高さ。
 		RigidBody			m_rigidBody;					//剛体。
+
+		float m_offsetOffset = 1.0f;
 	};
 }

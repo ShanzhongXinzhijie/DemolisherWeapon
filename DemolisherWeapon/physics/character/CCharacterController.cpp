@@ -206,7 +206,7 @@ namespace DemolisherWeapon {
 					//押し返すベクトルは壁の法線に射影されためり込みベクトル+半径。
 					CVector3 vOffset;
 					vOffset = hitNormalXZ;
-					vOffset.Scale(-fT0 + m_radius);
+					vOffset.Scale(-fT0 + m_radius + m_offsetOffset);
 					nextPosition.Add(vOffset);
 					CVector3 currentDir;
 					currentDir.Subtract(nextPosition, m_position);
