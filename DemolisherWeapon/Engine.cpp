@@ -129,7 +129,7 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	m_gameLoop.Init(initParam.limitFps, initParam.standardFps);
 
 	//コリジョンマネージャーの初期化
-	m_collisionManager = std::make_unique<CollisionObjManager>();
+	m_collisionManager = std::make_unique<GameObj::CollisionObjManager>();
 
 	//距離のスケールを設定
 	m_distanceScale = initParam.SDUnityChanScale;

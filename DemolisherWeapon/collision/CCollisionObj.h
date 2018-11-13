@@ -16,6 +16,8 @@ enum EnCollisionTimer {
 	CollisionObjFilter = BIT(6),//64,
 };*/
 
+namespace GameObj{
+
 class CCollisionObj : public PhysicsBaseObject , public IGameObject {
 
 public:
@@ -169,11 +171,10 @@ public:
 	}
 
 	//判定オブジェクトを取得
-	btGhostObject& GetObj() { return m_ghostObject; }
+	btGhostObject& GetCollisionObject() { return m_ghostObject; }
 
 	int GetNameKey()const { return m_nameKey; };
 	void* GetData() { return m_void; };
-	const btGhostObject& Getbt() { return m_ghostObject; };
 
 	unsigned int GetGroup()const { return m_group; }
 	unsigned int GetMask() const { return m_mask; }
@@ -202,8 +203,8 @@ private:
 
 	int m_lifespan = 0;//寿命
 
-	unsigned int m_group = 0;//すべて1
-	unsigned int m_mask = 0;
+	unsigned int m_group = 0;
+	unsigned int m_mask = 0xFFFFFFFF;//すべて1
 
 	int m_nameKey = 0;
 
@@ -228,5 +229,7 @@ private:
 
 	std::list<CCollisionObj*> m_colObjList;
 };
+
+}
 
 }

@@ -118,7 +118,7 @@ public:
 		return m_physics;
 	}
 	//コリジョンマネージャーの取得
-	CollisionObjManager* GetCollisionObjManager() {
+	GameObj::CollisionObjManager* GetCollisionObjManager() {
 		return m_collisionManager.get();
 	}
 	//ゲームオブジェクトマネージャーの取得
@@ -167,7 +167,7 @@ private:
 	//処理クラス
 	GraphicsEngine m_graphicsEngine;
 	CPhysicsWorld m_physics;
-	std::unique_ptr <CollisionObjManager> m_collisionManager;
+	std::unique_ptr <GameObj::CollisionObjManager> m_collisionManager;
 	GameObjectManager m_gameObjectManager;
 	GameLoop m_gameLoop;
 
@@ -205,6 +205,10 @@ static inline void AddDrawModelToShadowMapRender(SkinModel* sm)
 //物理エンジンのデバッグ表示のモードを設定する
 static inline void SetPhysicsDebugDrawMode(int debugMode) {
 	GetEngine().GetGraphicsEngine().SetPhysicsDebugDrawMode(debugMode);
+}
+//物理エンジンのデバッグ表示が有効か調べる
+static inline bool GetEnablePhysicsDebugDraw() {
+	return GetEngine().GetGraphicsEngine().GetEnablePhysicsDebugDraw();
 }
 
 //メインカメラを取得
@@ -282,7 +286,7 @@ static inline float GetDeltaTimeSec() {
 }
 
 //コリジョンマネージャーに判定を追加
-static inline void AddCollisionObj(CCollisionObj* obj) {
+static inline void AddCollisionObj(GameObj::CCollisionObj* obj) {
 	GetEngine().GetCollisionObjManager()->AddCollisionObj(obj);
 }
 

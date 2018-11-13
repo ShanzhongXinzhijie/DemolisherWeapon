@@ -3,6 +3,8 @@
 
 namespace DemolisherWeapon {
 
+namespace GameObj {
+
 	void CCollisionObj::Release()
 	{
 		if (m_isRegistPhysicsWorld == true) {
@@ -14,16 +16,19 @@ namespace DemolisherWeapon {
 	void CCollisionObj::CreateCommon(CVector3 pos, CQuaternion rot)
 	{
 		m_ghostObject.setCollisionShape(m_collider->GetBody());
+		m_ghostObject.setCollisionFlags(m_ghostObject.getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
 		btTransform btTrans;
 		btTrans.setOrigin({ pos.x, pos.y, pos.z });
 		btTrans.setRotation({ rot.x, rot.y, rot.z, rot.w });
 		m_ghostObject.setWorldTransform(btTrans);
 
-		//物理エンジンに登録。
-		//mask=0にしとく
+		//物理エンジンに登録。(デバッグ表示のため)
 #ifdef _DEBUG	
-		GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject, btBroadphaseProxy::StaticFilter, 0);
-		m_isRegistPhysicsWorld = true;
+		if (GetEnablePhysicsDebugDraw()) {
+			//mask=0にしとく
+			GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject, btBroadphaseProxy::StaticFilter, 0);
+			m_isRegistPhysicsWorld = true;
+		}
 #endif
 
 		m_isInit = true;
@@ -48,9 +53,9 @@ namespace DemolisherWeapon {
 			{
 
 				//各々処理実行
-				CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetData(), ObjB->Getbt() };
+				CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetData(), ObjB->GetCollisionObject() };
 				ObjA->RunCallback(paramB);
-				CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetData(), ObjA->Getbt() };
+				CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetData(), ObjA->GetCollisionObject() };
 				ObjB->RunCallback(paramA);
 
 				return 0.0f;
@@ -79,12 +84,14 @@ namespace DemolisherWeapon {
 
 				if (Masking(ObjA->GetGroup(),ObjB->GetMask()) && Masking(ObjB->GetGroup(), ObjA->GetMask())) {//マスキング
 					ObjManagerCallback callback(ObjA, ObjB);
-					GetPhysicsWorld().ContactPairTest(&ObjA->GetObj(), &ObjB->GetObj(), callback);
+					GetPhysicsWorld().ContactPairTest(&ObjA->GetCollisionObject(), &ObjB->GetCollisionObject(), callback);
 				}
 			}
 		}
 		//}
 		m_colObjList.clear();
 	}
+
+}
 
 }

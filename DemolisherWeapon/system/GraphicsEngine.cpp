@@ -227,7 +227,7 @@ void GraphicsEngine::Init(HWND hWnd, int bufferW, int bufferH, int refreshRate, 
 	m_renderManager.AddRender(4, &m_motionBlurRender);
 
 #ifdef _DEBUG
-	m_physicsDebugDrawRender.Init();
+	//m_physicsDebugDrawRender.Init();
 	m_renderManager.AddRender(999, &m_physicsDebugDrawRender);
 #endif
 

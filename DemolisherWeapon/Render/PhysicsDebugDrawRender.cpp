@@ -12,8 +12,11 @@ namespace DemolisherWeapon {
 	}
 
 	void PhysicsDebugDrawRender::Init() {
-		m_physicsDrawer.Init();
-		GetEngine().GetPhysicsWorld().GetDynamicWorld()->setDebugDrawer(&m_physicsDrawer);		
+		if (!m_isInit) {
+			m_isInit = true;
+			m_physicsDrawer.Init();
+			GetEngine().GetPhysicsWorld().GetDynamicWorld()->setDebugDrawer(&m_physicsDrawer);
+		}
 	}
 	void PhysicsDebugDrawRender::Release() {
 

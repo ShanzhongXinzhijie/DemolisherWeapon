@@ -12,7 +12,6 @@ namespace DemolisherWeapon {
 		PhysicsDebugDrawRender();
 		~PhysicsDebugDrawRender();
 
-		void Init();
 		void Release();
 
 		void Render()override;
@@ -21,11 +20,18 @@ namespace DemolisherWeapon {
 		void SetDebugMode(int debugMode)
 		{
 			m_enable = true;
+			Init();
 			m_physicsDrawer.setDebugMode(debugMode);
 		}
 
+		//デバッグ表示が有効か？
+		bool IsEnable()const { return m_enable; }
+
 	private:
+		void Init();
+
 		bool m_enable = false;
+		bool m_isInit = false;
 		PhysicsDebugDraw m_physicsDrawer;
 	};
 

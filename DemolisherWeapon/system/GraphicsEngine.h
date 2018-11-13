@@ -106,14 +106,18 @@ public:
 	AmbientOcclusionRender& GetAmbientOcclusionRender() {
 		return m_ambientOcclusionRender;
 	}
-	//PhysicsDebugDrawRenderの取得
-	//PhysicsDebugDrawRender& GetPhysicsDebugDrawRender() {
-	//	return m_physicsDebugDrawRender;
-	//}
+	//PhysicsDebugDrawRenderのモード設定	
 	void SetPhysicsDebugDrawMode(int debugMode) {
 #ifdef _DEBUG	
 		m_physicsDebugDrawRender.SetDebugMode(debugMode);
 #endif
+	}
+	//PhysicsDebugDrawRenderが有効か取得
+	bool GetEnablePhysicsDebugDraw() {
+#ifdef _DEBUG	
+		return m_physicsDebugDrawRender.IsEnable();
+#endif
+		return false;
 	}
 	//ファイナルレンダーの取得
 	FinalRender& GetFinalRender() {
