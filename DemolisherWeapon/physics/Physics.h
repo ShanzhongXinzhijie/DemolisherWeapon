@@ -44,9 +44,13 @@ public:
 	* @brief	コリジョンオブジェクトをワールドに登録。
 	*@param[in]	colliObj	コリジョンオブジェクト。
 	*/
-	void AddCollisionObject(btCollisionObject& colliObj)
+	/*void AddCollisionObject(btCollisionObject& colliObj)
 	{
 		dynamicWorld->addCollisionObject(&colliObj);
+	}*/
+	void AddCollisionObject(btCollisionObject& colliObj, short int group = btBroadphaseProxy::StaticFilter, short int mask = btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter)
+	{
+		dynamicWorld->addCollisionObject(&colliObj, group, mask);
 	}
 	/*!
 	* @brief	コリジョンオブジェクトをワールドから削除。

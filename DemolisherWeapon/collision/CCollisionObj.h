@@ -3,7 +3,18 @@
 #include "../physics/PhysicsBaseObject.h"
 #include "../util/Util.h"
 
+#define BIT(x) (1<<(x))
+
 namespace DemolisherWeapon{
+
+enum EnCollisionTimer {
+	enNoTimer = -1,
+};
+
+/*enum CollisionFilterGroups
+{
+	CollisionObjFilter = BIT(6),//64,
+};*/
 
 class CCollisionObj : public PhysicsBaseObject , public IGameObject {
 
@@ -25,15 +36,15 @@ public:
 		T* GetGO() {
 			return (T*)m_class;
 		};
-	};
+	};	
 
 	/*static CCollisionObj* New(int lifespan = 1) {
 		return new CCollisionObj(lifespan);
 	}
 
 private:*/
-	CCollisionObj(int lifespan = 1, const wchar_t* name = nullptr, void* pointer = nullptr, std::function<void(SCallbackParam&)> callbackFunction = nullptr) {
-		m_lifespan = lifespan;
+	CCollisionObj(int lifespan = enNoTimer, const wchar_t* name = nullptr, void* pointer = nullptr, std::function<void(SCallbackParam&)> callbackFunction = nullptr) {
+		m_lifespan = max(lifespan, enNoTimer);
 		if (name) { SetName(name); }
 		if (pointer) { SetPointer(pointer); }
 		if (callbackFunction) { SetCallback(callbackFunction); }
@@ -94,17 +105,60 @@ public:
 	}
 	//寿命を設定
 	void SetTimer(int lefttime) {
-		m_lifespan = lefttime;
+		m_lifespan = max(lefttime, enNoTimer);
 	}
-	
+
+	//グループを設定
+	void SetGroup(unsigned int group) {
+		m_group = group;
+	}
+	//マスクを設定
+	void SetMask(unsigned int mask) {
+		m_mask = mask;
+	}
+
+	//グループの指定のビットをオンにする
+	void On_OneGroup(unsigned int oneGroup) {
+		m_group = m_group | BIT(oneGroup);
+	}
+	//マスクの指定のビットをオンにする
+	void On_OneMask(unsigned int oneMask) {
+		m_mask = m_mask | BIT(oneMask);
+	}
+	//グループの指定のビットをオフにする
+	void Off_OneGroup(unsigned int oneGroup) {
+		m_group = m_group & ~BIT(oneGroup);
+	}
+	//マスクの指定のビットをオフにする
+	void Off_OneMask(unsigned int oneMask) {
+		m_mask = m_mask & ~BIT(oneMask);
+	}
+
+	//すべてのグループに属するよう設定
+	void All_On_Group() {
+		m_group = 0xFFFFFFFF;
+	}
+	//すべてのグループと判定するようマスクを設定
+	void All_On_Mask() {
+		m_mask = 0xFFFFFFFF;
+	}
+	//どのグループにも属さないよう設定
+	void All_Off_Group() {
+		m_group = 0;
+	}
+	//どのグループとも判定しないようマスクを設定
+	void All_Off_Mask() {
+		m_mask = 0;
+	}
+
 	void PostUpdate()override {
 		m_isregistered = false;
 	}
 
 	void Update() override{
-		if (m_lifespan <= 0 || m_isDeath) { Delete(); }
+		if (m_lifespan != enNoTimer && m_lifespan <= 0 || m_isDeath) { Delete(); }
 		Register();
-		m_lifespan--;
+		if (m_lifespan != enNoTimer) { m_lifespan--; }
 	}
 
 	void RunCallback(SCallbackParam& param)
@@ -120,6 +174,9 @@ public:
 	int GetNameKey()const { return m_nameKey; };
 	void* GetData() { return m_void; };
 	const btGhostObject& Getbt() { return m_ghostObject; };
+
+	unsigned int GetGroup()const { return m_group; }
+	unsigned int GetMask() const { return m_mask; }
 
 	//判定してもいい状態か?
 	bool IsEnable()const {
@@ -145,8 +202,8 @@ private:
 
 	int m_lifespan = 0;//寿命
 
-	int m_group = 0;
-	int m_mask;
+	unsigned int m_group = 0;//すべて1
+	unsigned int m_mask = 0;
 
 	int m_nameKey = 0;
 

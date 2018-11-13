@@ -20,8 +20,11 @@ namespace DemolisherWeapon {
 		m_ghostObject.setWorldTransform(btTrans);
 
 		//物理エンジンに登録。
-		//GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject);
-		//m_isRegistPhysicsWorld = true;
+		//mask=0にしとく
+#ifdef _DEBUG	
+		GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject, btBroadphaseProxy::StaticFilter, 0);
+		m_isRegistPhysicsWorld = true;
+#endif
 
 		m_isInit = true;
 	}
@@ -53,6 +56,10 @@ namespace DemolisherWeapon {
 				return 0.0f;
 			};
 		};
+
+		bool Masking(unsigned int group, unsigned int mask){
+			return (group & mask) != 0;
+		}
 	}
 
 	void CollisionObjManager::PostUpdate() {
@@ -70,9 +77,10 @@ namespace DemolisherWeapon {
 
 				if (!ObjB->IsEnable()) { continue; }
 
-				ObjManagerCallback callback(ObjA, ObjB);
-
-				GetPhysicsWorld().ContactPairTest(&ObjA->GetObj(), &ObjB->GetObj(), callback);
+				if (Masking(ObjA->GetGroup(),ObjB->GetMask()) && Masking(ObjB->GetGroup(), ObjA->GetMask())) {//マスキング
+					ObjManagerCallback callback(ObjA, ObjB);
+					GetPhysicsWorld().ContactPairTest(&ObjA->GetObj(), &ObjB->GetObj(), callback);
+				}
 			}
 		}
 		//}
