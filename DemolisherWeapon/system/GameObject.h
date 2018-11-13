@@ -102,6 +102,13 @@ private:
 class IGameObject
 {
 public:
+
+	//デスリスナーの引数
+	struct SDeathParam {
+		IGameObject* gameObject = nullptr;
+	};
+
+public:
 	IGameObject(bool isRegister = true);
 	virtual ~IGameObject() {
 		//有効でないんだ！
@@ -109,6 +116,12 @@ public:
 		//ステータス更新(死んだぞ！)
 		m_status.m_isDead = true;
 		CastStatus();
+		//デスリスナーに通知
+		SDeathParam param;
+		param.gameObject = this;
+		for (auto& listener : m_deathListeners) {
+			listener(param);
+		}
 	};
 
 	IGameObject(const IGameObject& go) = delete;//コピーコンストラクタ
@@ -198,10 +211,17 @@ public:
 		receiver->SetGameObject(this);
 	}
 
+	//死亡リスナー登録
+	void AddDeathListener(std::function<void(const SDeathParam& param)> listener)
+	{
+		m_deathListeners.push_back(listener);
+	}
+
 public:
 
 	virtual bool Start() { return true; };
 	virtual void PreLoopUpdate() {};
+	virtual void PreUpdate() {};
 	virtual void Update() {};
 	virtual void PostUpdate() {};
 	virtual void PostLoopUpdate() {};
@@ -221,9 +241,17 @@ private:
 	GOStatus m_status;//状態
 	std::list<GOStatusCaster> m_statusCaster;//状態を送信する
 
+	std::list<std::function<void(const SDeathParam& param)>> m_deathListeners;//死亡リスナーさん達
 
 //　GameObjectManagerから操作できる	
 	friend GameObjectManager;
+};
+
+//自動で登録をしないゲームオブジェクト
+class INRGameObject : public IGameObject{
+public:
+	INRGameObject() : IGameObject(false) {};
+	virtual ~INRGameObject() {};
 };
 
 class GameObjectManager {
@@ -246,6 +274,11 @@ public:
 		}
 	}
 	void Update() {
+		for (auto& go : m_gameObjectList) {
+			if (go.isEnable && go.gameObject->GetIsStart()) {
+				go.gameObject->PreUpdate();
+			}
+		}
 		for (auto& go : m_gameObjectList) {
 			if (go.isEnable && go.gameObject->GetIsStart()) {
 				go.gameObject->Update();

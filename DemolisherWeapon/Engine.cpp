@@ -128,6 +128,9 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	//ゲームループの初期化
 	m_gameLoop.Init(initParam.limitFps, initParam.standardFps);
 
+	//コリジョンマネージャーの初期化
+	m_collisionManager = std::make_unique<CollisionObjManager>();
+
 	//距離のスケールを設定
 	m_distanceScale = initParam.SDUnityChanScale;
 

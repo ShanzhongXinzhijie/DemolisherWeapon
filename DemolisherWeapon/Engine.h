@@ -11,6 +11,8 @@
 
 #include"physics/Physics.h"
 
+#include "collision/CCollisionObj.h"
+
 namespace DemolisherWeapon {
 
 struct InitEngineParameter {
@@ -115,6 +117,10 @@ public:
 	CPhysicsWorld& GetPhysicsWorld() {
 		return m_physics;
 	}
+	//コリジョンマネージャーの取得
+	CollisionObjManager* GetCollisionObjManager() {
+		return m_collisionManager.get();
+	}
 	//ゲームオブジェクトマネージャーの取得
 	GameObjectManager& GetGameObjectManager() {
 		return m_gameObjectManager;
@@ -161,6 +167,7 @@ private:
 	//処理クラス
 	GraphicsEngine m_graphicsEngine;
 	CPhysicsWorld m_physics;
+	std::unique_ptr <CollisionObjManager> m_collisionManager;
 	GameObjectManager m_gameObjectManager;
 	GameLoop m_gameLoop;
 
@@ -272,6 +279,11 @@ static inline int GetStandardFrameRate() { return GetEngine().GetStandardFrameRa
 //1フレームの動作時間(秒)
 static inline float GetDeltaTimeSec() {
 	return 1.0f / GetStandardFrameRate();
+}
+
+//コリジョンマネージャーに判定を追加
+static inline void AddCollisionObj(CCollisionObj* obj) {
+	GetEngine().GetCollisionObjManager()->AddCollisionObj(obj);
 }
 
 }

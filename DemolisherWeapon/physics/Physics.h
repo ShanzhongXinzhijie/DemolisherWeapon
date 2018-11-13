@@ -74,6 +74,15 @@ public:
 	{
 		dynamicWorld->contactTest(colObj, resultCallback);
 	}
+	//特定の2つオブジェクトの衝突検知
+	void ContactPairTest(
+		btCollisionObject* colObjA, btCollisionObject* colObjB,
+		btCollisionWorld::ContactResultCallback& resultCallback
+	)
+	{
+		dynamicWorld->contactPairTest(colObjA, colObjB, resultCallback);
+	}
+
 	void ContactTest(
 		btCollisionObject* colObj,
 		std::function<void(const btCollisionObject& contactCollisionObject)> cb

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PhysicsBaseObject.h"
+
 namespace DemolisherWeapon {
 
 	/*!
@@ -50,6 +52,12 @@ namespace DemolisherWeapon {
 			rot.CopyTo(btRot);
 			btTrans.setRotation(btRot);
 		}
+
+		btGhostObject* GetBody()
+		{
+			return &m_ghostObject;
+		}
+
 	private:
 		/*!
 		* @brief	ゴースト作成処理の共通処理。
