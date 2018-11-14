@@ -118,6 +118,9 @@ void DefferdRender::Render() {
 	for (int i = 0; i < GetEngine().GetGraphicsEngine().GetShadowMapRender().GetSHADOWMAP_NUM(); i++) {
 		rc->PSSetShaderResources(60 + i, 1, view);
 	}
+
+	//レンダーターゲット解除
+	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
 }
 
 }

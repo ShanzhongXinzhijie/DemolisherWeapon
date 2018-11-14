@@ -115,6 +115,9 @@ void MotionBlurRender::PSBlur(ID3D11DeviceContext* rc){
 	};
 	rc->PSSetShaderResources(0, 1, view);
 	rc->PSSetShaderResources(1, 1, view);
+
+	//レンダーターゲット解除
+	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
 }
 
 void MotionBlurRender::CSBlur(ID3D11DeviceContext* rc) {

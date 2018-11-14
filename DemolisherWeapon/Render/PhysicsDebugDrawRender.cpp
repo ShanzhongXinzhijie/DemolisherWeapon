@@ -35,6 +35,9 @@ namespace DemolisherWeapon {
 			m_physicsDrawer.BeginDraw();
 			GetEngine().GetPhysicsWorld().GetDynamicWorld()->debugDrawWorld();
 			m_physicsDrawer.EndDraw();
+
+			//レンダーターゲット解除
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
 		}
 	}
 }

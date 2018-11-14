@@ -23,5 +23,8 @@ namespace DemolisherWeapon {
 #endif
 
 		SetMainCamera(camlist[m_cameraNum]);
+
+		//シェーダに送るポイントライト用カメラ座標更新
+		GetEngine().GetGraphicsEngine().GetLightManager().UpdateConstantBuffer();
 	}
 }

@@ -93,6 +93,13 @@ void GBufferRender::Release() {
 
 void GBufferRender::Render() {
 	
+#ifdef _DEBUG
+	if (!GetMainCamera()) {
+		MessageBox(NULL, "カメラが設定されていません!!", "Error", MB_OK);
+		std::abort();
+	}
+#endif
+	
 	//Gバッファをクリア
 	float clearColor[enGBufferNum][4] = {
 		{ 0.5f, 0.5f, 0.5f, 0.0f }, //enGBufferAlbedo
@@ -122,6 +129,9 @@ void GBufferRender::Render() {
 
 	//ラスタライザーステート戻す
 	GetEngine().GetGraphicsEngine().ResetRasterizerState();
+
+	//レンダーターゲット解除
+	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
 }
 void GBufferRender::PostRender() {
 	m_drawModelList.clear();

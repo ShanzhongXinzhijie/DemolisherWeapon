@@ -203,8 +203,9 @@ void GameLoop::Run() {
 		m_gameObjectManager_Ptr->PostLoopUpdate();
 
 		//ライト更新
-		GetEngine().GetGraphicsEngine().GetLightManager().UpdateBuffers();
-		
+		GetEngine().GetGraphicsEngine().GetLightManager().UpdateStructuredBuffers();
+		GetEngine().GetGraphicsEngine().GetLightManager().UpdateConstantBuffer();
+
 		//描画/////////////////////////////////////////////		
 
 		//バックバッファをクリア

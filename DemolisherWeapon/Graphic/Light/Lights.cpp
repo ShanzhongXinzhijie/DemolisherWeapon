@@ -106,12 +106,7 @@ void LightManager::Release() {
 	m_pointLightsSRV->Release();
 }
 
-void LightManager::UpdateBuffers() {
-	//ライトパラメーター更新
-	m_lightParam.eyePos = GetMainCamera()->GetPos();
-	m_lightParam.numDirectionLight = min((int)m_directionLights.size(), DIRLIGHT_NUM);
-	m_lightParam.numPointLight = min((int)m_pointLights.size(), POILIGHT_NUM);
-
+void LightManager::UpdateStructuredBuffers() {
 	//ディレクションライトの更新
 	{
 		int i = 0;
@@ -130,6 +125,9 @@ void LightManager::UpdateBuffers() {
 			}
 		}
 		m_directionLights.clear();
+
+		//ライトの数更新
+		m_lightParam.numDirectionLight = min(i, DIRLIGHT_NUM);
 	}
 
 	//ポイントライトの更新
@@ -150,11 +148,21 @@ void LightManager::UpdateBuffers() {
 			}
 		}
 		m_pointLights.clear();
+
+		//ライトの数更新
+		m_lightParam.numPointLight = min(i, POILIGHT_NUM);
 	}
 
 	//StructuredBufferを更新する。
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(m_directionLightSB, 0, NULL, m_rawDirectionLights, 0, 0);
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(m_pointLightsSB, 0, NULL, m_rawPointLights, 0, 0);
+}
+
+void LightManager::UpdateConstantBuffer() {
+	//カメラ位置更新
+	if (GetMainCamera()) {
+		m_lightParam.eyePos = GetMainCamera()->GetPos();
+	}
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(m_lightParamCB, 0, NULL, &m_lightParam, 0, 0);
 }
 

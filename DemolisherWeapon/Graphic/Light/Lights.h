@@ -114,7 +114,8 @@ public:
 	void Init();
 	void Release();
 
-	void UpdateBuffers();
+	void UpdateStructuredBuffers();//ストラクチャーバッファを更新
+	void UpdateConstantBuffer();//定数バッファを更新
 
 	ID3D11Buffer*& GetLlightParamCB()	{ return m_lightParamCB; }
 	ID3D11ShaderResourceView*& GetDirectionLightSRV() { return m_directionLightSRV; }

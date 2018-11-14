@@ -287,6 +287,9 @@ void ShadowMapRender::Render() {
 
 	//ビューポート戻す
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &oldviewport);
+
+	//レンダーターゲット解除
+	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
 }
 void ShadowMapRender::PostRender() {
 	m_drawModelList.clear();
