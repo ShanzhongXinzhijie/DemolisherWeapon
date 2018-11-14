@@ -18,8 +18,8 @@ void GBufferRender::Init() {
 	//テクスチャ作成
 	D3D11_TEXTURE2D_DESC texDesc;
 	ZeroMemory(&texDesc, sizeof(texDesc));
-	texDesc.Width = (UINT)ge.GetFrameBuffer_W();
-	texDesc.Height = (UINT)ge.GetFrameBuffer_H();
+	texDesc.Width = (UINT)ge.Get3DFrameBuffer_W();
+	texDesc.Height = (UINT)ge.Get3DFrameBuffer_H();
 	texDesc.MipLevels = 1;
 	texDesc.ArraySize = 1;
 	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -119,6 +119,11 @@ void GBufferRender::Render() {
 	for (auto& model : m_drawModelList) {
 		model->Draw();
 	}
+
+	//ラスタライザーステート戻す
+	GetEngine().GetGraphicsEngine().ResetRasterizerState();
+}
+void GBufferRender::PostRender() {
 	m_drawModelList.clear();
 }
 

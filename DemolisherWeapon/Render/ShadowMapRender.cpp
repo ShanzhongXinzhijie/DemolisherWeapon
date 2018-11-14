@@ -20,8 +20,8 @@ void ShadowMapRender::Init() {
 	//テクスチャ作成
 	D3D11_TEXTURE2D_DESC texDesc;
 	ZeroMemory(&texDesc, sizeof(texDesc));
-	texDesc.Width = (UINT)ge.GetFrameBuffer_W()*2;
-	texDesc.Height = (UINT)ge.GetFrameBuffer_H()*2;
+	texDesc.Width = (UINT)ge.Get3DFrameBuffer_W()*2;
+	texDesc.Height = (UINT)ge.Get3DFrameBuffer_H()*2;
 	texDesc.MipLevels = 1;
 	texDesc.ArraySize = 1;
 	texDesc.Format = DXGI_FORMAT_R32_FLOAT;
@@ -165,6 +165,7 @@ void ShadowMapRender::Render() {
 
 	GameObj::ICamera* oldcam = GetMainCamera();
 	D3D11_VIEWPORT oldviewport; UINT kaz = 1;
+
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSGetViewports(&kaz, &oldviewport);
 	//ID3D11DepthStencilState* oldDepthStencilState = nullptr;
 	//GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMGetDepthStencilState(&oldDepthStencilState,&kaz);
@@ -192,8 +193,7 @@ void ShadowMapRender::Render() {
 	//シェーダーをZ値書き込み様に
 	ModelEffect::SetShaderMode(ModelEffect::enZShader);
 
-	for (int i = 0; i < SHADOWMAP_NUM; i++) {
-		
+	for (int i = 0; i < SHADOWMAP_NUM; i++) {		
 		//デプスクリア
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 		
@@ -208,8 +208,6 @@ void ShadowMapRender::Render() {
 		for (auto& cas : m_drawModelList) {
 			cas->Draw();// true);
 		}
-		m_drawModelList.clear();
-
 	}
 
 	//シェーダーを通常に
@@ -289,6 +287,9 @@ void ShadowMapRender::Render() {
 
 	//ビューポート戻す
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &oldviewport);
+}
+void ShadowMapRender::PostRender() {
+	m_drawModelList.clear();
 }
 
 }

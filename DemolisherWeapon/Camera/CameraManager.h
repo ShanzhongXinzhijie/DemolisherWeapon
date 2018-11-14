@@ -114,8 +114,13 @@ public:
 		return m_mainCamera;
 	}
 
+	std::vector<GameObj::ICamera*>& GetCameraList() {
+		return m_cameralist;
+	}
+
 private:
 	GameObj::ICamera* m_mainCamera = nullptr;
+	std::vector<GameObj::ICamera*> m_cameralist;
 };
 
 }

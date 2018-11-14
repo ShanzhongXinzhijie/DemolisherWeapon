@@ -16,6 +16,7 @@ public:
 	void Release();
 
 	void Render()override;
+	void PostRender()override;
 
 	void AddDrawModel(SkinModel* caster) {
 		m_drawModelList.push_back(caster);

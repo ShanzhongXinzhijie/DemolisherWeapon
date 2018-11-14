@@ -27,7 +27,7 @@ namespace DemolisherWeapon {
 			//レンダーターゲットとか設定		
 			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(
 				1,
-				&GetEngine().GetGraphicsEngine().GetFinalRender().GetFRT().GetRTV(),
+				&GetEngine().GetGraphicsEngine().GetFRT().GetRTV(),
 				GetEngine().GetGraphicsEngine().GetGBufferRender().GetDSV()
 			);
 

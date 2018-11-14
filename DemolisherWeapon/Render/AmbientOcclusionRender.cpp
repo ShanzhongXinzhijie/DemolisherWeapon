@@ -15,8 +15,8 @@ void AmbientOcclusionRender::Init(float texScale) {
 
 	GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
 
-	m_textureSizeX = (UINT)(ge.GetFrameBuffer_W()*texScale);
-	m_textureSizeY = (UINT)(ge.GetFrameBuffer_H()*texScale);
+	m_textureSizeX = (UINT)(ge.Get3DFrameBuffer_W()*texScale);
+	m_textureSizeY = (UINT)(ge.Get3DFrameBuffer_H()*texScale);
 
 	//コンピュートシェーダ
 	m_cs.Load("Preset/shader/ambientocclusionCS.fx", "CSmain", Shader::EnType::CS);
@@ -77,8 +77,8 @@ void AmbientOcclusionRender::Render() {
 	{
 		//定数バッファ
 		SCSConstantBuffer csCb;
-		csCb.win_x = (UINT)GetEngine().GetGraphicsEngine().GetFrameBuffer_W();
-		csCb.win_y = (UINT)GetEngine().GetGraphicsEngine().GetFrameBuffer_H();
+		csCb.win_x = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W();
+		csCb.win_y = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H();
 		csCb.ao_x = m_textureSizeX;
 		csCb.ao_y = m_textureSizeY;
 		csCb.distanceScale = GetEngine().GetDistanceScale();

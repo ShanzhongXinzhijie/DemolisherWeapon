@@ -137,7 +137,7 @@ namespace DemolisherWeapon {
 				"CharacterControllerの使い方はSample/Sample07を参考にしてください。\n");
 			OutputDebugStringA(message);
 #endif
-			return CVector3::Zero();
+			return m_position;
 		}
 		if (moveSpeed.y > 0.0f) {
 			//吹っ飛び中にする。

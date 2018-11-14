@@ -64,6 +64,7 @@
     <ClInclude Include="Graphic\Font\CFont.h" />
     <ClInclude Include="Graphic\Model\CoordinateSystemBias.h" />
     <ClInclude Include="collision\CCollisionObj.h" />
+    <ClInclude Include="Render\CameraSwitchRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -118,6 +119,7 @@
     <ClCompile Include="Render\PhysicsDebugDrawRender.cpp" />
     <ClCompile Include="Graphic\Font\CFont.cpp" />
     <ClCompile Include="collision\CCollisionObj.cpp" />
+    <ClCompile Include="Render\CameraSwitchRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

@@ -61,7 +61,7 @@ void DefferdRender::Render() {
 	ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 	//描画先を最終レンダーターゲットにする
-	GetEngine().GetGraphicsEngine().GetFinalRender().SetFinalRenderTarget();
+	GetEngine().GetGraphicsEngine().SetFinalRenderTarget();
 
 	//SRVをセット	
 	rc->PSSetShaderResources(0, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferAlbedo));

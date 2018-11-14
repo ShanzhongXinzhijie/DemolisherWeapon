@@ -12,6 +12,7 @@ public:
 	~D3Render();
 
 	void Render()override;
+	void PostRender()override;
 
 	void AddDrawModel(SkinModel* sm) {
 		m_drawModelList.emplace_back(sm);

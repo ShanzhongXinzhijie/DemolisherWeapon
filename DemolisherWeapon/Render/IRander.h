@@ -5,6 +5,7 @@ public:
 	virtual ~IRander() {};
 
 	virtual void Render()=0;
+	virtual void PostRender() {};
 };
 
 class RanderManager {
@@ -13,6 +14,9 @@ public:
 	void Render() {
 		for (auto& r : m_renderList) {
 			r.second->Render();
+		}
+		for (auto& r : m_renderList) {
+			r.second->PostRender();
 		}
 	};
 

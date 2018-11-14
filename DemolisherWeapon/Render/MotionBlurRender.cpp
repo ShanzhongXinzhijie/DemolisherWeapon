@@ -27,13 +27,13 @@ void MotionBlurRender::Init() {
 		ZeroMemory(&uavDesc, sizeof(uavDesc));
 
 		D3D11_TEXTURE2D_DESC texDesc;
-		ge.GetFinalRender().GetFRT().GetTex(0)->GetDesc(&texDesc);
+		ge.GetFRT().GetTex(0)->GetDesc(&texDesc);
 
 		uavDesc.Format = texDesc.Format;
 		uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 		uavDesc.Texture2D.MipSlice = 0;
 		HRESULT	hr;
-		hr = ge.GetD3DDevice()->CreateUnorderedAccessView(ge.GetFinalRender().GetFRT().GetTex(0), &uavDesc, &m_outputUAV);
+		hr = ge.GetD3DDevice()->CreateUnorderedAccessView(ge.GetFRT().GetTex(0), &uavDesc, &m_outputUAV);
 	}
 
 	//MaskUAV
@@ -86,17 +86,17 @@ void MotionBlurRender::Render() {
 void MotionBlurRender::PSBlur(ID3D11DeviceContext* rc){		
 
 	//最終レンダーターゲットのコピー
-	GetEngine().GetGraphicsEngine().GetFinalRender().GetFRT().Copy();
+	GetEngine().GetGraphicsEngine().GetFRT().Copy();
 
 	//SRVをセット	
-	rc->PSSetShaderResources(0, 1, &GetEngine().GetGraphicsEngine().GetFinalRender().GetFRT().GetSRV(1));
+	rc->PSSetShaderResources(0, 1, &GetEngine().GetGraphicsEngine().GetFRT().GetSRV(1));
 	rc->PSSetShaderResources(1, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferVelocityPS));
 
 	//最終的なレンダーターゲットのスワップ
-	GetEngine().GetGraphicsEngine().GetFinalRender().GetFRT().SetNow(0);// Swap();
+	GetEngine().GetGraphicsEngine().GetFRT().SetNow(0);// Swap();
 	//描画先を最終レンダーターゲットにする
-	GetEngine().GetGraphicsEngine().GetFinalRender().GetFRT().Clear(0);
-	GetEngine().GetGraphicsEngine().GetFinalRender().SetFinalRenderTarget();
+	GetEngine().GetGraphicsEngine().GetFRT().Clear(0);
+	GetEngine().GetGraphicsEngine().SetFinalRenderTarget();
 
 	//シェーダーを設定
 	rc->VSSetShader((ID3D11VertexShader*)m_vs.GetBody(), NULL, 0);
@@ -122,8 +122,8 @@ void MotionBlurRender::CSBlur(ID3D11DeviceContext* rc) {
 	{
 		//定数バッファ
 		SCSConstantBuffer csCb;
-		csCb.win_x = (UINT)GetEngine().GetGraphicsEngine().GetFrameBuffer_W();
-		csCb.win_y = (UINT)GetEngine().GetGraphicsEngine().GetFrameBuffer_H();
+		csCb.win_x = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W();
+		csCb.win_y = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H();
 		csCb.distanceScale = GetEngine().GetDistanceScale();
 		rc->UpdateSubresource(m_cb, 0, nullptr, &csCb, 0, 0);
 		rc->CSSetConstantBuffers(0, 1, &m_cb);
@@ -135,13 +135,13 @@ void MotionBlurRender::CSBlur(ID3D11DeviceContext* rc) {
 		rc->CSSetUnorderedAccessViews(1, 1, &m_maskUAV, nullptr);
 
 		//SRVを設定
-		GetEngine().GetGraphicsEngine().GetFinalRender().GetFRT().Copy();
-		GetEngine().GetGraphicsEngine().GetFinalRender().GetFRT().SetNow(0);
-		rc->CSSetShaderResources(2, 1, &GetEngine().GetGraphicsEngine().GetFinalRender().GetFRT().GetSRV(1));
+		GetEngine().GetGraphicsEngine().GetFRT().Copy();
+		GetEngine().GetGraphicsEngine().GetFRT().SetNow(0);
+		rc->CSSetShaderResources(2, 1, &GetEngine().GetGraphicsEngine().GetFRT().GetSRV(1));
 	}
 
 	// ディスパッチ
-	rc->Dispatch((UINT)std::ceil(GetEngine().GetGraphicsEngine().GetFrameBuffer_W() / 32.0f), (UINT)std::ceil(GetEngine().GetGraphicsEngine().GetFrameBuffer_H() / 32.0f), 1);
+	rc->Dispatch((UINT)std::ceil(GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W() / 32.0f), (UINT)std::ceil(GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H() / 32.0f), 1);
 
 	//設定解除
 	{

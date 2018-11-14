@@ -260,6 +260,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Render\CameraSwitchRender.h" />
     <ClInclude Include="collision\CCollisionObj.h" />
     <ClInclude Include="Graphic\Model\CoordinateSystemBias.h" />
     <ClInclude Include="Graphic\Font\CFont.h" />
@@ -319,6 +320,7 @@
     <ClInclude Include="Input\XInput.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Render\CameraSwitchRender.cpp" />
     <ClCompile Include="collision\CCollisionObj.cpp" />
     <ClCompile Include="Graphic\Font\CFont.cpp" />
     <ClCompile Include="Render\PhysicsDebugDrawRender.cpp" />

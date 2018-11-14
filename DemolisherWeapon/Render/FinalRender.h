@@ -1,5 +1,7 @@
 #pragma once
 
+#include"../Graphic/CPrimitive.h"
+
 namespace DemolisherWeapon {
 
 class CFinalRenderTarget {
@@ -44,20 +46,22 @@ class FinalRender : public IRander
 public:
 	~FinalRender();
 
-	void Init();
+	void Init(const CVector2 screen_min = { 0.0f,0.0f }, const CVector2 screen_max = { 1.0f,1.0f });
 	void Release();
 
 	void Render()override;
 
-	void SetFinalRenderTarget();
+	//void SetFinalRenderTarget();
 
-	CFinalRenderTarget& GetFRT() { return m_FRT; }
+	//CFinalRenderTarget& GetFRT() { return m_FRT; }
 
 private:
-	CFinalRenderTarget m_FRT;
+	//CFinalRenderTarget m_FRT;
 	Shader m_vs;
 	Shader m_ps;
 	ID3D11SamplerState* m_samplerState = nullptr;
+
+	CPrimitive m_drawSpace;
 };
 
 }

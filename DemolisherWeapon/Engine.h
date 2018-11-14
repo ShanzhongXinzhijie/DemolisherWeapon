@@ -15,6 +15,12 @@
 
 namespace DemolisherWeapon {
 
+enum EnSplitScreenMode {
+	enNoSplit=0,
+	enVertical_TwoSplit,
+	enSide_TwoSplit,
+};
+
 struct InitEngineParameter {
 	float SDUnityChanScale = 1.0f;	//SDユニティちゃんの大きさ(距離の基準値になる)
 	//メモ: 1m = 78.74fくらい?(Unityちゃんが全長1.5mくらいになる
@@ -24,10 +30,14 @@ struct InitEngineParameter {
 	int	screenHeight = 720;			//ウィンドウの高さ
 	int frameBufferWidth = 1280;	//フレームバッファの幅。これが内部解像度。
 	int frameBufferHeight = 720;	//フレームバッファの高さ。これが内部解像度。
+	//int frameBufferWidth2D = 1280;	//フレームバッファの幅。2D版。
+	//int frameBufferHeight2D = 720;	//フレームバッファの高さ。2D版。
 	int refleshRate = 60;			//リフレッシュレート
 	bool isWindowMode = TRUE;		//ウィンドウモードか？
 
 	CVector3 defaultAmbientLight = {0.3f,0.3f,0.3f};//デフォルトのアンビエントライト
+
+	EnSplitScreenMode isSplitScreen = enNoSplit;
 };
 
 class GameLoop {
@@ -220,6 +230,11 @@ static inline GameObj::ICamera* GetMainCamera()
 static inline void SetMainCamera(GameObj::ICamera* cam)
 {
 	GetEngine().GetGraphicsEngine().GetCameraManager().SetMainCamera(cam);
+}
+//カメラリストを取得
+static inline std::vector<GameObj::ICamera*>& GetCameraList()
+{
+	return GetEngine().GetGraphicsEngine().GetCameraManager().GetCameraList();
 }
 
 //アンビエントライトを設定

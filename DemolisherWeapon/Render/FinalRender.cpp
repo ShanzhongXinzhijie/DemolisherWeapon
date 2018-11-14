@@ -10,8 +10,8 @@ void CFinalRenderTarget::Init() {
 	//テクスチャ作成
 	D3D11_TEXTURE2D_DESC texDesc;
 	ZeroMemory(&texDesc, sizeof(texDesc));
-	texDesc.Width = (UINT)GetEngine().GetGraphicsEngine().GetFrameBuffer_W();
-	texDesc.Height = (UINT)GetEngine().GetGraphicsEngine().GetFrameBuffer_H();
+	texDesc.Width = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W();
+	texDesc.Height = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H();
 	texDesc.MipLevels = 1;
 	texDesc.ArraySize = 1;
 	texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -65,16 +65,17 @@ void CFinalRenderTarget::Copy() {
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->CopyResource(m_Tex[m_now^1], m_Tex[m_now]);
 }
 
+//ファイナルレンダー
 FinalRender::~FinalRender()
 {
 	Release();
 }
 void FinalRender::Release() {
-	m_FRT.Release();
+	//m_FRT.Release();
 	m_samplerState->Release();
 }
-void FinalRender::Init() {
-	m_FRT.Init();
+void FinalRender::Init(const CVector2 screen_min, const CVector2 screen_max) {
+	//m_FRT.Init();
 
 	m_vs.Load("Preset/shader/primitive.fx", "VSMain", Shader::EnType::VS);
 	m_ps.Load("Preset/shader/primitive.fx", "PSMain", Shader::EnType::PS);
@@ -86,15 +87,41 @@ void FinalRender::Init() {
 	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
+
+	CPrimitive::SVertex vertex[4] = {
+		{
+			{screen_min.x*2.0f - 1.0f, screen_min.y*2.0f - 1.0f, 0.0f, 1.0f},
+			{0.0f, 1.0f}
+		},
+		{
+			{screen_max.x*2.0f - 1.0f, screen_min.y*2.0f - 1.0f, 0.0f, 1.0f},
+			{1.0f, 1.0f}
+		},
+		{
+			{screen_min.x*2.0f - 1.0f, screen_max.y*2.0f - 1.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f}
+		},
+		{
+			{screen_max.x*2.0f - 1.0f, screen_max.y*2.0f - 1.0f, 0.0f, 1.0f},
+			{1.0f, 0.0f}
+		},
+	};
+	int index[4] = { 0,1,2,3 };
+	m_drawSpace.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, 4, index);
 }
 void FinalRender::Render() {
 	//描画先をバックバッファにする
-	GetEngine().GetGraphicsEngine().ResetBackBuffer();
+	GetEngine().GetGraphicsEngine().SetBackBufferToRenderTarget();
+
+	//ビューポート設定
+	D3D11_VIEWPORT oldviewport; UINT kaz = 1;
+	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSGetViewports(&kaz, &oldviewport);
+	GetEngine().GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().GetFrameBuffer_W(), GetEngine().GetGraphicsEngine().GetFrameBuffer_H());
 
 	ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 	//SRVをセット
-	rc->PSSetShaderResources(0, 1, &m_FRT.GetSRV());
+	rc->PSSetShaderResources(0, 1, &GetEngine().GetGraphicsEngine().GetFRT().GetSRV());
 
 	//シェーダーを設定
 	rc->VSSetShader((ID3D11VertexShader*)m_vs.GetBody(), NULL, 0);
@@ -105,7 +132,8 @@ void FinalRender::Render() {
 	rc->PSSetSamplers(0, 1, &m_samplerState);
 
 	//描画
-	GetEngine().GetGraphicsEngine().DrawFullScreen();
+	m_drawSpace.DrawIndexed();
+	//GetEngine().GetGraphicsEngine().DrawFullScreen();
 
 	//SRVを解除
 	ID3D11ShaderResourceView* view[] = {
@@ -114,10 +142,13 @@ void FinalRender::Render() {
 	rc->PSSetShaderResources(0, 1, view);
 
 	//最終レンダーターゲットをクリア
-	m_FRT.AllClear();
+	GetEngine().GetGraphicsEngine().GetFRT().AllClear();
+
+	//ビューポート戻す
+	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &oldviewport);
 }
-void FinalRender::SetFinalRenderTarget() {
-	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &m_FRT.GetRTV(), m_FRT.GetDSV());
-}
+//void FinalRender::SetFinalRenderTarget() {
+//	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &m_FRT.GetRTV(), m_FRT.GetDSV());
+//}
 
 }

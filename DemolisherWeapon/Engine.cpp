@@ -123,7 +123,7 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	m_physics.Init();
 
 	//DirectXの初期化。
-	m_graphicsEngine.Init(m_hWnd, initParam.frameBufferWidth, initParam.frameBufferHeight, initParam.refleshRate, initParam.isWindowMode);
+	m_graphicsEngine.Init(m_hWnd, initParam);
 
 	//ゲームループの初期化
 	m_gameLoop.Init(initParam.limitFps, initParam.standardFps);
@@ -205,10 +205,19 @@ void GameLoop::Run() {
 		//ライト更新
 		GetEngine().GetGraphicsEngine().GetLightManager().UpdateBuffers();
 		
-		//描画
+		//描画/////////////////////////////////////////////		
 
+		//バックバッファをクリア
+		GetEngine().GetGraphicsEngine().ClearBackBuffer();
+
+		//3D用のビューポートにする
+		GetEngine().GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W(), GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H());
+		
 		//レンダリング
 		GetEngine().GetGraphicsEngine().RunRenderManager();
+
+		//2D用の設定にする
+		GetEngine().GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().GetFrameBuffer_W(), GetEngine().GetGraphicsEngine().GetFrameBuffer_H());
 
 		//ゲームオブジェクトによるポスト描画
 		m_gameObjectManager_Ptr->PostRender();
@@ -218,6 +227,8 @@ void GameLoop::Run() {
 
 		//バックバッファを表へ
 		GetEngine().GetGraphicsEngine().SwapBackBuffer();
+
+		///////////////////////////////////////////////////
 
 		//ゲーム終了
 		if (GetAsyncKeyState(VK_ESCAPE)) {

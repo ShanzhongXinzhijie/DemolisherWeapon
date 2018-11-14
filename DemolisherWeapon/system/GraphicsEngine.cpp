@@ -13,14 +13,17 @@ GraphicsEngine::~GraphicsEngine()
 }
 
 
-void GraphicsEngine::ResetBackBuffer()
+void GraphicsEngine::ClearBackBuffer()
 {
-	float ClearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f }; //red,green,blue,alpha
+	//バックバッファを灰色で塗りつぶす。
+	float ClearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	m_pd3dDeviceContext->ClearRenderTargetView(m_backBuffer, ClearColor);
+	m_pd3dDeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);	
+}
+void GraphicsEngine::SetBackBufferToRenderTarget()
+{
 	//描き込み先をバックバッファにする。
 	m_pd3dDeviceContext->OMSetRenderTargets(1, &m_backBuffer, m_depthStencilView);
-	//バックバッファを灰色で塗りつぶす。
-	m_pd3dDeviceContext->ClearRenderTargetView(m_backBuffer, ClearColor);
-	m_pd3dDeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 void GraphicsEngine::SwapBackBuffer()
 {
@@ -65,12 +68,14 @@ void GraphicsEngine::Release()
 		m_pd3dDevice->Release();
 		m_pd3dDevice = NULL;
 	}
-}
-void GraphicsEngine::Init(HWND hWnd, int bufferW, int bufferH, int refreshRate, bool isWindowMode)
-{
-	FRAME_BUFFER_W = (float)bufferW;
-	FRAME_BUFFER_H = (float)bufferH;
 
+	m_FRT.Release();
+}
+void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
+{
+	FRAME_BUFFER_W = (float)initParam.frameBufferWidth;
+	FRAME_BUFFER_H = (float)initParam.frameBufferHeight;
+	
 	//スワップチェインを作成するための情報を設定する。
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
@@ -78,13 +83,13 @@ void GraphicsEngine::Init(HWND hWnd, int bufferW, int bufferH, int refreshRate, 
 	sd.BufferDesc.Width = (UINT)FRAME_BUFFER_W;			//フレームバッファの幅。
 	sd.BufferDesc.Height = (UINT)FRAME_BUFFER_H;		//フレームバッファの高さ。
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	//フレームバッファのフォーマット。R8G8B8A8の32bit。
-	sd.BufferDesc.RefreshRate.Numerator = refreshRate;	//モニタのリフレッシュレート。(バックバッファとフロントバッファを入れ替えるタイミングとなる。)
+	sd.BufferDesc.RefreshRate.Numerator = initParam.refleshRate;	//モニタのリフレッシュレート。(バックバッファとフロントバッファを入れ替えるタイミングとなる。)
 	sd.BufferDesc.RefreshRate.Denominator = 1;			//２にしたら30fpsになる。1でいい。
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	//サーフェスまたはリソースを出力レンダー ターゲットとして使用します。
 	sd.OutputWindow = hWnd;								//出力先のウィンドウハンドル。
 	sd.SampleDesc.Count = 1;							//1でいい。
 	sd.SampleDesc.Quality = 0;							//MSAAなし。0でいい。
-	sd.Windowed = isWindowMode ? TRUE : FALSE;			//ウィンドウモード。TRUEでよい。
+	sd.Windowed = initParam.isWindowMode ? TRUE : FALSE;			//ウィンドウモード。TRUEでよい。
 
 	//利用するDirectXの機能セット。
 	//この配列はD3D11CreateDeviceAndSwapChainの引数として使う。
@@ -143,24 +148,18 @@ void GraphicsEngine::Init(HWND hWnd, int bufferW, int bufferH, int refreshRate, 
 		descDSV.Texture2D.MipSlice = 0;
 		m_pd3dDevice->CreateDepthStencilView(m_depthStencil, &descDSV, &m_depthStencilView);
 	}
+
+	//ラスタライザを初期化。
 	D3D11_RASTERIZER_DESC desc = {};
 	desc.CullMode = D3D11_CULL_FRONT;
 	desc.FillMode = D3D11_FILL_SOLID;
 	desc.DepthClipEnable = true;
 	desc.MultisampleEnable = true;
-
-	//ラスタライザとビューポートを初期化。
 	m_pd3dDevice->CreateRasterizerState(&desc, &m_rasterizerState);
-
-	D3D11_VIEWPORT viewport;
-	viewport.Width = FRAME_BUFFER_W;
-	viewport.Height = FRAME_BUFFER_H;
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	m_pd3dDeviceContext->RSSetViewports(1, &viewport);
 	m_pd3dDeviceContext->RSSetState(m_rasterizerState);
+
+	//ビューポートを初期化。
+	SetViewport(0.0f, 0.0f, FRAME_BUFFER_W, FRAME_BUFFER_H);
 
 	{
 		D3D11_DEPTH_STENCIL_DESC desc;
@@ -181,6 +180,16 @@ void GraphicsEngine::Init(HWND hWnd, int bufferW, int bufferH, int refreshRate, 
 
 		m_pd3dDevice->CreateDepthStencilState(&desc, &m_depthStencilState);
 		m_pd3dDeviceContext->OMSetDepthStencilState(m_depthStencilState, 0);
+	}
+
+	//画面分割用の比率に
+	FRAME_BUFFER_3D_W = FRAME_BUFFER_W;
+	FRAME_BUFFER_3D_H = FRAME_BUFFER_H;
+	if (initParam.isSplitScreen == enVertical_TwoSplit) {
+		FRAME_BUFFER_3D_H = FRAME_BUFFER_H*0.5f;
+	}
+	if (initParam.isSplitScreen == enSide_TwoSplit) {
+		FRAME_BUFFER_3D_W = FRAME_BUFFER_W*0.5f;
 	}
 
 	//Sprite初期化
@@ -212,29 +221,74 @@ void GraphicsEngine::Init(HWND hWnd, int bufferW, int bufferH, int refreshRate, 
 	//ライトマネージャー
 	m_lightManager.Init();
 
-	//レンダーをセット
+	//最終レンダーターゲット
+	m_FRT.Init();
+
+	//レンダー初期化
 	m_gbufferRender.Init();
-	m_renderManager.AddRender(0, &m_gbufferRender);
-
 	m_shadowMapRender.Init();
-	m_renderManager.AddRender(1, &m_shadowMapRender);
-
 	m_ambientOcclusionRender.Init();
-	m_renderManager.AddRender(2, &m_ambientOcclusionRender);
-
 	m_defferdRender.Init();
-	m_renderManager.AddRender(3, &m_defferdRender);
-	m_renderManager.AddRender(4, &m_motionBlurRender);
+	m_motionBlurRender.Init();
+	if (initParam.isSplitScreen) {
+		m_finalRender[0] = std::make_unique<FinalRender>();
+		m_finalRender[1] = std::make_unique<FinalRender>();
+
+		if (initParam.isSplitScreen == enVertical_TwoSplit) {
+			m_finalRender[1]->Init({ 0.0f,0.0f }, { 1.0f,0.5f });
+			m_finalRender[0]->Init({ 0.0f,0.5f }, { 1.0f,1.0f });
+		}
+		if (initParam.isSplitScreen == enSide_TwoSplit) {
+			m_finalRender[0]->Init({ 0.0f,0.0f }, { 0.5f,1.0f });
+			m_finalRender[1]->Init({ 0.5f,0.0f }, { 1.0f,1.0f });
+		}
+
+		m_cameraSwitchRender[0] = std::make_unique<CameraSwitchRender>();
+		m_cameraSwitchRender[1] = std::make_unique<CameraSwitchRender>();
+		m_cameraSwitchRender[0]->Init(0);
+		m_cameraSwitchRender[1]->Init(1);
+	}
+	else {
+		m_finalRender[0] = std::make_unique<FinalRender>();
+		m_finalRender[0]->Init();
+	}
+
+	//レンダーをセット
+	
+	m_renderManager.AddRender(-1, &m_shadowMapRender);
+
+	int screencnt = 1, oneloopOffset = 5000;
+	if (initParam.isSplitScreen) {
+		screencnt = 2;
+	}
+	for (int i = 0; i < screencnt; i++) {
+
+		int offset = oneloopOffset * i;		
+
+		if (initParam.isSplitScreen) {
+			m_renderManager.AddRender(0 + offset, m_cameraSwitchRender[i].get());
+		}
+
+		m_renderManager.AddRender(1 + offset, &m_gbufferRender);
+
+		//m_renderManager.AddRender(2 + offset, &m_shadowMapRender);
+
+		m_renderManager.AddRender(3 + offset, &m_ambientOcclusionRender);
+
+		m_renderManager.AddRender(4 + offset, &m_defferdRender);
+		m_renderManager.AddRender(5 + offset, &m_motionBlurRender);
 
 #ifdef _DEBUG
-	//m_physicsDebugDrawRender.Init();
-	m_renderManager.AddRender(999, &m_physicsDebugDrawRender);
+		m_renderManager.AddRender(999 + offset, &m_physicsDebugDrawRender);
 #endif
+		
+		m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());		
+	}
+}
 
-	m_finalRender.Init();
-	m_renderManager.AddRender(1000, &m_finalRender);
-
-	m_motionBlurRender.Init();
+//描画先を最終レンダーターゲットにする
+void GraphicsEngine::SetFinalRenderTarget() {
+	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &m_FRT.GetRTV(), m_FRT.GetDSV());
 }
 
 }

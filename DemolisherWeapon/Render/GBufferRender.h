@@ -36,6 +36,7 @@ public:
 	ID3D11DepthStencilView* GetDSV() { return m_depthStencilView; }
 
 	void Render()override;
+	void PostRender()override;
 
 	void AddDrawModel(SkinModel* sm) {
 		m_drawModelList.emplace_back(sm);

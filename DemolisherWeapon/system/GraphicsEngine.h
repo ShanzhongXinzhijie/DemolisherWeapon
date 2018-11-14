@@ -8,12 +8,15 @@
 #include"Render/FinalRender.h"
 #include"Render/MotionBlurRender.h"
 #include"Render/PhysicsDebugDrawRender.h"
+#include"Render/CameraSwitchRender.h"
 
 #include"Camera/CameraManager.h"
 #include"Graphic/Light/Lights.h"
 #include"Graphic/CPrimitive.h"
 
 namespace DemolisherWeapon {
+
+struct InitEngineParameter;
 
 class GraphicsEngine
 {
@@ -25,7 +28,7 @@ public:
 	 *@brief	初期化。
 	 *@param[in]	hWnd		ウィンドウハンドル。
 	 */
-	void Init(HWND hWnd, int bufferW, int bufferH, int refreshRate, bool isWindowMode);
+	void Init(HWND hWnd, const InitEngineParameter& initParam);
 	/*!
 	 *@brief	解放。
 	 */
@@ -46,11 +49,17 @@ public:
 	}
 
 	//フレームバッファの取得
-	float GetFrameBuffer_W()const{
+	float GetFrameBuffer_W()const {
 		return FRAME_BUFFER_W;
 	}
 	float GetFrameBuffer_H()const {
 		return FRAME_BUFFER_H;
+	}
+	float Get3DFrameBuffer_W()const{
+		return FRAME_BUFFER_3D_W;
+	}
+	float Get3DFrameBuffer_H()const {
+		return FRAME_BUFFER_3D_H;
 	}
 
 	//垂直同期待つかを設定
@@ -63,8 +72,10 @@ public:
 		m_pd3dDeviceContext->RSSetState(m_rasterizerState);
 	}
 
-	//バックバッファをクリアして描画先に設定
-	void ResetBackBuffer();
+	//バックバッファをクリア
+	void ClearBackBuffer();
+	//バックバッファをレンダーターゲットに設定
+	void SetBackBufferToRenderTarget();
 	//バックバッファとフロントバッファを入れ替える
 	void SwapBackBuffer();
 	
@@ -120,9 +131,9 @@ public:
 		return false;
 	}
 	//ファイナルレンダーの取得
-	FinalRender& GetFinalRender() {
-		return m_finalRender;
-	}
+	//FinalRender& GetFinalRender() {
+	//	return m_finalRender;
+	//}
 
 	//カメラマネージャー取得
 	CameraManager& GetCameraManager(){
@@ -134,10 +145,30 @@ public:
 		return m_lightManager;
 	}
 
+	//描画先を最終レンダーターゲットに
+	void SetFinalRenderTarget();
+	//最終レンダーターゲット取得
+	CFinalRenderTarget& GetFRT() { return m_FRT; }
+
+	//ビューポート設定
+	void SetViewport(float topLeftX, float topLeftY, float width, float height)
+	{
+		m_viewport.Width = width;
+		m_viewport.Height = height;
+		m_viewport.TopLeftX = topLeftX;
+		m_viewport.TopLeftY = topLeftY;
+		m_viewport.MinDepth = 0.0f;
+		m_viewport.MaxDepth = 1.0f;
+		m_pd3dDeviceContext->RSSetViewports(1, &m_viewport);
+	}
+
 private:
 
 	float FRAME_BUFFER_W = 1280.0f;				//フレームバッファの幅。
 	float FRAME_BUFFER_H = 720.0f;				//フレームバッファの高さ。
+	float FRAME_BUFFER_3D_W = 1280.0f;			//フレームバッファの幅(3D描画)
+	float FRAME_BUFFER_3D_H = 720.0f;			//フレームバッファの高さ(3D描画)
+
 
 	bool m_useVSync = false;//垂直同期するか
 
@@ -150,6 +181,8 @@ private:
 	ID3D11Texture2D*		m_depthStencil = NULL;		//デプスステンシル。
 	ID3D11DepthStencilView* m_depthStencilView = NULL;	//デプスステンシルビュー。
 	ID3D11DepthStencilState* m_depthStencilState = nullptr;
+
+	D3D11_VIEWPORT m_viewport;
 
 	//Sprite
 	std::unique_ptr<DirectX::SpriteFont> m_spriteFont;
@@ -168,7 +201,10 @@ private:
 #ifdef _DEBUG
 	PhysicsDebugDrawRender m_physicsDebugDrawRender;
 #endif
-	FinalRender m_finalRender;
+	std::unique_ptr<FinalRender> m_finalRender[2];
+	std::unique_ptr<CameraSwitchRender> m_cameraSwitchRender[2];
+	//最終レンダーターゲット
+	CFinalRenderTarget m_FRT;
 
 	//カメラマネージャー
 	CameraManager m_cameraManager;

@@ -204,7 +204,7 @@ private:
 	int m_lifespan = 0;//Žõ–½
 
 	unsigned int m_group = 0;
-	unsigned int m_mask = 0xFFFFFFFF;//‚·‚×‚Ä1
+	unsigned int m_mask = 0;// 0xFFFFFFFF;//‚·‚×‚Ä1
 
 	int m_nameKey = 0;
 
