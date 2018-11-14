@@ -119,13 +119,13 @@ public:
 	}
 	//PhysicsDebugDrawRender‚Ìƒ‚[ƒhİ’è	
 	void SetPhysicsDebugDrawMode(int debugMode) {
-#ifdef _DEBUG	
+#ifndef DW_MASTER	
 		m_physicsDebugDrawRender.SetDebugMode(debugMode);
 #endif
 	}
 	//PhysicsDebugDrawRender‚ª—LŒø‚©æ“¾
 	bool GetEnablePhysicsDebugDraw() {
-#ifdef _DEBUG	
+#ifndef DW_MASTER	
 		return m_physicsDebugDrawRender.IsEnable();
 #endif
 		return false;
@@ -198,7 +198,7 @@ private:
 	AmbientOcclusionRender m_ambientOcclusionRender;
 	DefferdRender m_defferdRender;
 	MotionBlurRender m_motionBlurRender;
-#ifdef _DEBUG
+#ifndef DW_MASTER
 	PhysicsDebugDrawRender m_physicsDebugDrawRender;
 #endif
 	std::unique_ptr<FinalRender> m_finalRender[2];

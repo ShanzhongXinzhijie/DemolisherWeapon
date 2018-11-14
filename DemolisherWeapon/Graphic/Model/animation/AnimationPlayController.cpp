@@ -91,7 +91,7 @@ void AnimationPlayController::Update(float deltaTime, Animation* animation)
 			m_boneMatrix[keyframe->boneIndex] = keyframe->transform;
 		}
 		else {
-#ifdef _DEBUG			
+#ifndef DW_MASTER			
 			MessageBox(NULL, "AnimationPlayController::Update : 存在しないボーンに値を書き込もうとしています。次のような原因が考えられます。\n"
 				"① tkaファイルを出力する時に、選択したルートボーンがスケルトンのルートボーンと異なっている。\n"
 				"② 異なるスケルトンのアニメーションクリップを使っている。\n"

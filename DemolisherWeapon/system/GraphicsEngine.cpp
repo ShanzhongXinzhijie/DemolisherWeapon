@@ -278,7 +278,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		m_renderManager.AddRender(4 + offset, &m_defferdRender);
 		m_renderManager.AddRender(5 + offset, &m_motionBlurRender);
 
-#ifdef _DEBUG
+#ifndef DW_MASTER
 		m_renderManager.AddRender(999 + offset, &m_physicsDebugDrawRender);
 #endif
 		

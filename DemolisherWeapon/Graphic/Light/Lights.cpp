@@ -115,7 +115,7 @@ void LightManager::UpdateStructuredBuffers() {
 				m_rawDirectionLights[i] = DL->GetStruct();
 				i++;
 				if (i >= DIRLIGHT_NUM) {
-#ifdef _DEBUG
+#ifndef DW_MASTER
 					char message[256];
 					strcpy_s(message, "【多い】ディレクションライトが多い【やめろ】\n");
 					OutputDebugStringA(message);
@@ -138,7 +138,7 @@ void LightManager::UpdateStructuredBuffers() {
 				m_rawPointLights[i] = PL->GetStruct();
 				i++;
 				if (i >= POILIGHT_NUM) {
-#ifdef _DEBUG
+#ifndef DW_MASTER
 					char message[256];
 					strcpy_s(message, "【多い】ポイントライトが多い【やめろ】\n");
 					OutputDebugStringA(message);

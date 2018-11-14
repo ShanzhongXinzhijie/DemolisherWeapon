@@ -101,7 +101,7 @@ void CPrimitive::Draw(int numVertex) {
 }
 void CPrimitive::DrawIndexed() {
 	if (m_numIndex <= 0) {
-#ifdef _DEBUG
+#ifndef DW_MASTER
 		char message[256];
 		strcpy_s(message, "DrawIndexed‚ÉŽ¸”s(Draw()‚ðŽg‚¤‚×‚«‚Å‚Í?)\n");
 		OutputDebugStringA(message);

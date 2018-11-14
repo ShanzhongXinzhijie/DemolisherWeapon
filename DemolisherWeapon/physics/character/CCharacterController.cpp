@@ -130,7 +130,7 @@ namespace DemolisherWeapon {
 			/*TK_WARNING_MESSAGE_BOX("初期化されていないキャラクターコントローラーのExecute関数が呼ばれています。\n"
 				"CharacterController::Init関数を呼び出してください。\n"
 				"CharacterControllerの使い方はSample/Sample07を参考にしてください。\n");*/
-#ifdef _DEBUG
+#ifndef DW_MASTER
 			char message[256];
 			strcpy_s(message, "初期化されていないキャラクターコントローラーのExecute関数が呼ばれています。\n"
 				"CharacterController::Init関数を呼び出してください。\n"

@@ -15,7 +15,7 @@ namespace DemolisherWeapon {
 	void CameraSwitchRender::Render() {
 		auto& camlist = GetEngine().GetGraphicsEngine().GetCameraManager().GetCameraList();		
 		
-#ifdef _DEBUG
+#ifndef DW_MASTER
 		if (camlist.size() <= m_cameraNum) {
 			MessageBox(NULL, "ƒJƒƒ‰‚Ì”‚ª‘«‚è‚Ä‚Ü‚¹‚ñB(‰æ–Ê•ªŠ„)", "Error", MB_OK);
 			std::abort();

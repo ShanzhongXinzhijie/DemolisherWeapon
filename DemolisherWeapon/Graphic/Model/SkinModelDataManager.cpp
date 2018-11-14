@@ -18,6 +18,12 @@ DirectX::Model* SkinModelDataManager::Load(const wchar_t* filePath, const Skelet
 		int globalBoneID = skeleton.FindBoneID(boneName);
 		if (globalBoneID == -1) {
 			//ボーンが見つからなかった。
+#ifndef DW_MASTER
+			char message[256];
+			sprintf_s(message, "ボーンが見つかりません。\ntksファイルありますか?\n%ls\n", filePath);
+			MessageBox(NULL, message, "Error", MB_OK);
+			std::abort();			
+#endif
 			return;
 		}
 		localBoneIDtoGlobalBoneIDTbl.push_back(globalBoneID);
@@ -31,17 +37,33 @@ DirectX::Model* SkinModelDataManager::Load(const wchar_t* filePath, const Skelet
 		//テクスチャがあるフォルダを設定する。
 		effectFactory.SetDirectory(L"Resource/modelData");
 		//CMOファイルのロード。
-		auto model = DirectX::Model::CreateFromCMO(	//CMOファイルからモデルを作成する関数の、CreateFromCMOを実行する。
-			GetEngine().GetGraphicsEngine().GetD3DDevice(),			//第一引数はD3Dデバイス。
-			filePath,									//第二引数は読み込むCMOファイルのファイルパス。
-			effectFactory,								//第三引数はエフェクトファクトリ。
-			false,										//第四引数はCullモード。今は気にしなくてよい。
-			false,
-			onFindBone
-		);
-		retModel = model.get();
-		//新規なのでマップに登録する。
-		m_directXModelMap.insert({ filePath, std::move(model) });
+		try {
+			auto model = DirectX::Model::CreateFromCMO(	//CMOファイルからモデルを作成する関数の、CreateFromCMOを実行する。
+				GetEngine().GetGraphicsEngine().GetD3DDevice(),			//第一引数はD3Dデバイス。
+				filePath,									//第二引数は読み込むCMOファイルのファイルパス。
+				effectFactory,								//第三引数はエフェクトファクトリ。
+				false,										//第四引数はCullモード。今は気にしなくてよい。
+				false,
+				onFindBone
+			);		
+			retModel = model.get();
+			//新規なのでマップに登録する。
+			m_directXModelMap.insert({ filePath, std::move(model) });
+		}
+		catch (std::exception& exception) {
+			// エラー処理
+#ifndef DW_MASTER
+			char message[256];
+			if (strcmp(exception.what() , "CreateFromCMO")==0) {
+				sprintf_s(message, "cmoファイルのロードに失敗。\nファイルパスあってますか?\n%ls\n", filePath);
+			}
+			else {
+				sprintf_s(message, "cmoファイルのロードに失敗。\n%ls\n", filePath);
+			}
+			MessageBox(NULL, message, "Error", MB_OK);
+			std::abort();
+#endif
+		}
 	}
 	else {
 		//登録されているので、読み込み済みのデータを取得。

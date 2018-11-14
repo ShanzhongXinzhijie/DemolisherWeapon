@@ -23,7 +23,7 @@ namespace GameObj {
 		m_ghostObject.setWorldTransform(btTrans);
 
 		//物理エンジンに登録。(デバッグ表示のため)
-#ifdef _DEBUG	
+#ifndef DW_MASTER	
 		if (GetEnablePhysicsDebugDraw()) {
 			//mask=0にしとく
 			GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject, btBroadphaseProxy::StaticFilter, 0);

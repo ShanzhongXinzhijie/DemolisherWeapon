@@ -22,7 +22,7 @@ int AnimationController::AddAnimation() {
 
 void AnimationController::Init(SkinModel& skinModel, AnimationClip animClipList[], int numAnimClip) {
 	if (animClipList == nullptr) {
-#ifdef _DEBUG
+#ifndef DW_MASTER
 		char message[256];
 		strcpy_s(message, "animClipListÇ™NULLÇ≈Ç∑ÅB(AnimationController)\n");
 		OutputDebugStringA(message);

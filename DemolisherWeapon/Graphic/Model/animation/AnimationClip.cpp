@@ -24,10 +24,10 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 
 	FILE* fp;
 	if (_wfopen_s(&fp, filePath, L"rb") != 0) {
-#ifdef _DEBUG
+#ifndef DW_MASTER
 		//ファイルが開けなかったときの処理。
 		char message[256];
-		sprintf_s(message, "AnimationClip::Load, ファイルのオープンに失敗しました。%ls\n", filePath);
+		sprintf_s(message, "AnimationClipのオープンに失敗。\nファイルパスあってますか?\n%ls\n", filePath);
 		MessageBox(NULL, message, "Error", MB_OK);
 		//止める。
 		std::abort();

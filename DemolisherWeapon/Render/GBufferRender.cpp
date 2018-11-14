@@ -93,7 +93,7 @@ void GBufferRender::Release() {
 
 void GBufferRender::Render() {
 	
-#ifdef _DEBUG
+#ifndef DW_MASTER
 	if (!GetMainCamera()) {
 		MessageBox(NULL, "ƒJƒƒ‰‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ!!", "Error", MB_OK);
 		std::abort();
