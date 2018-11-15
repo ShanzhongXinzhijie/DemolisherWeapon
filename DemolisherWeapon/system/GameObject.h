@@ -4,6 +4,7 @@ namespace DemolisherWeapon {
 
 class IGameObject;
 class GameObjectManager;
+class GONewDeleteManager;
 class GOStatusReceiver;
 
 //ゲームオブジェクトステータス
@@ -160,6 +161,11 @@ private:
 		}
 	} 
 
+	//NewGOで作ったというマークつける
+	void MarkNewGOMark() {
+		m_newgoMark = true;
+	}
+
 public:
 
 	//有効化
@@ -222,6 +228,11 @@ public:
 		m_deathListeners.push_back(listener);
 	}
 
+	//NewGOで作ったか?
+	bool GetNewGOMark() const{
+		return m_newgoMark;
+	}
+
 public:
 
 	virtual bool Start() { return true; };
@@ -248,8 +259,11 @@ private:
 
 	std::list<std::function<void(const SDeathParam& param)>> m_deathListeners;//死亡リスナーさん達
 
+	bool m_newgoMark = false;//NewGOで作ったか?
+
 //　GameObjectManagerから操作できる	
 	friend GameObjectManager;
+	friend GONewDeleteManager;
 };
 
 //自動で登録をしないゲームオブジェクト
@@ -364,6 +378,40 @@ private:
 	std::list<GORegister> m_gameObjectList;
 	//std::list< std::unique_ptr<IGameObject> > m_gameObjectList;
 
+};
+
+class GONewDeleteManager {
+
+public:
+
+	//GOを"つくるだけ"。AddGOが必要なものはAddGOして。
+	template<class T, class... TArgs>
+	T*  NewGO(TArgs... ctorArgs) {
+		//newする+フラグおん
+		T* newObject = new T(ctorArgs...);
+		newObject->MarkNewGOMark();
+		return newObject;
+	}
+
+	void DeleteGO(IGameObject* gameObject) {
+		//殺す//殺しフラグ立てる
+		if (!gameObject->GetNewGOMark()) {
+			//Newgoのフラグ立ってなかったらエラー
+#ifndef DW_MASTER
+			char message[256];
+			sprintf_s(message, "NewGOされていないゲームオブジェクトをDeleteGOしようとしています。\n型名:%s", typeid(gameObject).name());
+			MessageBox(NULL, message, "Error", MB_OK);
+			std::abort();
+#endif
+		}
+		else {
+			delete gameObject;
+		}
+	}
+
+	//void FarewellDearDeadman() {
+		//殺す
+	//}
 };
 
 }

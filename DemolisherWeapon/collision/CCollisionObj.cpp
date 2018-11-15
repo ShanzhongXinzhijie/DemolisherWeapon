@@ -36,7 +36,7 @@ namespace GameObj {
 
 	void CCollisionObj::Register() {
 		if (!m_isregistered) {
-			AddCollisionObj(this);
+			m_register = AddCollisionObj(this);
 			m_isregistered = true;
 		}
 	}
@@ -71,16 +71,16 @@ namespace GameObj {
 		//if(m_colObjList.size()>1){
 		for (auto itr = m_colObjList.begin(); itr != m_colObjList.end(); ++itr) {
 
-			CCollisionObj* ObjA = *itr;
+			CCollisionObj* ObjA = (*itr).m_CObj;
 
-			if (!ObjA->IsEnable()) { continue; }
+			if (!ObjA->IsEnable() || !(*itr).m_isEnable) { continue; }
 
 			auto itr2 = itr; ++itr2;
 			for (itr2; itr2 != m_colObjList.end(); ++itr2) {
 
-				CCollisionObj* ObjB = *itr2;
+				CCollisionObj* ObjB = (*itr2).m_CObj;
 
-				if (!ObjB->IsEnable()) { continue; }
+				if (!ObjB->IsEnable() || !(*itr2).m_isEnable) { continue; }
 
 				if (Masking(ObjA->GetGroup(),ObjB->GetMask()) && Masking(ObjB->GetGroup(), ObjA->GetMask())) {//マスキング
 					ObjManagerCallback callback(ObjA, ObjB);

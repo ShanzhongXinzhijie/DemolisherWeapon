@@ -16,6 +16,16 @@ enum EnCollisionTimer {
 	CollisionObjFilter = BIT(6),//64,
 };*/
 
+namespace GameObj {
+	class CCollisionObj;
+}
+struct RegColObj
+{
+	RegColObj(GameObj::CCollisionObj* p) : m_CObj(p) {}
+	bool m_isEnable = true;
+	GameObj::CCollisionObj* m_CObj = nullptr;
+};
+
 namespace GameObj{
 
 class CCollisionObj : public PhysicsBaseObject , public IGameObject {
@@ -41,7 +51,7 @@ public:
 			if (p == nullptr) {
 #ifndef DW_MASTER
 				char message[256];
-				sprintf_s(message, "クラスの取り出し(型変換)に失敗しました。\nSCallbackParam::GetClass()の型名を確認してください。\n型名:%s", typeid(T).name());
+				sprintf_s(message, "クラスの取り出し(型変換)に失敗しました。\nSCallbackParam::GetClass()の型名を確認してください。\n変換先型名:%s\n変換元型名:%s", typeid(T).name(), typeid(m_classPtr).name());
 				MessageBox(NULL, message, "Error", MB_OK);
 				std::abort();
 #endif
@@ -61,16 +71,30 @@ public:
 	}
 
 private:*/
-	CCollisionObj(int lifespan = enNoTimer, const wchar_t* name = nullptr, IDW_Class* classPtr = nullptr, std::function<void(SCallbackParam&)> callbackFunction = nullptr) {
-		m_lifespan = max(lifespan, enNoTimer);
+	CCollisionObj(int lifespanFrame = enNoTimer, const wchar_t* name = nullptr, IDW_Class* classPtr = nullptr, std::function<void(SCallbackParam&)> callbackFunction = nullptr, unsigned int group = 1, unsigned int mask = 0xFFFFFFFF)
+	:
+	m_group(group),m_mask(mask)
+	{
+		m_lifespan = max(lifespanFrame, enNoTimer);
 		if (name) { SetName(name); }
 		if (classPtr) { SetClass(classPtr); }
 		if (callbackFunction) { SetCallback(callbackFunction); }
 		Register();
 	};
 
-private:
+//private:
 	~CCollisionObj() {
+		/*
+#ifndef DW_MASTER
+		if (m_isregistered) {
+			MessageBox(NULL, "CCollisionObjが不正に削除されました。\nCCollisionObj::Delete()を使って削除してください。", "Error", MB_OK);
+			std::abort();
+		}
+#endif
+		*/
+		if (m_isregistered) {
+			m_register->m_isEnable = false;//登録無効化しとく
+		}
 		Release();
 	};
 
@@ -122,8 +146,8 @@ public:
 		m_classPtr = classPtr;
 	}
 	//寿命を設定
-	void SetTimer(int lefttime) {
-		m_lifespan = max(lefttime, enNoTimer);
+	void SetTimer(int lefttimeFrame) {
+		m_lifespan = max(lefttimeFrame, enNoTimer);
 	}
 
 	//ポインタを設定
@@ -217,6 +241,8 @@ private:
 	void Register();
 
 private:
+	RegColObj* m_register = nullptr;
+
 	bool m_enable = true;//有効?
 	bool m_isDeath = false;//死?
 	bool m_isInit = false;//初期化済み?
@@ -244,13 +270,14 @@ public:
 	//判定処理やる
 	void PostUpdate()override final;
 
-	void AddCollisionObj(CCollisionObj* obj) {
-		m_colObjList.push_back(obj);
+	RegColObj* AddCollisionObj(CCollisionObj* obj) {
+		m_colObjList.emplace_back(obj);
+		return &m_colObjList.back();
 	};
 
 private:
 
-	std::list<CCollisionObj*> m_colObjList;
+	std::list<RegColObj> m_colObjList;
 };
 
 }

@@ -135,6 +135,9 @@ public:
 	GameObjectManager& GetGameObjectManager() {
 		return m_gameObjectManager;
 	}	
+	GONewDeleteManager& GetGONewDeleteManager() {
+		return m_goNewDeleteManager;
+	}
 
 	//マウスカーソルマネージャーの取得
 	CMouseCursor& GetMouseCursorManager() {
@@ -179,6 +182,7 @@ private:
 	CPhysicsWorld m_physics;
 	std::unique_ptr <GameObj::CollisionObjManager> m_collisionManager;
 	GameObjectManager m_gameObjectManager;
+	GONewDeleteManager m_goNewDeleteManager;
 	GameLoop m_gameLoop;
 
 	//入力クラス
@@ -247,16 +251,17 @@ template <typename T>
 static inline void AddGO(T* go) {
 	GetEngine().GetGameObjectManager().AddGameObj(go);
 }
-/*template <typename T>
-static inline T* AddGO(T* go) {
-	GetEngine().GetGameObjectManager().AddGameObj(go);
-	return go;
-}*/
+//ゲームオブジェクトの作成(つくるだけ。AddGOが必要なものはAddGOして。)
+template<class T, class... TArgs>
+static inline T* NewGO(TArgs... ctorArgs)
+{
+	return GetEngine().GetGONewDeleteManager().NewGO<T>(ctorArgs...);
+}
 //ゲームオブジェクトの削除
-/*static inline void DeleteGO(IGameObject* go) {
-	if (go == nullptr) { return; }
-	GetEngine().GetGameObjectManager().DeleteGameObj(go);
-}*/
+static inline void DeleteGO(IGameObject* go)
+{
+	GetEngine().GetGONewDeleteManager().DeleteGO(go);
+}
 
 //マウスカーソルマネージャーを取得
 static inline CMouseCursor& MouseCursor() {
@@ -301,8 +306,8 @@ static inline float GetDeltaTimeSec() {
 }
 
 //コリジョンマネージャーに判定を追加
-static inline void AddCollisionObj(GameObj::CCollisionObj* obj) {
-	GetEngine().GetCollisionObjManager()->AddCollisionObj(obj);
+static inline RegColObj* AddCollisionObj(GameObj::CCollisionObj* obj) {
+	return GetEngine().GetCollisionObjManager()->AddCollisionObj(obj);
 }
 
 }
