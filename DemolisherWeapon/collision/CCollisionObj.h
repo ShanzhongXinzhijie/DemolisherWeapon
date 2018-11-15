@@ -25,19 +25,35 @@ public:
 	//コールバック関数の引数
 	struct SCallbackParam {
 		const int m_nameKey;
-		void* m_class;
+		void* m_voidPtr;
 		const btGhostObject&  m_ghostObject;
+		IDW_Class* m_classPtr;
 
 		//名前が一致するか判定
 		bool EqualName(const wchar_t* name) {
 			return m_nameKey == Util::MakeHash(name);
 		}
 
-		//ポインタを取り出す
+		//クラスを取り出す
 		template<class T>
-		T* GetGO() {
-			return (T*)m_class;
+		T* GetClass() {
+			T* p = dynamic_cast<T*>(m_classPtr);
+			if (p == nullptr) {
+#ifndef DW_MASTER
+				char message[256];
+				sprintf_s(message, "クラスの取り出し(型変換)に失敗しました。\nSCallbackParam::GetClass()の型名を確認してください。\n型名:%s", typeid(T).name());
+				MessageBox(NULL, message, "Error", MB_OK);
+				std::abort();
+#endif
+			}
+			return p;
 		};
+
+		//ポインタを取り出す
+		/*template<class T>
+		T* GetGO() {
+			return (T*)m_voidPtr;
+		};*/
 	};	
 
 	/*static CCollisionObj* New(int lifespan = 1) {
@@ -45,10 +61,10 @@ public:
 	}
 
 private:*/
-	CCollisionObj(int lifespan = enNoTimer, const wchar_t* name = nullptr, void* pointer = nullptr, std::function<void(SCallbackParam&)> callbackFunction = nullptr) {
+	CCollisionObj(int lifespan = enNoTimer, const wchar_t* name = nullptr, IDW_Class* classPtr = nullptr, std::function<void(SCallbackParam&)> callbackFunction = nullptr) {
 		m_lifespan = max(lifespan, enNoTimer);
 		if (name) { SetName(name); }
-		if (pointer) { SetPointer(pointer); }
+		if (classPtr) { SetClass(classPtr); }
 		if (callbackFunction) { SetCallback(callbackFunction); }
 		Register();
 	};
@@ -101,13 +117,18 @@ public:
 	void SetCallback(std::function<void(SCallbackParam&)> callbackFunction) {
 		m_callback = callbackFunction;
 	}
-	//ポインタを設定
-	void SetPointer(void* pointer) {
-		m_void = pointer;
+	//クラスのポインタを設定
+	void SetClass(IDW_Class* classPtr) {
+		m_classPtr = classPtr;
 	}
 	//寿命を設定
 	void SetTimer(int lefttime) {
 		m_lifespan = max(lefttime, enNoTimer);
+	}
+
+	//ポインタを設定
+	void SetPointer(void* pointer) {
+		m_void = pointer;
 	}
 
 	//グループを設定
@@ -175,6 +196,7 @@ public:
 
 	int GetNameKey()const { return m_nameKey; };
 	void* GetData() { return m_void; };
+	IDW_Class* GetClass() { return m_classPtr; };
 
 	unsigned int GetGroup()const { return m_group; }
 	unsigned int GetMask() const { return m_mask; }
@@ -209,6 +231,7 @@ private:
 	int m_nameKey = 0;
 
 	void* m_void = nullptr;
+	IDW_Class* m_classPtr = nullptr;
 
 	btGhostObject m_ghostObject;
 

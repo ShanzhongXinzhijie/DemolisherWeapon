@@ -98,8 +98,13 @@ private:
 	friend GameObjectManager;
 };
 
+class IDW_Class {
+public:
+	virtual ~IDW_Class() {};
+};
+
 //ゲームオブジェクト
-class IGameObject
+class IGameObject : public IDW_Class
 {
 public:
 
