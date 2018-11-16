@@ -44,11 +44,12 @@ public:
 		m_time = 0.0f;
 		m_isPlaying = true;
 
+		m_animEventedCnt = 0;
 		//アニメーションイベントの発生フラグをすべてfalseにする。
-		auto& animEventArray = m_animationClip->GetAnimationEvent();
+		/*auto& animEventArray = m_animationClip->GetAnimationEvent();
 		for (auto i = 0; i < m_animationClip->GetNumAnimationEvent(); i++) {
 			animEventArray[i].SetInvokedFlag(false);
-		}
+		}*/
 	}
 	void SetInterpolateTime(float interpolateTime)
 	{
@@ -111,6 +112,8 @@ private:
 	float					m_interpolateTime = 0.0f;			//!<補完時間
 	float					m_interpolateEndTime = 0.0f;		//!<補完終了時間
 	bool					m_isPlaying = false;		//!<再生中？
+
+	int m_animEventedCnt = 0;//アニメーションイベントを実行した回数カウンタ
 };
 
 }

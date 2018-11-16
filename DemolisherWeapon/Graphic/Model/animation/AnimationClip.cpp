@@ -45,6 +45,9 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 		
 	//アニメーションイベント
 	if (header.numAnimationEvent > 0) {
+		//ソート用
+		std::vector<std::pair<float, AnimationEvent>> sortEvent;
+
 		m_animationEvent = std::make_unique<AnimationEvent[]>(header.numAnimationEvent);
 		//アニメーションイベントがあるなら、イベント情報をロードする。
 		for (auto i = 0; i < (int)header.numAnimationEvent; i++) {
@@ -62,6 +65,17 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 
 			m_animationEvent[i].SetInvokeTime(animEvent.invokeTime);
 			m_animationEvent[i].SetEventName(wEventName);
+
+			//ソート用配列作る
+			sortEvent.push_back(std::make_pair(animEvent.invokeTime, m_animationEvent[i]));
+		}
+
+		//一応、昇順にソート
+		std::sort(sortEvent.begin(), sortEvent.end(), [](const std::pair<float, AnimationEvent> &a, const std::pair<float, AnimationEvent> &b) {
+			return a.first < b.first;
+		});
+		for (auto i = 0; i < (int)header.numAnimationEvent; i++) {
+			m_animationEvent[i] = sortEvent[i].second;
 		}
 	}
 	m_numAnimationEvent = header.numAnimationEvent;
