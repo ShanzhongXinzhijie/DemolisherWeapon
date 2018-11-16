@@ -102,15 +102,15 @@ public:
 	void Release()override;
 
 	//削除する
-	void Delete() {
+	/*bool Delete() {
 		//デリートレジストされてたら無効化だけ
 		if (m_isregistered) {
-			m_isDeath = true;
+			m_isDeath = true; return false;
 		}
 		else {
-			delete this; return;
+			delete this; return true;
 		}
-	}
+	}*/
 
 	/*!
 	* @brief	座標を設定。
@@ -203,7 +203,7 @@ public:
 	}
 
 	void Update() override{
-		if (m_lifespan != enNoTimer && m_lifespan <= 0 || m_isDeath) { Delete(); }
+		if (m_lifespan != enNoTimer && m_lifespan <= 0 || m_isDeath) { delete this; return; }//if (Delete()) { return; } }
 		Register();
 		if (m_lifespan != enNoTimer) { m_lifespan--; }
 	}
