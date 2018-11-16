@@ -24,11 +24,12 @@ namespace GameObj {
 
 		//物理エンジンに登録。(デバッグ表示のため)
 #ifndef DW_MASTER	
-		if (GetEnablePhysicsDebugDraw()) {
+		//if (GetEnablePhysicsDebugDraw()) {
 			//mask=0にしとく
-			GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject, btBroadphaseProxy::StaticFilter, 0);
+		GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject);// , 2, 0);
+										// デフォルトだとスタティックオブジェに属し、スタティックとのみ判定
 			m_isRegistPhysicsWorld = true;
-		}
+		//}
 #endif
 
 		m_isInit = true;
@@ -47,7 +48,12 @@ namespace GameObj {
 		{
 			CCollisionObj* ObjA = nullptr, *ObjB = nullptr;
 
-			ObjManagerCallback(CCollisionObj* A, CCollisionObj* B) : ObjA(A), ObjB(B) {};
+			ObjManagerCallback(CCollisionObj* A, CCollisionObj* B) : ObjA(A), ObjB(B) {
+				m_collisionFilterMask = 2;//2(コリジョンとキャラコンの判定するかこれで設定)
+				//contactTestのContactTest(&ObjA->GetCollisionObject()のマスク・グループはこれでされる!
+			};
+
+			//needsCollision 
 
 			virtual	btScalar addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0, const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1)override
 			{
@@ -57,6 +63,8 @@ namespace GameObj {
 				ObjA->RunCallback(paramB);
 				CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetData(), ObjA->GetCollisionObject(), ObjA->GetClass() };
 				ObjB->RunCallback(paramA);
+
+				//colObj0Wrap->getCollisionObject()->getUserPointer
 
 				return 0.0f;
 			};
@@ -75,7 +83,12 @@ namespace GameObj {
 
 			if (!ObjA->IsEnable() || !(*itr).m_isEnable) { continue; }
 
-			auto itr2 = itr; ++itr2;
+			ObjManagerCallback callback(ObjA, ObjA);
+			GetPhysicsWorld().ContactTest(&ObjA->GetCollisionObject(), callback);
+			//これで行こう!
+			//ObjA->GetCollisionObject().setUserPointer();
+
+			/*auto itr2 = itr; ++itr2;
 			for (itr2; itr2 != m_colObjList.end(); ++itr2) {
 
 				CCollisionObj* ObjB = (*itr2).m_CObj;
@@ -86,7 +99,7 @@ namespace GameObj {
 					ObjManagerCallback callback(ObjA, ObjB);
 					GetPhysicsWorld().ContactPairTest(&ObjA->GetCollisionObject(), &ObjB->GetCollisionObject(), callback);
 				}
-			}
+			}*/
 		}
 		//}
 		m_colObjList.clear();

@@ -79,6 +79,7 @@ public:
 		dynamicWorld->contactTest(colObj, resultCallback);
 	}
 	//特定の2つオブジェクトの衝突検知
+	//重い!!!!!!
 	void ContactPairTest(
 		btCollisionObject* colObjA, btCollisionObject* colObjB,
 		btCollisionWorld::ContactResultCallback& resultCallback
