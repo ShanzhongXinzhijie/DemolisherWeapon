@@ -88,19 +88,19 @@ public:
 	/*!
 	*@brief	イベントが発生済みか判定。
 	*/
-	bool IsInvoked() const
+	/*bool IsInvoked() const
 	{
 		return m_isInvoked;
-	}
+	}*/
 	/*!
 	*@brief	イベントが発生済みのフラグを設定する。
 	*/
-	void SetInvokedFlag(bool flag)
+	/*void SetInvokedFlag(bool flag)
 	{
 		m_isInvoked = flag;
-	}
+	}*/
 private:
-	bool m_isInvoked = false;	//!<イベント発生済み？
+	//bool m_isInvoked = false;	//!<イベント発生済み？
 	float m_invokeTime;			//!<イベント発生時間。
 	std::wstring m_eventName;	//!<イベント名。
 };
