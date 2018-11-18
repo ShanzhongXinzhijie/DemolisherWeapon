@@ -22,6 +22,9 @@
 	{font-family:メイリオ;
 	panose-1:2 11 6 4 3 5 4 4 2 4;}
 @font-face
+	{font-family:"ＭＳ Ｐゴシック";
+	panose-1:2 11 6 0 7 2 5 8 2 4;}
+@font-face
 	{font-family:"\@游明朝";}
 @font-face
 	{font-family:"\@メイリオ";}
@@ -30,6 +33,8 @@
 @font-face
 	{font-family:"\@ＭＳ ゴシック";
 	panose-1:2 11 6 9 7 2 5 8 2 4;}
+@font-face
+	{font-family:"\@ＭＳ Ｐゴシック";}
  /* Style Definitions */
  p.MsoNormal, li.MsoNormal, div.MsoNormal
 	{margin:0mm;
@@ -48,6 +53,17 @@ h1
 	font-size:14.0pt;
 	font-family:メイリオ;
 	font-weight:normal;}
+h2
+	{mso-style-link:"見出し 2 \(文字\)";
+	margin:0mm;
+	margin-bottom:.0001pt;
+	text-align:justify;
+	text-justify:inter-ideograph;
+	page-break-after:avoid;
+	font-size:11.0pt;
+	font-family:"游ゴシック Light";
+	font-weight:normal;
+	text-decoration:underline;}
 p.MsoToc1, li.MsoToc1, div.MsoToc1
 	{margin:0mm;
 	margin-bottom:.0001pt;
@@ -105,6 +121,17 @@ p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
 	text-justify:inter-ideograph;
 	font-size:10.5pt;
 	font-family:"游明朝",serif;}
+p.MsoQuote, li.MsoQuote, div.MsoQuote
+	{mso-style-link:"引用文 \(文字\)";
+	margin-top:10.0pt;
+	margin-right:43.2pt;
+	margin-bottom:8.0pt;
+	margin-left:43.2pt;
+	text-align:center;
+	font-size:10.5pt;
+	font-family:"游明朝",serif;
+	color:#404040;
+	font-style:italic;}
 p.MsoTocHeading, li.MsoTocHeading, div.MsoTocHeading
 	{margin-top:12.0pt;
 	margin-right:0mm;
@@ -126,6 +153,29 @@ span.a
 span.a0
 	{mso-style-name:"フッター \(文字\)";
 	mso-style-link:フッター;}
+span.2
+	{mso-style-name:"見出し 2 \(文字\)";
+	mso-style-link:"見出し 2";
+	font-family:"游ゴシック Light";
+	text-decoration:underline;}
+p.a1, li.a1, div.a1
+	{mso-style-name:ソースコード;
+	mso-style-link:"ソースコード \(文字\)";
+	margin:0mm;
+	margin-bottom:.0001pt;
+	text-align:justify;
+	text-justify:inter-ideograph;
+	font-size:10.5pt;
+	font-family:"ＭＳ Ｐゴシック";}
+span.a2
+	{mso-style-name:"ソースコード \(文字\)";
+	mso-style-link:ソースコード;
+	font-family:"ＭＳ Ｐゴシック";}
+span.a3
+	{mso-style-name:"引用文 \(文字\)";
+	mso-style-link:引用文;
+	color:#404040;
+	font-style:italic;}
 .MsoChpDefault
 	{font-family:"游明朝",serif;}
  /* Page Definitions */
@@ -162,45 +212,55 @@ ul
   style='font-size:20.0pt;font-family:メイリオ'>リファレンスマニュアル</span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoTocHeading>目次</p>
-  <p class=MsoToc1><span lang=EN-US><a href="#_Toc529843066"><span lang=EN-US><span
+  <p class=MsoToc1><span lang=EN-US><a href="#_Toc530181812"><span lang=EN-US><span
   lang=EN-US>【GameObject</span></span><span lang=EN-US><span lang=EN-US>】</span></span><span
   style='color:windowtext;display:none;text-decoration:none'>... </span><span
   style='color:windowtext;display:none;text-decoration:none'>1</span></a></span></p>
-  <p class=MsoToc1><span lang=EN-US><a href="#_Toc529843067"><span lang=EN-US><span
+  <p class=MsoToc1><span lang=EN-US><a href="#_Toc530181813"><span lang=EN-US><span
   lang=EN-US>【カメラ】</span></span><span style='color:windowtext;display:none;
   text-decoration:none'>... </span><span
   style='color:windowtext;display:none;text-decoration:none'>1</span></a></span></p>
-  <p class=MsoToc1><span lang=EN-US><a href="#_Toc529843068"><span lang=EN-US><span
+  <p class=MsoToc1><span lang=EN-US><a href="#_Toc530181814"><span lang=EN-US><span
   lang=EN-US>【入力】</span></span><span style='color:windowtext;display:none;
   text-decoration:none'>... </span><span
   style='color:windowtext;display:none;text-decoration:none'>1</span></a></span></p>
-  <p class=MsoToc1><span lang=EN-US><a href="#_Toc529843069"><span lang=EN-US><span
+  <p class=MsoToc1><span lang=EN-US><a href="#_Toc530181815"><span lang=EN-US><span
   lang=EN-US>【3D</span></span><span lang=EN-US><span lang=EN-US>モデル】</span></span><span
   style='color:windowtext;display:none;text-decoration:none'>... </span><span
   style='color:windowtext;display:none;text-decoration:none'>1</span></a></span></p>
-  <p class=MsoToc1><span lang=EN-US><a href="#_Toc529843070"><span lang=EN-US><span
+  <p class=MsoToc1><span lang=EN-US><a href="#_Toc530181816"><span lang=EN-US><span
   lang=EN-US>【アニメーション】</span></span><span style='color:windowtext;display:none;
   text-decoration:none'>... </span><span
   style='color:windowtext;display:none;text-decoration:none'>1</span></a></span></p>
-  <p class=MsoToc1><span lang=EN-US><a href="#_Toc529843071"><span lang=EN-US><span
+  <p class=MsoToc1><span lang=EN-US><a href="#_Toc530181817"><span lang=EN-US><span
   lang=EN-US>【アニメーションイベント】</span></span><span style='color:windowtext;
   display:none;text-decoration:none'>... </span><span
   style='color:windowtext;display:none;text-decoration:none'>2</span></a></span></p>
+  <p class=MsoToc1><span lang=EN-US><a href="#_Toc530181818"><span lang=EN-US><span
+  lang=EN-US>【コリジョンシステム】</span></span><span style='color:windowtext;display:
+  none;text-decoration:none'>... </span><span
+  style='color:windowtext;display:none;text-decoration:none'>5</span></a></span></p>
+  <p class=MsoToc2><span lang=EN-US><a href="#_Toc530181819"><span lang=EN-US><span
+  lang=EN-US>グループとマスクについて</span></span><span style='color:windowtext;
+  display:none;text-decoration:none'>... </span><span
+  style='color:windowtext;display:none;text-decoration:none'>5</span></a></span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <h1><a name="_Toc529843066"></a><a name="_Toc529277850">【<span lang=EN-US>GameObject</span>】</a></h1>
-  <p class=MsoNormal><span lang=EN-US>NewGO</span>はないです。</p>
+  <h1><a name="_Toc530181812"></a><a name="_Toc529277850">【<span lang=EN-US>GameObject</span>】</a></h1>
   <p class=MsoNormal><span lang=EN-US>IGameObject</span>は勝手にゲームループで動きます。通常のクラスや型と同じように扱ってください。</p>
+  <p class=MsoNormal><span lang=EN-US>NewGO</span>を使う必要はないです。</p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <p class=MsoNormal><span lang=EN-US>AddGO</span>がありますが使う必要はないです。</p>
+  <p class=MsoNormal><span lang=EN-US>NewGO</span>と<span lang=EN-US>DeleteGO</span>が追加されました。</p>
+  <p class=MsoNormal>※<span lang=EN-US>DeleteGO</span>でオブジェクトが完全に削除されるタイミングは、そのフレームの全<span
+  lang=EN-US>GO</span>の<span lang=EN-US>PostUpdate</span>が終わってからです。</p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <h1><a name="_Toc529843067"></a><a name="_Toc529277851">【カメラ】</a></h1>
+  <h1><a name="_Toc530181813"></a><a name="_Toc529277851">【カメラ】</a></h1>
   <p class=MsoNormal><span lang=EN-US style='background:#FFD966'>GameObj::PerspectiveCamera</span><span
   style='background:#FFD966'>等のカメラを作り、<span lang=EN-US>SetMainCamera</span>で設定してください。</span></p>
   <p class=MsoNormal><span style='background:#FFD966'>デフォルトではカメラが存在しません。</span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <h1><a name="_Toc529843068"></a><a name="_Toc529277852">【入力】</a></h1>
+  <h1><a name="_Toc530181814"></a><a name="_Toc529277852">【入力】</a></h1>
   <p class=MsoNormal>パッドの入力を取得</p>
   <p class=MsoNormal>→<span lang=EN-US>Pad()</span></p>
   <p class=MsoNormal>キーボード・マウスボタンの入力を取得</p>
@@ -216,10 +276,10 @@ ul
   <p class=MsoNormal>キーコンフィグできる入力クラスみたいなのいる<span lang=EN-US>?(</span>欲しい人連絡ください<span
   lang=EN-US>)</span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <h1><a name="_Toc529843069">【<span lang=EN-US>3D</span>モデル】</a></h1>
+  <h1><a name="_Toc530181815">【<span lang=EN-US>3D</span>モデル】</a></h1>
   <p class=MsoNormal style='background:#FFD966'>ボーンが存在するモデルは必ず<span lang=EN-US>tks</span>ファイルを作成してください。</p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <h1><a name="_Toc529843070"></a><a name="_Toc529277853">【アニメーション】</a></h1>
+  <h1><a name="_Toc530181816"></a><a name="_Toc529277853">【アニメーション】</a></h1>
   <p class=MsoNormal>サンプルです</p>
   <table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0
    style='border-collapse:collapse;border:none'>
@@ -332,47 +392,64 @@ ul
    </tr>
   </table>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
-  <h1><a name="_Toc529843071">【アニメーションイベント】</a></h1>
+  <h1><a name="_Toc530181817">【アニメーションイベント】</a></h1>
   <p class=MsoNormal>アニメーションイベントの付け方です。</p>
   <p class=MsoNormal><span lang=EN-US>Max</span>でボーンのルートオブジェクトに作成したノートがアニメーションイベントとして出力されます。</p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoListParagraph style='margin-left:18.0pt;text-indent:-18.0pt'><span
   lang=EN-US>(1)<span style='font:7.0pt "Times New Roman"'>&nbsp; </span></span>ドープシートを開く</p>
   <p class=MsoNormal><span lang=EN-US><img width=854 height=447
-  src="リファレンスマニュアル.files/image001.png"></span></p>
+  src="マニュアル.files/image001.png"></span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoListParagraph style='margin-left:18.0pt;text-indent:-18.0pt'><span
   lang=EN-US>(2)<span style='font:7.0pt "Times New Roman"'>&nbsp; </span></span>ボーンのルートオブジェクト<span
   lang=EN-US>(</span>ボーンの一番上の階層<span lang=EN-US>)</span>を選択</p>
   <p class=MsoNormal><span lang=EN-US><img width=854 height=445
-  src="リファレンスマニュアル.files/image002.png"></span></p>
+  src="マニュアル.files/image002.png"></span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoListParagraph style='margin-left:18.0pt;text-indent:-18.0pt'><span
   lang=EN-US>(3)<span style='font:7.0pt "Times New Roman"'>&nbsp; </span></span>ノートトラックを追加</p>
   <p class=MsoNormal><span lang=EN-US><img width=855 height=447
-  src="リファレンスマニュアル.files/image003.png"></span></p>
+  src="マニュアル.files/image003.png"></span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoListParagraph style='margin-left:18.0pt;text-indent:-18.0pt'><span
   lang=EN-US>(4)<span style='font:7.0pt "Times New Roman"'>&nbsp; </span></span>追加されたノートトラック<span
   lang=EN-US>(”</span>ノート<span lang=EN-US>”)</span>を選択<span lang=EN-US>&amp;”</span>キーの追加<span
   lang=EN-US>/</span>除去<span lang=EN-US>”</span>を選択</p>
   <p class=MsoNormal><span lang=EN-US><img width=854 height=445
-  src="リファレンスマニュアル.files/image004.png"></span></p>
+  src="マニュアル.files/image004.png"></span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoListParagraph style='margin-left:18.0pt;text-indent:-18.0pt'><span
   lang=EN-US>(5)<span style='font:7.0pt "Times New Roman"'>&nbsp; </span></span>イベントを作成したいフレームをクリックしてノートを作成</p>
   <p class=MsoNormal><span lang=EN-US><img width=852 height=445 id="図 2"
-  src="リファレンスマニュアル.files/image005.png"></span></p>
+  src="マニュアル.files/image005.png"></span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoListParagraph style='margin-left:18.0pt;text-indent:-18.0pt'><span
   lang=EN-US>(6)<span style='font:7.0pt "Times New Roman"'>&nbsp; </span></span>作成したノートを右クリックでイベントの名前を編集してください。</p>
   <p class=MsoNormal><span lang=EN-US><img width=851 height=445 id="図 3"
-  src="リファレンスマニュアル.files/image006.png"></span></p>
+  src="マニュアル.files/image006.png"></span></p>
   <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   <p class=MsoListParagraph style='margin-left:18.0pt;text-indent:-18.0pt'><span
   lang=EN-US>(7)<span style='font:7.0pt "Times New Roman"'>&nbsp; </span></span><span
   lang=EN-US style='background:#FFD966'>DemolisherWeapon</span><span
   style='background:#FFD966'>付属の<span lang=EN-US>tkExporter</span>で</span>アニメーションを出力してください。</p>
+  <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+  <h1><a name="_Toc530181818">【コリジョンシステム】</a></h1>
+  <p class=MsoNormal><span lang=EN-US>Sample/CollisionSample </span>にサンプルがあります。</p>
+  <h2 style='margin-top:9.0pt'><a name="_Toc530181819"><span style='font-family:
+  メイリオ'>グループとマスクについて</span></a></h2>
+  <p class=MsoNormal><span lang=EN-US>CCollisionObj</span>にグループとマスクを設定することができます。</p>
+  <p class=MsoNormal>これは、判定するコリジョン同士の組み合わせを設定するものです。</p>
+  <p class=MsoNormal><span lang=EN-US>(</span>例<span lang=EN-US>:</span>プレイヤーの攻撃コリジョンは、エネミーの喰らいコリジョンとの当たり判定を実行する。しかし他のコリジョンとは判定しない。<span
+  lang=EN-US>)</span></p>
+  <p class=MsoQuote><span lang=EN-US>(</span>ｺﾘｼﾞｮﾝ<span lang=EN-US>A.group &amp;</span>ｺﾘｼﾞｮﾝ<span
+  lang=EN-US>B.mask) != 0 &amp;&amp; (</span>ｺﾘｼﾞｮﾝ<span lang=EN-US>B.group
+  &amp;</span>ｺﾘｼﾞｮﾝ<span lang=EN-US>A.mask) != 0</span></p>
+  <p class=MsoNormal align=center style='text-align:center'>上記の条件を満たす場合のみ、コリジョン同士の当たり判定が実行されます。</p>
+  <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US>&nbsp;</span></p>
+  <p class=MsoNormal>デフォルトでグループには<span lang=EN-US>1</span>、マスクには<span
+  lang=EN-US>0xFFFFFFFF</span>が設定されています。</p>
+  <p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
   </td>
  </tr>
 </table>

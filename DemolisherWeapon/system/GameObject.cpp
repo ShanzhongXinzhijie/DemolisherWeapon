@@ -24,7 +24,7 @@ namespace DemolisherWeapon {
 		GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin();
 
 		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetIsStart()) {
+			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
 				go.gameObject->PostRender();
 			}
 		}

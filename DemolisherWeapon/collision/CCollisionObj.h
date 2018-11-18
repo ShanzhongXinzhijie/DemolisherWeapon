@@ -11,17 +11,16 @@ enum EnCollisionTimer {
 	enNoTimer = -1,
 };
 
-/*enum CollisionFilterGroups
-{
-	CollisionObjFilter = BIT(6),//64,
-};*/
+static const int CCollisionObjFilter = 64;
 
 namespace GameObj {
 	class CCollisionObj;
 }
 struct RegColObj
 {
-	RegColObj(GameObj::CCollisionObj* p) : m_CObj(p) {}
+	RegColObj(GameObj::CCollisionObj* p, int index) : m_CObj(p), m_index(index) {}
+
+	int m_index = -1;
 	bool m_isEnable = true;
 	GameObj::CCollisionObj* m_CObj = nullptr;
 };
@@ -84,14 +83,6 @@ private:*/
 
 //private:
 	~CCollisionObj() {
-		/*
-#ifndef DW_MASTER
-		if (m_isregistered) {
-			MessageBox(NULL, "CCollisionObjが不正に削除されました。\nCCollisionObj::Delete()を使って削除してください。", "Error", MB_OK);
-			std::abort();
-		}
-#endif
-		*/
 		if (m_isregistered) {
 			m_register->m_isEnable = false;//登録無効化しとく
 		}
@@ -102,15 +93,9 @@ public:
 	void Release()override;
 
 	//削除する
-	/*bool Delete() {
-		//デリートレジストされてたら無効化だけ
-		if (m_isregistered) {
-			m_isDeath = true; return false;
-		}
-		else {
-			delete this; return true;
-		}
-	}*/
+	void Delete() {
+		m_isDeath = true;
+	}
 
 	/*!
 	* @brief	座標を設定。
@@ -230,6 +215,13 @@ public:
 		return m_enable && m_isInit && !m_isDeath;
 	}
 
+	int GetIndex()const {
+		if (m_register) {
+			return m_register->m_index;
+		}
+		return -1;
+	}
+
 private:
 	
 	/*!
@@ -248,7 +240,7 @@ private:
 	bool m_isInit = false;//初期化済み?
 	bool m_isRegistPhysicsWorld = false;//!<物理ワールドに登録しているかどうかのフラグ。
 	bool m_isregistered = false;//登録済み?
-
+	
 	int m_lifespan = 0;//寿命
 
 	unsigned int m_group = 0;
@@ -271,7 +263,7 @@ public:
 	void PostUpdate()override final;
 
 	RegColObj* AddCollisionObj(CCollisionObj* obj) {
-		m_colObjList.emplace_back(obj);
+		m_colObjList.emplace_back(obj, m_colObjList.size());
 		return &m_colObjList.back();
 	};
 

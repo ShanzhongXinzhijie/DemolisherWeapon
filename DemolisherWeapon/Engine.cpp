@@ -190,6 +190,7 @@ void GameLoop::Run() {
 		while((int)m_runframecnt >= 1){
 			m_gameObjectManager_Ptr->Start();
 			m_gameObjectManager_Ptr->Update();
+			m_goNewDeleteManager_Ptr->FarewellDearDeadman();
 			m_gameObjectManager_Ptr->Hell();
 
 			m_physics_Ptr->Update();

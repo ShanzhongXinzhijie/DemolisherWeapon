@@ -22,15 +22,11 @@ namespace GameObj {
 		btTrans.setRotation({ rot.x, rot.y, rot.z, rot.w });
 		m_ghostObject.setWorldTransform(btTrans);
 
-		//物理エンジンに登録。(デバッグ表示のため)
-#ifndef DW_MASTER	
-		//if (GetEnablePhysicsDebugDraw()) {
-			//mask=0にしとく
-		GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject);// , 2, 0);
-										// デフォルトだとスタティックオブジェに属し、スタティックとのみ判定
-			m_isRegistPhysicsWorld = true;
-		//}
-#endif
+		m_ghostObject.setUserPointer(this);
+
+		//物理エンジンに登録
+		GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject, btBroadphaseProxy::StaticFilter + CCollisionObjFilter, btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter ^ CCollisionObjFilter);
+		m_isRegistPhysicsWorld = true;
 
 		m_isInit = true;
 	}
@@ -44,64 +40,75 @@ namespace GameObj {
 
 	namespace {
 
+		bool Masking(unsigned int group, unsigned int mask) {
+			return (group & mask) != 0;
+		}
+
 		struct ObjManagerCallback : public btCollisionWorld::ContactResultCallback
 		{
-			CCollisionObj* ObjA = nullptr, *ObjB = nullptr;
+			CCollisionObj* ObjA = nullptr;
 
-			ObjManagerCallback(CCollisionObj* A, CCollisionObj* B) : ObjA(A), ObjB(B) {
-				m_collisionFilterMask = 2;//2(コリジョンとキャラコンの判定するかこれで設定)
-				//contactTestのContactTest(&ObjA->GetCollisionObject()のマスク・グループはこれでされる!
+			ObjManagerCallback(CCollisionObj* A) : ObjA(A) {
+				m_collisionFilterMask = CCollisionObjFilter;//CCollisionObjとのみ判定
 			};
 
-			//needsCollision 
+			//判定するかどうか判定する
+			bool needsCollision(btBroadphaseProxy* proxy0) const override
+			{
+				//Bulletのマスク判定
+				bool collides = (proxy0->m_collisionFilterGroup & m_collisionFilterMask) != 0;
+				collides = collides && (m_collisionFilterGroup & proxy0->m_collisionFilterMask);
+				if (!collides) { return false; }
 
-			virtual	btScalar addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0, const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1)override
+				CCollisionObj* ObjB = (CCollisionObj*)((btCollisionObject*)proxy0->m_clientObject)->getUserPointer();
+				
+				//登録無効化されてないか?
+				if (!ObjB->IsEnable()) {
+					return false;
+				}
+				
+				//このループで既に実行した組み合わせか?
+				if (ObjA->GetIndex() > ObjB->GetIndex()) {
+					return false;
+				}
+
+				//マスク判定
+				if (!(Masking(ObjA->GetGroup(), ObjB->GetMask()) && Masking(ObjB->GetGroup(), ObjA->GetMask()))) {
+					return false;
+				}
+
+				return true;
+			};
+
+			//接触の数だけ実行される
+			btScalar addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0, const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1)override
 			{
 
+				CCollisionObj* ObjA = (CCollisionObj*)(colObj0Wrap->getCollisionObject()->getUserPointer());
+				CCollisionObj* ObjB = (CCollisionObj*)(colObj1Wrap->getCollisionObject()->getUserPointer());
+				
 				//各々処理実行
 				CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetData(), ObjB->GetCollisionObject(), ObjB->GetClass() };
 				ObjA->RunCallback(paramB);
 				CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetData(), ObjA->GetCollisionObject(), ObjA->GetClass() };
 				ObjB->RunCallback(paramA);
 
-				//colObj0Wrap->getCollisionObject()->getUserPointer
-
 				return 0.0f;
 			};
 		};
-
-		bool Masking(unsigned int group, unsigned int mask){
-			return (group & mask) != 0;
-		}
 	}
 
 	void CollisionObjManager::PostUpdate() {
-		//if(m_colObjList.size()>1){
 		for (auto itr = m_colObjList.begin(); itr != m_colObjList.end(); ++itr) {
 
 			CCollisionObj* ObjA = (*itr).m_CObj;
 
 			if (!ObjA->IsEnable() || !(*itr).m_isEnable) { continue; }
 
-			ObjManagerCallback callback(ObjA, ObjA);
+			ObjManagerCallback callback(ObjA);
 			GetPhysicsWorld().ContactTest(&ObjA->GetCollisionObject(), callback);
-			//これで行こう!
-			//ObjA->GetCollisionObject().setUserPointer();
 
-			/*auto itr2 = itr; ++itr2;
-			for (itr2; itr2 != m_colObjList.end(); ++itr2) {
-
-				CCollisionObj* ObjB = (*itr2).m_CObj;
-
-				if (!ObjB->IsEnable() || !(*itr2).m_isEnable) { continue; }
-
-				if (Masking(ObjA->GetGroup(),ObjB->GetMask()) && Masking(ObjB->GetGroup(), ObjA->GetMask())) {//マスキング
-					ObjManagerCallback callback(ObjA, ObjB);
-					GetPhysicsWorld().ContactPairTest(&ObjA->GetCollisionObject(), &ObjB->GetCollisionObject(), callback);
-				}
-			}*/
 		}
-		//}
 		m_colObjList.clear();
 	}
 

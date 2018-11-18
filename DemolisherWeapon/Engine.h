@@ -42,8 +42,9 @@ struct InitEngineParameter {
 
 class GameLoop {
 public:
-	GameLoop(GameObjectManager* gom, CPhysicsWorld* m_physics) {
+	GameLoop(GameObjectManager* gom, GONewDeleteManager* gonewdel, CPhysicsWorld* m_physics) {
 		m_gameObjectManager_Ptr = gom;
+		m_goNewDeleteManager_Ptr = gonewdel;
 		m_physics_Ptr = m_physics;
 	};
 
@@ -66,6 +67,7 @@ private:
 	bool DispatchWindowMessage();
 
 	GameObjectManager* m_gameObjectManager_Ptr;
+	GONewDeleteManager* m_goNewDeleteManager_Ptr;
 	CPhysicsWorld* m_physics_Ptr;
 
 	float m_runframecnt = 1.0f;
@@ -78,7 +80,7 @@ class Engine
 
 //シングルトン
 private:
-	Engine() : m_gameLoop(&m_gameObjectManager,&m_physics) {};// = default;
+	Engine() : m_gameLoop(&m_gameObjectManager,&m_goNewDeleteManager,&m_physics) {};// = default;
 	~Engine() = default;
 public:
 	Engine(const Engine&) = delete;
@@ -258,9 +260,10 @@ static inline T* NewGO(TArgs... ctorArgs)
 	return GetEngine().GetGONewDeleteManager().NewGO<T>(ctorArgs...);
 }
 //ゲームオブジェクトの削除
-static inline void DeleteGO(IGameObject* go)
+//(ゲームオブジェクトの無効化フラグが立つ。実際にインスタンスが削除されるのは、全てのGOのPostUpdateが終わってから)
+static inline void DeleteGO(IGameObject* go, bool newgoCheck = true)
 {
-	GetEngine().GetGONewDeleteManager().DeleteGO(go);
+	GetEngine().GetGONewDeleteManager().DeleteGO(go, newgoCheck);
 }
 
 //マウスカーソルマネージャーを取得

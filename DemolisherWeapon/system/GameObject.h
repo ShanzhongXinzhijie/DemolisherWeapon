@@ -166,17 +166,27 @@ private:
 		m_newgoMark = true;
 	}
 
+	//DeleteGOされた
+	void お前はもう死んでいる() {
+		m_isDead = true;
+	}
+
 public:
 
+	//DeleteGOされてる?
+	bool お前はもう死んでいる？() const{
+		return m_isDead;
+	}
+
 	//有効化
-	/*void SetEnable(bool e) {
+	void SetEnable(bool e) {
 		m_enable = e;
 	}
 	//有効なのか？
-	bool GetEnable() {
-		if (m_goToHell) { return false; }
-		return m_enable;
-	}*/
+	bool GetEnable() const{
+		//if (m_goToHell) { return false; }
+		return m_enable && !m_isDead;
+	}
 
 	//開始しているのか？
 	bool GetIsStart() const{
@@ -246,7 +256,8 @@ public:
 	virtual void PostRender() {};
 
 private:
-	//bool m_enable = true;
+	bool m_isDead = false;//実質死亡
+	bool m_enable = true;
 	bool m_isStart = false;
 
 	//bool m_goToHell = false;//地獄に向かっているか?
@@ -278,7 +289,7 @@ public:
 
 	void Start() {
 		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && !go.gameObject->GetIsStart()) {//go.gameObject->GetEnable() 
+			if (go.isEnable && go.gameObject->GetEnable() && !go.gameObject->GetIsStart()) {
 				if (go.gameObject->Start()) {
 					go.gameObject->SetIsStart();
 				}
@@ -287,31 +298,31 @@ public:
 	}
 	void PreLoopUpdate() {
 		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetIsStart()) {
+			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
 				go.gameObject->PreLoopUpdate();
 			}
 		}
 	}
 	void Update() {
 		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetIsStart()) {
+			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
 				go.gameObject->PreUpdate();
 			}
 		}
 		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetIsStart()) {
+			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
 				go.gameObject->Update();
 			}
 		}
 		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetIsStart()) {
+			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
 				go.gameObject->PostUpdate();
 			}
 		}
 	}
 	void PostLoopUpdate() {
 		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetIsStart()) {
+			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
 				go.gameObject->PostLoopUpdate();
 			}
 		}
@@ -393,9 +404,9 @@ public:
 		return newObject;
 	}
 
-	void DeleteGO(IGameObject* gameObject) {
-		//殺す//殺しフラグ立てる
-		if (!gameObject->GetNewGOMark()) {
+	//(ゲームオブジェクトの無効化フラグが立つ。実際にインスタンスが削除されるのは、全てのGOのPostUpdateが終わってから)
+	void DeleteGO(IGameObject* gameObject, bool newgoCheck) {
+		if (newgoCheck && !gameObject->GetNewGOMark()) {
 			//Newgoのフラグ立ってなかったらエラー
 #ifndef DW_MASTER
 			char message[256];
@@ -405,13 +416,26 @@ public:
 #endif
 		}
 		else {
-			delete gameObject;
+			if (!gameObject->お前はもう死んでいる？()) {//まだ殺されていない
+				//無効化
+				gameObject->お前はもう死んでいる();
+				//殺しリスト登録
+				m_deleteList.emplace_back(gameObject);
+			}
 		}
 	}
 
-	//void FarewellDearDeadman() {
+	void FarewellDearDeadman() {
 		//殺す
-	//}
+		for (auto& GO : m_deleteList) {
+			delete GO;
+		}
+		m_deleteList.clear();
+	}
+
+private:
+	std::list<IGameObject*> m_deleteList;
+
 };
 
 }
