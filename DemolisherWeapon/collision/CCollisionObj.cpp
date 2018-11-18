@@ -32,7 +32,7 @@ namespace GameObj {
 	}
 
 	void CCollisionObj::Register() {
-		if (!m_isregistered) {
+		if (!m_isregistered && IsEnable()) {
 			m_register = AddCollisionObj(this);
 			m_isregistered = true;
 		}
@@ -88,9 +88,9 @@ namespace GameObj {
 				CCollisionObj* ObjB = (CCollisionObj*)(colObj1Wrap->getCollisionObject()->getUserPointer());
 				
 				//ŠeXˆ—ŽÀs
-				CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetData(), ObjB->GetCollisionObject(), ObjB->GetClass() };
+				CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass() };
 				ObjA->RunCallback(paramB);
-				CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetData(), ObjA->GetCollisionObject(), ObjA->GetClass() };
+				CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass() };
 				ObjB->RunCallback(paramA);
 
 				return 0.0f;

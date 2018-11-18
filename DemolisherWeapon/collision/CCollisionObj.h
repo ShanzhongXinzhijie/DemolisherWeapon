@@ -57,19 +57,10 @@ public:
 			}
 			return p;
 		};
-
-		//ポインタを取り出す
-		/*template<class T>
-		T* GetGO() {
-			return (T*)m_voidPtr;
-		};*/
 	};	
 
-	/*static CCollisionObj* New(int lifespan = 1) {
-		return new CCollisionObj(lifespan);
-	}
+public:
 
-private:*/
 	CCollisionObj(int lifespanFrame = enNoTimer, const wchar_t* name = nullptr, IDW_Class* classPtr = nullptr, std::function<void(SCallbackParam&)> callbackFunction = nullptr, unsigned int group = 1, unsigned int mask = 0xFFFFFFFF)
 	:
 	m_group(group),m_mask(mask)
@@ -81,7 +72,6 @@ private:*/
 		Register();
 	};
 
-//private:
 	~CCollisionObj() {
 		if (m_isregistered) {
 			m_register->m_isEnable = false;//登録無効化しとく
@@ -90,11 +80,22 @@ private:*/
 	};
 
 public:
-	void Release()override;
 
 	//削除する
 	void Delete() {
 		m_isDeath = true;
+	}
+	//次のループで削除する(次のループでは判定されません)
+	void DeleteNextLoop() {
+		m_killMark = true;
+	}
+
+	//有効・無効の設定
+	void SetEnable(bool enable){
+		m_enable = enable;
+	}
+	bool GetEnable()const {
+		return m_enable;
 	}
 
 	/*!
@@ -133,6 +134,9 @@ public:
 	//寿命を設定
 	void SetTimer(int lefttimeFrame) {
 		m_lifespan = max(lefttimeFrame, enNoTimer);
+	}
+	int GetTimer()const {
+		return m_lifespan;
 	}
 
 	//ポインタを設定
@@ -188,7 +192,7 @@ public:
 	}
 
 	void Update() override{
-		if (m_lifespan != enNoTimer && m_lifespan <= 0 || m_isDeath) { delete this; return; }//if (Delete()) { return; } }
+		if (m_lifespan != enNoTimer && m_lifespan <= 0 || m_isDeath || m_killMark) { delete this; return; }
 		Register();
 		if (m_lifespan != enNoTimer) { m_lifespan--; }
 	}
@@ -204,7 +208,7 @@ public:
 	btGhostObject& GetCollisionObject() { return m_ghostObject; }
 
 	int GetNameKey()const { return m_nameKey; };
-	void* GetData() { return m_void; };
+	void* GetPointer() { return m_void; };
 	IDW_Class* GetClass() { return m_classPtr; };
 
 	unsigned int GetGroup()const { return m_group; }
@@ -223,7 +227,9 @@ public:
 	}
 
 private:
-	
+
+	void Release()override;
+
 	/*!
 	* @brief	ゴースト作成処理の共通処理。
 	*/
@@ -237,6 +243,7 @@ private:
 
 	bool m_enable = true;//有効?
 	bool m_isDeath = false;//死?
+	bool m_killMark = false;//死期が近い?
 	bool m_isInit = false;//初期化済み?
 	bool m_isRegistPhysicsWorld = false;//!<物理ワールドに登録しているかどうかのフラグ。
 	bool m_isregistered = false;//登録済み?
