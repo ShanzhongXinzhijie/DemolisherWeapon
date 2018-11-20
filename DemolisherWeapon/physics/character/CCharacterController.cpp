@@ -213,13 +213,13 @@ namespace DemolisherWeapon {
 					currentDir.Subtract(nextPosition, m_position);
 					currentDir.y = 0.0f;
 					currentDir.Normalize();
-					if (currentDir.Dot(originalXZDir) < 0.0f) {
+					/*if (currentDir.Dot(originalXZDir) < 0.0f) {
 						//角に入った時のキャラクタの振動を防止するために、
 						//移動先が逆向きになったら移動をキャンセルする。
 						nextPosition.x = m_position.x;
 						nextPosition.z = m_position.z;
 						break;
-					}
+					}*/
 				}
 				else {
 					//どことも当たらないので終わり。
@@ -247,7 +247,7 @@ namespace DemolisherWeapon {
 			start.setIdentity();
 			end.setIdentity();
 			//始点はカプセルコライダーの中心。
-			start.setOrigin(btVector3(m_position.x, m_position.y + m_height * 0.5f + m_radius, m_position.z));
+			start.setOrigin(btVector3(m_position.x, m_position.y- addPos.y + m_height * 0.5f + m_radius, m_position.z));
 			//終点は地面上にいる場合は下を見る。
 			//地面上にいなくてジャンプで上昇中の場合は上昇量の0.01倍下を見る。
 			//地面上にいなくて降下中の場合はそのまま落下先を調べる。
