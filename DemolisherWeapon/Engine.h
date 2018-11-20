@@ -26,6 +26,7 @@ struct InitEngineParameter {
 	//メモ: 1m = 78.74fくらい?(Unityちゃんが全長1.5mくらいになる
 	int limitFps = 60;				//フレームレート上限
 	int standardFps = 60;			//動作フレームレート
+	float variableFpsMaxSec = 3.0f;	//1描画フレームあたりの処理時間がこの秒数を超えると、可変フレームレート無効化(-FLT_EPSILON以下で無効化無効)
 	int	screenWidth = 1280;			//ウィンドウの幅
 	int	screenHeight = 720;			//ウィンドウの高さ
 	int frameBufferWidth = 1280;	//フレームバッファの幅。これが内部解像度。
@@ -48,8 +49,9 @@ public:
 		m_physics_Ptr = m_physics;
 	};
 
-	void Init(int maxfps, int stdfps) {
+	void Init(int maxfps, int stdfps, float variableFpsMaxSec) {
 		m_fpscounter.Init(maxfps, stdfps);
+		m_variableFpsMaxSec = variableFpsMaxSec;
 	}
 
 	void Run();
@@ -72,6 +74,7 @@ private:
 
 	float m_runframecnt = 1.0f;
 	bool m_noVariableFramerateOnce = true;
+	float m_variableFpsMaxSec = -1.0f;
 	CFpsCounter m_fpscounter;
 };
 

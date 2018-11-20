@@ -88,9 +88,9 @@ namespace GameObj {
 				CCollisionObj* ObjB = (CCollisionObj*)(colObj1Wrap->getCollisionObject()->getUserPointer());
 				
 				//ŠeXˆ—ŽÀs
-				CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass() };
+				CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false, cp };
 				ObjA->RunCallback(paramB);
-				CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass() };
+				CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true, cp };
 				ObjB->RunCallback(paramA);
 
 				return 0.0f;

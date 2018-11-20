@@ -1,5 +1,6 @@
 #include "DWstdafx.h"
 #include "MeshCollider.h"
+#include "BulletCollision/CollisionDispatch/btInternalEdgeUtility.h"
 
 namespace DemolisherWeapon {
 
@@ -94,7 +95,12 @@ namespace DemolisherWeapon {
 			m_stridingMeshInterface->addIndexedMesh(indexedMesh);
 		}
 		);
+		
 		m_meshShape = std::make_unique<btBvhTriangleMeshShape>(m_stridingMeshInterface.get(), true);
+
+		//btAdjustInternalEdgeContacts‚Ì‚â‚Â
+		m_triInfomap = std::make_unique<btTriangleInfoMap>();
+		btGenerateInternalEdgeInfo(m_meshShape.get(), m_triInfomap.get());
 	}
 
 }

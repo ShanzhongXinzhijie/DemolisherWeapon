@@ -36,6 +36,8 @@ namespace DemolisherWeapon {
 		std::vector<IndexBufferPtr>						m_indexBufferArray;		//インデックスバッファの配列。
 		std::unique_ptr<btBvhTriangleMeshShape>			m_meshShape;				//メッシュ形状。
 		std::unique_ptr<btTriangleIndexVertexArray>		m_stridingMeshInterface;
+
+		std::unique_ptr<btTriangleInfoMap>				m_triInfomap;
 	};
 
 }

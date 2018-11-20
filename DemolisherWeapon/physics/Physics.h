@@ -87,6 +87,13 @@ public:
 	{
 		dynamicWorld->contactPairTest(colObjA, colObjB, resultCallback);
 	}
+	//ƒŒƒC‚Å”»’è
+	void RayTest(
+		const btVector3& rayFromWorld, const btVector3& rayToWorld,
+		btCollisionWorld::RayResultCallback& resultCallback) const {
+
+		dynamicWorld->rayTest(rayFromWorld, rayToWorld, resultCallback);
+	}
 
 	void ContactTest(
 		btCollisionObject* colObj,

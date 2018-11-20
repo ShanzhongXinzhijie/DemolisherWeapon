@@ -15,12 +15,12 @@ namespace DemolisherWeapon {
 		{
 			bool isHit = false;									//衝突フラグ。
 			CVector3 hitPos = CVector3(0.0f, -FLT_MAX, 0.0f);	//衝突点。
-			CVector3 startPos = CVector3::Zero();					//レイの始点。
+			CVector3 startPos = CVector3::Zero();				//レイの始点。
 			CVector3 hitNormal = CVector3::Zero();				//衝突点の法線。
 			btCollisionObject* me = nullptr;					//自分自身。自分自身との衝突を除外するためのメンバ。
 			float dist = FLT_MAX;								//衝突点までの距離。一番近い衝突点を求めるため。FLT_MAXは単精度の浮動小数点が取りうる最大の値。
 
-																//衝突したときに呼ばれるコールバック関数。
+			//衝突したときに呼ばれるコールバック関数。
 			virtual	btScalar	addSingleResult(btCollisionWorld::LocalConvexResult& convexResult, bool normalInWorldSpace)
 			{
 				if (convexResult.m_hitCollisionObject == me
@@ -60,11 +60,12 @@ namespace DemolisherWeapon {
 		{
 			bool isHit = false;						//衝突フラグ。
 			CVector3 hitPos = CVector3::Zero();		//衝突点。
-			CVector3 startPos = CVector3::Zero();		//レイの始点。
+			CVector3 startPos = CVector3::Zero();	//レイの始点。
 			float dist = FLT_MAX;					//衝突点までの距離。一番近い衝突点を求めるため。FLT_MAXは単精度の浮動小数点が取りうる最大の値。
 			CVector3 hitNormal = CVector3::Zero();	//衝突点の法線。
 			btCollisionObject* me = nullptr;		//自分自身。自分自身との衝突を除外するためのメンバ。
-													//衝突したときに呼ばれるコールバック関数。
+
+			//衝突したときに呼ばれるコールバック関数。
 			virtual	btScalar	addSingleResult(btCollisionWorld::LocalConvexResult& convexResult, bool normalInWorldSpace)
 			{
 				if (convexResult.m_hitCollisionObject == me
@@ -76,6 +77,9 @@ namespace DemolisherWeapon {
 				//衝突点の法線を引っ張ってくる。
 				CVector3 hitNormalTmp;
 				hitNormalTmp.Set(convexResult.m_hitNormalLocal);
+				//btVector3 Nor = convexResult.m_hitCollisionObject->getWorldTransform().getBasis()*convexResult.m_hitNormalLocal;
+				//hitNormalTmp.Set(Nor);
+
 				//上方向と衝突点の法線のなす角度を求める。
 				float angle = fabsf(acosf(hitNormalTmp.Dot(CVector3::Up())));
 				if (angle >= CMath::PI * 0.3f		//地面の傾斜が54度以上なので壁とみなす。
@@ -127,15 +131,12 @@ namespace DemolisherWeapon {
 	const CVector3& CCharacterController::Execute(CVector3& moveSpeed, float deltaTime)
 	{
 		if (m_isInited == false) {
-			/*TK_WARNING_MESSAGE_BOX("初期化されていないキャラクターコントローラーのExecute関数が呼ばれています。\n"
-				"CharacterController::Init関数を呼び出してください。\n"
-				"CharacterControllerの使い方はSample/Sample07を参考にしてください。\n");*/
 #ifndef DW_MASTER
 			char message[256];
 			strcpy_s(message, "初期化されていないキャラクターコントローラーのExecute関数が呼ばれています。\n"
 				"CharacterController::Init関数を呼び出してください。\n"
 				"CharacterControllerの使い方はSample/Sample07を参考にしてください。\n");
-			OutputDebugStringA(message);
+			MessageBox(NULL, message, "Error", MB_OK);
 #endif
 			return m_position;
 		}
@@ -233,24 +234,26 @@ namespace DemolisherWeapon {
 		//XZの移動は確定。
 		m_position.x = nextPosition.x;
 		m_position.z = nextPosition.z;
+
 		//下方向を調べる。
 		{
 			CVector3 addPos;
 			addPos.Subtract(nextPosition, m_position);
 
 			m_position = nextPosition;	//移動の仮確定。
-										//レイを作成する。
+
+			//レイを作成する。
 			btTransform start, end;
 			start.setIdentity();
 			end.setIdentity();
 			//始点はカプセルコライダーの中心。
 			start.setOrigin(btVector3(m_position.x, m_position.y + m_height * 0.5f + m_radius, m_position.z));
-			//終点は地面上にいない場合は1m下を見る。
+			//終点は地面上にいる場合は下を見る。
 			//地面上にいなくてジャンプで上昇中の場合は上昇量の0.01倍下を見る。
 			//地面上にいなくて降下中の場合はそのまま落下先を調べる。
 			CVector3 endPos;
 			endPos.Set(start.getOrigin());
-			if (m_isOnGround == false) {
+			if (m_isOnGround == false || addPos.y > 0.0f) {
 				if (addPos.y > 0.0f) {
 					//ジャンプ中とかで上昇中。
 					//上昇中でもXZに移動した結果めり込んでいる可能性があるので下を調べる。
@@ -262,28 +265,69 @@ namespace DemolisherWeapon {
 				}
 			}
 			else {
-				//地面上にいない場合は1m下を見る。
-				endPos.y -= 1.0f;
+				//地面上にいる場合は(offset)下を見る。
+				endPos.y -= 1.0f + m_height * 0.5f;//+ 800.0f / 60.0f + 20.0f;
 			}
 			end.setOrigin(btVector3(endPos.x, endPos.y, endPos.z));
-			SweepResultGround callback;
-			callback.me = m_rigidBody.GetBody();
-			callback.startPos.Set(start.getOrigin());
+			
 			//衝突検出。
-			if (fabsf(endPos.y - callback.startPos.y) > FLT_EPSILON) {
-				GetEngine().GetPhysicsWorld().ConvexSweepTest((const btConvexShape*)m_collider.GetBody(), start, end, callback);
-				if (callback.isHit) {
-					//当たった。
-					moveSpeed.y = 0.0f;
-					m_isJump = false;
-					m_isOnGround = true;
-					nextPosition.y = callback.hitPos.y;
-				}
-				else {
-					//地面上にいない。
-					m_isOnGround = false;
+			if (fabsf(endPos.y - start.getOrigin().y()) > FLT_EPSILON) {
+				//レイで判定
+				/*btVector3 rayStart(m_position.x, m_position.y + m_height * 0.5f + m_radius, m_position.z);
+				btVector3 rayEnd(m_position.x, m_position.y + (endPos.y - start.getOrigin().y()), m_position.z);
 
+				//CVector3 move = moveSpeed; move.y = 0.0f; move.Normalize(); move *= m_radius;
+				//btVector3 offset(move.x, 0.0f, move.z);
+				//rayStart += offset;
+				//rayEnd += offset;
+
+				btCollisionWorld::AllHitsRayResultCallback gnd_ray(rayStart, rayEnd);
+				GetEngine().GetPhysicsWorld().RayTest(rayStart, rayEnd, gnd_ray);
+
+				bool RayHit = false;
+
+				if(gnd_ray.hasHit()){
+					for (int i = 0; i < gnd_ray.m_collisionObjects.size(); ++i) {
+						const btCollisionObject* col = gnd_ray.m_collisionObjects[i];
+						
+						if (col == m_rigidBody.GetBody()
+							|| col->getUserIndex() == enCollisionAttr_Character
+							|| col->getInternalType() == btCollisionObject::CO_GHOST_OBJECT
+						) {
+							continue;
+						}
+
+						//近ければ							
+						if (!RayHit || abs(rayStart.y() - nextPosition.y) > abs(rayStart.y() - gnd_ray.m_hitPointWorld[i].y())) {
+							//当たった。
+							moveSpeed.y = 0.0f;
+							m_isJump = false;
+							m_isOnGround = true;
+							nextPosition.y = gnd_ray.m_hitPointWorld[i].y();
+
+							RayHit = true;
+						}
+					}
 				}
+				if(!RayHit){*/
+					//カプセルでも判定
+					SweepResultGround callback;
+					callback.me = m_rigidBody.GetBody();
+					callback.startPos.Set(start.getOrigin());
+					GetEngine().GetPhysicsWorld().ConvexSweepTest((const btConvexShape*)m_collider.GetBody(), start, end, callback);
+
+					if (callback.isHit) {
+						//当たった。
+						moveSpeed.y = 0.0f;
+						m_isJump = false;
+						m_isOnGround = true;
+						nextPosition.y = callback.hitPos.y;
+					}
+					else {
+						//地面上にいない。
+						m_isOnGround = false;
+					}
+				//}
 			}
 		}
 		//移動確定。

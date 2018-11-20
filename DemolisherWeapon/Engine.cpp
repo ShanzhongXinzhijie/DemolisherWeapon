@@ -126,7 +126,7 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	m_graphicsEngine.Init(m_hWnd, initParam);
 
 	//ゲームループの初期化
-	m_gameLoop.Init(initParam.limitFps, initParam.standardFps);
+	m_gameLoop.Init(initParam.limitFps, initParam.standardFps, initParam.variableFpsMaxSec);
 
 	//コリジョンマネージャーの初期化
 	m_collisionManager = std::make_unique<GameObj::CollisionObjManager>();
@@ -179,7 +179,7 @@ void GameLoop::Run() {
 		m_runframecnt += m_fpscounter.GetRunFrameCnt();
 
 		//今回は可変フレームにしない
-		if (m_noVariableFramerateOnce) {
+		if (m_noVariableFramerateOnce || m_variableFpsMaxSec > -FLT_EPSILON && m_variableFpsMaxSec < m_fpscounter.GetFrameTimeSec()) {
 			m_runframecnt = 1.0f;
 			m_noVariableFramerateOnce = false;
 		}

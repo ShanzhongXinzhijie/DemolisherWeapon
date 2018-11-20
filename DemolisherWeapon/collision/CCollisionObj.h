@@ -33,10 +33,14 @@ public:
 
 	//コールバック関数の引数
 	struct SCallbackParam {
+		//あたった相手の情報
 		const int m_nameKey;
+		const wchar_t* m_name;
 		void* m_voidPtr;
 		const btGhostObject&  m_ghostObject;
-		IDW_Class* m_classPtr;
+		IDW_Class* m_classPtr;		
+		const bool m_isA;
+		const btManifoldPoint& m_contactPoint;//接触点とか情報
 
 		//名前が一致するか判定
 		bool EqualName(const wchar_t* name) {
@@ -122,6 +126,10 @@ public:
 	//名前を設定
 	void SetName(const wchar_t* name) {
 		m_nameKey = Util::MakeHash(name);
+		m_name = name;
+	}
+	const wchar_t* GetName()const {
+		return m_name.c_str();
 	}
 	//コールバック関数を設定
 	void SetCallback(std::function<void(SCallbackParam&)> callbackFunction) {
@@ -254,6 +262,7 @@ private:
 	unsigned int m_mask = 0;// 0xFFFFFFFF;//すべて1
 
 	int m_nameKey = 0;
+	std::wstring m_name;
 
 	void* m_void = nullptr;
 	IDW_Class* m_classPtr = nullptr;

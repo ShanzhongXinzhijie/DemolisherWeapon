@@ -26,6 +26,9 @@ namespace DemolisherWeapon {
 		btRigidBody::btRigidBodyConstructionInfo btRbInfo(rbInfo.mass, m_myMotionState.get(), rbInfo.collider->GetBody(), btLocalInteria);
 		//„‘Ì‚ğì¬B
 		m_rigidBody = std::make_unique<btRigidBody>(btRbInfo);
+		
+		//btAdjustInternalEdgeContacts‚Ì‚â‚Â
+		m_rigidBody->setCollisionFlags(m_rigidBody->getCollisionFlags() | btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK);
 	}
 
 }

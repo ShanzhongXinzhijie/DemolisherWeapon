@@ -3,6 +3,8 @@
 #include "Physics/RigidBody.h"
 #include "Physics/character/CCharacterController.h"
 
+#include "BulletCollision/CollisionDispatch/btInternalEdgeUtility.h"
+
 namespace DemolisherWeapon {
 
 namespace {
@@ -18,7 +20,17 @@ namespace {
 			return 0.0f;
 		}
 	};
+
+	bool CustomMaterialCombinerCallback(btManifoldPoint& cp,
+		const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0,
+		const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1)
+	{
+		btAdjustInternalEdgeContacts(cp, colObj1Wrap, colObj0Wrap, partId1, index1);
+		return true;
+	}
 }
+
+//extern ContactAddedCallback gContactAddedCallback;
 
 CPhysicsWorld::~CPhysicsWorld()
 {
@@ -41,6 +53,10 @@ void CPhysicsWorld::Release()
 void CPhysicsWorld::Init()
 {
 	Release();
+
+	// btAdjustInternalEdgeContacts
+	gContactAddedCallback = CustomMaterialCombinerCallback;
+
 	//ï®óùÉGÉìÉWÉìÇèâä˙âªÅB
 	///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
 	collisionConfig = new btDefaultCollisionConfiguration();
