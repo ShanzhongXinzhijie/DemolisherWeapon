@@ -247,7 +247,7 @@ namespace DemolisherWeapon {
 			start.setIdentity();
 			end.setIdentity();
 			//始点はカプセルコライダーの中心。
-			start.setOrigin(btVector3(m_position.x, m_position.y- addPos.y + m_height * 0.5f + m_radius, m_position.z));
+			start.setOrigin(btVector3(m_position.x, m_position.y + m_height * 0.5f + m_radius, m_position.z));
 			//終点は地面上にいる場合は下を見る。
 			//地面上にいなくてジャンプで上昇中の場合は上昇量の0.01倍下を見る。
 			//地面上にいなくて降下中の場合はそのまま落下先を調べる。
@@ -273,8 +273,8 @@ namespace DemolisherWeapon {
 			//衝突検出。
 			if (fabsf(endPos.y - start.getOrigin().y()) > FLT_EPSILON) {
 				//レイで判定
-				/*btVector3 rayStart(m_position.x, m_position.y + m_height * 0.5f + m_radius, m_position.z);
-				btVector3 rayEnd(m_position.x, m_position.y + (endPos.y - start.getOrigin().y()), m_position.z);
+				btVector3 rayStart = start.getOrigin(); rayStart.setY(rayStart.getY() + m_radius);
+				btVector3 rayEnd = end.getOrigin(); rayEnd.setY(rayEnd.getY() - m_radius);
 
 				//CVector3 move = moveSpeed; move.y = 0.0f; move.Normalize(); move *= m_radius;
 				//btVector3 offset(move.x, 0.0f, move.z);
@@ -297,19 +297,28 @@ namespace DemolisherWeapon {
 							continue;
 						}
 
-						//近ければ							
-						if (!RayHit || abs(rayStart.y() - nextPosition.y) > abs(rayStart.y() - gnd_ray.m_hitPointWorld[i].y())) {
-							//当たった。
-							moveSpeed.y = 0.0f;
-							m_isJump = false;
-							m_isOnGround = true;
-							nextPosition.y = gnd_ray.m_hitPointWorld[i].y();
+						//衝突点の法線を引っ張ってくる。
+						CVector3 hitNormalTmp = *(CVector3*)&gnd_ray.m_hitNormalWorld[i];
+						//上方向と法線のなす角度を求める。
+						float angle = hitNormalTmp.Dot(CVector3::Up());
+						angle = fabsf(acosf(angle));
+						if (angle < CMath::PI * 0.3f		//地面の傾斜が54度より小さいので地面とみなす。
+							|| col->getUserIndex() == enCollisionAttr_Ground //もしくはコリジョン属性が地面と指定されている。
+						) {
+							//近ければ							
+							if (!RayHit || abs(rayStart.y() - nextPosition.y) > abs(rayStart.y() - gnd_ray.m_hitPointWorld[i].y())) {
+								//当たった。
+								moveSpeed.y = 0.0f;
+								m_isJump = false;
+								m_isOnGround = true;
+								nextPosition.y = gnd_ray.m_hitPointWorld[i].y();
 
-							RayHit = true;
+								//RayHit = true;
+							}
 						}
 					}
 				}
-				if(!RayHit){*/
+				if(!RayHit){
 					//カプセルでも判定
 					SweepResultGround callback;
 					callback.me = m_rigidBody.GetBody();
@@ -327,7 +336,7 @@ namespace DemolisherWeapon {
 						//地面上にいない。
 						m_isOnGround = false;
 					}
-				//}
+				}
 			}
 		}
 		//移動確定。
