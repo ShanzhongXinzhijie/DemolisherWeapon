@@ -313,12 +313,20 @@ namespace DemolisherWeapon {
 								m_isOnGround = true;
 								nextPosition.y = gnd_ray.m_hitPointWorld[i].y();
 
-								//RayHit = true;
+								RayHit = true;
 							}
 						}
 					}
 				}
-				if(!RayHit){
+				//if(!RayHit)
+				{
+
+					//座標更新してカプセルでも
+					if (RayHit) {
+						start.setOrigin(start.getOrigin() + btVector3(0.0f, nextPosition.y - m_position.y, 0.0f));
+						end.setOrigin(end.getOrigin() + btVector3(0.0f, nextPosition.y - m_position.y, 0.0f));
+					}
+
 					//カプセルでも判定
 					SweepResultGround callback;
 					callback.me = m_rigidBody.GetBody();
@@ -332,7 +340,7 @@ namespace DemolisherWeapon {
 						m_isOnGround = true;
 						nextPosition.y = callback.hitPos.y;
 					}
-					else {
+					else if (!RayHit){
 						//地面上にいない。
 						m_isOnGround = false;
 					}
