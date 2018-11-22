@@ -68,6 +68,8 @@
     <ClInclude Include="Graphic\Sprite\CSprite.h" />
     <ClInclude Include="Graphic\Effekseer\EffekseerManager.h" />
     <ClInclude Include="Sound\SoundEngine.h" />
+    <ClInclude Include="Graphic\Effekseer\CEffekseer.h" />
+    <ClInclude Include="Render\EffekseerRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -126,6 +128,8 @@
     <ClCompile Include="Graphic\Sprite\CSprite.cpp" />
     <ClCompile Include="Graphic\Effekseer\EffekseerManager.cpp" />
     <ClCompile Include="Sound\SoundEngine.cpp" />
+    <ClCompile Include="Graphic\Effekseer\CEffekseer.cpp" />
+    <ClCompile Include="Render\EffekseerRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

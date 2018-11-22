@@ -6,6 +6,7 @@
 #include "Vector.h"
 #include "Matrix.h"
 
+namespace DemolisherWeapon {
 
 //const CVector3 CVector3::Zero = { 0.0f,  0.0f,  0.0f };
 
@@ -17,3 +18,4 @@ void CQuaternion::SetRotation(const CMatrix& m)
 	DirectX::XMStoreFloat4(&vec, DirectX::XMQuaternionRotationMatrix(m));
 }
 
+}

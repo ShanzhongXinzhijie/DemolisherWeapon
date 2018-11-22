@@ -18,14 +18,14 @@ void SoundEngine::Init() {
 
 	if (FAILED(hr = XAudio2Create(&m_pXAudio2, 0, XAUDIO2_DEFAULT_PROCESSOR))) {
 #ifndef DW_MASTER
-		OutputDebugStringA("XAudio2CreateÇ…é∏îsÇµÇ‹ÇµÇΩÅB");
+		OutputDebugStringA("XAudio2CreateÇ…é∏îsÇµÇ‹ÇµÇΩÅB\n");
 #endif
 		return;
 	}
 
 	if (FAILED(hr = m_pXAudio2->CreateMasteringVoice(&m_pMasterVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, 0, NULL))) {
 #ifndef DW_MASTER
-		OutputDebugStringA("CreateMasteringVoiceÇ…é∏îsÇµÇ‹ÇµÇΩÅB");
+		OutputDebugStringA("CreateMasteringVoiceÇ…é∏îsÇµÇ‹ÇµÇΩÅB\n");
 #endif
 		return;
 	}

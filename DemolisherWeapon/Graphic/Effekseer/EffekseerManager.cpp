@@ -41,14 +41,20 @@ void EffekseerManager::Init() {
 }
 
 void EffekseerManager::Release() {
+	// エフェクトの停止
+	if (m_manager) m_manager->StopAllEffects();
 	// エフェクトを解放します。再生中の場合は、再生が終了した後、自動的に解放されます。
-	ES_SAFE_RELEASE(effect);
+	for (auto& effect : m_effects) {
+		ES_SAFE_RELEASE(effect.second);
+	}
+	m_effects.clear();
+
 	// エフェクト管理用インスタンスを破棄
-	m_manager->Destroy();
+	if (m_manager) m_manager->Destroy();
 	// サウンド用インスタンスを破棄
-	m_sound->Destroy();
+	if (m_sound) m_sound->Destroy();
 	// 描画用インスタンスを破棄
-	m_renderer->Destroy();
+	if (m_renderer) m_renderer->Destroy();
 }
 
 void EffekseerManager::Update() {
@@ -64,18 +70,54 @@ void EffekseerManager::Update() {
 	//m_manager->AddLocation(handle, ::Effekseer::Vector3D);
 
 	// 全てのエフェクトの更新
-	m_manager->Update();
+	m_manager->Update(60.0f / GetStandardFrameRate());
 }
 
-void EffekseerRender::Render() {
+void EffekseerManager::Draw() {
 	m_renderer->BeginRendering();
 	m_manager->Draw();
 	m_renderer->EndRendering();
 }
 
-// エフェクトの読込
-Effekseer::Effect* effect = Effekseer::Effect::Create(manager, 読込先パス);
-// エフェクトの再生
-Effekseer::Handle handle = manager->Play(effect, 初期位置);
+Effekseer::Effect* EffekseerManager::Load(const wchar_t* filePath) {
+	Effekseer::Effect* effect = nullptr;
+	int index = Util::MakeHash(filePath);
+
+	//既に登録されてないか?
+	if (m_effects.count(index) > 0) {
+		//登録されてたらマップから取得
+		effect = m_effects[index];
+	}
+	else {
+		//新規読み込み
+
+		// エフェクトの読込	
+		effect = Effekseer::Effect::Create(m_manager, (const EFK_CHAR*)filePath);
+		if (effect == nullptr) {
+#ifndef DW_MASTER
+			char message[256];
+			sprintf_s(message, "Effekseer::Effect::Create に失敗。\nFilePath:%ls", filePath);
+			MessageBox(NULL, message, "Error", MB_OK);
+			std::abort();
+#endif
+			return nullptr;
+		}
+
+		//エフェクトを登録
+		m_effects[index] = effect;
+	}
+
+	return effect;
+}
+
+Effekseer::Handle EffekseerManager::Play(Effekseer::Effect* effect, const CVector3& pos) {
+	// エフェクトの再生
+	return m_manager->Play(effect, pos.x, pos.y, pos.z);
+}
+
+void EffekseerManager::Stop(Effekseer::Handle handle) {
+	// エフェクトの停止
+	m_manager->StopEffect(handle);
+}
 
 }

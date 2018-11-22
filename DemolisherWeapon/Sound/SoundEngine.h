@@ -11,7 +11,7 @@ public:
 	void Init();
 	void Release();
 
-	IXAudio2* GetIXAudio2()const{ return m_pXAudio2; }
+	IXAudio2* GetIXAudio2(){ return m_pXAudio2; }
 
 private:
 	IXAudio2* m_pXAudio2 = nullptr;

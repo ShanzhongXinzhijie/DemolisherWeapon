@@ -9,6 +9,7 @@
 #include"Render/MotionBlurRender.h"
 #include"Render/PhysicsDebugDrawRender.h"
 #include"Render/CameraSwitchRender.h"
+#include"Render/EffekseerRender.h"
 
 #include"Camera/CameraManager.h"
 #include"Graphic/Light/Lights.h"
@@ -201,8 +202,10 @@ private:
 #ifndef DW_MASTER
 	PhysicsDebugDrawRender m_physicsDebugDrawRender;
 #endif
+	EffekseerRender m_effekseerRender;
 	std::unique_ptr<FinalRender> m_finalRender[2];
 	std::unique_ptr<CameraSwitchRender> m_cameraSwitchRender[2];
+
 	//最終レンダーターゲット
 	CFinalRenderTarget m_FRT;
 

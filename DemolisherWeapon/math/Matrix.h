@@ -5,8 +5,10 @@
 #pragma once
 
 #include "Vector.h"
+
 #include <Effekseer.h>
 
+namespace DemolisherWeapon{
 /*!
  * @brief	行列。
  */
@@ -277,3 +279,17 @@ public:
 		return identity;
 	}
 };
+
+/*!
+*@brief	行列同士の乗算。
+*@details
+* 乗算は左から右に向かってかかっていく。
+*/
+static inline CMatrix operator*(const CMatrix& m1, const CMatrix m2)
+{
+	CMatrix mRet;
+	mRet.Mul(m1, m2);
+	return mRet;
+}
+
+}

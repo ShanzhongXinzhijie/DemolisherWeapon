@@ -125,6 +125,12 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	//DirectXの初期化。
 	m_graphicsEngine.Init(m_hWnd, initParam);
 
+	//XAudio2の初期化
+	m_soundEngine.Init();
+
+	//Effekseerの初期化
+	m_effekseer.Init();
+
 	//ゲームループの初期化
 	m_gameLoop.Init(initParam.limitFps, initParam.standardFps, initParam.variableFpsMaxSec);
 
@@ -194,6 +200,8 @@ void GameLoop::Run() {
 			m_gameObjectManager_Ptr->Hell();
 
 			m_physics_Ptr->Update();
+
+			m_effekseer_Ptr->Update();
 
 			ResetMouseWheelNotch();//マウスホイールのリセット
 			GetEngine().GetMouseCursorManager().ResetMouseMove();//マウス移動量のリセット

@@ -14,18 +14,21 @@ enum EnCollisionTimer {
 static const int CCollisionObjFilter = 64;
 
 namespace GameObj {
+namespace Suicider {
 	class CCollisionObj;
+}
 }
 struct RegColObj
 {
-	RegColObj(GameObj::CCollisionObj* p, int index) : m_CObj(p), m_index(index) {}
+	RegColObj(GameObj::Suicider::CCollisionObj* p, int index) : m_CObj(p), m_index(index) {}
 
 	int m_index = -1;
 	bool m_isEnable = true;
-	GameObj::CCollisionObj* m_CObj = nullptr;
+	GameObj::Suicider::CCollisionObj* m_CObj = nullptr;
 };
 
 namespace GameObj{
+namespace Suicider{
 
 class CCollisionObj : public PhysicsBaseObject , public IGameObject {
 
@@ -272,13 +275,15 @@ private:
 	std::function<void(SCallbackParam&)> m_callback = nullptr;
 };
 
+}
+
 class CollisionObjManager : public IGameObject{
 public:
 
 	//îªíËèàóùÇ‚ÇÈ
 	void PostUpdate()override final;
 
-	RegColObj* AddCollisionObj(CCollisionObj* obj) {
+	RegColObj* AddCollisionObj(Suicider::CCollisionObj* obj) {
 		m_colObjList.emplace_back(obj, m_colObjList.size());
 		return &m_colObjList.back();
 	};

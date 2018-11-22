@@ -5,6 +5,8 @@ namespace DemolisherWeapon {
 
 namespace GameObj {
 
+namespace Suicider {
+
 	void CCollisionObj::Release()
 	{
 		if (m_isRegistPhysicsWorld == true) {
@@ -38,6 +40,8 @@ namespace GameObj {
 		}
 	}
 
+}
+
 	namespace {
 
 		bool Masking(unsigned int group, unsigned int mask) {
@@ -46,9 +50,9 @@ namespace GameObj {
 
 		struct ObjManagerCallback : public btCollisionWorld::ContactResultCallback
 		{
-			CCollisionObj* ObjA = nullptr;
+			Suicider::CCollisionObj* ObjA = nullptr;
 
-			ObjManagerCallback(CCollisionObj* A) : ObjA(A) {
+			ObjManagerCallback(Suicider::CCollisionObj* A) : ObjA(A) {
 				m_collisionFilterMask = CCollisionObjFilter;//CCollisionObj‚Æ‚Ì‚Ý”»’è
 			};
 
@@ -60,7 +64,7 @@ namespace GameObj {
 				collides = collides && (m_collisionFilterGroup & proxy0->m_collisionFilterMask);
 				if (!collides) { return false; }
 
-				CCollisionObj* ObjB = (CCollisionObj*)((btCollisionObject*)proxy0->m_clientObject)->getUserPointer();
+				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)((btCollisionObject*)proxy0->m_clientObject)->getUserPointer();
 				
 				//“o˜^–³Œø‰»‚³‚ê‚Ä‚È‚¢‚©?
 				if (!ObjB->IsEnable()) {
@@ -84,13 +88,13 @@ namespace GameObj {
 			btScalar addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0, const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1)override
 			{
 
-				CCollisionObj* ObjA = (CCollisionObj*)(colObj0Wrap->getCollisionObject()->getUserPointer());
-				CCollisionObj* ObjB = (CCollisionObj*)(colObj1Wrap->getCollisionObject()->getUserPointer());
+				Suicider::CCollisionObj* ObjA = (Suicider::CCollisionObj*)(colObj0Wrap->getCollisionObject()->getUserPointer());
+				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)(colObj1Wrap->getCollisionObject()->getUserPointer());
 				
 				//ŠeXˆ—ŽÀs
-				CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false, cp };
+				Suicider::CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false, cp };
 				ObjA->RunCallback(paramB);
-				CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true, cp };
+				Suicider::CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true, cp };
 				ObjB->RunCallback(paramA);
 
 				return 0.0f;
@@ -101,7 +105,7 @@ namespace GameObj {
 	void CollisionObjManager::PostUpdate() {
 		for (auto itr = m_colObjList.begin(); itr != m_colObjList.end(); ++itr) {
 
-			CCollisionObj* ObjA = (*itr).m_CObj;
+			Suicider::CCollisionObj* ObjA = (*itr).m_CObj;
 
 			if (!ObjA->IsEnable() || !(*itr).m_isEnable) { continue; }
 

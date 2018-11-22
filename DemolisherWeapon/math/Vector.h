@@ -6,8 +6,11 @@
 
 #pragma once
 
+#include <Effekseer.h>
 
 #include "kMath.h"
+
+namespace DemolisherWeapon{
 
 class CMatrix;
 
@@ -187,6 +190,7 @@ public:
 	}
 
 	//operator D3DXVECTOR3(void) { return s_cast<D3DXVECTOR3>(*this); }
+
 	/*!
 	*@brief	‘ã“ü‰‰ZqB
 	*/
@@ -938,3 +942,4 @@ static inline TVector operator-(const TVector& v0, const TVector& v1)
 	return result;
 }
 
+}

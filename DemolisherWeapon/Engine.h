@@ -15,6 +15,8 @@
 
 #include "collision/CCollisionObj.h"
 
+#include "Graphic/Effekseer/EffekseerManager.h"
+
 namespace DemolisherWeapon {
 
 static constexpr float DW_VER = 3.141f;//エンジンのバージョン
@@ -30,7 +32,7 @@ struct InitEngineParameter {
 	//メモ: 1m = 78.74fくらい?(Unityちゃんが全長1.5mくらいになる
 	int limitFps = 60;				//フレームレート上限
 	int standardFps = 60;			//動作フレームレート
-	float variableFpsMaxSec = 3.0f;	//1描画フレームあたりの処理時間がこの秒数を超えると、可変フレームレート無効化(-FLT_EPSILON以下で無効化無効)
+	float variableFpsMaxSec = 1.0f;	//1描画フレームあたりの処理時間がこの秒数を超えると、可変フレームレート無効化(-FLT_EPSILON以下で無効化無効)
 	int	screenWidth = 1280;			//ウィンドウの幅
 	int	screenHeight = 720;			//ウィンドウの高さ
 	int frameBufferWidth = 1280;	//フレームバッファの幅。これが内部解像度。
@@ -47,10 +49,11 @@ struct InitEngineParameter {
 
 class GameLoop {
 public:
-	GameLoop(GameObjectManager* gom, GONewDeleteManager* gonewdel, CPhysicsWorld* m_physics) {
+	GameLoop(GameObjectManager* gom, GONewDeleteManager* gonewdel, CPhysicsWorld* physics, EffekseerManager* effekseer) {
 		m_gameObjectManager_Ptr = gom;
 		m_goNewDeleteManager_Ptr = gonewdel;
-		m_physics_Ptr = m_physics;
+		m_physics_Ptr = physics;
+		m_effekseer_Ptr = effekseer;
 	};
 
 	void Init(int maxfps, int stdfps, float variableFpsMaxSec) {
@@ -72,9 +75,10 @@ public:
 private:
 	bool DispatchWindowMessage();
 
-	GameObjectManager* m_gameObjectManager_Ptr;
-	GONewDeleteManager* m_goNewDeleteManager_Ptr;
-	CPhysicsWorld* m_physics_Ptr;
+	GameObjectManager* m_gameObjectManager_Ptr = nullptr;
+	GONewDeleteManager* m_goNewDeleteManager_Ptr = nullptr;
+	CPhysicsWorld* m_physics_Ptr = nullptr;
+	EffekseerManager* m_effekseer_Ptr = nullptr;
 
 	float m_runframecnt = 1.0f;
 	bool m_noVariableFramerateOnce = true;
@@ -87,7 +91,7 @@ class Engine
 
 //シングルトン
 private:
-	Engine() : m_gameLoop(&m_gameObjectManager,&m_goNewDeleteManager,&m_physics) {};// = default;
+	Engine() : m_gameLoop(&m_gameObjectManager,&m_goNewDeleteManager,&m_physics,&m_effekseer) {};// = default;
 	~Engine() = default;
 public:
 	Engine(const Engine&) = delete;
@@ -139,6 +143,10 @@ public:
 	//物理エンジンの取得
 	CPhysicsWorld& GetPhysicsWorld() {
 		return m_physics;
+	}
+	//Effekseerの取得
+	EffekseerManager& GetEffekseer() {
+		return m_effekseer;
 	}
 	//コリジョンマネージャーの取得
 	GameObj::CollisionObjManager* GetCollisionObjManager() {
@@ -194,6 +202,7 @@ private:
 	GraphicsEngine m_graphicsEngine;
 	SoundEngine m_soundEngine;
 	CPhysicsWorld m_physics;
+	EffekseerManager m_effekseer;
 	std::unique_ptr <GameObj::CollisionObjManager> m_collisionManager;
 	GameObjectManager m_gameObjectManager;
 	GONewDeleteManager m_goNewDeleteManager;
@@ -321,7 +330,7 @@ static inline float GetDeltaTimeSec() {
 }
 
 //コリジョンマネージャーに判定を追加
-static inline RegColObj* AddCollisionObj(GameObj::CCollisionObj* obj) {
+static inline RegColObj* AddCollisionObj(GameObj::Suicider::CCollisionObj* obj) {
 	return GetEngine().GetCollisionObjManager()->AddCollisionObj(obj);
 }
 
