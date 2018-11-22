@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Vector.h"
-
+#include <Effekseer.h>
 
 /*!
  * @brief	çsóÒÅB
@@ -29,6 +29,33 @@ public:
 	{
 		return DirectX::XMLoadFloat4x4(&mat);
 	}
+	operator Effekseer::Matrix44() const
+	{
+		Effekseer::Matrix44 eMat = *((Effekseer::Matrix44*)&mat);
+		return eMat;
+	}
+	operator Effekseer::Matrix43() const
+	{
+		Effekseer::Matrix43 eMat;
+		eMat.Value[0][0] = mat.m[0][0];
+		eMat.Value[0][1] = mat.m[0][1];
+		eMat.Value[0][2] = mat.m[0][2];
+
+		eMat.Value[1][0] = mat.m[1][0];
+		eMat.Value[1][1] = mat.m[1][1];
+		eMat.Value[1][2] = mat.m[1][2];
+
+		eMat.Value[2][0] = mat.m[2][0];
+		eMat.Value[2][1] = mat.m[2][1];
+		eMat.Value[2][2] = mat.m[2][2];
+
+		eMat.Value[3][0] = mat.m[3][0];
+		eMat.Value[3][1] = mat.m[3][1];
+		eMat.Value[3][2] = mat.m[3][2];
+
+		return eMat;
+	}
+
 	CMatrix() {
 		mat = Identity().mat;
 	}

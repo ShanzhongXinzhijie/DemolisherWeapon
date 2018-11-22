@@ -3,6 +3,8 @@
 #include"system/GraphicsEngine.h"
 #include"system/GameObject.h"
 
+#include"Sound/SoundEngine.h"
+
 #include"FPS/CFpsCounter.h"
 
 #include"Input/MouseCursor.h"
@@ -14,6 +16,8 @@
 #include "collision/CCollisionObj.h"
 
 namespace DemolisherWeapon {
+
+static constexpr float DW_VER = 3.141f;//エンジンのバージョン
 
 enum EnSplitScreenMode {
 	enNoSplit=0,
@@ -128,6 +132,10 @@ public:
 	GraphicsEngine& GetGraphicsEngine() {
 		return m_graphicsEngine;
 	}
+	//サウンドエンジンの取得
+	SoundEngine& GetSoundEngine() {
+		return m_soundEngine;
+	}
 	//物理エンジンの取得
 	CPhysicsWorld& GetPhysicsWorld() {
 		return m_physics;
@@ -184,6 +192,7 @@ private:
 
 	//処理クラス
 	GraphicsEngine m_graphicsEngine;
+	SoundEngine m_soundEngine;
 	CPhysicsWorld m_physics;
 	std::unique_ptr <GameObj::CollisionObjManager> m_collisionManager;
 	GameObjectManager m_gameObjectManager;

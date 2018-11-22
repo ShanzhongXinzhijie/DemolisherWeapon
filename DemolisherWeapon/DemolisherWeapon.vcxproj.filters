@@ -65,6 +65,9 @@
     <ClInclude Include="Graphic\Model\CoordinateSystemBias.h" />
     <ClInclude Include="collision\CCollisionObj.h" />
     <ClInclude Include="Render\CameraSwitchRender.h" />
+    <ClInclude Include="Graphic\Sprite\CSprite.h" />
+    <ClInclude Include="Graphic\Effekseer\EffekseerManager.h" />
+    <ClInclude Include="Sound\SoundEngine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -120,6 +123,9 @@
     <ClCompile Include="Graphic\Font\CFont.cpp" />
     <ClCompile Include="collision\CCollisionObj.cpp" />
     <ClCompile Include="Render\CameraSwitchRender.cpp" />
+    <ClCompile Include="Graphic\Sprite\CSprite.cpp" />
+    <ClCompile Include="Graphic\Effekseer\EffekseerManager.cpp" />
+    <ClCompile Include="Sound\SoundEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

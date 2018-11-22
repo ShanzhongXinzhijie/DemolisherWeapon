@@ -37,6 +37,8 @@ public:
 
 	const CVector3& GetPos() const { return m_pos; }
 	const CVector3& GetTarget() const { return m_target; }
+	const CVector3& GetUp() const { return m_up; }
+	float GetNear() const { return m_near; }
 	float GetFar() const{ return m_far; }
 
 	//À•W“™İ’è

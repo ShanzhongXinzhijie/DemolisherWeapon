@@ -181,6 +181,11 @@ public:
 	{
 		return DirectX::XMLoadFloat3(&vec);
 	}
+	operator Effekseer::Vector3D() const
+	{
+		return Effekseer::Vector3D(x,y,z);
+	}
+
 	//operator D3DXVECTOR3(void) { return s_cast<D3DXVECTOR3>(*this); }
 	/*!
 	*@brief	‘ã“ü‰‰ZqB
