@@ -51,7 +51,7 @@ void CEffekseer::Update()
 	mScale.MakeScaling(m_scale);
 	mBase = mScale * mRot;
 	mBase = mBase * mTrans;
-	GetEngine().GetEffekseer().GetManager()->SetBaseMatrix(m_handle, mBase);
+	GetEngine().GetEffekseer().GetManager()->SetMatrix(m_handle, mBase);//SetBaseMatrix
 	
 	if (IsPlay() == false) {
 		delete this;

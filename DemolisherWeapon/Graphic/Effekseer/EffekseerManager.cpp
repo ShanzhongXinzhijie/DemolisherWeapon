@@ -58,13 +58,14 @@ void EffekseerManager::Release() {
 }
 
 void EffekseerManager::Update() {
-	// 投影行列の更新
-	m_renderer->SetProjectionMatrix(GetMainCamera()->GetProjMatrix());
-	// カメラ行列の更新
-	m_renderer->SetCameraMatrix(GetMainCamera()->GetViewMatrix());
-	
-	// 3Dサウンド用リスナー設定の更新
-	m_sound->SetListener(GetMainCamera()->GetPos(), GetMainCamera()->GetTarget(), GetMainCamera()->GetUp());
+	if (GetMainCamera()) {
+		// 投影行列の更新
+		//m_renderer->SetProjectionMatrix(GetMainCamera()->GetProjMatrix());
+		// カメラ行列の更新
+		//m_renderer->SetCameraMatrix(GetMainCamera()->GetViewMatrix());
+		// 3Dサウンド用リスナー設定の更新
+		m_sound->SetListener(GetMainCamera()->GetPos(), GetMainCamera()->GetTarget(), GetMainCamera()->GetUp());
+	}
 
 	// 再生中のエフェクトの移動等(::Effekseer::Manager経由で様々なパラメーターが設定できます。)
 	//m_manager->AddLocation(handle, ::Effekseer::Vector3D);
@@ -74,6 +75,13 @@ void EffekseerManager::Update() {
 }
 
 void EffekseerManager::Draw() {
+	// 投影行列の更新
+	m_renderer->SetProjectionMatrix(GetMainCamera()->GetProjMatrix());
+	// カメラ行列の更新
+	m_renderer->SetCameraMatrix(GetMainCamera()->GetViewMatrix());
+	// 3Dサウンド用リスナー設定の更新
+	//m_sound->SetListener(GetMainCamera()->GetPos(), GetMainCamera()->GetTarget(), GetMainCamera()->GetUp());
+
 	m_renderer->BeginRendering();
 	m_manager->Draw();
 	m_renderer->EndRendering();
