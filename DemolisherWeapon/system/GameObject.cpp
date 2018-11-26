@@ -16,6 +16,11 @@ namespace DemolisherWeapon {
 		std::list<GOStatusCaster> m_statusCaster;//ó‘Ô‚ð‘—M‚·‚é
 	}*/
 
+	//–¼‘O‚ð‚Â‚¯‚é
+	void IGameObject::SetName(const wchar_t* objectName) {
+		SetNameGO(this, objectName);
+	}
+
 	void GOStatusCaster::Cast(const GOStatus& status) {
 		m_receiver->SetStatus(status);
 	}
