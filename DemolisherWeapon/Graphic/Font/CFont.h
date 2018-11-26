@@ -24,6 +24,7 @@ namespace DemolisherWeapon {
 			const CVector2& scale = CVector2::One(),
 			const CVector2& pivot = CVector2::Zero(),
 			float rotation = 0.0f,
+			DirectX::SpriteEffects effects = DirectX::SpriteEffects_None,
 			float layerDepth = 0.5f
 		);
 		//const CVector2& pos をスクリーン座標で指定する版。右下の座標=画面解像度　
@@ -34,6 +35,7 @@ namespace DemolisherWeapon {
 			const CVector2& scale = CVector2::One(),
 			const CVector2& pivot = CVector2::Zero(),
 			float rotation = 0.0f,
+			DirectX::SpriteEffects effects = DirectX::SpriteEffects_None,
 			float layerDepth = 0.5f
 		);
 

@@ -23,9 +23,10 @@ namespace DemolisherWeapon {
 		const CVector2& scale,
 		const CVector2& pivot,
 		float rotation,
+		DirectX::SpriteEffects effects,
 		float layerDepth
 	) {
-		DrawScreenPos(text, { pos.x * m_screenSize.x, pos.y * m_screenSize.y }, color, scale, pivot, rotation, layerDepth);
+		DrawScreenPos(text, { pos.x * m_screenSize.x, pos.y * m_screenSize.y }, color, scale, pivot, rotation, effects, layerDepth);
 	}
 
 	void CFont::DrawScreenPos(
@@ -35,6 +36,7 @@ namespace DemolisherWeapon {
 		const CVector2& scale,
 		const CVector2& pivot,
 		float rotation,
+		DirectX::SpriteEffects effects,
 		float layerDepth
 	) {
 		if (text == nullptr) {
@@ -49,7 +51,7 @@ namespace DemolisherWeapon {
 			rotation,
 			DirectX::XMFLOAT2(pivot.x, pivot.y),
 			DirectX::XMFLOAT2(scale.x, scale.y),
-			DirectX::SpriteEffects_None,
+			effects,
 			layerDepth
 		);
 	}
