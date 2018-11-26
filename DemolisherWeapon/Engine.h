@@ -287,6 +287,30 @@ static inline void DeleteGO(IGameObject* go, bool newgoCheck = true)
 	GetEngine().GetGONewDeleteManager().DeleteGO(go, newgoCheck);
 }
 
+//ゲームオブジェクトに名前をつける
+static inline void SetNameGO(IGameObject* go, const wchar_t* objectName)
+{
+	GetEngine().GetGameObjectManager().SetNameGO(go, objectName);
+}
+//ゲームオブジェクトの検索(単体)
+template <typename T>
+static inline T* FindGO(const wchar_t* objectName) {
+	return GetEngine().GetGameObjectManager().FindGO(objectName);
+}
+template <typename T>
+static inline T* FindGO() {
+	return GetEngine().GetGameObjectManager().FindGO();
+}
+//ゲームオブジェクトの検索(複数)
+template<class T>
+void QueryGOs(const wchar_t* objectName, std::function<bool(T* go)> func) {
+	GetEngine().GetGameObjectManager().QueryGOs(objectName, func);
+}
+template<class T>
+void QueryGOs(std::function<bool(T* go)> func) {
+	GetEngine().GetGameObjectManager().QueryGOs(func);
+}
+
 //マウスカーソルマネージャーを取得
 static inline CMouseCursor& MouseCursor() {
 	return GetEngine().GetMouseCursorManager();

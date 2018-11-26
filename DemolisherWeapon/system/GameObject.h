@@ -1,5 +1,9 @@
 #pragma once
 
+#include <unordered_map>
+
+#include "../util/Util.h"
+
 namespace DemolisherWeapon {
 
 class IGameObject;
@@ -173,6 +177,11 @@ private:
 
 public:
 
+	//NewGOで作ったか?
+	bool GetNewGOMark() const {
+		return m_newgoMark;
+	}
+
 	//DeleteGOされてる?
 	bool お前はもう死んでいる？() const{
 		return m_isDead;
@@ -238,10 +247,8 @@ public:
 		m_deathListeners.push_back(listener);
 	}
 
-	//NewGOで作ったか?
-	bool GetNewGOMark() const{
-		return m_newgoMark;
-	}
+	//名前をつける
+	void SetName(const wchar_t* objectName);
 
 public:
 
@@ -329,25 +336,7 @@ public:
 	}
 	void PostRender();
 
-	//死の処理	
-	/*void Hell() {
-		auto it = m_gameObjectList.begin();
-		while (it != m_gameObjectList.end()) {
-			if ((*it)->GetGoToHell()) {
-				if ((*it)->GetNowOnHell()) {//二回目で削除
-					(*it).reset();//delete (*it);
-					it = m_gameObjectList.erase(it);
-				}
-				else {
-					(*it)->ArriveHell();
-					it++;
-				}
-			}
-			else {
-				it++;
-			}
-		}
-	}*/
+	//死の処理
 	void Hell() {
 		auto it = m_gameObjectList.begin();
 		while (it != m_gameObjectList.end()) {
@@ -379,16 +368,104 @@ public:
 		go->RegisterRegister(&m_gameObjectList.back());
 	}
 
-	//ゲームオブジェクトの削除
-	//void DeleteGameObj(IGameObject* go) {
-	//	go->LetsGoHell();
-	//}
+	//ゲームオブジェクトに名前をつける
+	void SetNameGO(IGameObject* go, const wchar_t* objectName) {
+		if (!go) { return; }
+
+		GORegister* regiGo = go->GetRegister();
+		if (regiGo) {
+			int nameKey = Util::MakeHash(objectName);			
+			m_gameObjectMap.emplace(nameKey, regiGo);
+		}
+		else {
+#ifndef DW_MASTER
+			MessageBox(NULL, "登録されていないゲームオブジェクトに名前をつけようとしています", "Error", MB_OK);
+			std::abort();
+#endif
+		}
+	}
+
+	//ゲームオブジェクトの検索
+	template<class T>
+	T* FindGO(const wchar_t* objectName)
+	{
+		auto range = m_gameObjectMap.equal_range(Util::MakeHash(objectName));
+
+		for (auto it = range.first; it != range.second; ++it) {
+			auto& regiGo = it->second;
+
+			//有効か？
+			if (regiGo->isEnable && regiGo->gameObject->GetEnable()) {
+				//見つけた。
+				T* p = dynamic_cast<T*>(regiGo->gameObject);
+				if (p != nullptr) {
+					return p;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+	template<class T>
+	T* FindGO()
+	{
+		for (auto& regiGo : m_gameObjectList) {
+			//有効か？
+			if (regiGo->isEnable && regiGo->gameObject->GetEnable()) {
+				//見つけた。
+				T* p = dynamic_cast<T*>(regiGo->gameObject);
+				if (p != nullptr) {
+					return p;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+	template<class T>
+	void QueryGOs(const wchar_t* objectName, std::function<bool(T* go)> func)
+	{
+		auto range = m_gameObjectMap.equal_range(Util::MakeHash(objectName));
+
+		for (auto it = range.first; it != range.second; ++it){
+			auto& regiGo = it->second;		
+
+			//有効か？
+			if (regiGo->isEnable && regiGo->gameObject->GetEnable()) {
+				//見つけた。
+				T* p = dynamic_cast<T*>(regiGo->gameObject);
+				if (p != nullptr) {
+					if (func(p) == false) {
+						//クエリ中断。
+						return;
+					}
+				}
+			}
+		}
+	}
+	template<class T>
+	void QueryGOs(std::function<bool(T* go)> func)
+	{
+		for (auto& regiGo : m_gameObjectList) {
+			//有効か？
+			if (regiGo->isEnable && regiGo->gameObject->GetEnable()) {
+				//見つけた。
+				T* p = dynamic_cast<T*>(regiGo->gameObject);
+				if (p != nullptr) {
+					if (func(p) == false) {
+						//クエリ中断。
+						return;
+					}
+				}
+			}
+		}
+	}
 
 private:
 
 	std::list<GORegister> m_gameObjectList;
-	//std::list< std::unique_ptr<IGameObject> > m_gameObjectList;
 
+	std::unordered_multimap<int, GORegister*> m_gameObjectMap;
 };
 
 class GONewDeleteManager {
