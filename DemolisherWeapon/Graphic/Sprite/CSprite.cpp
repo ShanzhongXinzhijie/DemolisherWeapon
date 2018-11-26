@@ -90,7 +90,7 @@ namespace DemolisherWeapon {
 
 		if (!m_srv) { return; }
 
-		m_spriteBatch->Draw(m_srv, pos.vec, &m_sourceRectangle, color, rotation, DirectX::XMFLOAT2(pivot.x, pivot.y), DirectX::XMFLOAT2(scale.x, scale.y), effects, layerDepth);
+		m_spriteBatch->Draw(m_srv, pos.vec, &m_sourceRectangle, color, rotation, DirectX::XMFLOAT2(pivot.x*m_width, pivot.y*m_height), DirectX::XMFLOAT2(scale.x, scale.y), effects, layerDepth);
 	}
 
 }
