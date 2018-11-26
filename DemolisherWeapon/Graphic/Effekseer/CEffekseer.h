@@ -8,7 +8,8 @@ class CEffekseer : public IGameObject
 {
 public:
 	CEffekseer();
-	CEffekseer(const wchar_t* filePath, const CVector3& pos = CVector3::Zero(), const CQuaternion& rot = CQuaternion::Identity(), const CVector3& scale = CVector3::One());
+	//*@param[in]	magnification	読み込み時の拡大率
+	CEffekseer(const wchar_t* filePath, const float magnification = 1.0f, const CVector3& pos = CVector3::Zero(), const CQuaternion& rot = CQuaternion::Identity(), const CVector3& scale = CVector3::One());
 	~CEffekseer();
 	
 	void Update() override;
@@ -22,8 +23,9 @@ public:
 	/*!
 	 *@brief	エフェクトを再生。
 	 *@param[in]	filePath		再生するエフェクトのファイルパス。
+	 *@param[in]	magnification	読み込み時の拡大率
 	 */
-	void Play(const wchar_t* filePath, const CVector3& pos = CVector3::Zero(), const CQuaternion& rot = CQuaternion::Identity(), const CVector3& scale = CVector3::One());
+	void Play(const wchar_t* filePath, const float magnification = 1.0f, const CVector3& pos = CVector3::Zero(), const CQuaternion& rot = CQuaternion::Identity(), const CVector3& scale = CVector3::One());
 
 	/*!
 	 *@brief	座標を設定。

@@ -87,7 +87,7 @@ void EffekseerManager::Draw() {
 	m_renderer->EndRendering();
 }
 
-Effekseer::Effect* EffekseerManager::Load(const wchar_t* filePath) {
+Effekseer::Effect* EffekseerManager::Load(const wchar_t* filePath, float scale) {
 	Effekseer::Effect* effect = nullptr;
 	int index = Util::MakeHash(filePath);
 
@@ -100,7 +100,7 @@ Effekseer::Effect* EffekseerManager::Load(const wchar_t* filePath) {
 		//新規読み込み
 
 		// エフェクトの読込	
-		effect = Effekseer::Effect::Create(m_manager, (const EFK_CHAR*)filePath);
+		effect = Effekseer::Effect::Create(m_manager, (const EFK_CHAR*)filePath, scale);
 		if (effect == nullptr) {
 #ifndef DW_MASTER
 			char message[256];
@@ -120,7 +120,7 @@ Effekseer::Effect* EffekseerManager::Load(const wchar_t* filePath) {
 
 Effekseer::Handle EffekseerManager::Play(Effekseer::Effect* effect, const CVector3& pos) {
 	// エフェクトの再生
-	return m_manager->Play(effect, pos.x, pos.y, pos.z);
+	return m_manager->Play(effect,0.0f, 0.0f, 0.0f);// , pos.x, pos.y, pos.z); //Effekseer絶対許さねぇ…
 }
 
 void EffekseerManager::Stop(Effekseer::Handle handle) {

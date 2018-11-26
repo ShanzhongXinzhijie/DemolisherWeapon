@@ -8,9 +8,9 @@ namespace Suicider {
 CEffekseer::CEffekseer()
 {
 }
-CEffekseer::CEffekseer(const wchar_t* filePath, const CVector3& pos, const CQuaternion& rot, const CVector3& scale) 
+CEffekseer::CEffekseer(const wchar_t* filePath, const float magnification, const CVector3& pos, const CQuaternion& rot, const CVector3& scale)
 {
-	Play(filePath,pos,rot,scale);
+	Play(filePath, magnification,pos,rot,scale);
 }
 
 CEffekseer::~CEffekseer()
@@ -26,11 +26,11 @@ void CEffekseer::Release()
 	}
 }
 
-void CEffekseer::Play(const wchar_t* filePath, const CVector3& pos, const CQuaternion& rot, const CVector3& scale)
+void CEffekseer::Play(const wchar_t* filePath, const float magnification, const CVector3& pos, const CQuaternion& rot, const CVector3& scale)
 {
 	EffekseerManager& effek = GetEngine().GetEffekseer();
 
-	Effekseer::Effect* effect = effek.Load(filePath);
+	Effekseer::Effect* effect = effek.Load(filePath, magnification);
 	if (!effect) { 
 #ifndef DW_MASTER
 		OutputDebugStringA("‚È‚ñ‚©CEffekseer::Play‚ÉŽ¸”sB\n");
@@ -51,8 +51,8 @@ void CEffekseer::Update()
 	mScale.MakeScaling(m_scale);
 	mBase = mScale * mRot;
 	mBase = mBase * mTrans;
-	GetEngine().GetEffekseer().GetManager()->SetMatrix(m_handle, mBase);//SetBaseMatrix
-	
+	GetEngine().GetEffekseer().GetManager()->SetBaseMatrix(m_handle, mBase);//SetMatrix
+
 	if (IsPlay() == false) {
 		delete this;
 	}

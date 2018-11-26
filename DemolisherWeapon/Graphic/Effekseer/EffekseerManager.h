@@ -20,7 +20,7 @@ public:
 	void Update();
 	void Draw();
 
-	Effekseer::Effect* Load(const wchar_t* filePath);
+	Effekseer::Effect* Load(const wchar_t* filePath, float scale);
 
 	Effekseer::Handle Play(Effekseer::Effect* effect, const CVector3& pos);
 	void Stop(Effekseer::Handle handle);
