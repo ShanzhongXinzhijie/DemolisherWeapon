@@ -24,13 +24,13 @@ public:
 		if (Pad(0).GetButton(enButtonA)) {		
 			if (!m_trigger) {
 				//攻撃判定の発生
-				GameObj::CCollisionObj* attackCol = NewGO<GameObj::CCollisionObj>();
+				SuicideObj::CCollisionObj* attackCol = NewGO<SuicideObj::CCollisionObj>();
 				//形状の作成
 				attackCol->CreateSphere(m_pos + CVector3::AxisX()*50.0f, CQuaternion::Identity(), 100.0f);
 				//寿命を設定
 				attackCol->SetTimer(10);//10フレーム後削除される
 				//衝突時に実行する処理を設定
-				attackCol->SetCallback([&](GameObj::CCollisionObj::SCallbackParam& param) {
+				attackCol->SetCallback([&](SuicideObj::CCollisionObj::SCallbackParam& param) {
 					//衝突した判定の名前が"CEnemy"なら5ダメージ与える
 					if (param.EqualName(L"CEnemy")) {
 						CEnemy* enemy = param.GetClass<CEnemy>();//相手の判定に設定されているCEnemyのポインタを取得

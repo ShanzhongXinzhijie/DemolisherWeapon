@@ -10,7 +10,7 @@ public:
 		m_pos = CVector3(300.0f,0.0f,0.0f);
 
 		//‚­‚ç‚¢”»’è‚Ìì¬
-		m_collision = std::make_unique<GameObj::CCollisionObj>();
+		m_collision = std::make_unique<SuicideObj::CCollisionObj>();
 		//Œ`ó‚Ìì¬
 		m_collision->CreateSphere(m_pos + CVector3::AxisY()*100.0f, CQuaternion::Identity(), 200.0f);
 		//õ–½‚ğİ’è
@@ -62,5 +62,5 @@ private:
 	CVector3 m_pos = { 0.0f, 0.0f, 0.0f };
 	int m_cnt = 0;
 
-	std::unique_ptr<GameObj::CCollisionObj> m_collision;
+	std::unique_ptr<SuicideObj::CCollisionObj> m_collision;
 };
