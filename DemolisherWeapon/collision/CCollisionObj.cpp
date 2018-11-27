@@ -96,13 +96,37 @@ namespace Suicider {
 				Suicider::CCollisionObj* ObjA = (Suicider::CCollisionObj*)(colObj0Wrap->getCollisionObject()->getUserPointer());
 				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)(colObj1Wrap->getCollisionObject()->getUserPointer());
 				
+				bool old_hanteingA = ObjA->GetHanteing();
+				bool old_hanteingB = ObjB->GetHanteing();
+
+				ObjA->SetHanteing(true);
+				ObjB->SetHanteing(true);
+
 				//これもレジスターのほうがいいのでは
+				//RegColObj* RegA = ObjA->GetRegister();
+				//RegColObj* RegB = ObjB->GetRegister();
+
+				//こうなるのはおかしい
+				/*if (!RegA || !RegB) { 
+#ifndef DW_MASTER
+					MessageBox(NULL, "おかしいやろ", "Error", MB_OK);
+					std::abort();
+#endif
+					return 0.0f;
+				}*/
 
 				//各々処理実行
-				Suicider::CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false, cp };
-				ObjA->RunCallback(paramB);
-				Suicider::CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true, cp };
-				ObjB->RunCallback(paramA);
+				//if (RegA->m_isEnable && RegB->m_isEnable) {
+					Suicider::CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false, cp };
+					ObjA->RunCallback(paramB);
+				//}
+				//if (RegA->m_isEnable && RegB->m_isEnable) {
+					Suicider::CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true, cp };
+					ObjB->RunCallback(paramA);
+				//}
+
+				ObjA->SetHanteing(old_hanteingA);
+				ObjB->SetHanteing(old_hanteingB);
 
 				return 0.0f;
 			};
@@ -114,11 +138,14 @@ namespace Suicider {
 
 			Suicider::CCollisionObj* ObjA = (*itr).m_CObj;
 
-			if (!ObjA->IsEnable() || !(*itr).m_isEnable) { continue; }
+			if (!(*itr).m_isEnable || !ObjA->IsEnable()) { continue; }
+
+			ObjA->SetHanteing(true);//判定中!
 
 			ObjManagerCallback callback(&(*itr));
 			GetPhysicsWorld().ContactTest(&ObjA->GetCollisionObject(), callback);
 
+			ObjA->SetHanteing(false);//判定終わり
 		}
 		m_colObjList.clear();
 	}

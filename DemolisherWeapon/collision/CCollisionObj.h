@@ -80,6 +80,14 @@ public:
 	};
 
 	~CCollisionObj() {
+#ifndef DW_MASTER
+		if (m_isHanteing) {
+			//”»’è’†
+			MessageBox(NULL, "”»’è’†‚ÌCCollisionObj‚ªíœ‚³‚ê‚Ü‚µ‚½B\n‚â‚ß‚È‚³‚¢B\nCCollisionObj::Delete‚âDeleteGO‚ğg‚¦‚Î‚¢‚¢‚ñ‚¶‚á‚È‚¢‚©‚È", "Error", MB_OK);
+			std::abort();
+		}
+#endif
+
 		if (m_isregistered) {
 			m_register->m_isEnable = false;//“o˜^–³Œø‰»‚µ‚Æ‚­
 		}
@@ -238,6 +246,16 @@ public:
 		return -1;
 	}
 
+	//RegColObj* GetRegister() { return m_register; }
+
+	//”»’è’†‚©‚Ìƒtƒ‰ƒO
+	void SetHanteing(bool flag) {
+		m_isHanteing = flag;
+	}
+	bool GetHanteing()const {
+		return m_isHanteing;
+	}
+
 private:
 
 	void Release()override;
@@ -259,6 +277,8 @@ private:
 	bool m_isInit = false;//‰Šú‰»Ï‚İ?
 	bool m_isRegistPhysicsWorld = false;//!<•¨—ƒ[ƒ‹ƒh‚É“o˜^‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒOB
 	bool m_isregistered = false;//“o˜^Ï‚İ?
+
+	bool m_isHanteing = false; //”»’è’†‚©?
 	
 	int m_lifespan = 0;//õ–½
 
