@@ -76,7 +76,7 @@ public:
 		if (name) { SetName(name); }
 		if (classPtr) { SetClass(classPtr); }
 		if (callbackFunction) { SetCallback(callbackFunction); }
-		Register();
+		Register(true);
 	};
 
 	~CCollisionObj() {
@@ -266,7 +266,7 @@ private:
 	void CreateCommon(CVector3 pos, CQuaternion rot) override;
 
 	//マネージャーに登録する
-	void Register();
+	void Register(bool compulsion = false);
 
 private:
 	RegColObj* m_register = nullptr;

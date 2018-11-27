@@ -33,8 +33,8 @@ namespace Suicider {
 		m_isInit = true;
 	}
 
-	void CCollisionObj::Register() {
-		if (!m_isregistered && IsEnable()) {
+	void CCollisionObj::Register(bool compulsion) {
+		if (!m_isregistered && (compulsion || IsEnable())) {
 			m_register = AddCollisionObj(this);
 			m_isregistered = true;
 		}
