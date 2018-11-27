@@ -72,7 +72,7 @@ namespace Suicider {
 				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)((btCollisionObject*)proxy0->m_clientObject)->getUserPointer();
 				
 				//“o˜^–³Œø‰»‚³‚ê‚Ä‚È‚¢‚©?
-				if (!ObjB->IsEnable()) {
+				if (!ObjB->IsEnable() || !RegiObjA->m_CObj->IsEnable()) {
 					return false;
 				}
 				

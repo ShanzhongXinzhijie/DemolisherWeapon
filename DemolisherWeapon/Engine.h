@@ -19,7 +19,7 @@
 
 namespace DemolisherWeapon {
 
-static constexpr float DW_VER = 3.1415f;//エンジンのバージョン
+static constexpr float DW_VER = 3.14159f;//エンジンのバージョン
 
 enum EnSplitScreenMode {
 	enNoSplit=0,
