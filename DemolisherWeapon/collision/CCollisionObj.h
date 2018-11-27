@@ -200,6 +200,7 @@ public:
 
 	void PostUpdate()override {
 		m_isregistered = false;
+		m_register = nullptr;
 	}
 
 	void Update() override{

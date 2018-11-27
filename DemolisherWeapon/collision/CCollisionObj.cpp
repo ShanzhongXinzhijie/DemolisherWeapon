@@ -50,9 +50,9 @@ namespace Suicider {
 
 		struct ObjManagerCallback : public btCollisionWorld::ContactResultCallback
 		{
-			Suicider::CCollisionObj* ObjA = nullptr;
+			RegColObj* RegiObjA = nullptr;
 
-			ObjManagerCallback(Suicider::CCollisionObj* A) : ObjA(A) {
+			ObjManagerCallback(RegColObj* A) : RegiObjA(A) {
 				m_collisionFilterMask = CCollisionObjFilter;//CCollisionObjとのみ判定
 			};
 
@@ -60,7 +60,7 @@ namespace Suicider {
 			bool needsCollision(btBroadphaseProxy* proxy0) const override
 			{
 				//削除されてないか?
-				if (proxy0 == nullptr) {
+				if (proxy0 == nullptr || !RegiObjA->m_isEnable) {
 					return false;
 				}
 
@@ -77,12 +77,12 @@ namespace Suicider {
 				}
 				
 				//このループで既に実行した組み合わせか?
-				if (ObjA->GetIndex() > ObjB->GetIndex()) {
+				if (RegiObjA->m_CObj->GetIndex() > ObjB->GetIndex()) {
 					return false;
 				}
 
 				//マスク判定
-				if (!(Masking(ObjA->GetGroup(), ObjB->GetMask()) && Masking(ObjB->GetGroup(), ObjA->GetMask()))) {
+				if (!(Masking(RegiObjA->m_CObj->GetGroup(), ObjB->GetMask()) && Masking(ObjB->GetGroup(), RegiObjA->m_CObj->GetMask()))) {
 					return false;
 				}
 
@@ -96,6 +96,8 @@ namespace Suicider {
 				Suicider::CCollisionObj* ObjA = (Suicider::CCollisionObj*)(colObj0Wrap->getCollisionObject()->getUserPointer());
 				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)(colObj1Wrap->getCollisionObject()->getUserPointer());
 				
+				//これもレジスターのほうがいいのでは
+
 				//各々処理実行
 				Suicider::CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false, cp };
 				ObjA->RunCallback(paramB);
@@ -114,7 +116,7 @@ namespace Suicider {
 
 			if (!ObjA->IsEnable() || !(*itr).m_isEnable) { continue; }
 
-			ObjManagerCallback callback(ObjA);
+			ObjManagerCallback callback(&(*itr));
 			GetPhysicsWorld().ContactTest(&ObjA->GetCollisionObject(), callback);
 
 		}
