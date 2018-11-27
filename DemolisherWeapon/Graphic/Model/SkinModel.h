@@ -79,6 +79,13 @@ public:
 			}
 		}
 	}
+	/*void FindMaterial(std::function<void(ModelEffect*)> findMaterial) const
+	{
+		FindMesh([&](auto& mesh) {
+			ModelEffect* effect = reinterpret_cast<ModelEffect*>(mesh->effect.get());
+			findMaterial(effect);
+		});
+	}*/
 
 	//モーションブラーフラグ
 	void SetMotionBlurFlag(const bool flag)

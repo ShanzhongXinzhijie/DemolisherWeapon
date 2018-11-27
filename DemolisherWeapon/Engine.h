@@ -303,11 +303,11 @@ static inline T* FindGO() {
 }
 //ゲームオブジェクトの検索(複数)
 template<class T>
-void QueryGOs(const wchar_t* objectName, std::function<bool(T* go)> func) {
+static inline void QueryGOs(const wchar_t* objectName, std::function<bool(T* go)> func) {
 	GetEngine().GetGameObjectManager().QueryGOs(objectName, func);
 }
 template<class T>
-void QueryGOs(std::function<bool(T* go)> func) {
+static inline void QueryGOs(std::function<bool(T* go)> func) {
 	GetEngine().GetGameObjectManager().QueryGOs(func);
 }
 
