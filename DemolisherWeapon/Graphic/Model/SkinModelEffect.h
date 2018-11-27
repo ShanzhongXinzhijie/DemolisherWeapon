@@ -14,6 +14,7 @@ public:
 		enZShader,
 	};
 
+	//使用するシェーダーモードを設定
 	static void SetShaderMode(enShaderMode sm) {
 		m_s_shadermode = sm;
 	}
@@ -30,6 +31,15 @@ protected:
 	bool isSkining;
 	ID3D11ShaderResourceView* m_albedoTex = nullptr;
 
+	//定数バッファ　[model.fx:MaterialCb]
+	//マテリアルパラメーター
+	struct MaterialParam {
+		CVector3 albedoScale = CVector3::One();//アルベドにかけるスケール
+		float emissive = 0.0f;//エミッシブ(自己発光)
+	};
+	MaterialParam m_materialParam;				//マテリアルパラメータ
+	ID3D11Buffer* m_materialParamCB = nullptr;	//マテリアルパラメータ用の定数バッファ
+
 public:
 	ModelEffect()
 	{
@@ -37,12 +47,24 @@ public:
 		m_psZShader.Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
 
 		m_pPSShader = &m_psShader;
+
+		//マテリアルパラメーターの定数バッファ
+		/*{
+			int bufferSize = sizeof(MaterialParam);
+			D3D11_BUFFER_DESC bufferDesc;
+			ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+			bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+			bufferDesc.ByteWidth = (((bufferSize - 1) / 16) + 1) * 16;
+			bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bufferDesc, NULL, &m_materialParamCB);
+		}*/
 	}
 	virtual ~ModelEffect()
 	{
 		if (m_albedoTex) {
 			m_albedoTex->Release();
 		}
+		if (m_materialParamCB)m_materialParamCB->Release();
 	}
 	void __cdecl Apply(ID3D11DeviceContext* deviceContext) override;
 
@@ -60,6 +82,7 @@ public:
 		m_materialName = matName;
 	}
 	
+	//名前の一致を判定
 	bool EqualMaterialName(const wchar_t* name) const
 	{
 		return wcscmp(name, m_materialName.c_str()) == 0;

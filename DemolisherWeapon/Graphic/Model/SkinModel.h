@@ -4,6 +4,8 @@
 
 #include "SkinModelDataManager.h"
 
+#include "SkinModelEffect.h"
+
 namespace DemolisherWeapon {
 
 /*!
@@ -14,6 +16,8 @@ class SkinModel
 public:
 	//メッシュが見つかったときのコールバック関数。
 	using OnFindMesh = std::function<void(const std::unique_ptr<DirectX::ModelMeshPart>&)>;
+	using OnFindMaterial = std::function<void(ModelEffect*)>;
+
 	/*!
 	*@brief	デストラクタ。
 	*/
@@ -79,13 +83,17 @@ public:
 			}
 		}
 	}
-	/*void FindMaterial(std::function<void(ModelEffect*)> findMaterial) const
+	/*!
+	*@brief	マテリアルを検索する。
+	*@param[in] onFindMaterial	マテリアルが見つかったときのコールバック関数
+	*/
+	void FindMaterial(OnFindMaterial onFindMaterial) const
 	{
 		FindMesh([&](auto& mesh) {
 			ModelEffect* effect = reinterpret_cast<ModelEffect*>(mesh->effect.get());
-			findMaterial(effect);
+			onFindMaterial(effect);
 		});
-	}*/
+	}
 
 	//モーションブラーフラグ
 	void SetMotionBlurFlag(const bool flag)

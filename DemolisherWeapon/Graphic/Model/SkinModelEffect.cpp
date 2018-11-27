@@ -21,6 +21,8 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 
 	deviceContext->PSSetShaderResources(enSkinModelSRVReg_AlbedoTexture, 1, &m_albedoTex);
 
+	//deviceContext->UpdateSubresource(m_materialParamCB.GetBody(), 0, NULL, &m_materialParam, 0, 0);
+	//deviceContext->PSSetConstantBuffers(enSkinModelCBReg_Material, 1, &m_materialParamCB.GetBody());
 }
 
 }

@@ -34,13 +34,11 @@ namespace DemolisherWeapon {
 		//‰æ‘œ‚Ì•`‰æ‚·‚é”ÍˆÍ‚ğİ’è
 		//0.0f`1.0f‚Ì”ÍˆÍ‚Åw’è
 		void SetSourceRectangle(const float left, const float top, const float right, const float bottom) {
-			m_sourceRectangle.left		= m_width  * left;
-			m_sourceRectangle.right		= m_width  * right;
-			m_sourceRectangle.top		= m_height * top;
-			m_sourceRectangle.bottom	= m_height * bottom;
+			m_sourceRectangle.left		= (LONG)(m_width  * left);
+			m_sourceRectangle.right		= (LONG)(m_width  * right);
+			m_sourceRectangle.top		= (LONG)(m_height * top);
+			m_sourceRectangle.bottom	= (LONG)(m_height * bottom);
 		}
-
-		//‰æ‘œ‚Ì•`‰æ‚·‚é”ÍˆÍ‚ğİ’è
 		//‰æ‘œ‚Ì‰ğ‘œ“x‚Åw’è
 		void SetSourceRectangleSpriteSize(const RECT& sourceRectangle){
 			m_sourceRectangle = sourceRectangle;

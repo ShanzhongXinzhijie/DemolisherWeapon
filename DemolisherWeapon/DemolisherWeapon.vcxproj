@@ -260,6 +260,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Graphic\Shader\CreateConstantBuffer.h" />
     <ClInclude Include="Render\EffekseerRender.h" />
     <ClInclude Include="Graphic\Effekseer\CEffekseer.h" />
     <ClInclude Include="Graphic\Effekseer\EffekseerManager.h" />
@@ -325,6 +326,7 @@
     <ClInclude Include="Input\XInput.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Graphic\Shader\CreateConstantBuffer.cpp" />
     <ClCompile Include="Render\EffekseerRender.cpp" />
     <ClCompile Include="Graphic\Effekseer\CEffekseer.cpp" />
     <ClCompile Include="Graphic\Effekseer\EffekseerManager.cpp" />

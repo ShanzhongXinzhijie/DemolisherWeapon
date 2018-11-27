@@ -59,6 +59,11 @@ namespace Suicider {
 			//”»’è‚·‚é‚©‚Ç‚¤‚©”»’è‚·‚é
 			bool needsCollision(btBroadphaseProxy* proxy0) const override
 			{
+				//íœ‚³‚ê‚Ä‚È‚¢‚©?
+				if (proxy0 == nullptr) {
+					return false;
+				}
+
 				//Bullet‚Ìƒ}ƒXƒN”»’è
 				bool collides = (proxy0->m_collisionFilterGroup & m_collisionFilterMask) != 0;
 				collides = collides && (m_collisionFilterGroup & proxy0->m_collisionFilterMask);
