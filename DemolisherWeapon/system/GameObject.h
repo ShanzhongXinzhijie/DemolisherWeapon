@@ -338,19 +338,36 @@ public:
 
 	//€‚Ìˆ—
 	void Hell() {
-		auto it = m_gameObjectList.begin();
-		while (it != m_gameObjectList.end()) {
-			if (!(*it).isEnable) {				
-				if ((*it).GetNowOnHell()) {//“ñ‰ñ–Ú‚Åíœ
-					it = m_gameObjectList.erase(it);//íœ
+
+		//m_gameObjectMap‚Ìíœ
+		{
+			auto it = m_gameObjectMap.begin();
+			while (it != m_gameObjectMap.end()) {
+				if (!(*it).second->isEnable) {
+					it = m_gameObjectMap.erase(it);//íœ
 				}
 				else {
-					(*it).ArriveHell();
-					it++;
+					++it;
 				}
 			}
-			else {
-				it++;
+		}
+
+		//m_gameObjectList‚Ìíœ
+		{
+			auto it = m_gameObjectList.begin();
+			while (it != m_gameObjectList.end()) {
+				if (!(*it).isEnable) {
+					if ((*it).GetNowOnHell()) {//“ñ‰ñ–Ú‚Åíœ
+						it = m_gameObjectList.erase(it);//íœ
+					}
+					else {
+						(*it).ArriveHell();
+						++it;
+					}
+				}
+				else {
+					++it;
+				}
 			}
 		}
 	}
