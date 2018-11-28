@@ -35,6 +35,11 @@ void GBufferRender::Init() {
 	ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferAlbedo], nullptr, &m_GBufferView[enGBufferAlbedo]);//レンダーターゲット
 	ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferAlbedo], nullptr, &m_GBufferSRV[enGBufferAlbedo]);//シェーダーリソースビュー
 
+	//ライトパラメーター
+	ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_GBufferTex[enGBufferLightParam]);
+	ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferLightParam], nullptr, &m_GBufferView[enGBufferLightParam]);//レンダーターゲット
+	ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferLightParam], nullptr, &m_GBufferSRV[enGBufferLightParam]);//シェーダーリソースビュー
+
 	//法線
 	texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_GBufferTex[enGBufferNormal]);
@@ -107,6 +112,7 @@ void GBufferRender::Render() {
 		{ 0.0f, 0.0f, 0.0f, 0.0f }, //enGBufferPosition
 		{ 0.0f, 0.0f, GetMainCamera()->GetFar(), GetMainCamera()->GetFar() }, //enGBufferVelocity
 		{ 0.0f, 0.0f, GetMainCamera()->GetFar(), GetMainCamera()->GetFar() }, //enGBufferVelocityPS
+		{ 0.0f, 0.0f, 0.0f, 1.0f }, //enGBufferLightParam
 	};
 	for (int i = 0; i < enGBufferNum; i++) {
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearRenderTargetView(m_GBufferView[i], clearColor[i]);

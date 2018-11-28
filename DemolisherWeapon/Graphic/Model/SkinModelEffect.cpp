@@ -8,6 +8,7 @@ ModelEffect::enShaderMode ModelEffect::m_s_shadermode = enNormalShader;
 
 void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 {
+	//シェーダーモードにおうじたシェーダをセット
 	switch (m_s_shadermode) {
 	case enZShader:
 		deviceContext->VSSetShader((ID3D11VertexShader*)m_vsZShader.GetBody(), NULL, 0);
@@ -19,10 +20,12 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 		break;
 	}
 
-	deviceContext->PSSetShaderResources(enSkinModelSRVReg_AlbedoTexture, 1, &m_albedoTex);
+	//テクスチャ
+	deviceContext->PSSetShaderResources(enSkinModelSRVReg_AlbedoTexture, 1, &m_pAlbedoTex);
 
-	//deviceContext->UpdateSubresource(m_materialParamCB.GetBody(), 0, NULL, &m_materialParam, 0, 0);
-	//deviceContext->PSSetConstantBuffers(enSkinModelCBReg_Material, 1, &m_materialParamCB.GetBody());
+	//定数バッファ
+	deviceContext->UpdateSubresource(m_materialParamCB, 0, NULL, &m_materialParam, 0, 0);
+	deviceContext->PSSetConstantBuffers(enSkinModelCBReg_Material, 1, &m_materialParamCB);
 }
 
 }

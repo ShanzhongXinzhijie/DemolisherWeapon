@@ -19,7 +19,7 @@
 
 namespace DemolisherWeapon {
 
-static constexpr float DW_VER = 3.14159f;//エンジンのバージョン
+static constexpr float DW_VER = 3.141592f;//エンジンのバージョン
 
 enum EnSplitScreenMode {
 	enNoSplit=0,
@@ -295,20 +295,20 @@ static inline void SetNameGO(IGameObject* go, const wchar_t* objectName)
 //ゲームオブジェクトの検索(単体)
 template <typename T>
 static inline T* FindGO(const wchar_t* objectName) {
-	return GetEngine().GetGameObjectManager().FindGO(objectName);
+	return GetEngine().GetGameObjectManager().FindGO<T>(objectName);
 }
 template <typename T>
 static inline T* FindGO() {
-	return GetEngine().GetGameObjectManager().FindGO();
+	return GetEngine().GetGameObjectManager().FindGO<T>();
 }
 //ゲームオブジェクトの検索(複数)
 template<class T>
 static inline void QueryGOs(const wchar_t* objectName, std::function<bool(T* go)> func) {
-	GetEngine().GetGameObjectManager().QueryGOs(objectName, func);
+	GetEngine().GetGameObjectManager().QueryGOs<T>(objectName, func);
 }
 template<class T>
 static inline void QueryGOs(std::function<bool(T* go)> func) {
-	GetEngine().GetGameObjectManager().QueryGOs(func);
+	GetEngine().GetGameObjectManager().QueryGOs<T>(func);
 }
 
 //マウスカーソルマネージャーを取得

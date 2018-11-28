@@ -411,9 +411,9 @@ public:
 	{
 		for (auto& regiGo : m_gameObjectList) {
 			//有効か？
-			if (regiGo->isEnable && regiGo->gameObject->GetEnable()) {
+			if (regiGo.isEnable && regiGo.gameObject->GetEnable()) {
 				//見つけた。
-				T* p = dynamic_cast<T*>(regiGo->gameObject);
+				T* p = dynamic_cast<T*>(regiGo.gameObject);
 				if (p != nullptr) {
 					return p;
 				}
@@ -448,9 +448,9 @@ public:
 	{
 		for (auto& regiGo : m_gameObjectList) {
 			//有効か？
-			if (regiGo->isEnable && regiGo->gameObject->GetEnable()) {
+			if (regiGo.isEnable && regiGo.gameObject->GetEnable()) {
 				//見つけた。
-				T* p = dynamic_cast<T*>(regiGo->gameObject);
+				T* p = dynamic_cast<T*>(regiGo.gameObject);
 				if (p != nullptr) {
 					if (func(p) == false) {
 						//クエリ中断。

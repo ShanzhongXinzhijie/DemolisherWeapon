@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Graphic/Shader/Shader.h"
+#include "Graphic/Shader/ShaderUtil.h"
 
 namespace DemolisherWeapon {
 
@@ -29,13 +30,14 @@ protected:
 	Shader m_vsShader, m_vsZShader;
 	Shader m_psShader, m_psZShader;
 	bool isSkining;
-	ID3D11ShaderResourceView* m_albedoTex = nullptr;
+	ID3D11ShaderResourceView* m_albedoTex = nullptr, *m_pAlbedoTex = nullptr;
 
 	//定数バッファ　[model.fx:MaterialCb]
 	//マテリアルパラメーター
 	struct MaterialParam {
-		CVector3 albedoScale = CVector3::One();//アルベドにかけるスケール
-		float emissive = 0.0f;//エミッシブ(自己発光)
+		CVector3 albedoScale = CVector3::One();	//アルベドにかけるスケール
+		int isLighting = 1;						//ライティングするか
+		CVector3 emissive;						//エミッシブ(自己発光)
 	};
 	MaterialParam m_materialParam;				//マテリアルパラメータ
 	ID3D11Buffer* m_materialParamCB = nullptr;	//マテリアルパラメータ用の定数バッファ
@@ -49,15 +51,7 @@ public:
 		m_pPSShader = &m_psShader;
 
 		//マテリアルパラメーターの定数バッファ
-		/*{
-			int bufferSize = sizeof(MaterialParam);
-			D3D11_BUFFER_DESC bufferDesc;
-			ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-			bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-			bufferDesc.ByteWidth = (((bufferSize - 1) / 16) + 1) * 16;
-			bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-			GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bufferDesc, NULL, &m_materialParamCB);
-		}*/
+		ShaderUtil::CreateConstantBuffer(sizeof(MaterialParam), &m_materialParamCB);
 	}
 	virtual ~ModelEffect()
 	{
@@ -73,15 +67,34 @@ public:
 		*pShaderByteCode = m_vsShader.GetByteCode();
 		*pByteCodeLength = m_vsShader.GetByteCodeSize();
 	}
+
+	//アルベドテクスチャを設定
 	void SetAlbedoTexture(ID3D11ShaderResourceView* tex)
 	{
-		m_albedoTex = tex;
+		if (!m_albedoTex) {
+			//デフォルトテクスチャ
+			m_albedoTex = tex;
+			m_pAlbedoTex = m_albedoTex;
+		}
+		else {
+			//テクスチャ変更
+			m_pAlbedoTex = tex;
+			m_pAlbedoTex->AddRef();
+		}
 	}
+	//アルベドテクスチャをデフォに戻す
+	void SetDefaultAlbedoTexture() {
+		if (m_pAlbedoTex == m_albedoTex) { return; }//既にデフォルトテクスチャ
+
+		m_pAlbedoTex->Release();
+		m_pAlbedoTex = m_albedoTex;
+	}
+
+	//名前を取得
 	void SetMatrialName(const wchar_t* matName)
 	{
 		m_materialName = matName;
-	}
-	
+	}	
 	//名前の一致を判定
 	bool EqualMaterialName(const wchar_t* name) const
 	{
@@ -95,6 +108,21 @@ public:
 	//シェーダをデフォに戻す
 	void SetDefaultPS() {
 		m_pPSShader = &m_psShader;
+	}
+
+	//ライティングするかを設定
+	void SetLightingEnable(bool enable) {
+		m_materialParam.isLighting = enable ? 1 : 0;
+	}
+
+	//自己発光色(エミッシブ)を設定
+	void SetEmissive(const CVector3& emissive) {
+		m_materialParam.emissive = emissive;
+	}
+
+	//アルベドにかけるスケールを設定
+	void SetAlbedoScale(const CVector3& scale) {
+		m_materialParam.albedoScale = scale;
 	}
 	
 };

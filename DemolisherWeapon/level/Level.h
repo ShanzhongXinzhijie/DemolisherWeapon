@@ -78,6 +78,11 @@ namespace DemolisherWeapon {
 		*/
 		void Init(const wchar_t* levelDataFilePath, HookWhenBuildObjectFunc hookFunc = nullptr, const MapChipSetting& chipSetting = {}, const CVector3& offsetPos = CVector3::Zero(), CQuaternion offsetRot = CQuaternion::Identity(), float offsetScale = 1.0f);
 		
+		//マップチップの可変長配列を取得
+		std::vector<MapChipPtr>& GetMapChipArray() {
+			return m_mapChipArray;
+		}
+
 	private:
 		std::vector<MapChipPtr> m_mapChipArray;		//!<マップチップの可変長配列。
 	};

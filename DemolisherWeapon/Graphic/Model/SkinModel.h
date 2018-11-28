@@ -63,6 +63,17 @@ public:
 	*/
 	void Draw(bool reverseCull = false);
 
+	//モデルの名前を取得
+	const wchar_t* GetModelName()const
+	{
+		return m_modelName.c_str();
+	}
+	//モデルの名前の一致を判定
+	bool EqualModelName(const wchar_t* name) const
+	{
+		return wcscmp(name, m_modelName.c_str()) == 0;
+	}
+
 	/*!
 	*@brief	スケルトンの取得。
 	*/
@@ -150,6 +161,7 @@ private:
 	ID3D11Buffer*		m_cb = nullptr;					//!<定数バッファ。
 	Skeleton			m_skeleton;						//!<スケルトン。
 	DirectX::Model*		m_modelDx;						//!<DirectXTKが提供するモデルクラス。
+	std::wstring		m_modelName;					//!<モデルの名前。
 	ID3D11SamplerState* m_samplerState = nullptr;		//!<サンプラステート。
 
 	static SkinModelDataManager m_skinModelDataManager;

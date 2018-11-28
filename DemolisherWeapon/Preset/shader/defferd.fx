@@ -80,6 +80,7 @@ Texture2D<float4> normalMap		: register(t1);
 Texture2D<float > depthMap		: register(t2);
 Texture2D<float4> PosMap		: register(t3);
 Texture2D<float > AoMap			: register(t4);
+Texture2D<float4> lightParamTex	: register(t5);
 
 struct VSDefferdInput {
 	float4 pos : SV_Position;
@@ -131,16 +132,17 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	float3 normal = normalMap.Sample(Sampler, In.uv).xyz;
 	float4 viewpos = PosMap.Sample(Sampler, In.uv);
 	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w, ViewProjInv);
+	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
+
+	//ライティング無効
+	if (lightParam.a < 0.5f) {
+		return float4(saturate(albedo.rgb + lightParam.rgb), albedo.w);//エミッシブ加算
+	}
 
 	//シャドウマップ
 	bool hideInShadow[NUM_SHADOW_MAP] = { 0 };
 	for (int i = 0; i < NUM_SHADOW_MAP; i++) {
-		if (ShadowMapFunc(i, float4(worldpos, 1.0f)) == true) {
-			//if (dot(normal, float3(-0.5f, 0.5f, 1.0f)) > 0.5f) {
-			//	Out.rgb = albedo.xyz * 0.5f;// lLViewPosition.z*lLViewPosition.z*lLViewPosition.z;// shadowMap0.Sample(Sampler, lLViewPosition.xy);// 0.5f;
-			//}
-			//Out.rgb = albedo.xyz * ambientLight;
-			
+		if (ShadowMapFunc(i, float4(worldpos, 1.0f)) == true) {			
 			hideInShadow[i] = true;
 			break;
 		}
@@ -186,6 +188,9 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 	//アンビエント
 	Out += albedo.xyz * ambientLight * ambientOcclusion;
+
+	//エミッシブを加算
+	Out += lightParam.rgb;
 
 	//0.0~1.0で出力
 	Out = saturate(Out);

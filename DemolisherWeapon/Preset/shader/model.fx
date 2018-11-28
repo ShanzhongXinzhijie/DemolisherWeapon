@@ -39,10 +39,11 @@ cbuffer VSPSCb : register(b0){
 };
 
 //マテリアルパラメーター
-/*cbuffer MaterialCb : register(b1) {
-	float3 albedoScale;	//アルベドにかけるスケール
-	float emissive;		//エミッシブ(自己発光)
-}*/
+cbuffer MaterialCb : register(b1) {
+	float3 albedoScale;		//アルベドにかけるスケール
+	int isLighting;			//ライティングするか
+	float3 emissive;		//エミッシブ(自己発光)
+}
 
 /////////////////////////////////////////////////////////////
 //各種構造体
@@ -283,19 +284,24 @@ struct PSOutput_RenderGBuffer {
 	float4 viewpos		: SV_Target2;		//ビュー座標
 	float4 velocity		: SV_Target3;		//速度
 	float4 velocityPS	: SV_Target4;		//速度(ピクセルシェーダ)
+	float4 lightingParam: SV_Target5;		//ライティング用パラメーター
 };
 PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 {
 	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
 
 	//アルベド
-	Out.albedo = float4(albedoTexture.Sample(Sampler, In.TexCoord).xyz, 1.0f);
+	Out.albedo = float4(albedoTexture.Sample(Sampler, In.TexCoord).xyz * albedoScale, 1.0f);
 
 	//法線
 	Out.normal = In.Normal;
 
 	//ビュー座標
 	Out.viewpos = float4(In.Viewpos, In.curPos.z / In.curPos.w);// In.curPos.z);
+
+	//ライティング用パラメーター
+	Out.lightingParam.rgb = emissive;//エミッシブ(自己発光)
+	Out.lightingParam.a = isLighting;//ライティングするか
 
 	//速度
 	if (isMotionBlur) {

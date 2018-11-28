@@ -8,6 +8,10 @@
 /*!
  *@brief	定数バッファのレジスタ番号
  */
+enum EnSkinModelCBReg {
+	enSkinModelCBReg_VSPS,		//!<頂点シェーダーとピクセルシェーダー共通の定数バッファ。
+	enSkinModelCBReg_Material,	//!<マテリアルパラメータ。
+};
 /*enum EnSkinModelCBReg{
 	enSkinModelCBReg_VSPS,		//!<頂点シェーダーとピクセルシェーダー共通の定数バッファ。
 	enSkinModelCBReg_Light,		//!<ライト用の定数バッファ。
@@ -16,6 +20,7 @@
 	enSkinModelCBReg_GBuffer,	//!<G-Buffer。
 	
 };*/
+
 /*!
  *@brief	SRVのレジスタ番号。
  */

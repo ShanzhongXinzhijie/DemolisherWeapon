@@ -14,6 +14,7 @@ public:
 		enGBufferPosition,
 		enGBufferVelocity,
 		enGBufferVelocityPS,
+		enGBufferLightParam,
 		enGBufferNum,
 	};
 

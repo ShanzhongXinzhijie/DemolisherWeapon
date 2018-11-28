@@ -1,5 +1,8 @@
 #include "DWstdafx.h"
 #include "SkinModel.h"
+#include "SkinModelShaderConst.h"
+
+#include <filesystem>
 
 namespace DemolisherWeapon {
 
@@ -32,6 +35,10 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 
 	//SkinModelDataManagerを使用してCMOファイルのロード。
 	m_modelDx = m_skinModelDataManager.Load(filePath, m_skeleton);	
+
+	//ファイル名記録
+	std::experimental::filesystem::path ps = filePath;
+	m_modelName = ps.stem();
 }
 void SkinModel::InitSkeleton(const wchar_t* filePath)
 {
@@ -149,8 +156,8 @@ void SkinModel::Draw(bool reverseCull)
 	d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
 
 	//定数バッファをGPUに転送。
-	d3dDeviceContext->VSSetConstantBuffers(0, 1, &m_cb);
-	d3dDeviceContext->PSSetConstantBuffers(0, 1, &m_cb);
+	d3dDeviceContext->VSSetConstantBuffers(enSkinModelCBReg_VSPS, 1, &m_cb);
+	d3dDeviceContext->PSSetConstantBuffers(enSkinModelCBReg_VSPS, 1, &m_cb);
 	//サンプラステートを設定。
 	d3dDeviceContext->PSSetSamplers(0, 1, &m_samplerState);
 	//ボーン行列をGPUに転送。
