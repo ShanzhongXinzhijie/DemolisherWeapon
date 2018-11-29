@@ -6,7 +6,7 @@
 namespace DemolisherWeapon {
 namespace GameObj {
 
-class CSkinModelRender : public IGameObject{
+class CSkinModelRender : public IQSGameObject{
 
 public:
 	CSkinModelRender();
