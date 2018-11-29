@@ -55,7 +55,7 @@ public:
 
 private:
 
-	AnimationClip*	m_animationClips;
+	AnimationClip*	m_animationClips = nullptr;
 	int m_numAnimClip = 0;
 	SkinModel* m_skinModel = nullptr;
 	Skeleton* m_skeleton = nullptr;
