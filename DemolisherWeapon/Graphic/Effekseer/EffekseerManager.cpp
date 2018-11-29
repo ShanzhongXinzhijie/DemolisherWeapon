@@ -36,6 +36,9 @@ void EffekseerManager::Init() {
 	// サウンドデータの読込方法の指定(圧縮フォーマット、パッケージ等から読み込む場合拡張する必要があります。)
 	m_manager->SetSoundLoader(m_sound->CreateSoundLoader());
 
+	// 3Dサウンド用リスナー設定の更新
+	m_sound->SetListener({ 0.0f, 0.0f, 500.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f });
+
 	// 座標系の指定(RHで右手系、LHで左手系)
 	m_manager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 }
@@ -59,10 +62,6 @@ void EffekseerManager::Release() {
 
 void EffekseerManager::Update() {
 	if (GetMainCamera()) {
-		// 投影行列の更新
-		//m_renderer->SetProjectionMatrix(GetMainCamera()->GetProjMatrix());
-		// カメラ行列の更新
-		//m_renderer->SetCameraMatrix(GetMainCamera()->GetViewMatrix());
 		// 3Dサウンド用リスナー設定の更新
 		m_sound->SetListener(GetMainCamera()->GetPos(), GetMainCamera()->GetTarget(), GetMainCamera()->GetUp());
 	}
@@ -75,12 +74,18 @@ void EffekseerManager::Update() {
 }
 
 void EffekseerManager::Draw() {
+
+#ifndef DW_MASTER
+	if (!GetMainCamera()) {
+		MessageBox(NULL, "カメラが設定されていません!!", "Error", MB_OK);
+		std::abort();
+	}
+#endif
+
 	// 投影行列の更新
 	m_renderer->SetProjectionMatrix(GetMainCamera()->GetProjMatrix());
 	// カメラ行列の更新
 	m_renderer->SetCameraMatrix(GetMainCamera()->GetViewMatrix());
-	// 3Dサウンド用リスナー設定の更新
-	//m_sound->SetListener(GetMainCamera()->GetPos(), GetMainCamera()->GetTarget(), GetMainCamera()->GetUp());
 
 	m_renderer->BeginRendering();
 	m_manager->Draw();

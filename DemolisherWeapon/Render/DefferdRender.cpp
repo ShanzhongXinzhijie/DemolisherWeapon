@@ -60,6 +60,13 @@ void DefferdRender::Render() {
 	
 	ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
+#ifndef DW_MASTER
+	if (!GetMainCamera()) {
+		MessageBox(NULL, "カメラが設定されていません!!", "Error", MB_OK);
+		std::abort();
+	}
+#endif
+
 	//描画先を最終レンダーターゲットにする
 	GetEngine().GetGraphicsEngine().SetFinalRenderTarget();
 

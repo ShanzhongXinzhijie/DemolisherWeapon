@@ -72,6 +72,13 @@ void AmbientOcclusionRender::Render() {
 	if (!m_enable) { return; }
 
 	ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
+
+#ifndef DW_MASTER
+	if (!GetMainCamera()) {
+		MessageBox(NULL, "ƒJƒƒ‰‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ!!", "Error", MB_OK);
+		std::abort();
+	}
+#endif
 	
 	// İ’è
 	{

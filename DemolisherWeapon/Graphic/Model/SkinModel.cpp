@@ -139,6 +139,13 @@ void SkinModel::Draw(bool reverseCull)
 
 	ID3D11DeviceContext* d3dDeviceContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
+#ifndef DW_MASTER
+	if (!GetMainCamera()) {
+		MessageBox(NULL, "カメラが設定されていません!!", "Error", MB_OK);
+		std::abort();
+	}
+#endif
+
 	//定数バッファの内容を更新。
 	SVSConstantBuffer vsCb;
 	vsCb.mWorld = m_worldMatrix;
