@@ -21,6 +21,7 @@ public:
 	GOStatusCaster(GOStatusReceiver* receiver) {
 		m_receiver = receiver;
 	}
+	~GOStatusCaster();
 
 	void ImDead() {
 		m_alive = false;
@@ -31,6 +32,10 @@ public:
 
 	void Cast(const GOStatus& status);
 
+	const GOStatusReceiver* const GetReceiver() const{
+		return m_receiver;
+	}
+
 private:
 	GOStatusReceiver* m_receiver = nullptr;
 	bool m_alive = true;
@@ -39,24 +44,26 @@ private:
 class GOStatusReceiver {
 public:
 	~GOStatusReceiver() {
-		m_registerCaster->ImDead();
+		if(m_registerCaster) m_registerCaster->ImDead();
 	}
 
 	//なんか初期設定
+	//ユーザーは使わないでください
 	void SetCaster(GOStatusCaster* caster) {
 		m_registerCaster = caster;
 	}
+	//ユーザーは使わないでください
 	void SetGameObject(IGameObject* go) {
 		m_ptrGO = go;
 	}
 
 	//ステータス更新
+	//ユーザーは使わないでください
 	void SetStatus(const GOStatus& status) {
 		m_status = status;
 	}
 
 //ここから上は使わないで
-
 //ここから下を使ってください
 
 	//ステータスを閲覧
@@ -75,6 +82,49 @@ private:
 	IGameObject* m_ptrGO = nullptr;
 	GOStatusCaster* m_registerCaster = nullptr;
 };
+
+class GODeathListener;
+//死亡リスナー登録クラス
+struct GODeathListenerRegister {
+	GODeathListenerRegister(GODeathListener* listener_ptr) {
+		listener = listener_ptr;
+	}
+	~GODeathListenerRegister();
+
+	bool enable = true;
+	GODeathListener* listener = nullptr;
+};
+//死亡リスナー
+class GODeathListener {
+public:
+	~GODeathListener() {
+		if (m_resister) { m_resister->enable = false; }
+	}
+
+	//デスリスナーの引数
+	struct SDeathParam {
+		IGameObject* gameObject = nullptr;
+	};	
+
+	//死亡通知時に実行される関数を設定
+	void SetFunction(std::function<void(const SDeathParam& param)> func) {
+		m_function = func;
+	}
+
+	//ユーザーは使わないでください
+	void SetResister(GODeathListenerRegister* resister) {
+		m_resister = resister;
+	}
+	//ユーザーは使わないでください
+	void RunFunction(const SDeathParam& param) {
+		m_function(param);
+	}
+
+private:
+	std::function<void(const SDeathParam& param)> m_function;
+	GODeathListenerRegister* m_resister = nullptr;
+};
+
 
 //ゲームオブジェクト登録クラス
 struct GORegister
@@ -112,13 +162,6 @@ public:
 class IGameObject : public IDW_Class
 {
 public:
-
-	//デスリスナーの引数
-	struct SDeathParam {
-		IGameObject* gameObject = nullptr;
-	};
-
-public:
 	IGameObject(bool isRegister = true);
 	virtual ~IGameObject() {
 		//有効でないんだ！
@@ -127,10 +170,17 @@ public:
 		m_status.m_isDead = true;
 		CastStatus();
 		//デスリスナーに通知
-		SDeathParam param;
+		GODeathListener::SDeathParam param;
 		param.gameObject = this;
-		for (auto& listener : m_deathListeners) {
-			listener(param);
+		auto it = m_deathListeners.begin();
+		while (it != m_deathListeners.end()) {
+			if ((*it).enable) {
+				(*it).listener->RunFunction(param);
+				it++;
+			}
+			else {
+				it = m_deathListeners.erase(it);//削除
+			}
 		}
 	};
 
@@ -240,11 +290,28 @@ public:
 		receiver->SetCaster(&m_statusCaster.back());
 		receiver->SetGameObject(this);
 	}
+	//ステータスレシーバー登録解除
+	void RemoveStatusReceiver(GOStatusReceiver* receiver) {
+		for (auto& C : m_statusCaster) {
+			if (C.GetReceiver() == receiver) {
+				C.ImDead();
+			}
+		}
+	}
 
 	//死亡リスナー登録
-	void AddDeathListener(std::function<void(const SDeathParam& param)> listener)
+	void AddDeathListener(GODeathListener* listener)
 	{
-		m_deathListeners.push_back(listener);
+		m_deathListeners.emplace_back(listener);
+		listener->SetResister(&m_deathListeners.back());
+	}
+	//死亡リスナー登録解除
+	void RemoveDeathListener(GODeathListener* listener) {
+		for (auto& R : m_deathListeners) {
+			if (R.listener == listener) {
+				R.enable = false;
+			}
+		}
 	}
 
 	//名前をつける
@@ -274,8 +341,8 @@ private:
 	
 	GOStatus m_status;//状態
 	std::list<GOStatusCaster> m_statusCaster;//状態を送信する
-
-	std::list<std::function<void(const SDeathParam& param)>> m_deathListeners;//死亡リスナーさん達
+	
+	std::list<GODeathListenerRegister> m_deathListeners;//死亡リスナーさん達
 
 	bool m_newgoMark = false;//NewGOで作ったか?
 
@@ -499,7 +566,10 @@ public:
 	}
 
 	//(ゲームオブジェクトの無効化フラグが立つ。実際にインスタンスが削除されるのは、全てのGOのPostUpdateが終わってから)
-	void DeleteGO(IGameObject* gameObject, bool newgoCheck) {
+	bool DeleteGO(IGameObject* gameObject, bool newgoCheck, bool instantKill = false) {
+		
+		if (!gameObject) { return false; }
+
 		if (newgoCheck && !gameObject->GetNewGOMark()) {
 			//Newgoのフラグ立ってなかったらエラー
 #ifndef DW_MASTER
@@ -511,12 +581,22 @@ public:
 		}
 		else {
 			if (!gameObject->お前はもう死んでいる？()) {//まだ殺されていない
+				//即座に殺す
+				if (instantKill) {
+					delete gameObject;
+					return true;
+				}
+				
+				//あとで殺す
 				//無効化
 				gameObject->お前はもう死んでいる();
 				//殺しリスト登録
 				m_deleteList.emplace_back(gameObject);
+				return true;
 			}
 		}
+
+		return false;
 	}
 
 	void FarewellDearDeadman() {

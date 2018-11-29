@@ -9,7 +9,15 @@ namespace GameObj {
 class ICamera : public IGameObject{
 public:
 	using IGameObject::IGameObject;
-	virtual ~ICamera() {};
+	virtual ~ICamera();
+
+	//メインカメラに設定されているか設定
+	//ユーザーは使わないでください
+	void SetIsMainCamera(bool isMainCamera) {
+		m_isMainCamera = isMainCamera;
+	}
+private:
+	bool m_isMainCamera = false;//メインカメラに設定されているか?
 
 private:
 	void UpdateViewMatrix() {
@@ -106,11 +114,13 @@ public:
 class CameraManager
 {
 public:
-	CameraManager();
-	~CameraManager();
 
 	void SetMainCamera(GameObj::ICamera* c) {
+		if (m_mainCamera == c) { return; }
+
+		if (m_mainCamera) { m_mainCamera->SetIsMainCamera(false); }
 		m_mainCamera = c;
+		if (m_mainCamera) { m_mainCamera->SetIsMainCamera(true); }
 	}
 	GameObj::ICamera* GetMainCamera() {
 		return m_mainCamera;

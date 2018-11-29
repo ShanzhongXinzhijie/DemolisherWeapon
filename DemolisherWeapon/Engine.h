@@ -282,9 +282,28 @@ static inline T* NewGO(TArgs... ctorArgs)
 }
 //ゲームオブジェクトの削除
 //(ゲームオブジェクトの無効化フラグが立つ。実際にインスタンスが削除されるのは、全てのGOのPostUpdateが終わってから)
-static inline void DeleteGO(IGameObject* go, bool newgoCheck = true)
+template <typename T>
+static inline void DeleteGO(T*& go, bool newgoCheck = true)
+{
+	if (GetEngine().GetGONewDeleteManager().DeleteGO(go, newgoCheck)) {
+		go = nullptr;
+	}
+}
+static inline void DeleteGO(IGameObject* const go, bool newgoCheck = true)
 {
 	GetEngine().GetGONewDeleteManager().DeleteGO(go, newgoCheck);
+}
+//即座にゲームオブジェクトを削除
+template <typename T>
+static inline void InstantDeleteGO(T*& go, bool newgoCheck = true)
+{
+	if (GetEngine().GetGONewDeleteManager().DeleteGO(go, newgoCheck, true)) {
+		go = nullptr;
+	}
+}
+static inline void InstantDeleteGO(IGameObject* const go, bool newgoCheck = true)
+{
+	GetEngine().GetGONewDeleteManager().DeleteGO(go, newgoCheck, true);
 }
 
 //ゲームオブジェクトに名前をつける
