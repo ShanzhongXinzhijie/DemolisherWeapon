@@ -129,6 +129,14 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	//return float4(a,a,a,1.0f);
 
 	float4 albedo = albedoTexture.Sample(Sampler, In.uv);
+
+	//ƒ¿ƒeƒXƒg
+	if (albedo.w > 0.0f) {
+	}else{
+		discard;
+		//return float4(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+
 	float3 normal = normalMap.Sample(Sampler, In.uv).xyz;
 	float4 viewpos = PosMap.Sample(Sampler, In.uv);
 	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w, ViewProjInv);

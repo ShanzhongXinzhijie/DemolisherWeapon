@@ -35,9 +35,9 @@ protected:
 	//定数バッファ　[model.fx:MaterialCb]
 	//マテリアルパラメーター
 	struct MaterialParam {
-		CVector3 albedoScale = CVector3::One();	//アルベドにかけるスケール
-		int isLighting = 1;						//ライティングするか
+		CVector4 albedoScale = CVector4::One();	//アルベドにかけるスケール
 		CVector3 emissive;						//エミッシブ(自己発光)
+		int isLighting = 1;						//ライティングするか
 	};
 	MaterialParam m_materialParam;				//マテリアルパラメータ
 	ID3D11Buffer* m_materialParamCB = nullptr;	//マテリアルパラメータ用の定数バッファ
@@ -121,7 +121,7 @@ public:
 	}
 
 	//アルベドにかけるスケールを設定
-	void SetAlbedoScale(const CVector3& scale) {
+	void SetAlbedoScale(const CVector4& scale) {
 		m_materialParam.albedoScale = scale;
 	}
 	

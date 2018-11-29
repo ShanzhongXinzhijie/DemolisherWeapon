@@ -735,7 +735,9 @@ public:
 	{
 		static const CVector4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
 		return white;
-
+	}
+	static inline CVector4 One() {
+		return White();
 	}
 };
 

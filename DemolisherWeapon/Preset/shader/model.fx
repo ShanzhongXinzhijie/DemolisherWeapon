@@ -40,9 +40,9 @@ cbuffer VSPSCb : register(b0){
 
 //マテリアルパラメーター
 cbuffer MaterialCb : register(b1) {
-	float3 albedoScale;		//アルベドにかけるスケール
-	int isLighting;			//ライティングするか
+	float4 albedoScale;		//アルベドにかけるスケール
 	float3 emissive;		//エミッシブ(自己発光)
+	int isLighting;			//ライティングするか
 }
 
 /////////////////////////////////////////////////////////////
@@ -291,7 +291,17 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
 
 	//アルベド
-	Out.albedo = float4(albedoTexture.Sample(Sampler, In.TexCoord).xyz * albedoScale, 1.0f);
+	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord) * albedoScale;
+
+	//αテスト
+	if (Out.albedo.a > 0.0f) { 
+		Out.albedo.a = 1.0f;//半透明無効
+	}
+	else {
+		discard;
+		//Out.albedo = float4(0.0f, 0.0f, 0.0f, 0.0f);
+		//return Out;
+	}
 
 	//法線
 	Out.normal = In.Normal;
