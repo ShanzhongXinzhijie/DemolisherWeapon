@@ -162,7 +162,7 @@ public:
 class IGameObject : public IDW_Class
 {
 public:
-	IGameObject(bool isRegister = true);
+	IGameObject(bool isRegister = true, bool quickStart = false);
 	virtual ~IGameObject() {
 		//有効でないんだ！
 		if (IsRegistered()) { m_register->isEnable = false; }
@@ -248,7 +248,16 @@ public:
 	}
 
 	//開始しているのか？
-	bool GetIsStart() const{
+	bool GetIsStart(){
+
+		if (m_quickStart) {
+			if (GetEnable() && !m_isStart) {
+				if (Start()) {
+					SetIsStart();
+				}
+			}
+		}
+
 		return m_isStart;
 	}
 
@@ -333,6 +342,7 @@ private:
 	bool m_isDead = false;//実質死亡
 	bool m_enable = true;
 	bool m_isStart = false;
+	bool m_quickStart = false;
 
 	//bool m_goToHell = false;//地獄に向かっているか?
 	//bool m_nowOnHell = false;//地獄にいるか?
@@ -354,8 +364,15 @@ private:
 //自動で登録をしないゲームオブジェクト
 class INRGameObject : public IGameObject{
 public:
-	INRGameObject() : IGameObject(false) {};
+	INRGameObject(bool quickStart = false) : IGameObject(false, quickStart) {};
 	virtual ~INRGameObject() {};
+};
+
+//できる限り早く動作を開始するゲームオブジェクト
+class IQSGameObject : public IGameObject {
+public:
+	IQSGameObject(bool isRegister = true) : IGameObject(isRegister, true) {};
+	virtual ~IQSGameObject() {};
 };
 
 class GameObjectManager {

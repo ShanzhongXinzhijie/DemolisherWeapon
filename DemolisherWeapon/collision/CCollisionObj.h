@@ -207,6 +207,7 @@ public:
 	}
 
 	void PostUpdate()override {
+		//Às‡‚ªCollisionObjManager‚æ‚è’x‚¢‚©‚ç‚Å‚«‚éˆ—
 		m_isregistered = false;
 		m_register = nullptr;
 	}

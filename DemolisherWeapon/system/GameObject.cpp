@@ -14,8 +14,9 @@ namespace DemolisherWeapon {
 		}
 	}
 
-	IGameObject::IGameObject(bool isRegister) {
+	IGameObject::IGameObject(bool isRegister, bool quickStart) {
 		if (isRegister) { AddGO(this); }
+		m_quickStart = quickStart;
 	}
 
 	//–¼‘O‚ð‚Â‚¯‚é

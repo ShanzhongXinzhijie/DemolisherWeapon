@@ -6,9 +6,9 @@ namespace DemolisherWeapon {
 
 namespace GameObj {
 
-class ICamera : public IGameObject{
+class ICamera : public IQSGameObject{//IGameObject{
 public:
-	using IGameObject::IGameObject;
+	using IQSGameObject::IQSGameObject;
 	virtual ~ICamera();
 
 	//メインカメラに設定されているか設定
@@ -33,9 +33,14 @@ public:
 		UpdateMatrix();
 	}
 
+	//カメラ(行列)を更新
 	void UpdateMatrix() {
 		UpdateViewMatrix();
 		UpdateProjMatrix();
+		if (isFirstMatrixUpdate) {
+			m_projMatOld = m_projMat, m_viewMatOld = m_viewMat;
+			isFirstMatrixUpdate = false;
+		}
 	};
 
 	const CMatrix& GetProjMatrix() const { return m_projMat; };
@@ -64,6 +69,7 @@ protected:
 
 	CMatrix m_projMat, m_viewMat;
 	CMatrix m_projMatOld, m_viewMatOld;
+	bool isFirstMatrixUpdate = true;
 };
 
 //遠近カメラ
