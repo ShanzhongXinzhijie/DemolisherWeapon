@@ -11,7 +11,7 @@ struct SDirectionLight {
 
 namespace GameObj {
 
-class CDirectionLight : public IGameObject {
+class CDirectionLight : public IQSGameObject {
 public:
 	CDirectionLight() {};
 	CDirectionLight(const CVector3& color, const CVector3& dir) {
@@ -61,7 +61,7 @@ struct SPointLight {
 
 namespace GameObj {
 
-class CPointLight : public IGameObject {
+class CPointLight : public IQSGameObject {
 public:
 	CPointLight() {};
 	CPointLight(const CVector3& color, const CVector3& pos, const float range, const float attenuation) {
