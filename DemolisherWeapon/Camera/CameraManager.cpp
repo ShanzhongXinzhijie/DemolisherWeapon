@@ -12,12 +12,13 @@ ICamera::~ICamera() {
 }
 
 //ワールド座標からスクリーン座標を計算する
-void ICamera::CalcScreenPositionFromWorldPositionScreenPos(CVector3& screenPos, const CVector3& worldPos)  {
-	CalcScreenPositionFromWorldPosition(screenPos, worldPos);
+CVector3 ICamera::CalcScreenPosFromWorldPosScreenPos(const CVector3& worldPos)  {
+	CVector3 screenPos = CalcScreenPosFromWorldPos(worldPos);
 	screenPos.x *= GetGraphicsEngine().GetFrameBuffer_W();
 	screenPos.y *= GetGraphicsEngine().GetFrameBuffer_H();
+	return screenPos;
 }
-void ICamera::CalcScreenPositionFromWorldPosition(CVector3& screenPos, const CVector3& worldPos) 
+CVector3 ICamera::CalcScreenPosFromWorldPos(const CVector3& worldPos)
 {
 	if (m_change) { UpdateMatrix(); }//必要あれば行列更新
 
@@ -26,15 +27,18 @@ void ICamera::CalcScreenPositionFromWorldPosition(CVector3& screenPos, const CVe
 
 	CVector4 _screenPos(worldPos.x, worldPos.y, worldPos.z, 1.0f);
 	viewProjectionMatrix.Mul(_screenPos);
+
+	CVector3 screenPos;
 	screenPos.x = (_screenPos.x / _screenPos.w) * 0.5f + 0.5f;
 	screenPos.y = (_screenPos.y / _screenPos.w) *-0.5f + 0.5f;
 	screenPos.z = _screenPos.z / _screenPos.w;
+	return screenPos;
 }
 //スクリーン座標からワールド座標を計算する
-void ICamera::CalcWorldPositionFromScreenPosition(CVector3& worldPos, const CVector3& screenPos)  {
-	CalcWorldPositionFromScreenPositionScreenPos(worldPos, { screenPos.x * GetGraphicsEngine().GetFrameBuffer_W(), screenPos.y*GetGraphicsEngine().GetFrameBuffer_H(), screenPos.z });
+CVector3 ICamera::CalcWorldPosFromScreenPos( const CVector3& screenPos)  {
+	return CalcWorldPosFromScreenPosScreenPos({ screenPos.x * GetGraphicsEngine().GetFrameBuffer_W(), screenPos.y*GetGraphicsEngine().GetFrameBuffer_H(), screenPos.z });
 }
-void ICamera::CalcWorldPositionFromScreenPositionScreenPos(CVector3& worldPos, const CVector3& screenPos) 
+CVector3 ICamera::CalcWorldPosFromScreenPosScreenPos(const CVector3& screenPos)
 {
 	if (m_change) { UpdateMatrix(); }//必要あれば行列更新
 
@@ -75,9 +79,13 @@ void ICamera::CalcWorldPositionFromScreenPositionScreenPos(CVector3& worldPos, c
 	viewInv.Mul(screenPos2);		
 
 	screenPos2 /= screenPos2.w;
+
+	CVector3 worldPos;
 	worldPos.x = screenPos2.x;
 	worldPos.y = screenPos2.y;
 	worldPos.z = screenPos2.z;
+
+	return worldPos;
 }
 
 PerspectiveCamera::PerspectiveCamera(bool isRegister) : ICamera(isRegister) {

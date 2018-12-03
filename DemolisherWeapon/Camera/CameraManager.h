@@ -66,15 +66,15 @@ public:
 
 	//ワールド座標からスクリーン座標を計算する
 	//const CVector2& screenPos は0.0f～1.0fの範囲。{0.0f,0.0f}で画面左上
-	void CalcScreenPositionFromWorldPosition(CVector3& screenPos, const CVector3& worldPos) ;
+	CVector3 CalcScreenPosFromWorldPos(const CVector3& worldPos) ;
 	//const CVector2& screenPos をスクリーン座標で取得する版。右下の座標=画面解像度　
-	void CalcScreenPositionFromWorldPositionScreenPos(CVector3& screenPos, const CVector3& worldPos) ;
+	CVector3 CalcScreenPosFromWorldPosScreenPos(const CVector3& worldPos) ;
 
 	//スクリーン座標からワールド座標を計算する
 	//const CVector2& screenPos は0.0f～1.0fの範囲。{0.0f,0.0f}で画面左上
-	void CalcWorldPositionFromScreenPosition(CVector3& worldPos, const CVector3& screenPos) ;
+	CVector3 CalcWorldPosFromScreenPos(const CVector3& screenPos) ;
 	//const CVector2& screenPos をスクリーン座標で指定する版。右下の座標=画面解像度　
-	void CalcWorldPositionFromScreenPositionScreenPos(CVector3& worldPos, const CVector3& screenPos) ;
+	CVector3 CalcWorldPosFromScreenPosScreenPos(const CVector3& screenPos) ;
 
 protected:
 	bool m_change = true;//変更点あるか
