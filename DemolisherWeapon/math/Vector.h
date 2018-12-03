@@ -188,7 +188,10 @@ public:
 	{
 		return Effekseer::Vector3D(x,y,z);
 	}
-
+	operator CVector2() const
+	{
+		return CVector2(x, y);
+	}
 	//operator D3DXVECTOR3(void) { return s_cast<D3DXVECTOR3>(*this); }
 
 	/*!

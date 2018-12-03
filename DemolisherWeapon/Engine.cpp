@@ -144,7 +144,10 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	SetAmbientLight(initParam.defaultAmbientLight);
 }
 
-
+//Photonの初期化
+void Engine::InitPhoton(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion) {
+	m_photon = std::make_unique<PhotonNetworkLogic>(appID, appVersion);
+}
 
 //ウィンドウメッセージをディスパッチ。falseが返ってきたら、ゲーム終了。
 bool GameLoop::DispatchWindowMessage()
@@ -194,6 +197,9 @@ void GameLoop::Run() {
 
 		//可変フレームループ
 		while((int)m_runframecnt >= 1){
+
+			if (GetPhoton()) { GetPhoton()->Update(); }
+
 			m_gameObjectManager_Ptr->Start();
 			m_gameObjectManager_Ptr->Update();
 			m_goNewDeleteManager_Ptr->FarewellDearDeadman();

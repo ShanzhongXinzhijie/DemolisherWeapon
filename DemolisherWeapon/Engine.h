@@ -17,6 +17,8 @@
 
 #include "Graphic/Effekseer/EffekseerManager.h"
 
+#include"Network/PhotonManager.h"
+
 namespace DemolisherWeapon {
 
 static constexpr float DW_VER = 3.141592f;//エンジンのバージョン
@@ -113,6 +115,15 @@ public:
 
 	//ゲームの初期化。
 	void InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, InitEngineParameter initParam);
+
+	//Photonの初期化
+	void InitPhoton(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion);
+	//Photonの取得
+	PhotonNetworkLogic* GetPhoton() {
+		DW_ERRORBOX(!m_photon, "GetPhoton() :Photonが初期化されていません");
+		return m_photon.get();
+	}
+
 	//ゲームループ
 	void RunGameLoop() { m_gameLoop.Run(); };
 
@@ -203,7 +214,8 @@ private:
 	SoundEngine m_soundEngine;
 	CPhysicsWorld m_physics;
 	EffekseerManager m_effekseer;
-	std::unique_ptr <GameObj::CollisionObjManager> m_collisionManager;
+	std::unique_ptr<GameObj::CollisionObjManager> m_collisionManager;
+	std::unique_ptr<PhotonNetworkLogic> m_photon;
 	GameObjectManager m_gameObjectManager;
 	GONewDeleteManager m_goNewDeleteManager;
 	GameLoop m_gameLoop;
@@ -223,10 +235,20 @@ static inline Engine& GetEngine()
 {
 	return Engine::GetInstance();
 }
+//グラフィックスエンジンの取得
+static inline GraphicsEngine& GetGraphicsEngine()
+{
+	return GetEngine().GetGraphicsEngine();
+}
 //物理エンジンの取得
 static inline CPhysicsWorld& GetPhysicsWorld()
 {
 	return GetEngine().GetPhysicsWorld();
+}
+//Photonの取得
+static inline PhotonNetworkLogic* GetPhoton() {
+
+	return GetEngine().GetPhoton();
 }
 
 //3Dモデルレンダーに描画するモデルを登録

@@ -149,13 +149,15 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>DWstdafx.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Photon/Photon-cpp/inc;$(ProjectDir)/Photon/LoadBalancing-cpp/inc;$(ProjectDir)/Photon/;$(ProjectDir)/Photon/Common-cpp/inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>xaudio2.lib;DirectXTK.lib;BulletCollision_Debug.lib;BulletDynamics_Debug.lib;LinearMath_Debug.lib;xinput.lib;winmm.lib;Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;Photon-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision_Debug.lib;BulletDynamics_Debug.lib;LinearMath_Debug.lib;xinput.lib;winmm.lib;Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <CustomBuild>
       <Outputs>$(SolutionDir)%(Identity)</Outputs>
@@ -212,6 +214,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>DWstdafx.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Photon/Photon-cpp/inc;$(ProjectDir)/Photon/LoadBalancing-cpp/inc;$(ProjectDir)/Photon/;$(ProjectDir)/Photon/Common-cpp/inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -226,7 +229,8 @@
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <Lib>
-      <AdditionalDependencies>xaudio2.lib;DirectXTK.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
+      <AdditionalDependencies>Common-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;Photon-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Preview|x64'">
@@ -242,6 +246,7 @@
       <PrecompiledHeaderFile>DWstdafx.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Photon/Photon-cpp/inc;$(ProjectDir)/Photon/LoadBalancing-cpp/inc;$(ProjectDir)/Photon/;$(ProjectDir)/Photon/Common-cpp/inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -256,11 +261,14 @@
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <Lib>
-      <AdditionalDependencies>xaudio2.lib;DirectXTK.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
+      <AdditionalDependencies>Common-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;Photon-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Error\Error.h" />
     <ClInclude Include="Graphic\Shader\ShaderUtil.h" />
+    <ClInclude Include="Network\PhotonManager.h" />
     <ClInclude Include="Render\EffekseerRender.h" />
     <ClInclude Include="Graphic\Effekseer\CEffekseer.h" />
     <ClInclude Include="Graphic\Effekseer\EffekseerManager.h" />
@@ -327,6 +335,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Graphic\Shader\ShaderUtil.cpp" />
+    <ClCompile Include="Network\PhotonManager.cpp" />
     <ClCompile Include="Render\EffekseerRender.cpp" />
     <ClCompile Include="Graphic\Effekseer\CEffekseer.cpp" />
     <ClCompile Include="Graphic\Effekseer\EffekseerManager.cpp" />

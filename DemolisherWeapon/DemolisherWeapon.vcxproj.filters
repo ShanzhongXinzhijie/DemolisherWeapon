@@ -71,6 +71,8 @@
     <ClInclude Include="Graphic\Effekseer\CEffekseer.h" />
     <ClInclude Include="Render\EffekseerRender.h" />
     <ClInclude Include="Graphic\Shader\ShaderUtil.h" />
+    <ClInclude Include="Network\PhotonManager.h" />
+    <ClInclude Include="Error\Error.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -132,6 +134,7 @@
     <ClCompile Include="Graphic\Effekseer\CEffekseer.cpp" />
     <ClCompile Include="Render\EffekseerRender.cpp" />
     <ClCompile Include="Graphic\Shader\ShaderUtil.cpp" />
+    <ClCompile Include="Network\PhotonManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

@@ -35,6 +35,7 @@ public:
 
 	//カメラ(行列)を更新
 	void UpdateMatrix() {
+		m_change = false;
 		UpdateViewMatrix();
 		UpdateProjMatrix();
 		if (isFirstMatrixUpdate) {
@@ -55,15 +56,29 @@ public:
 	float GetFar() const{ return m_far; }
 
 	//座標等設定
-	void SetPos(const CVector3& v) { m_pos = v; }
-	void SetTarget(const CVector3& v) { m_target = v; }
-	void SetUp(const CVector3& v) { m_up = v; }
+	void SetPos(const CVector3& v) { m_pos = v; m_change = true; }
+	void SetTarget(const CVector3& v) { m_target = v; m_change = true; }
+	void SetUp(const CVector3& v) { m_up = v; m_change = true; }
 
 	//遠近設定
-	void SetNear(const float v) { m_near = v; }
-	void SetFar(const float v) { m_far = v; }
+	void SetNear(const float v) { m_near = v; m_change = true; }
+	void SetFar(const float v) { m_far = v; m_change = true; }
+
+	//ワールド座標からスクリーン座標を計算する
+	//const CVector2& screenPos は0.0f～1.0fの範囲。{0.0f,0.0f}で画面左上
+	void CalcScreenPositionFromWorldPosition(CVector3& screenPos, const CVector3& worldPos) ;
+	//const CVector2& screenPos をスクリーン座標で取得する版。右下の座標=画面解像度　
+	void CalcScreenPositionFromWorldPositionScreenPos(CVector3& screenPos, const CVector3& worldPos) ;
+
+	//スクリーン座標からワールド座標を計算する
+	//const CVector2& screenPos は0.0f～1.0fの範囲。{0.0f,0.0f}で画面左上
+	void CalcWorldPositionFromScreenPosition(CVector3& worldPos, const CVector3& screenPos) ;
+	//const CVector2& screenPos をスクリーン座標で指定する版。右下の座標=画面解像度　
+	void CalcWorldPositionFromScreenPositionScreenPos(CVector3& worldPos, const CVector3& screenPos) ;
 
 protected:
+	bool m_change = true;//変更点あるか
+
 	CVector3 m_pos = { 0.0f, 0.0f, 500.0f }, m_target = { 0.0f, 0.0f, 0.0f }, m_up = { 0.0f, 1.0f, 0.0f };
 	float m_near = 1.0f, m_far = 1000.0f;
 
@@ -78,11 +93,11 @@ public:
 	PerspectiveCamera(bool isRegister = true);
 
 	//視野角設定
-	void SetViewAngle(const float v) { m_viewAngle = v; }
-	void SetViewAngleDeg(const float v) { m_viewAngle = CMath::DegToRad(v); }
+	void SetViewAngle(const float v) { m_viewAngle = v; m_change = true; }
+	void SetViewAngleDeg(const float v) { m_viewAngle = CMath::DegToRad(v); m_change = true;}
 	
 	//アス比設定
-	void SetAspect(const float v) { m_aspect = v; }
+	void SetAspect(const float v) { m_aspect = v; m_change = true;}
 
 private:
 	void UpdateProjMatrix()override {
@@ -96,12 +111,13 @@ private:
 //平行カメラ
 class OrthoCamera : public ICamera {
 public:
-	OrthoCamera(bool isRegister = true);
+	//OrthoCamera(bool isRegister = true);
+	using ICamera::ICamera;
 	virtual ~OrthoCamera() {};
 
 	//幅・高さ設定
-	void SetWidth(const float v) { m_width = v; }
-	void SetHeight(const float v) { m_height = v; }
+	void SetWidth(const float v) { m_width = v; m_change = true;}
+	void SetHeight(const float v) { m_height = v; m_change = true;}
 
 private:
 	void UpdateProjMatrix()override {

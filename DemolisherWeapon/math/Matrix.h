@@ -261,6 +261,13 @@ public:
 			DirectX::XMMatrixInverse(NULL, _m)
 		);
 	}
+	void Inverse()
+	{
+		DirectX::XMStoreFloat4x4(
+			&mat,
+			DirectX::XMMatrixInverse(NULL, *this)
+		);
+	}
 	void Transpose()
 	{
 		DirectX::XMStoreFloat4x4(

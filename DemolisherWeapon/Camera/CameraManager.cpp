@@ -2,7 +2,6 @@
 #include "CameraManager.h"
 
 namespace DemolisherWeapon {
-
 namespace GameObj {
 
 ICamera::~ICamera() {
@@ -12,15 +11,83 @@ ICamera::~ICamera() {
 	}
 }
 
+//ワールド座標からスクリーン座標を計算する
+void ICamera::CalcScreenPositionFromWorldPositionScreenPos(CVector3& screenPos, const CVector3& worldPos)  {
+	CalcScreenPositionFromWorldPosition(screenPos, worldPos);
+	screenPos.x *= GetGraphicsEngine().GetFrameBuffer_W();
+	screenPos.y *= GetGraphicsEngine().GetFrameBuffer_H();
+}
+void ICamera::CalcScreenPositionFromWorldPosition(CVector3& screenPos, const CVector3& worldPos) 
+{
+	if (m_change) { UpdateMatrix(); }//必要あれば行列更新
+
+	//ビュープロジェクション行列の作成。
+	CMatrix viewProjectionMatrix; viewProjectionMatrix.Mul(m_viewMat, m_projMat);
+
+	CVector4 _screenPos(worldPos.x, worldPos.y, worldPos.z, 1.0f);
+	viewProjectionMatrix.Mul(_screenPos);
+	screenPos.x = (_screenPos.x / _screenPos.w) * 0.5f + 0.5f;
+	screenPos.y = (_screenPos.y / _screenPos.w) *-0.5f + 0.5f;
+	screenPos.z = _screenPos.z / _screenPos.w;
+}
+//スクリーン座標からワールド座標を計算する
+void ICamera::CalcWorldPositionFromScreenPosition(CVector3& worldPos, const CVector3& screenPos)  {
+	CalcWorldPositionFromScreenPositionScreenPos(worldPos, { screenPos.x * GetGraphicsEngine().GetFrameBuffer_W(), screenPos.y*GetGraphicsEngine().GetFrameBuffer_H(), screenPos.z });
+}
+void ICamera::CalcWorldPositionFromScreenPositionScreenPos(CVector3& worldPos, const CVector3& screenPos) 
+{
+	if (m_change) { UpdateMatrix(); }//必要あれば行列更新
+
+	CMatrix viewInv = m_viewMat; viewInv.Inverse();
+	CMatrix ProjectionInv = m_projMat; ProjectionInv.Inverse();
+
+	CMatrix ViewPortInv;
+	ViewPortInv._11 = (float)GetGraphicsEngine().GetFrameBuffer_W() * 0.5f; ViewPortInv._22 = -(float)GetGraphicsEngine().GetFrameBuffer_H() * 0.5f;
+	ViewPortInv._41 = (float)GetGraphicsEngine().GetFrameBuffer_W() * 0.5f; ViewPortInv._42 = (float)GetGraphicsEngine().GetFrameBuffer_H() * 0.5f;
+	ViewPortInv._33 = 1.0f; ViewPortInv._44 = 1.0f;
+	ViewPortInv.Inverse();
+
+
+	/*CMatrix mBase0;
+	mBase0._11 = mBase0._21 = mBase0._31 = mBase0._41 = screenPos.x;
+	mBase0._12 = mBase0._22 = mBase0._32 = mBase0._42 = screenPos.y;
+	mBase0._13 = mBase0._23 = mBase0._33 = mBase0._43 = z;
+	mBase0._14 = mBase0._24 = mBase0._34 = mBase0._44 = 1;*/
+
+	//mBase0.Mul(mBase0, ViewPortInv);
+	//mBase0.Mul(mBase0, ProjectionInv);
+	//mBase0.Mul(mBase0, viewInv);
+
+	//CVector3 _worldPos;
+	////mBase0._14 = 1.0f / mBase0._14;
+	//_worldPos.x = mBase0._11 / mBase0._14;
+	//_worldPos.y = mBase0._12 / mBase0._14;
+	//_worldPos.z = mBase0._13 / mBase0._14;
+
+	//worldPos = _worldPos;
+
+
+	CVector4 screenPos2; 
+	screenPos2.Set(screenPos.x, screenPos.y, screenPos.z, 1.0f);
+
+	ViewPortInv.Mul(screenPos2);
+	ProjectionInv.Mul(screenPos2);
+	viewInv.Mul(screenPos2);		
+
+	screenPos2 /= screenPos2.w;
+	worldPos.x = screenPos2.x;
+	worldPos.y = screenPos2.y;
+	worldPos.z = screenPos2.z;
+}
+
 PerspectiveCamera::PerspectiveCamera(bool isRegister) : ICamera(isRegister) {
 	m_aspect = GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W() / GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H();
 }
 
-OrthoCamera::OrthoCamera(bool isRegister) : ICamera(isRegister) {
+//OrthoCamera::OrthoCamera(bool isRegister) : ICamera(isRegister) {
 	//m_width = GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W();
 	//m_height = GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H();
-}
+//}
 
 }
-
 }
