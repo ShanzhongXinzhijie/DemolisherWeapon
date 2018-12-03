@@ -120,7 +120,7 @@ public:
 	void InitPhoton(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion);
 	//Photon‚Ìæ“¾
 	PhotonNetworkLogic* GetPhoton() {
-		DW_ERRORBOX(!m_photon, "GetPhoton() :Photon‚ª‰Šú‰»‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+		//DW_ERRORBOX(!m_photon, "GetPhoton() :Photon‚ª‰Šú‰»‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
 		return m_photon.get();
 	}
 

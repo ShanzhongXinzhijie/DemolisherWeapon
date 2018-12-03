@@ -52,11 +52,13 @@ namespace DemolisherWeapon {
 			m_LoadBalancingClient.opLeaveRoom();
 		}
 
-		void Send(){
-			nByte eventCode = 1; // use distinct event codes to distinguish between different types of events (for example 'move', 'shoot', etc.)
-			ExitGames::Common::Hashtable evData; // organize your payload data in any way you like as long as it is supported by Photons serialization
-			bool sendReliable = false; // send something reliable if it has to arrive everywhere
-			m_LoadBalancingClient.opRaiseEvent(sendReliable, evData, eventCode);
+		template<typename Ftype>
+		void Send(nByte eventCode, const Ftype& parameters, bool sendReliable = false){
+			//nByte eventCode = 1; // use distinct event codes to distinguish between different types of events (for example 'move', 'shoot', etc.)
+			//ExitGames::Common::Hashtable evData; // organize your payload data in any way you like as long as it is supported by Photons serialization
+			//bool sendReliable = false; // send something reliable if it has to arrive everywhere
+			int myPlayerNumber = m_LoadBalancingClient.getLocalPlayer().getNumber();
+			m_LoadBalancingClient.opRaiseEvent(sendReliable, parameters, eventCode, ExitGames::LoadBalancing::RaiseEventOptions().setTargetPlayers(&myPlayerNumber, 1));
 		}
 
 		/*void customEventAction(int playerNr, nByte eventCode, const ExitGames::Common::Object& eventContent)

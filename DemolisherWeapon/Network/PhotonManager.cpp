@@ -51,23 +51,22 @@ namespace DemolisherWeapon {
 
 	void PhotonNetworkLogic::customEventAction(int playerNr, nByte eventCode, const ExitGames::Common::Object& eventContentObj)
 	{
-		ExitGames::Common::Hashtable eventContent = ExitGames::Common::ValueObject<ExitGames::Common::Hashtable>(eventContentObj).getDataCopy();
-		/*switch (eventCode)
+		switch (eventCode)
 		{
 		case 0:
-			if (eventContent.getValue((nByte)0))
-				mReceiveCount = ((ExitGames::Common::ValueObject<int64>*)(eventContent.getValue((nByte)0)))->getDataCopy();
-			if (mState == State::SENT_DATA && mReceiveCount >= mSendCount)
-			{
-				mState = State::RECEIVED_DATA;
-				mSendCount = 0;
-				mReceiveCount = 0;
+		{
+			ExitGames::Common::Hashtable eventContent = ExitGames::Common::ValueObject<ExitGames::Common::Hashtable>(eventContentObj).getDataCopy();
+			if (eventContent.getValue(0)) {
+				int64 mReceiveCount = ((ExitGames::Common::ValueObject<int64>*)(eventContent.getValue(0)))->getDataCopy();
+				mReceiveCount = mReceiveCount;
 			}
-			break;
+			//ExitGames::Common::Hashtable* event{ ExitGames::Common::ValueObject<ExitGames::Common::Hashtable*>(eventContentObj).getDataCopy() };
+			//float x{ ExitGames::Common::ValueObject<float>(event->getValue(0)).getDataCopy() };
+		}
+		break;
 		default:
 			break;
-		}*/
-
+		}
 	}
 
 	void PhotonNetworkLogic::connectReturn(int errorCode, const ExitGames::Common::JString& errorString, const ExitGames::Common::JString& region, const ExitGames::Common::JString& cluster)
