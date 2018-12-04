@@ -145,8 +145,8 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 }
 
 //Photonの初期化
-void Engine::InitPhoton(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion) {
-	m_photon = std::make_unique<PhotonNetworkLogic>(appID, appVersion);
+void Engine::InitPhoton(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion, PhotonNetworkLogic::EventActionFunc eventAction) {
+	m_photon = std::make_unique<PhotonNetworkLogic>(appID, appVersion, eventAction);
 }
 
 //ウィンドウメッセージをディスパッチ。falseが返ってきたら、ゲーム終了。

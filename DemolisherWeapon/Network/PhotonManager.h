@@ -34,85 +34,96 @@ namespace DemolisherWeapon {
 		virtual void leaveLobbyReturn(void);
 
 	public:
-		PhotonNetworkLogic(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion);
-		
-		void Connect(void);
-		void Disconnect(void) {
-			m_LoadBalancingClient.disconnect();
-		}
+		using EventActionFunc = std::function<void(int playerNr, nByte eventCode, const ExitGames::Common::Object& eventContentObj)>;
+		using JoinEventActionFunc = std::function<void(int playerNr, const ExitGames::Common::JVector<int>& playernrs, const ExitGames::LoadBalancing::Player& player)>;
+		using LeaveEventActionFunc = std::function<void(int playerNr, bool isInactive)>;
+
+		PhotonNetworkLogic(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion, EventActionFunc eventAction);
 
 		void Update() {
 			m_LoadBalancingClient.service();
 		}
+		
+		//サーバーに接続
+		bool ConnectServer(const wchar_t* userName);
+		//サーバーとの接続を切断
+		void DisconnectServer() {
+			m_LoadBalancingClient.disconnect();
+			m_state = DISCONNECTING;
+		}
 
-		void Join(const ExitGames::Common::JString& roomName, nByte maxPlayers) {
+		//ルームに入る
+		void JoinRoom(const ExitGames::Common::JString& roomName, nByte maxPlayers) {
 			m_LoadBalancingClient.opJoinOrCreateRoom(roomName, ExitGames::LoadBalancing::RoomOptions().setMaxPlayers(maxPlayers));
+			m_state = JOINING;
 		}
-		void Leave() {
+		//ルームから退出
+		void LeaveRoom() {
 			m_LoadBalancingClient.opLeaveRoom();
+			m_state = LEAVING;
 		}
 
+		//イベントを送信
 		template<typename Ftype>
-		void Send(nByte eventCode, const Ftype& parameters, bool sendReliable = false){
-			//nByte eventCode = 1; // use distinct event codes to distinguish between different types of events (for example 'move', 'shoot', etc.)
-			//ExitGames::Common::Hashtable evData; // organize your payload data in any way you like as long as it is supported by Photons serialization
-			//bool sendReliable = false; // send something reliable if it has to arrive everywhere
-			int myPlayerNumber = m_LoadBalancingClient.getLocalPlayer().getNumber();
-			m_LoadBalancingClient.opRaiseEvent(sendReliable, parameters, eventCode, ExitGames::LoadBalancing::RaiseEventOptions().setTargetPlayers(&myPlayerNumber, 1));
+		void Send(nByte eventCode, const Ftype& parameters, bool sendReliable = false, const ExitGames::LoadBalancing::RaiseEventOptions& options = ExitGames::LoadBalancing::RaiseEventOptions()){
+			m_LoadBalancingClient.opRaiseEvent(sendReliable, parameters, eventCode, options);
+		}
+		//イベント受信時に実行する関数を設定
+		void SetEventAction(EventActionFunc eventAction) {
+			m_eventAction = eventAction;
 		}
 
-		/*void customEventAction(int playerNr, nByte eventCode, const ExitGames::Common::Object& eventContent)
+		//何者かが参加した際に呼ばれる関数を設定
+		void SetJoinEventAction(JoinEventActionFunc func) {
+			m_joinEventAction = func;
+		}
+		//何者かが離脱した際に呼ばれる関数を設定
+		void SetLeaveEventAction(LeaveEventActionFunc func) {
+			m_leaveEventAction = func;
+		}
+
+		//エラーを受け取る関数を設定
+
+		//警告を受け取る関数を設定
+
+		//デバッグ出力を受け取る関数を設定
+
+		//サーバーに接続しているか取得
+		bool GetConnected()const { return m_LoadBalancingClient.getIsInLobby(); }//return m_isConnected; }
+		//ルームに入っているか取得
+		bool GetJoinedRoom()const { return m_LoadBalancingClient.getIsInGameRoom(); }//return m_isJoinedRoom; }
+
+		enum States
 		{
+			INITIALIZED = 0,
+			CONNECTING,
+			CONNECTED,
+			JOINING,
+			JOINED,
+			LEAVING,
+			LEFT,
+			DISCONNECTING,
+			DISCONNECTED
+		};
+		//ステートを取得
+		States GetState()const { return m_state; }
 
-			ExitGames::Client::Photon::LoadBalancing::EventCode
-
-			// logging the string representation of the eventContent can be really useful for debugging, but use with care: for big events this might get expensive
-			EGLOG(ExitGames::Common::DebugLevel::ALL, L"an event of type %d from player Nr %d with the following content has just arrived: %ls", eventCode, playerNr, eventContent.toString(true).cstr());
-
-			switch (eventCode)
-			{
-			case 1:
-			{
-				// you can access the content as a copy (might be a bit expensive for really big data constructs)
-				ExitGames::Common::Hashtable content = ExitGames::Common::ValueObject<ExitGames::Common::Hashtable>(eventContent).getDataCopy();
-				// or you access it by address (it will become invalid as soon as this function returns, so (any part of the) data that you need to continue having access to later on needs to be copied)
-				ExitGames::Common::Hashtable* pContent = ExitGames::Common::ValueObject<ExitGames::Common::Hashtable>(eventContent).getDataAddress();
-			}
-			break;
-			case 2:
-			{
-				// of course the payload does not need to be a Hashtable - how about just sending around for example a plain 64bit integer?
-				long long content = ExitGames::Common::ValueObject<long long>(eventContent).getDataCopy();
-			}
-			break;
-			case 3:
-			{
-				// or an array of floats?
-				float* pContent = ExitGames::Common::ValueObject<float*>(eventContent).getDataCopy();
-				float** ppContent = ExitGames::Common::ValueObject<float*>(eventContent).getDataAddress();
-				short contentElementCount = *ExitGames::Common::ValueObject<float*>(eventContent).getSizes();
-				// when calling getDataCopy() on Objects that hold an array as payload, then you must deallocate the copy of the array yourself using deallocateArray()!
-				ExitGames::Common::MemoryManagement::deallocateArray(pContent);
-			}
-			break;
-			default:
-			{
-				// have a look at demo_typeSupport inside the C++ client SDKs for example code on how to send and receive more fancy data types
-			}
-			break;
-			}
-		}*/
+		//Clientを取得
+		ExitGames::LoadBalancing::Client& GetClient() {
+			return m_LoadBalancingClient;
+		}
 
 	private:
 		ExitGames::LoadBalancing::Client m_LoadBalancingClient;
 		ExitGames::Common::Logger mLogger; // accessed by EGLOG()
 
+		EventActionFunc m_eventAction = nullptr;
+		JoinEventActionFunc m_joinEventAction = nullptr;
+		LeaveEventActionFunc m_leaveEventAction = nullptr;
+
 		bool m_isConnected = false;
 		bool m_isJoinedRoom = false;
-
-	public:
-		bool GetConnected()const { return m_isConnected; }
-		bool GetJoinedRoom()const { return m_isJoinedRoom; }
+		States m_state = INITIALIZED;
 	};
 
 }

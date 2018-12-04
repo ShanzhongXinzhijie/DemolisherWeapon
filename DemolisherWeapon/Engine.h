@@ -117,7 +117,7 @@ public:
 	void InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, InitEngineParameter initParam);
 
 	//Photon‚Ì‰Šú‰»
-	void InitPhoton(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion);
+	void InitPhoton(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion, PhotonNetworkLogic::EventActionFunc eventAction);
 	//Photon‚Ìæ“¾
 	PhotonNetworkLogic* GetPhoton() {
 		//DW_ERRORBOX(!m_photon, "GetPhoton() :Photon‚ª‰Šú‰»‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
