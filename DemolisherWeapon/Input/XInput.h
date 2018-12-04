@@ -11,7 +11,7 @@ enum enXInputButton {
 	enButtonB,			//!<Bボタン。
 	enButtonX,			//!<Xボタン。
 	enButtonY,			//!<Yボタン。
-	enButtonSelect,		//!<セレクトボタン。
+	enButtonBack,		//!<バックボタン。
 	enButtonStart,		//!<スタートボタン。
 	enButtonRB1,		//!<RB1ボタン。
 	enButtonRT,			//!<RT ボタン。
@@ -35,15 +35,19 @@ public:
 	}
 
 	void Update();
+	void InLoopUpdate();
+	
+	//ボタン入力
+	bool GetButton(enXInputButton button) const;//入力状態取得
+	bool GetDown(enXInputButton button) const;//このフレームに押された？
+	bool GetUp(enXInputButton button) const;//このフレームに離された？
 
-	//入力を取得
-	bool GetButton(enXInputButton button) const;
-	//bool IsTrigger(enXInputButton button) const;
-
+	//スティック入力値取得
 	CVector2 GetStick(enLR lr) const{
 		if (!m_state.isConnect) { return CVector2::Zero(); }
 		return m_state.m_stick[lr];
 	}
+	//トリガー入力値取得
 	float GetTrigger(enLR lr) const{
 		if (!m_state.isConnect) { return 0.0f; }
 		return m_state.m_trigger[lr];
@@ -78,7 +82,8 @@ private:
 	};
 
 	PadState m_state;
-	float m_vibrationTimelimit = 0.0f;
+	bool m_buttonInputOld[enButtonNum] = { 0 };
+	//float m_vibrationTimelimit = 0.0f;
 };
 
 class XInputManager {
@@ -94,6 +99,12 @@ public:
 			m_pad[i].Update();
 		}
 	}
+	void InLoopUpdate() {
+		for (int i = 0; i < MAX_CONTROLLERS; i++) {
+			m_pad[i].InLoopUpdate();
+		}
+	}
+
 	XInputPad& GetPad(int n) {
 		return m_pad[n];
 	}

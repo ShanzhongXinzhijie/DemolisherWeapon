@@ -177,6 +177,7 @@ void GameLoop::Run() {
 
 		//ウィンドウ更新
 		GetEngine().UpdateWindow();
+
 		//マウスカーソル
 		GetEngine().GetMouseCursorManager().Update();
 		//キーステート
@@ -188,33 +189,42 @@ void GameLoop::Run() {
 		m_runframecnt += m_fpscounter.GetRunFrameCnt();
 
 		//今回は可変フレームにしない
+		//フラグがON or 1fの処理時間が上限設定より長い
 		if (m_noVariableFramerateOnce || m_variableFpsMaxSec > -FLT_EPSILON && m_variableFpsMaxSec < m_fpscounter.GetFrameTimeSec()) {
 			m_runframecnt = 1.0f;
 			m_noVariableFramerateOnce = false;
 		}
 
+		//ゲームオブジェクトのループ前アプデ
 		m_gameObjectManager_Ptr->PreLoopUpdate();
 
 		//可変フレームループ
 		while((int)m_runframecnt >= 1){
 
+			//通信
 			if (GetPhoton()) { GetPhoton()->Update(); }
 
+			//ゲームオブジェクト
 			m_gameObjectManager_Ptr->Start();
 			m_gameObjectManager_Ptr->Update();
 			m_goNewDeleteManager_Ptr->FarewellDearDeadman();
 			m_gameObjectManager_Ptr->Hell();
 
+			//各種なんか
 			m_physics_Ptr->Update();
-
 			m_effekseer_Ptr->Update();
 
+			//操作系のなんか
 			ResetMouseWheelNotch();//マウスホイールのリセット
-			GetEngine().GetMouseCursorManager().ResetMouseMove();//マウス移動量のリセット
+			GetEngine().GetMouseCursorManager().ResetMouseMove();//マウス移動量のリセット			
+			GetEngine().GetKeyState().InLoopUpdate();//キーステート
+			GetEngine().GetXInputManager().InLoopUpdate();//XInput
 
+			//実行回数カウンタ減らす
 			m_runframecnt -= 1.0f;
 		}
 
+		//ゲームオブジェクトのループ後アプデ
 		m_gameObjectManager_Ptr->PostLoopUpdate();
 
 		//ライト更新

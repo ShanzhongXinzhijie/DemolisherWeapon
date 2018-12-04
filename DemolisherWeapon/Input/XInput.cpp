@@ -15,9 +15,9 @@ namespace {
 		{ enButtonRight		, XINPUT_GAMEPAD_DPAD_RIGHT },
 		{ enButtonA			, XINPUT_GAMEPAD_A },
 		{ enButtonB			, XINPUT_GAMEPAD_B },
-		{ enButtonY			, XINPUT_GAMEPAD_Y },
 		{ enButtonX			, XINPUT_GAMEPAD_X },
-		{ enButtonSelect	, XINPUT_GAMEPAD_BACK },
+		{ enButtonY			, XINPUT_GAMEPAD_Y },
+		{ enButtonBack		, XINPUT_GAMEPAD_BACK },
 		{ enButtonStart		, XINPUT_GAMEPAD_START },
 		{ enButtonRB1		, XINPUT_GAMEPAD_RIGHT_SHOULDER },
 		{ enButtonRT		, 0 },
@@ -31,28 +31,47 @@ namespace {
 bool XInputPad::GetButton(enXInputButton button) const {
 	if (!m_state.isConnect) { return false; }//Ú‘±‚µ‚Ä‚È‚¢
 
-	for (const auto& vPadToXPad : vPadToXPadTable) {
-		if (button == vPadToXPad.vButton) {
+	//for (const auto& vPadToXPad : vPadToXPadTable) {
+	const auto& vPadToXPad = vPadToXPadTable[button];
+		//if (button == vPadToXPad.vButton) {
 			if (vPadToXPad.vButton == enButtonRT) {
 				if (GetTrigger(R) > m_TRIGGER_THRESHOLD / 255.0f) {
 					return true;
 				}
-				break;
+				return false; //break;
 			}
 			if (vPadToXPad.vButton == enButtonLT) {
 				if (GetTrigger(L) > m_TRIGGER_THRESHOLD / 255.0f) {
 					return true;
 				}
-				break;
+				return false; //break;
 			}
 			if ((m_state.state.Gamepad.wButtons & vPadToXPad.xButton ) != 0) {
 				return true;
 			}
-			break;
-		}
-	}
+			return false; //break;
+		//}
+	//}
 
 	return false;
+}
+bool XInputPad::GetDown(enXInputButton button) const {
+	if (!m_buttonInputOld[button] && GetButton(button)) {
+		return true;
+	}
+	return false;
+}
+bool XInputPad::GetUp(enXInputButton button) const {
+	if (m_buttonInputOld[button] && !GetButton(button)) {
+		return true;
+	}
+	return false;
+}
+
+void XInputPad::InLoopUpdate() {
+	for (int i = 0; i < enButtonNum; i++) {
+		m_buttonInputOld[i] = GetButton(vPadToXPadTable[i].vButton);
+	}
 }
 
 void XInputPad::Update() {
@@ -92,7 +111,7 @@ void XInputPad::Update() {
 	else
 	{
 		m_state.isConnect = false;
-		m_vibrationTimelimit = 0.0f;
+		//m_vibrationTimelimit = 0.0f;
 	}	
 }
 

@@ -367,6 +367,12 @@ static inline KeyState& GetKeyState() {
 static inline bool GetKeyInput(int n) {
 	return GetEngine().GetKeyState().GetInput(n);
 }
+static inline bool GetKeyDown(int n) {
+	return GetEngine().GetKeyState().GetDown(n);
+}
+static inline bool GetKeyUp(int n) {
+	return GetEngine().GetKeyState().GetUp(n);
+}
 //XInputマネージャーの取得
 static inline XInputManager& GetXInputManager() {
 	return GetEngine().GetXInputManager();
