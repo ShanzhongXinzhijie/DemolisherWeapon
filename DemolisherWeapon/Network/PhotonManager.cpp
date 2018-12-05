@@ -179,6 +179,7 @@ namespace DemolisherWeapon {
 		//mpOutputListener->writeString(L"... room " + mLoadBalancingClient.getCurrentlyJoinedRoom().getName() + " has been created");
 		//mpOutputListener->writeString(L"regularly sending dummy events now");
 		
+		m_localPlayerNum = localPlayerNr;
 		m_isJoinedRoom = true;
 		m_state = JOINED;
 	}
@@ -203,6 +204,7 @@ namespace DemolisherWeapon {
 
 		//const ExitGames::Common::JVector<ExitGames::LoadBalancing::Player*>& P = m_LoadBalancingClient.getCurrentlyJoinedRoom().getPlayers();
 		
+		m_localPlayerNum = localPlayerNr;
 		m_isJoinedRoom = true;
 		m_state = JOINED;
 	}
@@ -224,6 +226,7 @@ namespace DemolisherWeapon {
 		//mpOutputListener->writeString(L"... room " + mLoadBalancingClient.getCurrentlyJoinedRoom().getName() + " has been successfully joined");
 		//mpOutputListener->writeString(L"regularly sending dummy events now");
 
+		m_localPlayerNum = localPlayerNr;
 		m_isJoinedRoom = true;
 		m_state = JOINED;
 	}
@@ -246,6 +249,7 @@ namespace DemolisherWeapon {
 		//mpOutputListener->writeString(L"... room " + mLoadBalancingClient.getCurrentlyJoinedRoom().getName() + " has been successfully joined");
 		//mpOutputListener->writeString(L"regularly sending dummy events now");
 		
+		m_localPlayerNum = localPlayerNr;
 		m_isJoinedRoom = true;
 		m_state = JOINED;
 	}

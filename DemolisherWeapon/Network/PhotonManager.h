@@ -116,6 +116,9 @@ namespace DemolisherWeapon {
 		//ステートを取得
 		States GetState()const { return m_state; }
 
+		//ローカルプレイヤー番号の取得
+		int GetLocalPlayerNumber()const { return m_localPlayerNum; }
+
 		//Clientを取得
 		ExitGames::LoadBalancing::Client& GetClient() {
 			return m_LoadBalancingClient;
@@ -136,6 +139,7 @@ namespace DemolisherWeapon {
 		bool m_isConnected = false;
 		bool m_isJoinedRoom = false;
 		States m_state = INITIALIZED;
+		int m_localPlayerNum = -1;
 	};
 
 }
