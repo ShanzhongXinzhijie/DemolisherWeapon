@@ -210,6 +210,9 @@ void GameLoop::Run() {
 			m_goNewDeleteManager_Ptr->FarewellDearDeadman();
 			m_gameObjectManager_Ptr->Hell();
 
+			//’ÊM
+			if (GetPhoton()) { GetPhoton()->Update(); }
+
 			//ŠeŽí‚È‚ñ‚©
 			m_physics_Ptr->Update();
 			m_effekseer_Ptr->Update();

@@ -5,13 +5,15 @@ namespace DemolisherWeapon {
 
 	void PhotonNetworkLogic::debugReturn(int /*debugLevel*/, const ExitGames::Common::JString& string)
 	{
-		//mpOutputListener->writeString(string);
+		if (m_debugReturnAction) { m_debugReturnAction(string); }
 	}
 
 	void PhotonNetworkLogic::connectionErrorReturn(int errorCode)
 	{
 		EGLOG(ExitGames::Common::DebugLevel::ERRORS, L"code: %d", errorCode);
 		//mpOutputListener->writeString(ExitGames::Common::JString(L"received connection error ") + errorCode);
+
+		if (m_errorReturnAction) { m_errorReturnAction(errorCode, L"", L"connectionErrorReturn"); }
 		
 		m_isJoinedRoom = false;
 		m_isConnected = false;
@@ -23,6 +25,8 @@ namespace DemolisherWeapon {
 		EGLOG(ExitGames::Common::DebugLevel::ERRORS, L"code: %d", errorCode);
 		//mpOutputListener->writeString(ExitGames::Common::JString(L"received error ") + errorCode + L" from client");
 
+		if (m_errorReturnAction) { m_errorReturnAction(errorCode, L"", L"clientErrorReturn"); }
+
 		m_isJoinedRoom = false;
 		m_isConnected = false;
 	}
@@ -31,12 +35,16 @@ namespace DemolisherWeapon {
 	{
 		EGLOG(ExitGames::Common::DebugLevel::WARNINGS, L"code: %d", warningCode);
 		//mpOutputListener->writeString(ExitGames::Common::JString(L"received warning ") + warningCode + L" from client");
+
+		if (m_warningReturnAction) { m_warningReturnAction(warningCode); }
 	}
 
 	void PhotonNetworkLogic::serverErrorReturn(int errorCode)
 	{
 		EGLOG(ExitGames::Common::DebugLevel::ERRORS, L"code: %d", errorCode);
 		//mpOutputListener->writeString(ExitGames::Common::JString(L"received error ") + errorCode + " from server");
+
+		if (m_errorReturnAction) { m_errorReturnAction(errorCode, L"", L"serverErrorReturn"); }
 
 		m_isJoinedRoom = false;
 		m_isConnected = false;
@@ -132,6 +140,8 @@ namespace DemolisherWeapon {
 		if (errorCode)
 		{
 			EGLOG(ExitGames::Common::DebugLevel::ERRORS, L"%ls", errorString.cstr());
+			if (m_errorReturnAction) { m_errorReturnAction(errorCode, errorString.cstr(), L"connectReturn"); }
+
 			m_isConnected = false;
 			m_state = DISCONNECTING;
 			return;
@@ -158,6 +168,8 @@ namespace DemolisherWeapon {
 		{
 			EGLOG(ExitGames::Common::DebugLevel::ERRORS, L"%ls", errorString.cstr());
 			//mpOutputListener->writeString(L"opCreateRoom() failed: " + errorString);
+			if (m_errorReturnAction) { m_errorReturnAction(errorCode, errorString.cstr(), L"createRoomReturn"); }
+			
 			m_isJoinedRoom = false;
 			m_state = CONNECTED;
 			return;
@@ -178,6 +190,8 @@ namespace DemolisherWeapon {
 		{
 			EGLOG(ExitGames::Common::DebugLevel::ERRORS, L"%ls", errorString.cstr());
 			//mpOutputListener->writeString(L"opJoinOrCreateRoom() failed: " + errorString);
+			if (m_errorReturnAction) { m_errorReturnAction(errorCode, errorString.cstr(), L"joinOrCreateRoomReturn"); }
+			
 			m_isJoinedRoom = false;
 			m_state = CONNECTED;
 			return;
@@ -200,6 +214,8 @@ namespace DemolisherWeapon {
 		{
 			EGLOG(ExitGames::Common::DebugLevel::ERRORS, L"%ls", errorString.cstr());
 			//mpOutputListener->writeString(L"opJoinRoom() failed: " + errorString);
+			if (m_errorReturnAction) { m_errorReturnAction(errorCode, errorString.cstr(), L"joinRoomReturn"); }
+			
 			m_isJoinedRoom = false;
 			m_state = CONNECTED;
 			return;
@@ -219,6 +235,8 @@ namespace DemolisherWeapon {
 		{
 			EGLOG(ExitGames::Common::DebugLevel::ERRORS, L"%ls", errorString.cstr());
 			//mpOutputListener->writeString(L"opJoinRandomRoom() failed: " + errorString);
+			if (m_errorReturnAction) { m_errorReturnAction(errorCode, errorString.cstr(), L"joinRandomRoomReturn"); }
+			
 			m_isJoinedRoom = false;
 			m_state = CONNECTED;
 			return;
@@ -239,6 +257,8 @@ namespace DemolisherWeapon {
 		{
 			EGLOG(ExitGames::Common::DebugLevel::ERRORS, L"%ls", errorString.cstr());
 			//mpOutputListener->writeString(L"opLeaveRoom() failed: " + errorString);
+			if (m_errorReturnAction) { m_errorReturnAction(errorCode, errorString.cstr(), L"leaveRoomReturn"); }
+			
 			m_isJoinedRoom = false;
 			m_state = DISCONNECTING;
 			return;

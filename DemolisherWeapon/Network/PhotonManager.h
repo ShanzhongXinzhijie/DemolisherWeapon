@@ -83,10 +83,18 @@ namespace DemolisherWeapon {
 		}
 
 		//エラーを受け取る関数を設定
-
+		//コードと文字＋どこで
+		void SetErrorReturnAction(std::function<void(int errorCode, const wchar_t* errorString, const wchar_t* errorPoint)> func) {
+			m_errorReturnAction = func;
+		}
 		//警告を受け取る関数を設定
-
+		void SetWarningReturnAction(std::function<void(int warningCode)> func) {
+			m_warningReturnAction = func;
+		}
 		//デバッグ出力を受け取る関数を設定
+		void SetDebugReturnAction(std::function<void(const ExitGames::Common::JString& string)> func) {
+			m_debugReturnAction = func;
+		}
 
 		//サーバーに接続しているか取得
 		bool GetConnected()const { return m_LoadBalancingClient.getIsInLobby(); }//return m_isConnected; }
@@ -120,6 +128,10 @@ namespace DemolisherWeapon {
 		EventActionFunc m_eventAction = nullptr;
 		JoinEventActionFunc m_joinEventAction = nullptr;
 		LeaveEventActionFunc m_leaveEventAction = nullptr;
+
+		std::function<void(int errorCode, const wchar_t* errorString, const wchar_t* errorPoint)> m_errorReturnAction = nullptr;
+		std::function<void(int warningCode)> m_warningReturnAction = nullptr;
+		std::function<void(const ExitGames::Common::JString& string)> m_debugReturnAction = nullptr;
 
 		bool m_isConnected = false;
 		bool m_isJoinedRoom = false;
