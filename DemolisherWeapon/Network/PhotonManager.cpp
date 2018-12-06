@@ -203,7 +203,10 @@ namespace DemolisherWeapon {
 		//mpOutputListener->writeString(L"regularly sending dummy events now");
 
 		//const ExitGames::Common::JVector<ExitGames::LoadBalancing::Player*>& P = m_LoadBalancingClient.getCurrentlyJoinedRoom().getPlayers();
-		
+		//int n = m_LoadBalancingClient.getCurrentlyJoinedRoom().getPlayers().getSize();
+		//int nn = P[0]->getNumber(); int nn2 = -1;
+		//if (n >= 2) { nn2 = P[1]->getNumber(); }
+
 		m_localPlayerNum = localPlayerNr;
 		m_isJoinedRoom = true;
 		m_state = JOINED;

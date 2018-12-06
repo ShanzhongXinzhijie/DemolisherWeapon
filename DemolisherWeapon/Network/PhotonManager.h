@@ -119,6 +119,15 @@ namespace DemolisherWeapon {
 		//ローカルプレイヤー番号の取得
 		int GetLocalPlayerNumber()const { return m_localPlayerNum; }
 
+		//現在のルームのプレイヤー数を取得
+		unsigned int GetCountLocalPlayer() {
+			return m_LoadBalancingClient.getCurrentlyJoinedRoom().getPlayers().getSize();
+		}
+		//現在のルームのプレイヤーを取得
+		const ExitGames::Common::JVector<ExitGames::LoadBalancing::Player*>& GetPlayers() {
+			return m_LoadBalancingClient.getCurrentlyJoinedRoom().getPlayers();
+		}
+
 		//Clientを取得
 		ExitGames::LoadBalancing::Client& GetClient() {
 			return m_LoadBalancingClient;
