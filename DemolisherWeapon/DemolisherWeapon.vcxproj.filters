@@ -73,6 +73,7 @@
     <ClInclude Include="Graphic\Shader\ShaderUtil.h" />
     <ClInclude Include="Network\PhotonManager.h" />
     <ClInclude Include="Error\Error.h" />
+    <ClInclude Include="Render\GaussianBlurRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -135,17 +136,6 @@
     <ClCompile Include="Render\EffekseerRender.cpp" />
     <ClCompile Include="Graphic\Shader\ShaderUtil.cpp" />
     <ClCompile Include="Network\PhotonManager.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="Preset\Font\myfile.spritefont" />
-    <CustomBuild Include="Preset\shader\model.fx" />
-    <CustomBuild Include="Preset\shader\motionblurCS.fx" />
-    <CustomBuild Include="Preset\shader\motionblurPS.fx" />
-    <CustomBuild Include="Preset\shader\primitive.fx" />
-    <CustomBuild Include="Preset\shader\shadowblurCS.fx" />
-    <CustomBuild Include="Preset\shader\shadowblurPS.fx" />
-    <CustomBuild Include="Preset\shader\ambientocclusionCS.fx" />
-    <CustomBuild Include="Preset\shader\defferd.fx" />
-    <CustomBuild Include="Preset\shader\linePrimitive.fx" />
+    <ClCompile Include="Render\GaussianBlurRender.cpp" />
   </ItemGroup>
 </Project>

@@ -267,6 +267,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Error\Error.h" />
+    <ClInclude Include="Render\GaussianBlurRender.h" />
     <ClInclude Include="Graphic\Shader\ShaderUtil.h" />
     <ClInclude Include="Network\PhotonManager.h" />
     <ClInclude Include="Render\EffekseerRender.h" />
@@ -334,6 +335,7 @@
     <ClInclude Include="Input\XInput.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Render\GaussianBlurRender.cpp" />
     <ClCompile Include="Graphic\Shader\ShaderUtil.cpp" />
     <ClCompile Include="Network\PhotonManager.cpp" />
     <ClCompile Include="Render\EffekseerRender.cpp" />
@@ -397,42 +399,6 @@
     <ClCompile Include="math\Vector.cpp" />
     <ClCompile Include="system\GraphicsEngine.cpp" />
     <ClCompile Include="Input\XInput.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="Preset\Font\myfile.spritefont">
-      <FileType>Document</FileType>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="Preset\shader\ambientocclusionCS.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="Preset\shader\defferd.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="Preset\shader\model.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="Preset\shader\motionblurCS.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="Preset\shader\motionblurPS.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="Preset\shader\primitive.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="Preset\shader\shadowblurCS.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="Preset\shader\shadowblurPS.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="Preset\shader\linePrimitive.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

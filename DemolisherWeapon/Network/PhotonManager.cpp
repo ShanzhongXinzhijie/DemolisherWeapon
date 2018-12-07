@@ -303,6 +303,8 @@ namespace DemolisherWeapon {
 
 	bool PhotonNetworkLogic::ConnectServer(const wchar_t* userName)
 	{
+		if (GetConnected() || m_state == CONNECTING) { return false; }
+
 		if (!m_LoadBalancingClient.connect(ExitGames::LoadBalancing::AuthenticationValues(), userName)) {
 			EGLOG(ExitGames::Common::DebugLevel::ERRORS, L"Could not connect.");
 			return false;

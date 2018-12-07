@@ -78,7 +78,9 @@ void XInputPad::Update() {
 	DWORD dwResult;
 	dwResult = XInputGetState(m_padNum, &m_state.state);
 
-	if (dwResult == ERROR_SUCCESS)
+	HWND hWnd = GetActiveWindow();
+
+	if (dwResult == ERROR_SUCCESS && hWnd == GetEngine().GetWindowHandle())
 	{
 		m_state.isConnect = true;
 

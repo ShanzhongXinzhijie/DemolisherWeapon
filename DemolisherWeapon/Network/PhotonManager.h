@@ -48,17 +48,20 @@ namespace DemolisherWeapon {
 		bool ConnectServer(const wchar_t* userName);
 		//サーバーとの接続を切断
 		void DisconnectServer() {
+			if (!GetConnected() || m_state == DISCONNECTING) { return; }
 			m_LoadBalancingClient.disconnect();
 			m_state = DISCONNECTING;
 		}
 
 		//ルームに入る
 		void JoinRoom(const ExitGames::Common::JString& roomName, nByte maxPlayers) {
+			if (GetJoinedRoom() || m_state == JOINING) { return; }
 			m_LoadBalancingClient.opJoinOrCreateRoom(roomName, ExitGames::LoadBalancing::RoomOptions().setMaxPlayers(maxPlayers));
 			m_state = JOINING;
 		}
 		//ルームから退出
 		void LeaveRoom() {
+			if (!GetJoinedRoom() || m_state == LEAVING) { return; }
 			m_LoadBalancingClient.opLeaveRoom();
 			m_state = LEAVING;
 		}
@@ -66,6 +69,7 @@ namespace DemolisherWeapon {
 		//イベントを送信
 		template<typename Ftype>
 		void Send(nByte eventCode, const Ftype& parameters, bool sendReliable = false, const ExitGames::LoadBalancing::RaiseEventOptions& options = ExitGames::LoadBalancing::RaiseEventOptions()){
+			if (!GetJoinedRoom()) { return; }
 			m_LoadBalancingClient.opRaiseEvent(sendReliable, parameters, eventCode, options);
 		}
 		//イベント受信時に実行する関数を設定
@@ -148,7 +152,9 @@ namespace DemolisherWeapon {
 		bool m_isConnected = false;
 		bool m_isJoinedRoom = false;
 		States m_state = INITIALIZED;
+
 		int m_localPlayerNum = -1;
+
 	};
 
 }
