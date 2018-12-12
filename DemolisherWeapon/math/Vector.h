@@ -107,6 +107,41 @@ public:
 	}
 
 	/*!
+	 * @brief	長さを取得
+	 */
+	float Length() const
+	{
+		DirectX::XMVECTOR xmv = DirectX::XMLoadFloat2(&vec);
+		return DirectX::XMVector2Length(xmv).m128_f32[0];
+	}
+	/*!
+	 * @brief	長さの二乗を取得
+	 */
+	float LengthSq() const
+	{
+		DirectX::XMVECTOR xmv = DirectX::XMLoadFloat2(&vec);
+		return DirectX::XMVector2LengthSq(xmv).m128_f32[0];
+	}
+
+	/*!
+	* @brief	法線を正規化。
+	*/
+	void Normalize()
+	{
+		DirectX::XMVECTOR xmv = DirectX::XMLoadFloat2(&vec);
+		xmv = DirectX::XMVector2Normalize(xmv);
+		DirectX::XMStoreFloat2(&vec, xmv);
+	}
+	CVector2 GetNorm() const {
+		DirectX::XMVECTOR xmv = DirectX::XMLoadFloat2(&vec);
+		xmv = DirectX::XMVector2Normalize(xmv);
+		CVector2 re;
+		DirectX::XMStoreFloat2(&re.vec, xmv);
+
+		return re;
+	}
+
+	/*!
 	 *@brief	加算代入演算子。
 	 */
 	const CVector2& operator+=(const CVector2& _v)

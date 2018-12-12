@@ -85,18 +85,23 @@ void XInputPad::Update() {
 		m_state.isConnect = true;
 
 		//デッドゾーンやんけ!
-		if ((m_state.state.Gamepad.sThumbLX < m_LEFT_THUMB_DEADZONE &&
+		CVector2 v_stick;
+		/*if ((m_state.state.Gamepad.sThumbLX < m_LEFT_THUMB_DEADZONE &&
 			m_state.state.Gamepad.sThumbLX > -m_LEFT_THUMB_DEADZONE) &&
 			(m_state.state.Gamepad.sThumbLY < m_LEFT_THUMB_DEADZONE &&
-				m_state.state.Gamepad.sThumbLY > -m_LEFT_THUMB_DEADZONE))
+				m_state.state.Gamepad.sThumbLY > -m_LEFT_THUMB_DEADZONE))*/
+		v_stick = { (float)m_state.state.Gamepad.sThumbLX, (float)m_state.state.Gamepad.sThumbLY };
+		if(v_stick.LengthSq() < m_LEFT_THUMB_DEADZONE*m_LEFT_THUMB_DEADZONE)
 		{
 			m_state.state.Gamepad.sThumbLX = 0;
 			m_state.state.Gamepad.sThumbLY = 0;
 		}
-		if ((m_state.state.Gamepad.sThumbRX < m_RIGHT_THUMB_DEADZONE &&
+		/*if ((m_state.state.Gamepad.sThumbRX < m_RIGHT_THUMB_DEADZONE &&
 			m_state.state.Gamepad.sThumbRX > -m_RIGHT_THUMB_DEADZONE) &&
 			(m_state.state.Gamepad.sThumbRY < m_RIGHT_THUMB_DEADZONE &&
-				m_state.state.Gamepad.sThumbRY > -m_RIGHT_THUMB_DEADZONE))
+				m_state.state.Gamepad.sThumbRY > -m_RIGHT_THUMB_DEADZONE))*/
+		v_stick = { (float)m_state.state.Gamepad.sThumbRX, (float)m_state.state.Gamepad.sThumbRY };
+		if (v_stick.LengthSq() < m_RIGHT_THUMB_DEADZONE*m_RIGHT_THUMB_DEADZONE)
 		{
 			m_state.state.Gamepad.sThumbRX = 0;
 			m_state.state.Gamepad.sThumbRY = 0;
