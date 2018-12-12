@@ -137,6 +137,11 @@ namespace DemolisherWeapon {
 			return m_LoadBalancingClient;
 		}
 
+		//Ping‚ðŽæ“¾
+		int GetPing_ms() const{
+			return m_LoadBalancingClient.getRoundTripTime();
+		}
+
 	private:
 		ExitGames::LoadBalancing::Client m_LoadBalancingClient;
 		ExitGames::Common::Logger mLogger; // accessed by EGLOG()
