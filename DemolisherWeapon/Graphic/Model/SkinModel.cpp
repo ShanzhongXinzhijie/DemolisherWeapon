@@ -190,7 +190,7 @@ void SkinModel::Draw(bool reverseCull)
 	}
 	else {
 		//‘S‘Ìİ’è
-		FindMaterial([&](ModelEffect* mat) { mat->SetDefaultMaterialParam(); });
+		FindMaterial([&](ModelEffect* mat) { mat->SetModelMaterialParam(); });
 	}
 
 	//•`‰æB

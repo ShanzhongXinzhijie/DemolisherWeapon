@@ -98,8 +98,8 @@ public:
 	void SetMaterialParam(const MaterialParam& param) {
 		m_materialParam = param;
 	}
-	//マテリアルパラメータをデフォルトに戻す
-	void SetDefaultMaterialParam() {
+	//マテリアルパラメータをモデルの設定に戻す
+	void SetModelMaterialParam() {
 		m_materialParam = m_materialSetting.GetMaterialParam();
 	}
 
