@@ -183,14 +183,14 @@ void SkinModel::Draw(bool reverseCull)
 		int i = 0;
 		FindMaterial(
 			[&](ModelEffect* mat) {
-				mat->SetMaterialParam(m_materialSetting[i].GetMaterialParam());
+				mat->SetUseMaterialSetting(m_materialSetting[i]);
 				i++;
 			}
 		);
 	}
 	else {
 		//‘S‘Ìİ’è
-		FindMaterial([&](ModelEffect* mat) { mat->SetModelMaterialParam(); });
+		FindMaterial([&](ModelEffect* mat) { mat->SetDefaultMaterialSetting(); });
 	}
 
 	//•`‰æB

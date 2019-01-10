@@ -2,6 +2,8 @@
 
 namespace DemolisherWeapon {
 
+	class ModelEffect;
+
 	//定数バッファ　[model.fx:MaterialCb]
 	//マテリアルパラメーター
 	struct MaterialParam {
@@ -14,9 +16,10 @@ namespace DemolisherWeapon {
 	{
 	public:
 
-		void Init(const wchar_t* matName, const MaterialParam& param) {
-			SetMatrialName(matName);
-			SetMaterialParam(param);
+		void Init(ModelEffect* modeleffect) {
+			m_isInit = modeleffect;
+			SetDefaultPS();
+			SetDefaultAlbedoTexture();
 		}
 
 		//名前を設定
@@ -58,9 +61,42 @@ namespace DemolisherWeapon {
 			m_materialParam = param;
 		}
 
+		//シェーダを取得
+		Shader* GetPS() const{
+			return m_pPSShader;
+		}
+		//シェーダを設定
+		void SetPS(Shader* ps) {
+			m_pPSShader = ps;
+		}
+		//シェーダをデフォに戻す
+		void SetDefaultPS();
+
+		//アルベドテクスチャを取得
+		ID3D11ShaderResourceView* GetAlbedoTexture()const {
+			return m_pAlbedoTex;
+		}
+		//アルベドテクスチャを設定
+		void SetAlbedoTexture(ID3D11ShaderResourceView* tex){
+
+			if (m_pAlbedoTex == tex) { return; }//既に
+
+			if (m_pAlbedoTex) { 
+				m_pAlbedoTex->Release();
+			}
+			m_pAlbedoTex = tex;
+			m_pAlbedoTex->AddRef();
+		}
+		//アルベドテクスチャをデフォに戻す
+		void SetDefaultAlbedoTexture();
+		
 	private:
-		std::wstring m_materialName;			//!<マテリアル名。
-		MaterialParam m_materialParam;	//マテリアルパラメータ
+		ModelEffect *m_isInit = nullptr;
+
+		std::wstring m_materialName;						//マテリアル名
+		MaterialParam m_materialParam;						//マテリアルパラメータ
+		Shader* m_pPSShader = nullptr;						//シェーダー
+		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;	//テクスチャ
 	};
 
 }

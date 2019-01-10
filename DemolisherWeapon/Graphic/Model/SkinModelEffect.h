@@ -45,6 +45,8 @@ public:
 
 		m_pPSShader = &m_psShader;
 
+		MaterialSettingInit(m_materialSetting);
+
 		//マテリアルパラメーターの定数バッファ
 		ShaderUtil::CreateConstantBuffer(sizeof(MaterialParam), &m_materialParamCB);
 	}
@@ -63,6 +65,19 @@ public:
 		*pByteCodeLength = m_vsShader.GetByteCodeSize();
 	}
 
+	//マテリアル設定を初期化してやる
+	void MaterialSettingInit(MaterialSetting& matset) {
+		matset.Init(this);
+		matset.SetMatrialName(GetMatrialName());
+		matset.SetMaterialParam(m_materialSetting.GetMaterialParam());
+		matset.SetPS(m_materialSetting.GetPS());
+		matset.SetAlbedoTexture(m_materialSetting.GetAlbedoTexture());
+	}
+	//マテリアル設定の取得
+	MaterialSetting& GetMaterialSetting() {
+		return m_materialSetting;
+	}
+
 	//アルベドテクスチャを設定
 	void SetAlbedoTexture(ID3D11ShaderResourceView* tex)
 	{
@@ -71,41 +86,30 @@ public:
 			m_albedoTex = tex;
 			m_pAlbedoTex = m_albedoTex;
 		}
-		else {
-			//テクスチャ変更
-			m_pAlbedoTex = tex;
-			m_pAlbedoTex->AddRef();
-		}
+
+		//テクスチャ変更
+		m_materialSetting.SetAlbedoTexture(tex);		
 	}
 	//アルベドテクスチャをデフォに戻す
 	void SetDefaultAlbedoTexture() {
-		if (m_pAlbedoTex == m_albedoTex) { return; }//既にデフォルトテクスチャ
-
-		m_pAlbedoTex->Release();
-		m_pAlbedoTex = m_albedoTex;
+		m_materialSetting.SetDefaultAlbedoTexture();
+	}
+	//デフォルトのアルベドテクスチャを取得
+	ID3D11ShaderResourceView* GetDefaultAlbedoTexture() const{
+		return m_albedoTex;
 	}
 
 	//シェーダを設定
 	void SetPS(Shader* ps) {
-		m_pPSShader = ps;
+		m_materialSetting.SetPS(ps);
 	}
 	//シェーダをデフォに戻す
 	void SetDefaultPS() {
-		m_pPSShader = &m_psShader;
+		m_materialSetting.SetDefaultPS();
 	}
-
-	//マテリアルパラメーターの設定
-	void SetMaterialParam(const MaterialParam& param) {
-		m_materialParam = param;
-	}
-	//マテリアルパラメータをモデルの設定に戻す
-	void SetModelMaterialParam() {
-		m_materialParam = m_materialSetting.GetMaterialParam();
-	}
-
-	//マテリアル設定の取得
-	MaterialSetting& GetMaterialSetting() {
-		return m_materialSetting;
+	//デフォルトのシェーダを取得
+	Shader* GetDefaultPS() {
+		return &m_psShader;
 	}
 
 	//名前を設定
@@ -127,15 +131,28 @@ public:
 	void SetLightingEnable(bool enable) {
 		m_materialSetting.SetLightingEnable(enable);
 	}
-
 	//自己発光色(エミッシブ)を設定
 	void SetEmissive(const CVector3& emissive) {
 		m_materialSetting.SetEmissive(emissive);
 	}
-
 	//アルベドにかけるスケールを設定
 	void SetAlbedoScale(const CVector4& scale) {
 		m_materialSetting.SetAlbedoScale(scale);
+	}
+
+
+	//これより下、内部用
+
+	//使うマテリアル設定を適応
+	void SetUseMaterialSetting(MaterialSetting& matset) {
+		m_materialParam = matset.GetMaterialParam();
+		m_pPSShader = matset.GetPS();
+		m_pAlbedoTex = matset.GetAlbedoTexture();
+	}
+	void SetDefaultMaterialSetting() {
+		m_materialParam = m_materialSetting.GetMaterialParam();
+		m_pPSShader = m_materialSetting.GetPS();
+		m_pAlbedoTex = m_materialSetting.GetAlbedoTexture();
 	}
 	
 };

@@ -114,7 +114,7 @@ public:
 		int i = 0;
 		FindMaterial(
 			[&](ModelEffect* mat) {
-				m_materialSetting[i].Init(mat->GetMatrialName(),mat->GetMaterialSetting().GetMaterialParam());
+				mat->MaterialSettingInit(m_materialSetting[i]);
 				i++;
 			}
 		);
