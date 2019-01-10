@@ -106,6 +106,33 @@ public:
 		});
 	}
 
+	//マテリアル設定を初期化して有効化
+	void InitMaterialSetting() {
+		isMatSetInit = true;
+		isMatSetEnable = true;
+
+		int i = 0;
+		FindMaterial(
+			[&](ModelEffect* mat) {
+				m_materialSetting[i].Init(mat->GetMatrialName(),mat->GetMaterialSetting().GetMaterialParam());
+				i++;
+			}
+		);
+	}
+	//マテリアル設定の有効・無効を設定
+	void SetMaterialSettingEnable(bool enable) {
+		isMatSetEnable = enable;
+	}
+	//マテリアル設定を検索する
+	void FindMaterialSetting(std::function<void(MaterialSetting*)> onFindMaterialSetting) 
+	{
+		if (!isMatSetInit) { InitMaterialSetting(); }
+
+		for (auto& mat : m_materialSetting) {
+			onFindMaterialSetting(&mat);
+		}
+	}
+
 	//モーションブラーフラグ
 	void SetMotionBlurFlag(const bool flag)
 	{
@@ -155,6 +182,11 @@ private:
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
 	bool m_isFirstWorldMatRef = true;
 	bool m_isMotionBlur = true;//モーションブラー有効か
+
+	//マテリアル個別設定	
+	bool isMatSetInit = false;
+	bool isMatSetEnable = false;
+	std::vector<MaterialSetting> m_materialSetting;
 
 	EnFbxUpAxis			m_enFbxUpAxis = enFbxUpAxisZ;	//!<FBXの上方向。
 	EnFbxCoordinateSystem m_enFbxCoordinate = enFbxRightHanded;//FBXの座標系

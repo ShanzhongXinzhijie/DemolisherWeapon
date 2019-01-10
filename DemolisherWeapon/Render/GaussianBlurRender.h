@@ -18,12 +18,13 @@ namespace DemolisherWeapon {
 		//入力テクスチャ
 		ID3D11ShaderResourceView* m_souce = nullptr;
 		//出力テクスチャ
-		ID3D11Texture2D*		m_outputX = nullptr;
-		ID3D11RenderTargetView* m_outputXRTV = nullptr;
-		ID3D11ShaderResourceView* m_outputXSRV = nullptr;
-		ID3D11Texture2D*		m_outputY = nullptr;
-		ID3D11RenderTargetView* m_outputYRTV = nullptr;
-		ID3D11ShaderResourceView* m_outputYSRV = nullptr;
+		ID3D11Texture2D*			m_outputX = nullptr;
+		ID3D11RenderTargetView*		m_outputXRTV = nullptr;
+		ID3D11ShaderResourceView*	m_outputXSRV = nullptr;
+
+		ID3D11Texture2D*			m_outputY = nullptr;
+		ID3D11RenderTargetView*		m_outputYRTV = nullptr;
+		ID3D11ShaderResourceView*	m_outputYSRV = nullptr;
 
 		//定数バッファ
 		static const int NUM_WEIGHTS = 8; 

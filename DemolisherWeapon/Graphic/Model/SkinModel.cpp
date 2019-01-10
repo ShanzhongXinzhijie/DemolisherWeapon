@@ -36,6 +36,13 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	//SkinModelDataManagerを使用してCMOファイルのロード。
 	m_modelDx = m_skinModelDataManager.Load(filePath, m_skeleton);	
 
+	//マテリアル設定の確保
+	FindMaterial(
+		[&](ModelEffect* mat) {
+			m_materialSetting.emplace_back();
+		}
+	);
+
 	//ファイル名記録
 	std::experimental::filesystem::path ps = filePath;
 	m_modelName = ps.stem();
@@ -155,7 +162,7 @@ void SkinModel::Draw(bool reverseCull)
 	vsCb.mWorld_old = m_worldMatrixOld;
 	vsCb.mProj_old = GetMainCamera()->GetProjMatrixOld();
 	vsCb.mView_old = GetMainCamera()->GetViewMatrixOld();
-	
+
 	vsCb.isMotionBlur = m_isMotionBlur ? 1 : 0;
 
 	vsCb.alignment[0] = vsCb.alignment[1] = vsCb.alignment[2] = 0;
@@ -169,6 +176,22 @@ void SkinModel::Draw(bool reverseCull)
 	d3dDeviceContext->PSSetSamplers(0, 1, &m_samplerState);
 	//ボーン行列をGPUに転送。
 	m_skeleton.SendBoneMatrixArrayToGPU();
+
+	//マテリアル設定の適応
+	if(isMatSetInit && isMatSetEnable){
+		//個別設定
+		int i = 0;
+		FindMaterial(
+			[&](ModelEffect* mat) {
+				mat->SetMaterialParam(m_materialSetting[i].GetMaterialParam());
+				i++;
+			}
+		);
+	}
+	else {
+		//全体設定
+		FindMaterial([&](ModelEffect* mat) { mat->SetDefaultMaterialParam(); });
+	}
 
 	//描画。
 	m_modelDx->Draw(

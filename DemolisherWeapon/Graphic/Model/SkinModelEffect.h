@@ -3,6 +3,8 @@
 #include "Graphic/Shader/Shader.h"
 #include "Graphic/Shader/ShaderUtil.h"
 
+#include "MaterialSetting.h"
+
 namespace DemolisherWeapon {
 
 /*!
@@ -24,21 +26,14 @@ private:
 	static enShaderMode m_s_shadermode ;
 
 protected:
-	std::wstring m_materialName;	//!<マテリアル名。
 	Shader* m_pVSShader = nullptr;
 	Shader* m_pPSShader = nullptr;
 	Shader m_vsShader, m_vsZShader;
 	Shader m_psShader, m_psZShader;
 	bool isSkining;
 	ID3D11ShaderResourceView* m_albedoTex = nullptr, *m_pAlbedoTex = nullptr;
-
-	//定数バッファ　[model.fx:MaterialCb]
-	//マテリアルパラメーター
-	struct MaterialParam {
-		CVector4 albedoScale = CVector4::One();	//アルベドにかけるスケール
-		CVector3 emissive;						//エミッシブ(自己発光)
-		int isLighting = 1;						//ライティングするか
-	};
+	
+	MaterialSetting m_materialSetting;			//マテリアル設定
 	MaterialParam m_materialParam;				//マテリアルパラメータ
 	ID3D11Buffer* m_materialParamCB = nullptr;	//マテリアルパラメータ用の定数バッファ
 
@@ -90,17 +85,6 @@ public:
 		m_pAlbedoTex = m_albedoTex;
 	}
 
-	//名前を取得
-	void SetMatrialName(const wchar_t* matName)
-	{
-		m_materialName = matName;
-	}	
-	//名前の一致を判定
-	bool EqualMaterialName(const wchar_t* name) const
-	{
-		return wcscmp(name, m_materialName.c_str()) == 0;
-	}
-
 	//シェーダを設定
 	void SetPS(Shader* ps) {
 		m_pPSShader = ps;
@@ -110,19 +94,48 @@ public:
 		m_pPSShader = &m_psShader;
 	}
 
+	//マテリアルパラメーターの設定
+	void SetMaterialParam(const MaterialParam& param) {
+		m_materialParam = param;
+	}
+	//マテリアルパラメータをデフォルトに戻す
+	void SetDefaultMaterialParam() {
+		m_materialParam = m_materialSetting.GetMaterialParam();
+	}
+
+	//マテリアル設定の取得
+	MaterialSetting& GetMaterialSetting() {
+		return m_materialSetting;
+	}
+
+	//名前を設定
+	void SetMatrialName(const wchar_t* matName)
+	{
+		m_materialSetting.SetMatrialName(matName);
+	}
+	//名前を取得
+	const wchar_t* GetMatrialName()const {
+		return m_materialSetting.GetMatrialName();
+	}
+	//名前の一致を判定
+	bool EqualMaterialName(const wchar_t* name) const
+	{
+		return m_materialSetting.EqualMaterialName(name);
+	}
+
 	//ライティングするかを設定
 	void SetLightingEnable(bool enable) {
-		m_materialParam.isLighting = enable ? 1 : 0;
+		m_materialSetting.SetLightingEnable(enable);
 	}
 
 	//自己発光色(エミッシブ)を設定
 	void SetEmissive(const CVector3& emissive) {
-		m_materialParam.emissive = emissive;
+		m_materialSetting.SetEmissive(emissive);
 	}
 
 	//アルベドにかけるスケールを設定
 	void SetAlbedoScale(const CVector4& scale) {
-		m_materialParam.albedoScale = scale;
+		m_materialSetting.SetAlbedoScale(scale);
 	}
 	
 };
@@ -169,6 +182,7 @@ public:
 		EffectFactory(device) {}
 	std::shared_ptr<DirectX::IEffect> __cdecl CreateEffect(const EffectInfo& info, ID3D11DeviceContext* deviceContext)override
 	{
+		//モデルエフェクト作成
 		std::shared_ptr<ModelEffect> effect;
 		if (info.enableSkinning) {
 			//スキニングあり。
@@ -178,13 +192,18 @@ public:
 			//スキニングなし。
 			effect = std::make_shared<NonSkinModelEffect>();
 		}
-		effect->SetMatrialName(info.name);
+
+		//名前設定
+		effect->GetMaterialSetting().SetMatrialName(info.name);
+
+		//テクスチャ設定
 		if (info.diffuseTexture && *info.diffuseTexture)
 		{
 			ID3D11ShaderResourceView* texSRV;
 			DirectX::EffectFactory::CreateTexture(info.diffuseTexture, deviceContext, &texSRV);
 			effect->SetAlbedoTexture(texSRV);
 		}
+
 		return effect;
 	}
 

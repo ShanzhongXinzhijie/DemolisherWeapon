@@ -74,6 +74,7 @@
     <ClInclude Include="Network\PhotonManager.h" />
     <ClInclude Include="Error\Error.h" />
     <ClInclude Include="Render\GaussianBlurRender.h" />
+    <ClInclude Include="Graphic\Model\MaterialSetting.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -137,5 +138,6 @@
     <ClCompile Include="Graphic\Shader\ShaderUtil.cpp" />
     <ClCompile Include="Network\PhotonManager.cpp" />
     <ClCompile Include="Render\GaussianBlurRender.cpp" />
+    <ClCompile Include="Graphic\Model\MaterialSetting.cpp" />
   </ItemGroup>
 </Project>
