@@ -291,6 +291,12 @@ static inline void SetAmbientLight(const CVector3& color) {
 	GetEngine().GetGraphicsEngine().GetLightManager().SetAmbientLight(color);
 }
 
+//シャドウマップをひとつ有効化
+//UINT width, UINT height ...シャドウマップのサイズ
+static inline CShadowMap* CreateShadowMap(UINT width, UINT height) {
+	return GetEngine().GetGraphicsEngine().GetShadowMapRender().EnableShadowMap(width, height);
+}
+
 //ゲームオブジェクトの登録
 template <typename T>
 static inline void AddGO(T* go) {

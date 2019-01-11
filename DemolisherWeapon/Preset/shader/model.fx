@@ -299,8 +299,6 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	}
 	else {
 		discard;
-		//Out.albedo = float4(0.0f, 0.0f, 0.0f, 0.0f);
-		//return Out;
 	}
 
 	//–@ü

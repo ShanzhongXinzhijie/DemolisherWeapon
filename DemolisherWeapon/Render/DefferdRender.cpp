@@ -85,13 +85,22 @@ void DefferdRender::Render() {
 
 	//シャドウマップ関係をセット
 	ShadowConstantBuffer sCb;
+	//AOを有効にするか
 	sCb.boolAO = GetEngine().GetGraphicsEngine().GetAmbientOcclusionRender().GetEnable() ? 1 : 0;
+	//メインカメラの逆行列
 	sCb.mViewProjInv.Mul(GetMainCamera()->GetViewMatrix(), GetMainCamera()->GetProjMatrix());
 	sCb.mViewProjInv.Inverse(sCb.mViewProjInv);
-	for (int i = 0; i < GetEngine().GetGraphicsEngine().GetShadowMapRender().GetSHADOWMAP_NUM(); i++) {
-		rc->PSSetShaderResources(60+i, 1, &GetEngine().GetGraphicsEngine().GetShadowMapRender().GetShadowMapSRV(i));
-		sCb.mLVP[i] = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightViewProjMatrix(i);
-		sCb.shadowDir[i] = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightDir(i);
+	for (int i = 0; i < ShadowMapRender::SHADOWMAP_NUM; i++) {
+		//有効か？
+		sCb.enableShadowMap[i].x = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetShadowMapEnable(i) ? 1 : 0;
+		if (sCb.enableShadowMap[i].x) {
+			//シェーダーリソース設定
+			rc->PSSetShaderResources(60 + i, 1, &GetEngine().GetGraphicsEngine().GetShadowMapRender().GetShadowMapSRV(i));
+			//定数
+			sCb.mLVP[i] = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightViewProjMatrix(i);
+			sCb.shadowDir[i] = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightDir(i);
+			sCb.shadowDir[i].w = 0.00025f*4.0f;//オフセット
+		}
 	}
 	rc->UpdateSubresource(m_scb, 0, nullptr, &sCb, 0, 0);
 	//rc->VSSetConstantBuffers(1, 1, &m_scb);
@@ -124,7 +133,7 @@ void DefferdRender::Render() {
 	rc->PSSetShaderResources(100, 1, view);
 	rc->PSSetShaderResources(101, 1, view);
 
-	for (int i = 0; i < GetEngine().GetGraphicsEngine().GetShadowMapRender().GetSHADOWMAP_NUM(); i++) {
+	for (int i = 0; i < ShadowMapRender::SHADOWMAP_NUM; i++) {
 		rc->PSSetShaderResources(60 + i, 1, view);
 	}
 

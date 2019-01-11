@@ -16,7 +16,7 @@ public:
 	CDirectionLight() {};
 	CDirectionLight(const CVector3& color, const CVector3& dir) {
 		m_struct.color = color;
-		m_struct.direction = dir;
+		m_struct.direction = dir * -1.0f;
 		m_struct.direction.Normalize();
 	};
 
@@ -32,7 +32,7 @@ public:
 		m_struct.color = color;
 	}
 	void SetDirection(const CVector3& dir) {
-		m_struct.direction = dir;
+		m_struct.direction = dir * -1.0f;
 		m_struct.direction.Normalize();
 	}
 

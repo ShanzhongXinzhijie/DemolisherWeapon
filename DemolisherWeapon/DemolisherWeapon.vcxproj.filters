@@ -75,6 +75,7 @@
     <ClInclude Include="Error\Error.h" />
     <ClInclude Include="Render\GaussianBlurRender.h" />
     <ClInclude Include="Graphic\Model\MaterialSetting.h" />
+    <ClInclude Include="Graphic\Shadowmap\CShadowMap.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -139,5 +140,21 @@
     <ClCompile Include="Network\PhotonManager.cpp" />
     <ClCompile Include="Render\GaussianBlurRender.cpp" />
     <ClCompile Include="Graphic\Model\MaterialSetting.cpp" />
+    <ClCompile Include="Graphic\Shadowmap\CShadowMap.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Preset\Font\myfile.spritefont" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Preset\shader\ambientocclusionCS.fx" />
+    <FxCompile Include="Preset\shader\defferd.fx" />
+    <FxCompile Include="Preset\shader\gaussianblur.fx" />
+    <FxCompile Include="Preset\shader\linePrimitive.fx" />
+    <FxCompile Include="Preset\shader\model.fx" />
+    <FxCompile Include="Preset\shader\motionblurCS.fx" />
+    <FxCompile Include="Preset\shader\motionblurPS.fx" />
+    <FxCompile Include="Preset\shader\primitive.fx" />
+    <FxCompile Include="Preset\shader\shadowblurCS.fx" />
+    <FxCompile Include="Preset\shader\shadowblurPS.fx" />
   </ItemGroup>
 </Project>

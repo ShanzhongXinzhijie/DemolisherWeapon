@@ -1,7 +1,7 @@
 #pragma once
 #include "IRander.h"
 #include "Graphic/Shader/Shader.h"
-#include "Camera/CameraManager.h"
+#include "Graphic/Shadowmap/CShadowMap.h"
 
 namespace DemolisherWeapon {
 
@@ -18,44 +18,52 @@ public:
 	void Render()override;
 	void PostRender()override;
 
+	//シャドウマップに描画するモデルを追加
 	void AddDrawModel(SkinModel* caster) {
 		m_drawModelList.push_back(caster);
 	}
 
-	int GetSHADOWMAP_NUM()const{
-		return SHADOWMAP_NUM;
+	//シャドウマップをひとつ有効化
+	//UINT width, UINT height ...シャドウマップのサイズ
+	CShadowMap* EnableShadowMap(UINT width, UINT height) {
+		int i = 0;
+		for (i = 0; i < SHADOWMAP_NUM; i++) {
+			if (!m_shadowMaps[i].GetIsInit()) {
+				m_shadowMaps[i].Init(width, height);
+				return &m_shadowMaps[i];
+			}
+		}
+		DW_ERRORBOX(i == SHADOWMAP_NUM, "ShadowMapRender::EnableShadowMap() :シャドウマップをこれ以上作れません");
+		return nullptr;
 	}
+
+	//シャドウマップ有効か取得
+	bool GetShadowMapEnable(int num)const {
+		return m_shadowMaps[num].GetEnable();
+	}
+	//シャドウマップのSRV取得
 	ID3D11ShaderResourceView*& GetShadowMapSRV(int num) {
-		return m_shadowMapSRV[num][0];
+		return m_shadowMaps[num].GetShadowMapSRV();
 	}
 	//ライト視点のビュープロジェクション行列を出す
 	CMatrix GetLightViewProjMatrix(int num)const{
-		CMatrix remat;
-		remat.Mul(m_lightCam[num].GetViewMatrix(), m_lightCam[num].GetProjMatrix());
-		return remat;
+		return m_shadowMaps[num].GetLightViewProjMatrix();
 	}
 	//ライト方向を出す
 	CVector3 GetLightDir(int num)const {
-		return (m_lightCam[num].GetTarget() - m_lightCam[num].GetPos()).GetNorm();
+		return m_shadowMaps[num].GetLightDir();
 	}
 
-	static const int SHADOWMAP_NUM = 1;
+	//シャドウマップの最大数
+	static const int SHADOWMAP_NUM = 12;
 
 private:
 	std::list<SkinModel*> m_drawModelList;
 
-	GameObj::NoRegisterOrthoCamera m_lightCam[SHADOWMAP_NUM];//ライト視点カメラ
-	ID3D11Texture2D*		m_shadowMapTex[SHADOWMAP_NUM][2] = { nullptr };		//シャドウマップテクスチャ
-	ID3D11RenderTargetView* m_shadowMapView[SHADOWMAP_NUM][2] = { nullptr };		//シャドウマップビュー
-	ID3D11ShaderResourceView* m_shadowMapSRV[SHADOWMAP_NUM][2] = { nullptr };		//シャドウマップSRV
+	CShadowMap m_shadowMaps[SHADOWMAP_NUM];
 
-	ID3D11Texture2D*		m_depthStencilTex = nullptr;				//デプスステンシルテクスチャ
-	ID3D11DepthStencilView* m_depthStencilView = nullptr;				//デプスステンシルビュー
-
-	D3D11_VIEWPORT m_viewport;//ビューポート
-
-	ID3D11DepthStencilState* m_depthStencilState = nullptr;//デプスステンシルステート
-	ID3D11RasterizerState* m_rasterizerState = nullptr;
+	//ID3D11DepthStencilState* m_depthStencilState = nullptr;
+	//ID3D11RasterizerState* m_rasterizerState = nullptr;
 
 	//ブラー関係
 	Shader m_vsBlur;

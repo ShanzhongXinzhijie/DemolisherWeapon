@@ -23,15 +23,31 @@ StructuredBuffer<SDirectionLight> directionLight : register(t100);
 StructuredBuffer<SPointLight> pointLightList : register(t101);
 
 //シャドウマップ系
-#define NUM_SHADOW_MAP 1
+#define SHADOWMAP_NUM 12
 #define SHADOWMAP_ARRAY(a) shadowMap##a
 cbuffer ShadowCb : register(b1) {
 	float4x4 ViewProjInv;
-	float4x4 mLVP[NUM_SHADOW_MAP];
-	float3 shadowDir[NUM_SHADOW_MAP];
-	int boolAO;
+	float4x4 mLVP[SHADOWMAP_NUM];
+	float4 shadowDir[SHADOWMAP_NUM];//wはオフセット
+	float4 enableShadowMap[SHADOWMAP_NUM];//シャドウマップ有効か？
+
+	int boolAO;//AOを有効にするか
 };
-Texture2D<float> shadowMap0 : register(t60);
+struct HideInShadow {
+	bool flag[SHADOWMAP_NUM];
+};
+Texture2D<float> shadowMap0  : register(t60);
+Texture2D<float> shadowMap1  : register(t61);
+Texture2D<float> shadowMap2  : register(t62);
+Texture2D<float> shadowMap3  : register(t63);
+Texture2D<float> shadowMap4  : register(t64);
+Texture2D<float> shadowMap5  : register(t65);
+Texture2D<float> shadowMap6  : register(t66);
+Texture2D<float> shadowMap7  : register(t67);
+Texture2D<float> shadowMap8  : register(t68);
+Texture2D<float> shadowMap9  : register(t69);
+Texture2D<float> shadowMap10 : register(t70);
+Texture2D<float> shadowMap11 : register(t71);
 SamplerComparisonState	shadowSamplerComparisonState	: register(s1);
 
 //シャドウマップの判定
@@ -50,12 +66,45 @@ inline bool ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	lLViewPosition.y = -lLViewPosition.y *0.5f + 0.5f;
 
 	//オフセット
-	lLViewPosition.z -= 0.00025f*4.0f;// +0.00025f*(1.0f - lLViewPosition.z);//Z値に応じたバイアス値
+	lLViewPosition.z -= shadowDir[usemapnum].w;//0.00025f*4.0f;// +0.00025f*(1.0f - lLViewPosition.z);//Z値に応じたバイアス値
 
 	int kekka = 1;
 	switch (usemapnum) {
 	case 0:
 		kekka = SHADOWMAP_ARRAY(0).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 1:
+		kekka = SHADOWMAP_ARRAY(1).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 2:
+		kekka = SHADOWMAP_ARRAY(2).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 3:
+		kekka = SHADOWMAP_ARRAY(3).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 4:
+		kekka = SHADOWMAP_ARRAY(4).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 5:
+		kekka = SHADOWMAP_ARRAY(5).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 6:
+		kekka = SHADOWMAP_ARRAY(6).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 7:
+		kekka = SHADOWMAP_ARRAY(7).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 8:
+		kekka = SHADOWMAP_ARRAY(8).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 9:
+		kekka = SHADOWMAP_ARRAY(9).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 10:
+		kekka = SHADOWMAP_ARRAY(10).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		break;
+	case 11:
+		kekka = SHADOWMAP_ARRAY(11).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
 		break;
 	default:
 		break;
@@ -134,7 +183,6 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	if (albedo.w > 0.0f) {
 	}else{
 		discard;
-		//return float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
 
 	float3 normal = normalMap.Sample(Sampler, In.uv).xyz;
@@ -147,12 +195,14 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		return float4(saturate(albedo.rgb + lightParam.rgb), albedo.w);//エミッシブ加算
 	}
 
-	//シャドウマップ
-	bool hideInShadow[NUM_SHADOW_MAP] = { 0 };
-	for (int i = 0; i < NUM_SHADOW_MAP; i++) {
+	//シャドウマップの範囲に入っているか判定
+	HideInShadow hideInShadow = (HideInShadow)0;
+	for (int i = 0; i < SHADOWMAP_NUM; i++) {
+		if (enableShadowMap[i].x){
 		if (ShadowMapFunc(i, float4(worldpos, 1.0f)) == true) {			
-			hideInShadow[i] = true;
-			break;
+			hideInShadow.flag[i] = true;
+			//break;
+		}
 		}
 	}
 
@@ -162,14 +212,16 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	//ディレクションライト
 	for (int i = 0; i < numDirectionLight; i++) {
 
-		//シャドウマップの遮蔽
+		//シャドウマップの遮蔽適応
 		float nothide = 1.0f;
-		for (int swi = 0; swi < NUM_SHADOW_MAP; swi++) {
-			if (hideInShadow[swi]) {
-				nothide = saturate(1.0f - dot(shadowDir[swi], directionLight[i].direction)*-1.0f);
+		for (int swi = 0; swi < SHADOWMAP_NUM; swi++) {
+			if (hideInShadow.flag[swi]) {
+				nothide *= saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-1.0f);
+				if (nothide == 0.0f) { break; }
 			}
 		}
 
+		if (nothide == 0.0f) { continue; }
 		Out += Lambert(albedo.xyz, directionLight[i].direction, normal) * directionLight[i].color * nothide;
 	}
 	//ポイントライト
