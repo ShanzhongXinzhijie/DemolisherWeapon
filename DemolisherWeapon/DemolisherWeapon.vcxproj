@@ -318,6 +318,7 @@
     <ClInclude Include="FPS\CFpsCounter.h" />
     <ClInclude Include="Render\IRander.h" />
     <ClInclude Include="physics\SphereCollider.h" />
+    <ClInclude Include="Graphic\Shadowmap\ShadowMapHandler.h" />
     <ClInclude Include="Sound\SoundEngine.h" />
     <ClInclude Include="system\GameObject.h" />
     <ClInclude Include="Graphic\Model\Skeleton.h" />
@@ -390,6 +391,7 @@
     </ClCompile>
     <ClCompile Include="Render\IRander.cpp" />
     <ClCompile Include="physics\SphereCollider.cpp" />
+    <ClCompile Include="Graphic\Shadowmap\ShadowMapHandler.cpp" />
     <ClCompile Include="Sound\SoundEngine.cpp" />
     <ClCompile Include="system\GameObject.cpp" />
     <ClCompile Include="Graphic\Model\Skeleton.cpp" />

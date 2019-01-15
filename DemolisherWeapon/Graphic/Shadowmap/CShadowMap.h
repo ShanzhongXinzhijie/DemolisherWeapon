@@ -8,7 +8,10 @@ class CShadowMap
 public:
 	~CShadowMap();
 
+	//シャドウマップを作成
 	void Init(UINT width, UINT height);
+
+	//シャドウマップを削除
 	void Release();
 
 	bool GetIsInit()const { return m_isInit; }

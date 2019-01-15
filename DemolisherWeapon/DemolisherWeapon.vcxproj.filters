@@ -76,6 +76,7 @@
     <ClInclude Include="Render\GaussianBlurRender.h" />
     <ClInclude Include="Graphic\Model\MaterialSetting.h" />
     <ClInclude Include="Graphic\Shadowmap\CShadowMap.h" />
+    <ClInclude Include="Graphic\Shadowmap\ShadowMapHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -141,20 +142,19 @@
     <ClCompile Include="Render\GaussianBlurRender.cpp" />
     <ClCompile Include="Graphic\Model\MaterialSetting.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CShadowMap.cpp" />
+    <ClCompile Include="Graphic\Shadowmap\ShadowMapHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Preset\Font\myfile.spritefont" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Preset\shader\ambientocclusionCS.fx" />
-    <FxCompile Include="Preset\shader\defferd.fx" />
-    <FxCompile Include="Preset\shader\gaussianblur.fx" />
-    <FxCompile Include="Preset\shader\linePrimitive.fx" />
-    <FxCompile Include="Preset\shader\model.fx" />
-    <FxCompile Include="Preset\shader\motionblurCS.fx" />
-    <FxCompile Include="Preset\shader\motionblurPS.fx" />
-    <FxCompile Include="Preset\shader\primitive.fx" />
-    <FxCompile Include="Preset\shader\shadowblurCS.fx" />
-    <FxCompile Include="Preset\shader\shadowblurPS.fx" />
+    <CustomBuild Include="Preset\Font\myfile.spritefont" />
+    <CustomBuild Include="Preset\shader\ambientocclusionCS.fx" />
+    <CustomBuild Include="Preset\shader\defferd.fx" />
+    <CustomBuild Include="Preset\shader\gaussianblur.fx" />
+    <CustomBuild Include="Preset\shader\linePrimitive.fx" />
+    <CustomBuild Include="Preset\shader\model.fx" />
+    <CustomBuild Include="Preset\shader\motionblurCS.fx" />
+    <CustomBuild Include="Preset\shader\motionblurPS.fx" />
+    <CustomBuild Include="Preset\shader\primitive.fx" />
+    <CustomBuild Include="Preset\shader\shadowblurCS.fx" />
+    <CustomBuild Include="Preset\shader\shadowblurPS.fx" />
   </ItemGroup>
 </Project>

@@ -216,7 +216,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		float nothide = 1.0f;
 		for (int swi = 0; swi < SHADOWMAP_NUM; swi++) {
 			if (hideInShadow.flag[swi]) {
-				nothide *= saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-1.0f);
+				nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-1.0f));
 				if (nothide == 0.0f) { break; }
 			}
 		}
