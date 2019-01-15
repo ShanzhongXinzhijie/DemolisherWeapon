@@ -49,7 +49,7 @@ namespace DemolisherWeapon {
 	}
 
 	void ShadowMapHandler::ShadowMapUpdate() {
-		m_shadowMap->GetLightCamera().SetPos(m_target - m_direction * m_area.z);
+		m_shadowMap->GetLightCamera().SetPos(m_target - m_direction * (m_area.z/2.0f));
 		m_shadowMap->GetLightCamera().SetTarget(m_target);
 		m_shadowMap->GetLightCamera().SetUp(m_dirY);
 		m_shadowMap->GetLightCamera().SetNear(m_near);

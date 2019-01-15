@@ -63,8 +63,7 @@ private:
 	CShadowMap m_shadowMaps[SHADOWMAP_NUM];
 
 	//ID3D11DepthStencilState* m_depthStencilState = nullptr;
-	//ID3D11RasterizerState* m_rasterizerState = nullptr;
-
+	
 	//ƒuƒ‰[ŠÖŒW
 	Shader m_vsBlur;
 	Shader m_psBlurX, m_psBlurY;

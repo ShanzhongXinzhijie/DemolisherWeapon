@@ -36,6 +36,12 @@ public:
 		m_struct.direction.Normalize();
 	}
 
+	const CVector3& GetColor() const {
+		return m_struct.color;
+	}
+	CVector3 GetDirection() const {
+		return m_struct.direction * -1.0f;
+	}
 
 	const SDirectionLight& GetStruct() const{ return m_struct; }
 	bool GetActiveFlag() const { return m_active; }

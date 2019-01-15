@@ -37,15 +37,6 @@ void ShadowMapRender::Init() {
 
 		ge.GetD3DDevice()->CreateDepthStencilState(&desc, &m_depthStencilState);
 	}*/
-	//ラスタライザーステート(背面描画)
-	/*{
-		D3D11_RASTERIZER_DESC desc = {};
-		desc.CullMode = D3D11_CULL_FRONT;
-		desc.FillMode = D3D11_FILL_SOLID;
-		desc.DepthClipEnable = true;
-		desc.MultisampleEnable = true;
-		ge.GetD3DDevice()->CreateRasterizerState(&desc, &m_rasterizerState);
-	}*/
 
 	//ブラーシェーダ
 	m_vsBlur.Load("Preset/shader/shadowblurPS.fx", "VSBlur", Shader::EnType::VS);
@@ -95,8 +86,7 @@ void ShadowMapRender::Release() {
 	}
 
 	//m_depthStencilState->Release();
-	//m_rasterizerState->Release();
-
+	
 	m_samplerState->Release();
 	m_sbcb->Release();
 }
@@ -112,9 +102,7 @@ void ShadowMapRender::Render() {
 	//GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMGetDepthStencilState(&oldDepthStencilState,&kaz);
 	
 	//デプスステンシルステート設定
-	//GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetDepthStencilState(m_depthStencilState, 0);
-	//ラスタライザーステート設定
-	//GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetState(m_rasterizerState);
+	//GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetDepthStencilState(m_depthStencilState, 0);	
 
 	//シェーダーをZ値書き込み様に
 	ModelEffect::SetShaderMode(ModelEffect::enZShader);
@@ -128,16 +116,13 @@ void ShadowMapRender::Render() {
 
 		//描画
 		for (auto& cas : m_drawModelList) {
-			cas->Draw();// true);
+			cas->Draw(true);
 		}
 	}
 
 	//シェーダーを通常に
 	ModelEffect::SetShaderMode(ModelEffect::enNormalShader);
 
-	//ラスタライザーステート戻す
-	//GetEngine().GetGraphicsEngine().ResetRasterizerState();
-	
 	//デプスステンシルステート戻す
 	//GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetDepthStencilState(oldDepthStencilState, 0);
 
