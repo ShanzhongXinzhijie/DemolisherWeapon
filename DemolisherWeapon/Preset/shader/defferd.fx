@@ -34,7 +34,7 @@ cbuffer ShadowCb : register(b1) {
 	int boolAO;//AOを有効にするか
 };
 struct HideInShadow {
-	bool flag[SHADOWMAP_NUM];
+	float flag[SHADOWMAP_NUM];
 };
 Texture2D<float> shadowMap0  : register(t60);
 Texture2D<float> shadowMap1  : register(t61);
@@ -51,7 +51,7 @@ Texture2D<float> shadowMap11 : register(t71);
 SamplerComparisonState	shadowSamplerComparisonState	: register(s1);
 
 //シャドウマップの判定
-inline bool ShadowMapFunc(uint usemapnum, float4 worldpos) {
+inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 
 	//Zからワールド座標を出す
 	//float4 worldpos = float4(CalcWorldPosFromUVZ(In.uv, viewpos.w, ViewProjInv), 1.0f);
@@ -68,10 +68,14 @@ inline bool ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	//オフセット
 	lLViewPosition.z -= shadowDir[usemapnum].w;//0.00025f*4.0f;// +0.00025f*(1.0f - lLViewPosition.z);//Z値に応じたバイアス値
 
-	int kekka = 1;
+	//影に入ってるか判定PCF
+	float kekka = 0.0f;
+	for (float y = -1.0f / 720.0f *2.0f; y <= 1.0f / 720.0f *2.0f; y += 1.0f / 720.0f){
+	for (float x = -1.0f / 720.0f *2.0f; x <= 1.0f / 720.0f *2.0f; x += 1.0f / 720.0f){
+	
 	switch (usemapnum) {
 	case 0:
-		kekka = SHADOWMAP_ARRAY(0).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+		kekka += 1.0f - SHADOWMAP_ARRAY(0).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x,y), lLViewPosition.z);
 		break;
 	case 1:
 		kekka = SHADOWMAP_ARRAY(1).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
@@ -110,17 +114,16 @@ inline bool ShadowMapFunc(uint usemapnum, float4 worldpos) {
 		break;
 	}
 
-	if (kekka == 0)
-	{
-		return true;
 	}
+	}
+
+	kekka /= 16.0f;
+	return kekka;
 
 	/*float shadow_z = shadowMap0.Sample(NoFillteringSampler, lLViewPosition.xy);
 	if (shadow_z < lLViewPosition.z) {
 		Out.rgb *= min(1.0f, (lLViewPosition.z - shadow_z)*10.0f);
 	}*/
-
-	return false;
 }
 
 //G-Buffer
@@ -199,10 +202,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	HideInShadow hideInShadow = (HideInShadow)0;
 	for (int i = 0; i < SHADOWMAP_NUM; i++) {
 		if (enableShadowMap[i].x){
-		if (ShadowMapFunc(i, float4(worldpos, 1.0f)) == true) {			
-			hideInShadow.flag[i] = true;
-			//break;
-		}
+			hideInShadow.flag[i] = ShadowMapFunc(i, float4(worldpos, 1.0f));
 		}
 	}
 
@@ -215,8 +215,11 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		//シャドウマップの遮蔽適応
 		float nothide = 1.0f;
 		for (int swi = 0; swi < SHADOWMAP_NUM; swi++) {
-			if (hideInShadow.flag[swi]) {
-				nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-1.0f));
+			if (hideInShadow.flag[swi] > 0.0f) {
+				//if (swi == 0) { return float4(1, 0, 0, 1); }
+				//if (swi == 1) { return float4(0, 1, 0, 1); }
+				//if (swi == 2) { return float4(0, 0, 1, 1); }
+				nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 				if (nothide == 0.0f) { break; }
 			}
 		}

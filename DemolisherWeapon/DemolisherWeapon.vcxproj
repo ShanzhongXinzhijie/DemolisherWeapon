@@ -123,7 +123,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)/lib/$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(IncludePath);$(ProjectDir);$(ProjectDir)EffekseerRuntime140/Compiled/include;$(ProjectDir)/bulletPhysics/src</IncludePath>
-    <LibraryPath>$(ProjectDir)/lib/$(Platform)\$(Configuration)\;$(LibraryPath);$(ProjectDir)/DirectXTK/Bin/Desktop_2015_Win10/$(Platform)\$(Configuration)\;$(ProjectDir)/EffekseerRuntime140/Compiled/lib/VS2015\$(Configuration)\</LibraryPath>
+    <LibraryPath>$(ProjectDir)/lib/$(Platform)\$(Configuration)\;$(LibraryPath);$(ProjectDir)/DirectXTK/Bin/Desktop_2015_Win10/$(Platform)\$(Configuration)\;$(ProjectDir)/EffekseerRuntime140/Compiled/lib/VS2015\Release\</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -261,7 +261,7 @@
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <Lib>
-      <AdditionalDependencies>Common-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;Photon-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
+      <AdditionalDependencies>Common-cpp_vc15_Release_windows_mt_$(Platform).lib;Photon-cpp_vc15_Release_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_Release_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
