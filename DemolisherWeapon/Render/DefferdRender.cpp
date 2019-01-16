@@ -99,7 +99,7 @@ void DefferdRender::Render() {
 			//定数
 			sCb.mLVP[i] = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightViewProjMatrix(i);
 			sCb.shadowDir[i] = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightDir(i);
-			sCb.shadowDir[i].w = 0.00025f*4.0f;//オフセット
+			sCb.shadowDir[i].w = 0.00025f;// *4.0f;//オフセット
 		}
 	}
 	rc->UpdateSubresource(m_scb, 0, nullptr, &sCb, 0, 0);
