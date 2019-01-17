@@ -40,6 +40,11 @@ namespace DemolisherWeapon {
 			ShadowMapUpdate();
 		}
 
+		//深度バイアスを設定
+		void SetDepthBias(float bias) {
+			m_shadowMap->SetDepthBias(bias);
+		}
+
 	private:
 		CShadowMap* m_shadowMap = nullptr;
 		CVector3 m_direction, m_target, m_area, m_dirY;

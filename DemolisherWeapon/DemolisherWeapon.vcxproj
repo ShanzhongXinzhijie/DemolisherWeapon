@@ -436,12 +436,6 @@
     <CustomBuild Include="Preset\shader\primitive.fx">
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="Preset\shader\shadowblurCS.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
-    <CustomBuild Include="Preset\shader\shadowblurPS.fx">
-      <FileType>Document</FileType>
-    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

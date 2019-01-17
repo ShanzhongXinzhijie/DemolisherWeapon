@@ -53,6 +53,10 @@ public:
 	CVector3 GetLightDir(int num)const {
 		return m_shadowMaps[num].GetLightDir();
 	}
+	//深度バイアスを取得
+	float GetDepthBias(int num)const {
+		return  m_shadowMaps[num].GetDepthBias();
+	}
 
 	//シャドウマップの最大数
 	static const int SHADOWMAP_NUM = 12;
@@ -61,19 +65,6 @@ private:
 	std::list<SkinModel*> m_drawModelList;
 
 	CShadowMap m_shadowMaps[SHADOWMAP_NUM];
-
-	//ID3D11DepthStencilState* m_depthStencilState = nullptr;
-	
-	//ブラー関係
-	Shader m_vsBlur;
-	Shader m_psBlurX, m_psBlurY;
-	ID3D11SamplerState* m_samplerState = nullptr;
-	ID3D11BlendState*	m_blendstate_NonAlpha = nullptr;
-
-	struct ShadowBlurConstantBuffer {
-		float weight[8];
-	};
-	ID3D11Buffer* m_sbcb = nullptr;
 };
 
 }

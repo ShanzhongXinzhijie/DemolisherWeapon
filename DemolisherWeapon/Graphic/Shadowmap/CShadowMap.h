@@ -35,6 +35,10 @@ public:
 	CVector3 GetLightDir()const {
 		return (m_lightCam.GetTarget() - m_lightCam.GetPos()).GetNorm();
 	}
+	//深度バイアスを取得
+	float GetDepthBias()const {
+		return m_zBias;
+	}
 
 
 	//カメラを取得
@@ -45,6 +49,11 @@ public:
 	//有効・無効を設定
 	void SetEnable(bool enable) {
 		m_enable = enable;
+	}
+
+	//深度バイアスを設定
+	void SetDepthBias(float bias) {
+		m_zBias = bias;
 	}
 
 private:
@@ -61,6 +70,9 @@ private:
 	ID3D11DepthStencilView* m_depthStencilView = nullptr;	//デプスステンシルビュー
 
 	D3D11_VIEWPORT m_viewport;//ビューポート
+
+	float m_zBias = 0.0f;//深度バイアス
+	// 0.00025f*0.1f; // *0.38f; // *4.0f;
 };
 
 }

@@ -65,8 +65,17 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	// yは更に上下反転
 	lLViewPosition.y = -lLViewPosition.y *0.5f + 0.5f;
 
+	
+	// 最大深度傾斜を求める.
+	//float  maxDepthSlope = max(abs(ddx(lLViewPosition.z)), abs(ddy(lLViewPosition.z)));
+	
+	//float  shadowBias = shadowDir[usemapnum].w*0.1f + shadowDir[usemapnum].w*4.0f * maxDepthSlope;
+	//shadowBias = min(shadowBias, shadowDir[usemapnum].w*4.0f);
+	
 	//バイアス
-	lLViewPosition.z -= shadowDir[usemapnum].w;
+	lLViewPosition.z -= shadowDir[usemapnum].w;// shadowBias;
+
+
 
 	float kekka = 0.0f;
 	uint cnt = 0;
