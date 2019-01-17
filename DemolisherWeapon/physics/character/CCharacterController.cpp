@@ -156,6 +156,9 @@ namespace DemolisherWeapon {
 		originalXZDir.Normalize();
 		//XZ平面での衝突検出と衝突解決を行う。
 		{
+			m_isContactWall = false;//壁接触フラグオフに
+			m_contactWallNormal = CVector3::Zero();
+
 			int loopCount = 0;
 			while (true) {
 				//現在の座標から次の移動先へ向かうベクトルを求める。
@@ -189,6 +192,8 @@ namespace DemolisherWeapon {
 
 				if (callback.isHit) {
 					//当たった。
+					m_isContactWall = true;
+					m_contactWallNormal += callback.hitNormal;
 					//壁。
 					CVector3 vT0, vT1;
 					//XZ平面上での移動後の座標をvT0に、交点の座標をvT1に設定する。
@@ -229,6 +234,9 @@ namespace DemolisherWeapon {
 				if (loopCount == 5) {
 					break;
 				}
+			}
+			if (loopCount > 0) {
+				m_contactWallNormal /= loopCount;
 			}
 		}
 		//XZの移動は確定。
