@@ -294,7 +294,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord) * albedoScale;
 
 	//αテスト
-	if (Out.albedo.a > 0.0f) { 
+	if (Out.albedo.a > 0.5f) { 
 		Out.albedo.a = 1.0f;//半透明無効
 	}
 	else {
@@ -356,6 +356,16 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 //Z値出力
 float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 {
+	//アルベド
+	float alpha = albedoTexture.Sample(Sampler, In.TexCoord).a * albedoScale.a;
+
+	//αテスト
+	if (alpha > 0.5f) {
+	}
+	else {
+		discard;
+	}
+
 	float z = In.posInProj.z / In.posInProj.w;
 	return z;
 }
