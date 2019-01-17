@@ -28,7 +28,7 @@ StructuredBuffer<SPointLight> pointLightList : register(t101);
 cbuffer ShadowCb : register(b1) {
 	float4x4 ViewProjInv;
 	float4x4 mLVP[SHADOWMAP_NUM];
-	float4 shadowDir[SHADOWMAP_NUM];//wはオフセット
+	float4 shadowDir[SHADOWMAP_NUM];//wはバイアス
 	float4 enableShadowMap[SHADOWMAP_NUM];//シャドウマップ有効か？
 
 	int boolAO;//AOを有効にするか
@@ -65,7 +65,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	// yは更に上下反転
 	lLViewPosition.y = -lLViewPosition.y *0.5f + 0.5f;
 
-	//オフセット
+	//バイアス
 	lLViewPosition.z -= shadowDir[usemapnum].w;
 
 	float kekka = 0.0f;
@@ -117,13 +117,18 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 			break;
 		}
 
-		if (blocker_z < 2.0f) {
+		if (blocker_z < 2.0f && blocker_z < lLViewPosition.z) {
 			avg_blocker_z += blocker_z;
 			cnt++;
 		}
 	}
 	}
-	avg_blocker_z /= cnt;
+	if (cnt == 0) {
+		return 0.0f;
+	}
+	else {
+		avg_blocker_z /= cnt;
+	}
 
 	//半影のサイズ計算
 	float maxCnt = clamp((lLViewPosition.z - avg_blocker_z) / avg_blocker_z, 0.0f, 1.0f)*9.0f;
@@ -180,7 +185,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	}
 
 	kekka /= cnt;
-	return kekka;// *kekka*kekka;
+	return kekka;
 }
 
 //G-Buffer

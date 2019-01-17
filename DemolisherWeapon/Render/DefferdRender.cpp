@@ -41,10 +41,10 @@ void DefferdRender::Init() {
 	desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 	desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 	desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-	desc.BorderColor[0] = 1.0f;
-	desc.BorderColor[1] = 1.0f;
-	desc.BorderColor[2] = 1.0f;
-	desc.BorderColor[3] = 1.0f;
+	desc.BorderColor[0] = 2.0f;
+	desc.BorderColor[1] = 2.0f;
+	desc.BorderColor[2] = 2.0f;
+	desc.BorderColor[3] = 2.0f;
 	desc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;//比較方法
 	desc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerComparisonState);
@@ -99,7 +99,7 @@ void DefferdRender::Render() {
 			//定数
 			sCb.mLVP[i] = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightViewProjMatrix(i);
 			sCb.shadowDir[i] = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightDir(i);
-			sCb.shadowDir[i].w = 0.00025f;// *4.0f;//オフセット
+			sCb.shadowDir[i].w = 0.00025f;// *4.0f;//バイアス
 		}
 	}
 	rc->UpdateSubresource(m_scb, 0, nullptr, &sCb, 0, 0);
