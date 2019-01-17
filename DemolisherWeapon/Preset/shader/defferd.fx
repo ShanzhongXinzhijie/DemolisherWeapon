@@ -117,7 +117,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 			break;
 		}
 
-		if (blocker_z < 2.0f && blocker_z < lLViewPosition.z) {
+		if (blocker_z < lLViewPosition.z) {
 			avg_blocker_z += blocker_z;
 			cnt++;
 		}
