@@ -78,6 +78,9 @@ void MotionBlurRender::Release() {
 }
 
 void MotionBlurRender::Render() {
+
+	if (!m_isEnable) { return; }
+
 	ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 	PSBlur(rc);
 	CSBlur(rc);

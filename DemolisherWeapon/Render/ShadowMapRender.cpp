@@ -26,6 +26,8 @@ void ShadowMapRender::Release() {
 
 void ShadowMapRender::Render() {
 
+	if (m_setting == enOFF) { return; }
+
 	//‚à‚Æ‚à‚Æ‚Ìó‘Ô‚ğ•Û‘¶
 	GameObj::ICamera* oldcam = GetMainCamera();
 	D3D11_VIEWPORT oldviewport; UINT kaz = 1;

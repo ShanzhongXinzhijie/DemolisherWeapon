@@ -13,12 +13,19 @@ public:
 	void Init();
 	void Release();
 
+	void SetEnable(bool enable) {
+		m_isEnable = enable;
+	}
+
 	void Render()override;
 
+private:
 	void PSBlur(ID3D11DeviceContext* rc);
 	void CSBlur(ID3D11DeviceContext* rc);
 
 private:
+	bool m_isEnable = true;
+
 	Shader m_cs, m_vs, m_ps;
 	ID3D11UnorderedAccessView*	m_outputUAV = nullptr;
 	ID3D11UnorderedAccessView*	m_maskUAV = nullptr;

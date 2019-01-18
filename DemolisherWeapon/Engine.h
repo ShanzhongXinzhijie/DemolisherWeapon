@@ -19,6 +19,8 @@
 
 #include"Network/PhotonManager.h"
 
+#include"Render/ShadowMapRender.h"
+
 namespace DemolisherWeapon {
 
 static constexpr wchar_t DW_VER[] = L"3.14159265";//エンジンのバージョン
@@ -39,14 +41,36 @@ struct InitEngineParameter {
 	int	screenHeight = 720;			//ウィンドウの高さ
 	int frameBufferWidth = 1280;	//フレームバッファの幅。これが内部解像度。
 	int frameBufferHeight = 720;	//フレームバッファの高さ。これが内部解像度。
-	//int frameBufferWidth2D = 1280;	//フレームバッファの幅。2D版。
-	//int frameBufferHeight2D = 720;	//フレームバッファの高さ。2D版。
+	int frameBufferWidth3D = 1280;	//3D描画の解像度(幅)
+	int frameBufferHeight3D = 720;	//3D描画の解像度(高さ)
 	int refleshRate = 60;			//リフレッシュレート
 	bool isWindowMode = TRUE;		//ウィンドウモードか？
 
 	CVector3 defaultAmbientLight = {0.3f,0.3f,0.3f};//デフォルトのアンビエントライト
 
-	EnSplitScreenMode isSplitScreen = enNoSplit;
+	EnSplitScreenMode isSplitScreen = enNoSplit;//画面分割するか
+
+	//グラフィック設定
+	EnShadowMapMode shadowMapSetting = enPCSS;	//シャドウマップ有効・PCSS
+	bool isEnableSSAO = true;					//SSAO有効
+	bool isEnableMotionBlur = true;				//モーションブラー有効
+
+	//低スペック用設定をセット
+	void SetLowSpecSetting() {
+		//解像度(フレームバッファ)
+		frameBufferWidth3D = 640;
+		frameBufferHeight3D = 360;
+		//シャドウマップ無効
+		shadowMapSetting = enON;
+		//SSAO無効
+		isEnableSSAO = false;
+		//モーションブラー無効
+		isEnableMotionBlur = false;
+	}
+	//中スペック用設定をセット
+	void SetMiddleSpecSetting() {
+		shadowMapSetting = enON;
+	}
 };
 
 class GameLoop {

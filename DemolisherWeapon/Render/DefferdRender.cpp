@@ -93,6 +93,9 @@ void DefferdRender::Render() {
 	for (int i = 0; i < ShadowMapRender::SHADOWMAP_NUM; i++) {
 		//有効か？
 		sCb.enableShadowMap[i].x = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetShadowMapEnable(i) ? 1.0f : 0.0f;
+		//PCSS
+		sCb.enableShadowMap[i].y = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetEnablePCSS(i) ? 1.0f : 0.0f;
+
 		if (sCb.enableShadowMap[i].x) {
 			//シェーダーリソース設定
 			rc->PSSetShaderResources(60 + i, 1, &GetEngine().GetGraphicsEngine().GetShadowMapRender().GetShadowMapSRV(i));

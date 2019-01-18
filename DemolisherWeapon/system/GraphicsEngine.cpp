@@ -183,13 +183,13 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	}
 
 	//画面分割用の比率に
-	FRAME_BUFFER_3D_W = FRAME_BUFFER_W;
-	FRAME_BUFFER_3D_H = FRAME_BUFFER_H;
+	FRAME_BUFFER_3D_W = (float)initParam.frameBufferWidth3D;
+	FRAME_BUFFER_3D_H = (float)initParam.frameBufferHeight3D;
 	if (initParam.isSplitScreen == enVertical_TwoSplit) {
-		FRAME_BUFFER_3D_H = FRAME_BUFFER_H*0.5f;
+		FRAME_BUFFER_3D_H *= 0.5f;
 	}
 	if (initParam.isSplitScreen == enSide_TwoSplit) {
-		FRAME_BUFFER_3D_W = FRAME_BUFFER_W*0.5f;
+		FRAME_BUFFER_3D_W *= 0.5f;
 	}
 
 	//Sprite初期化
@@ -226,10 +226,11 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 
 	//レンダー初期化
 	m_gbufferRender.Init();
-	m_shadowMapRender.Init();
-	m_ambientOcclusionRender.Init();
+	m_shadowMapRender.Init();		 m_shadowMapRender.SetSetting(initParam.shadowMapSetting);
+	m_ambientOcclusionRender.Init(); m_ambientOcclusionRender.SetEnable(initParam.isEnableSSAO);
 	m_defferdRender.Init();
-	m_motionBlurRender.Init();
+	m_motionBlurRender.Init();		 m_motionBlurRender.SetEnable(initParam.isEnableMotionBlur);
+
 	if (initParam.isSplitScreen) {
 		m_finalRender[0] = std::make_unique<FinalRender>();
 		m_finalRender[1] = std::make_unique<FinalRender>();
@@ -253,8 +254,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		m_finalRender[0]->Init();
 	}
 
-	//レンダーをセット
-	
+	//レンダーをセット	
 	m_renderManager.AddRender(-1, &m_shadowMapRender);
 
 	int screencnt = 1, oneloopOffset = 5000;
@@ -270,8 +270,6 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		}
 
 		m_renderManager.AddRender(1 + offset, &m_gbufferRender);
-
-		//m_renderManager.AddRender(2 + offset, &m_shadowMapRender);
 
 		m_renderManager.AddRender(3 + offset, &m_ambientOcclusionRender);
 

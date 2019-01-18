@@ -5,6 +5,12 @@
 
 namespace DemolisherWeapon {
 
+enum EnShadowMapMode {
+	enOFF,
+	enON,
+	enPCSS,
+};
+
 class ShadowMapRender :
 	public IRander
 {
@@ -17,6 +23,11 @@ public:
 
 	void Render()override;
 	void PostRender()override;
+
+	//シャドウマップ全体の有効・無効を設定
+	void SetSetting(EnShadowMapMode setting) {
+		m_setting = setting;
+	}
 
 	//シャドウマップに描画するモデルを追加
 	void AddDrawModel(SkinModel* caster) {
@@ -39,7 +50,11 @@ public:
 
 	//シャドウマップ有効か取得
 	bool GetShadowMapEnable(int num)const {
-		return m_shadowMaps[num].GetEnable();
+		return (m_setting != enOFF) && m_shadowMaps[num].GetEnable();
+	}
+	//PCSSが有効か取得
+	bool GetEnablePCSS(int num)const {
+		return m_setting == enPCSS;
 	}
 	//シャドウマップのSRV取得
 	ID3D11ShaderResourceView*& GetShadowMapSRV(int num) {
@@ -62,6 +77,8 @@ public:
 	static const int SHADOWMAP_NUM = 12;
 
 private:
+	EnShadowMapMode m_setting = enPCSS;
+
 	std::list<SkinModel*> m_drawModelList;
 
 	CShadowMap m_shadowMaps[SHADOWMAP_NUM];

@@ -64,7 +64,6 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	lLViewPosition.x = lLViewPosition.x *0.5f + 0.5f;
 	// yは更に上下反転
 	lLViewPosition.y = -lLViewPosition.y *0.5f + 0.5f;
-
 	
 	// 最大深度傾斜を求める.
 	//float  maxDepthSlope = max(abs(ddx(lLViewPosition.z)), abs(ddy(lLViewPosition.z)));
@@ -75,7 +74,49 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	//バイアス
 	lLViewPosition.z -= shadowDir[usemapnum].w;// shadowBias;
 
-
+	//PCSS無効
+	if (!enableShadowMap[usemapnum].y) {
+		switch (usemapnum) {
+		case 0:
+			return 1.0f - SHADOWMAP_ARRAY(0).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 1:
+			return 1.0f - SHADOWMAP_ARRAY(1).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 2:
+			return 1.0f - SHADOWMAP_ARRAY(2).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 3:
+			return 1.0f - SHADOWMAP_ARRAY(3).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 4:
+			return 1.0f - SHADOWMAP_ARRAY(4).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 5:
+			return 1.0f - SHADOWMAP_ARRAY(5).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 6:
+			return 1.0f - SHADOWMAP_ARRAY(6).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 7:
+			return 1.0f - SHADOWMAP_ARRAY(7).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 8:
+			return 1.0f - SHADOWMAP_ARRAY(8).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 9:
+			return 1.0f - SHADOWMAP_ARRAY(9).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 10:
+			return 1.0f - SHADOWMAP_ARRAY(10).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		case 11:
+			return 1.0f - SHADOWMAP_ARRAY(11).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
+			break;
+		default:
+			break;
+		}
+	}
 
 	float kekka = 0.0f;
 	uint cnt = 0;
