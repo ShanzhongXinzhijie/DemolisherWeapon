@@ -28,12 +28,10 @@ namespace DemolisherWeapon {
 		texDesc.MiscFlags = 0;
 
 		//シャドウマップ
-		for (int i2 = 0; i2 < 2; i2++) {
-			ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_shadowMapTex[i2]);
-			ge.GetD3DDevice()->CreateRenderTargetView(m_shadowMapTex[i2], nullptr, &m_shadowMapView[i2]);//レンダーターゲット
-			ge.GetD3DDevice()->CreateShaderResourceView(m_shadowMapTex[i2], nullptr, &m_shadowMapSRV[i2]);//シェーダーリソースビュー
-		}
-
+		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_shadowMapTex);
+		ge.GetD3DDevice()->CreateRenderTargetView(m_shadowMapTex, nullptr, &m_shadowMapView);//レンダーターゲット
+		ge.GetD3DDevice()->CreateShaderResourceView(m_shadowMapTex, nullptr, &m_shadowMapSRV);//シェーダーリソースビュー
+		
 		//デプスステンシル
 		texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 		texDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -70,12 +68,10 @@ namespace DemolisherWeapon {
 	{
 		if (!m_isInit) { return; }
 
-		for (int i2 = 0; i2 < 2; i2++) {
-			m_shadowMapTex[i2]->Release();
-			m_shadowMapView[i2]->Release();
-			m_shadowMapSRV[i2]->Release();
-		}
-	
+		m_shadowMapTex->Release();
+		m_shadowMapView->Release();
+		m_shadowMapSRV->Release();
+			
 		m_depthStencilTex->Release();
 		m_depthStencilView->Release();
 
@@ -88,14 +84,12 @@ namespace DemolisherWeapon {
 
 		//クリア
 		float clearcolor[4] = {}; clearcolor[0] = 2.0f;
-		for (int i2 = 0; i2 < 2; i2++) {
-			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearRenderTargetView(m_shadowMapView[i2], clearcolor);
-		}
+		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearRenderTargetView(m_shadowMapView, clearcolor);
 		//デプスクリア
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 		// RenderTarget設定
-		ID3D11RenderTargetView* renderTargetViews[1] = { m_shadowMapView[0] };
+		ID3D11RenderTargetView* renderTargetViews[1] = { m_shadowMapView };
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, renderTargetViews, m_depthStencilView);
 
 		//カメラ更新

@@ -54,7 +54,7 @@ public:
 	}
 	//PCSSが有効か取得
 	bool GetEnablePCSS(int num)const {
-		return m_setting == enPCSS;
+		return m_setting == enPCSS && m_shadowMaps[num].GetEnablePCSS();
 	}
 	//シャドウマップのSRV取得
 	ID3D11ShaderResourceView*& GetShadowMapSRV(int num) {
