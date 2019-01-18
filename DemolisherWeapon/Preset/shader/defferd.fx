@@ -124,8 +124,8 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	//ブロッカーの深度値取得(平均)
 	float blocker_z = 0.0f;
 	float avg_blocker_z = 0.0f;
-	for (float y = -1.0f / 720.0f *2.0f; y <= 1.0f / 720.0f *2.0f; y += 1.0f / 720.0f) {
-	for (float x = -1.0f / 720.0f *2.0f; x <= 1.0f / 720.0f *2.0f; x += 1.0f / 720.0f) {
+	for (float y = -0.00276f; y <= 0.00276f; y += 0.00138f) {
+	for (float x = -0.00276f; x <= 0.00276f; x += 0.00138f) {
 		switch (usemapnum) {
 		case 0:
 			blocker_z = SHADOWMAP_ARRAY(0).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
@@ -181,15 +181,15 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	}
 
 	//半影のサイズ計算
-	float maxCnt = clamp((lLViewPosition.z - avg_blocker_z) / avg_blocker_z, 0.0f, 1.0f)*9.0f;
+	float maxCnt = 9.0f*(lLViewPosition.z - avg_blocker_z) / avg_blocker_z;// saturate();
 	if (maxCnt <= 0.0f) {
 		return 0.0f;
 	}
 
 	//影に入ってるか判定(PCF)
 	cnt = 0;
-	for (float y = -1.0f / 720.0f *maxCnt; y <= 1.0f / 720.0f *maxCnt; y += 1.0f / 720.0f *maxCnt/3.0f){
-	for (float x = -1.0f / 720.0f *maxCnt; x <= 1.0f / 720.0f *maxCnt; x += 1.0f / 720.0f *maxCnt/3.0f){
+	for (float y = -0.00138f*maxCnt; y <= 0.00138f*maxCnt; y += 0.00046f*maxCnt){//1.0/720.0
+	for (float x = -0.00138f*maxCnt; x <= 0.00138f*maxCnt; x += 0.00046f*maxCnt){
 		switch (usemapnum) {
 		case 0:
 			kekka += 1.0f - SHADOWMAP_ARRAY(0).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
