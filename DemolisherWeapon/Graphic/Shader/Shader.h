@@ -35,7 +35,7 @@ public:
 	 *@param[in]	shaderType		シェーダータイプ。
 	 *@return	falseが返ってきたらロード失敗。
 	 */
-	bool Load(const char* filePath, const char* entryFuncName, EnType shaderType);
+	bool Load(const char* filePath, const char* entryFuncName, EnType shaderType, const char* definesIdentifier = "", const D3D_SHADER_MACRO* pDefines = nullptr);
 	/*!
 	* @brief	
 	*/

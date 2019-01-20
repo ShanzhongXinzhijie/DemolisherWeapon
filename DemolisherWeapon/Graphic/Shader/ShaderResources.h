@@ -56,7 +56,9 @@ public:
 		const char* entryFuncName,
 		Shader::EnType shaderType,
 		int& numInterfaces,
-		ID3D11ClassInstance**& dynamicLinkageArray
+		ID3D11ClassInstance**& dynamicLinkageArray,
+		const char* definesIdentifier,
+		const D3D_SHADER_MACRO* pDefines
 	);
 	/*!
 	*@brief	ŠJ•úB

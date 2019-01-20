@@ -30,13 +30,18 @@ protected:
 	Shader* m_pVSShader = nullptr;
 	Shader* m_pPSShader = nullptr;
 
-	Shader m_vsDefaultShader, m_vsZShader;
-	int m_clacOldPosOffset = 0;
-	ID3D11ClassInstance* m_cCalcOldPos = nullptr, *m_cNoCalcOldPos = nullptr;
+	Shader m_vsDefaultShader[2], m_vsZShader;
+	//int m_clacOldPosOffset = 0;
+	//ID3D11ClassInstance* m_cCalcOldPos = nullptr, *m_cNoCalcOldPos = nullptr;
 
-	Shader m_psDefaultShader, m_psZShader;
-	int m_clacVelocityOffset = 0;
-	ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;
+	Shader m_psDefaultShader[2], m_psZShader;
+	//int m_clacVelocityOffset = 0;
+	//ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;
+
+	enum {
+		enALL,
+		enNoMotionBlur,
+	};
 
 	bool isSkining;
 	ID3D11ShaderResourceView* m_albedoTex = nullptr, *m_pAlbedoTex = nullptr;
@@ -48,12 +53,14 @@ protected:
 public:
 	ModelEffect()
 	{
-		m_psDefaultShader.Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
+		D3D_SHADER_MACRO macros[] = { "MOTIONBLUR", "1", NULL, NULL };
+		m_psDefaultShader[enALL].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, "ALL", macros);
+		m_psDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
 		m_psZShader.Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
 
 		LoadClassInstancePS();
 
-		m_pPSShader = &m_psDefaultShader;
+		m_pPSShader = &m_psDefaultShader[enALL];
 
 		MaterialSettingInit(m_defaultMaterialSetting);
 
@@ -69,7 +76,7 @@ public:
 			m_materialParamCB->Release();
 		}
 
-		if (m_cCalcOldPos) {
+		/*if (m_cCalcOldPos) {
 			m_cCalcOldPos->Release();
 		}
 		if (m_cNoCalcOldPos) {
@@ -80,14 +87,14 @@ public:
 		}
 		if (m_cNoCalcVelocity) {
 			m_cNoCalcVelocity->Release();
-		}
+		}*/
 	}
 	void __cdecl Apply(ID3D11DeviceContext* deviceContext) override;
 
 	void __cdecl GetVertexShaderBytecode(void const** pShaderByteCode, size_t* pByteCodeLength) override
 	{
-		*pShaderByteCode = m_vsDefaultShader.GetByteCode();
-		*pByteCodeLength = m_vsDefaultShader.GetByteCodeSize();
+		*pShaderByteCode = m_vsDefaultShader[enALL].GetByteCode();
+		*pByteCodeLength = m_vsDefaultShader[enALL].GetByteCodeSize();
 	}
 
 	//マテリアル設定をこのインスタンスをベースに初期化してやる
@@ -129,7 +136,7 @@ public:
 	}
 	//デフォルトのシェーダを取得
 	Shader* GetDefaultPS() {
-		return &m_psDefaultShader;
+		return &m_psDefaultShader[enALL];
 	}
 
 	//名前を設定
@@ -169,7 +176,7 @@ public:
 		m_pPSShader = matset.GetPS();
 		m_pAlbedoTex = matset.GetAlbedoTexture();
 
-		if (m_pVSShader == &m_vsDefaultShader) {
+		/*if (m_pVSShader == &m_vsDefaultShader) {
 			if (matset.GetIsMotionBlur()) {
 				ID3D11ClassInstance** array = m_vsDefaultShader.GetClassInstanceArray();
 				array[m_clacOldPosOffset] = m_cCalcOldPos;
@@ -188,7 +195,7 @@ public:
 				ID3D11ClassInstance** array = m_psDefaultShader.GetClassInstanceArray();
 				array[m_clacVelocityOffset] = m_cNoCalcVelocity;
 			}
-		}
+		}*/
 	}
 	void SetDefaultMaterialSetting() {
 		SetUseMaterialSetting(m_defaultMaterialSetting);
@@ -197,6 +204,7 @@ public:
 protected:
 	//動的リンク
 	void LoadClassInstanceVS(){
+		/*
 		//オフセット取得
 		ID3D11ShaderReflection* pReflector = nullptr;
 		D3DReflect(m_vsDefaultShader.GetByteCode(), m_vsDefaultShader.GetByteCodeSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
@@ -209,8 +217,10 @@ protected:
 		//インスタンス取得
 		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cCalcOldPos", 0, 0, 0, 0, &m_cCalcOldPos);
 		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cNotCalcOldPos", 0, 0, 0, 0, &m_cNoCalcOldPos);
+		*/
 	}
 	void LoadClassInstancePS() {
+		/*
 		//オフセット取得
 		ID3D11ShaderReflection* pReflector = nullptr;
 		D3DReflect(m_psDefaultShader.GetByteCode(), m_psDefaultShader.GetByteCodeSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
@@ -223,6 +233,7 @@ protected:
 		//インスタンス取得
 		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cCalcVelocity", 0, 0, 0, 0, &m_cCalcVelocity);
 		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cNotCalcVelocity", 0, 0, 0, 0, &m_cNoCalcVelocity);
+		*/
 	}
 };
 /*!
@@ -233,12 +244,14 @@ class NonSkinModelEffect : public ModelEffect {
 public:
 	NonSkinModelEffect()
 	{
-		m_vsDefaultShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS);
+		D3D_SHADER_MACRO macros[] = { "MOTIONBLUR", "1", NULL, NULL };
+		m_vsDefaultShader[enALL].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "ALL", macros);
+		m_vsDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS);
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS);
 
 		LoadClassInstanceVS();
 		
-		m_pVSShader = &m_vsDefaultShader;
+		m_pVSShader = &m_vsDefaultShader[enALL];
 		isSkining = false;
 	}
 };
@@ -252,12 +265,14 @@ public:
 	{
 		wchar_t hoge[256];
 		GetCurrentDirectoryW(256, hoge);
-		m_vsDefaultShader.Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS);
+		D3D_SHADER_MACRO macros[] = { "MOTIONBLUR", "1", NULL, NULL };
+		m_vsDefaultShader[enALL].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, "ALL", macros);
+		m_vsDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS);
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS);
 
 		LoadClassInstanceVS();
 
-		m_pVSShader = &m_vsDefaultShader;
+		m_pVSShader = &m_vsDefaultShader[enALL];
 		isSkining = true;
 	}
 };

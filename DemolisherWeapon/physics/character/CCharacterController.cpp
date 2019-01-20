@@ -236,7 +236,7 @@ namespace DemolisherWeapon {
 				}
 			}
 			if (loopCount > 0) {
-				m_contactWallNormal /= loopCount;
+				m_contactWallNormal /= (float)loopCount;
 			}
 		}
 		//XZ‚ÌˆÚ“®‚ÍŠm’èB

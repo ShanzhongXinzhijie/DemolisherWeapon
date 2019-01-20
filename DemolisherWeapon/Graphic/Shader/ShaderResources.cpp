@@ -151,7 +151,9 @@ bool ShaderResources::Load(
 	const char* entryFuncName,
 	Shader::EnType shaderType,
 	int& numInterfaces,
-	ID3D11ClassInstance**& dynamicLinkageArray
+	ID3D11ClassInstance**& dynamicLinkageArray,
+	const char* definesIdentifier,
+	const D3D_SHADER_MACRO* pDefines
 )
 {
 	//ファイルパスからハッシュ値を作成する。
@@ -178,8 +180,9 @@ bool ShaderResources::Load(
 	//続いて、シェーダーをコンパイル済み調べる。
 	static char buff[1024];
 	strcpy_s(buff, filePath);
-	strcat_s(buff, entryFuncName );
-	//ファイルパス＋エントリーポイントの関数名でハッシュ値を作成する。
+	strcat_s(buff, entryFuncName);
+	strcat_s(buff, definesIdentifier);
+	//ファイルパス＋エントリーポイントの関数名＋マクロの識別名でハッシュ値を作成する。
 	hash = Util::MakeHash(buff);
 	auto itShaderResource = m_shaderResourceMap.find(hash);
 	if (itShaderResource == m_shaderResourceMap.end()) {
@@ -207,7 +210,7 @@ bool ShaderResources::Load(
 		ID3DBlob* blobOut;
 		ID3DBlob* errorBlob;
 
-		hr = D3DCompile(shaderProgram->program.get(), shaderProgram->programSize, filePath, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryFuncName,
+		hr = D3DCompile(shaderProgram->program.get(), shaderProgram->programSize, filePath, pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryFuncName,
 			shaderModelNames[(int)shaderType], dwShaderFlags, 0, &blobOut, &errorBlob);
 		
 		if (FAILED(hr))

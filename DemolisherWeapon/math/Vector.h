@@ -777,6 +777,11 @@ public:
 	static inline CVector4 One() {
 		return White();
 	}
+	static CVector4 Zero()
+	{
+		static const CVector4 zero = { 0.0f,  0.0f,  0.0f ,  0.0f };
+		return zero;
+	}
 };
 
 class CQuaternion : public CVector4{

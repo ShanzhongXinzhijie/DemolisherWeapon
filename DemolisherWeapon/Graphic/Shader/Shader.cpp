@@ -108,7 +108,7 @@ void Shader::Release()
 {
 }
 
-bool Shader::Load(const char* filePath, const char* entryFuncName, EnType shaderType)
+bool Shader::Load(const char* filePath, const char* entryFuncName, EnType shaderType, const char* definesIdentifier, const D3D_SHADER_MACRO* pDefines)
 {
 	Release();
 	bool result = ShaderResources::GetInstance().Load(
@@ -119,7 +119,9 @@ bool Shader::Load(const char* filePath, const char* entryFuncName, EnType shader
 		entryFuncName,
 		shaderType,
 		m_numInterfaces,
-		m_dynamicLinkageArray
+		m_dynamicLinkageArray,
+		definesIdentifier,
+		pDefines
 	);
     return result;
 }

@@ -36,9 +36,8 @@ cbuffer VSPSCb : register(b0){
 
 //マテリアルパラメーター
 cbuffer MaterialCb : register(b1) {
-	float4 albedoScale;		//アルベドにかけるスケール
-	float3 emissive;		//エミッシブ(自己発光)
-	int isLighting;			//ライティングするか
+	float4 albedoScale;	//アルベドにかけるスケール
+	float4 emissive;	//エミッシブ(自己発光) wがライティングするか
 }
 
 /////////////////////////////////////////////////////////////
@@ -89,135 +88,6 @@ struct ZPSInput {
 	float4 posInProj	: TEXCOORD1;
 };
 
-//動的リンク
-
-//モーションブラー用処理
-
-//頂点シェーダ
-struct CalcOldPosReturn {
-	bool isWorldMove;
-	float4 lastPos;
-};
-interface iBaseCalcOldPos {
-	CalcOldPosReturn CalcOldPos(float4 pos, float4 Position, float3 posW);
-	CalcOldPosReturn CalcOldPosSkin(float4 pos, float4 Position, float3 posW, uint4 Indices, float4 Weights);
-};
-class cCalcOldPos : iBaseCalcOldPos {
-	CalcOldPosReturn CalcOldPos(float4 pos, float4 Position, float3 posW) {
-		CalcOldPosReturn Out;
-
-		float4 oldpos = mul(mWorld_old, Position);
-
-		if (distance(posW, oldpos.xyz) > 0.0f) {
-			Out.isWorldMove = true;
-		}
-
-		oldpos = mul(mView_old, oldpos);
-		oldpos = mul(mProj_old, oldpos);
-
-		if (oldpos.z >= 0.0f) {
-			Out.lastPos = oldpos;
-		}
-		else {
-			Out.lastPos = pos;
-		}
-
-		return Out;
-	}
-	CalcOldPosReturn CalcOldPosSkin(float4 pos, float4 Position, float3 posW, uint4 Indices, float4 Weights) {
-		CalcOldPosReturn Out;
-		
-		float4x4 oldskinning = 0;
-		float4 oldpos = 0;
-		{
-			float w = 0.0f;
-			for (int i = 0; i < 3; i++)
-			{
-				oldskinning += boneMatrixOld[Indices[i]] * Weights[i];
-				w += Weights[i];
-			}
-			oldskinning += boneMatrixOld[Indices[3]] * (1.0f - w);
-			oldpos = mul(oldskinning, Position);
-		}
-
-		if (distance(posW, oldpos.xyz) > 0.0f) {
-			Out.isWorldMove = true;
-		}
-
-		oldpos = mul(mView_old, oldpos);
-		oldpos = mul(mProj_old, oldpos);
-
-		if (oldpos.z >= 0.0f){
-			Out.lastPos = oldpos;
-		}
-		else {
-			Out.lastPos = pos;
-		}
-
-		return Out;
-	}
-};
-class cNotCalcOldPos : iBaseCalcOldPos {
-	CalcOldPosReturn CalcOldPos(float4 pos, float4 Position, float3 posW) {
-		CalcOldPosReturn Out = (CalcOldPosReturn)0;
-		return Out;
-	}
-	CalcOldPosReturn CalcOldPosSkin(float4 pos, float4 Position, float3 posW, uint4 Indices, float4 Weights) {
-		CalcOldPosReturn Out = (CalcOldPosReturn)0;
-		return Out;
-	}
-};
-iBaseCalcOldPos g_calcOldPos;
-
-//ピクセルシェーダ
-interface iBaseCalcVelocity {
-	float2x4 CalcVelocity(float4 curPos, float4 lastPos, bool isWorldMove);
-};
-class cCalcVelocity : iBaseCalcVelocity {
-	float2x4 CalcVelocity(float4 curPos, float4 lastPos, bool isWorldMove) {
-		float2x4 Out = (float2x4)0;
-
-		float2	current = curPos.xy / curPos.w;
-		float2	last = lastPos.xy / lastPos.w;
-
-		//if (In.curPos.z < 0.0f) { current *= -1.0f; }
-		//if (In.lastPos.z < 0.0f) { last *= -1.0f;  }
-
-		if (curPos.z < 0.0f || lastPos.z < 0.0f) {
-			current *= 0.0f; last *= 0.0f;
-		}
-
-		current.xy *= float2(0.5f, -0.5f); current.xy += 0.5f;
-		last.xy *= float2(0.5f, -0.5f); last.xy += 0.5f;
-
-		Out[0].z = min(curPos.z, lastPos.z);
-		Out[0].w = max(curPos.z, lastPos.z);
-
-		if (isWorldMove) {
-			Out[0].xy = current.xy - last.xy;
-			Out[1].z = -1.0f;
-			Out[1].w = -1.0f;
-		}
-		else {
-			Out[1].xy = current.xy - last.xy;
-			Out[1].z = min(curPos.z, lastPos.z);
-			Out[1].w = max(curPos.z, lastPos.z);
-		}
-
-		return Out;
-	}
-};
-class cNotCalcVelocity : iBaseCalcVelocity {
-	float2x4 CalcVelocity(float4 curPos, float4 lastPos, bool isWorldMove) {
-		float2x4 Out = (float2x4)0;
-		Out[0].z = curPos.z;
-		Out[0].w = curPos.z;
-		Out[1].z = curPos.z;
-		Out[1].w = curPos.z;//ps=1
-		return Out;
-	}
-};
-iBaseCalcVelocity g_calcVelocity;
 
 /*!--------------------------------------------------------------------------------------
  * @brief	スキンなしモデル用の頂点シェーダー。
@@ -236,9 +106,23 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 	psInput.curPos = pos;
 
 	//ベロシティマップ用情報
-	CalcOldPosReturn ReturnOld = g_calcOldPos.CalcOldPos(pos, In.Position, posW);
-	psInput.isWorldMove = ReturnOld.isWorldMove;
-	psInput.lastPos = ReturnOld.lastPos;
+#if MOTIONBLUR
+		float4 oldpos = mul(mWorld_old, In.Position);
+
+		if (distance(posW, oldpos.xyz) > 0.0f) {
+			psInput.isWorldMove = true;
+		}
+
+		oldpos = mul(mView_old, oldpos);
+		oldpos = mul(mProj_old, oldpos);
+
+		if (oldpos.z < 0.0f) {
+			psInput.lastPos = pos;
+		}
+		else {
+			psInput.lastPos = oldpos;
+		}
+#endif
 
 	return psInput;
 }
@@ -299,9 +183,34 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 	psInput.curPos = pos;
 
 	//ベロシティマップ用情報
-	CalcOldPosReturn ReturnOld = g_calcOldPos.CalcOldPosSkin(pos, In.Position, posW, In.Indices, In.Weights);
-	psInput.isWorldMove = ReturnOld.isWorldMove;
-	psInput.lastPos = ReturnOld.lastPos;
+#if MOTIONBLUR
+		float4x4 oldskinning = 0;
+		float4 oldpos = 0;
+		{
+			float w = 0.0f;
+			for (int i = 0; i < 3; i++)
+			{
+				oldskinning += boneMatrixOld[In.Indices[i]] * In.Weights[i];
+				w += In.Weights[i];
+			}
+			oldskinning += boneMatrixOld[In.Indices[3]] * (1.0f - w);
+			oldpos = mul(oldskinning, In.Position);
+		}
+
+		if (distance(posW, oldpos.xyz) > 0.0f) {
+			psInput.isWorldMove = true;
+		}
+
+		oldpos = mul(mView_old, oldpos);
+		oldpos = mul(mProj_old, oldpos);
+
+		if (oldpos.z < 0.0f) {
+			psInput.lastPos = pos;
+		}
+		else {
+			psInput.lastPos = oldpos;
+		}
+#endif
 
     return psInput;
 }
@@ -372,13 +281,39 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	Out.viewpos = float4(In.Viewpos, In.curPos.z / In.curPos.w);// In.curPos.z);
 
 	//ライティング用パラメーター
-	Out.lightingParam.rgb = emissive;//エミッシブ(自己発光)
-	Out.lightingParam.a = isLighting;//ライティングするか
+	Out.lightingParam = emissive;
 
 	//速度
-	float2x4 velocity = g_calcVelocity.CalcVelocity(In.curPos, In.lastPos, In.isWorldMove);
-	Out.velocity = velocity[0];
-	Out.velocityPS = velocity[1];
+#if MOTIONBLUR
+		float2	current = In.curPos.xy / In.curPos.w;
+		float2	last = In.lastPos.xy / In.lastPos.w;
+
+		if (In.curPos.z < 0.0f || In.lastPos.z < 0.0f) {
+			current *= 0.0f; last *= 0.0f;
+		}
+
+		current.xy *= float2(0.5f, -0.5f); current.xy += 0.5f;
+		last.xy *= float2(0.5f, -0.5f); last.xy += 0.5f;
+
+		Out.velocity.z = min(In.curPos.z, In.lastPos.z);
+		Out.velocity.w = max(In.curPos.z, In.lastPos.z);
+
+		if (In.isWorldMove) {
+			Out.velocity.xy = current.xy - last.xy;
+			Out.velocityPS.z = -1.0f;
+			Out.velocityPS.w = -1.0f;
+		}
+		else {
+			Out.velocityPS.xy = current.xy - last.xy;
+			Out.velocityPS.z = min(In.curPos.z, In.lastPos.z);
+			Out.velocityPS.w = max(In.curPos.z, In.lastPos.z);
+		}
+#else
+		Out.velocity.z = In.curPos.z;
+		Out.velocity.w = In.curPos.z;
+		Out.velocityPS.z = In.curPos.z;
+		Out.velocityPS.w = In.curPos.z;
+#endif
 
 	return Out;
 }

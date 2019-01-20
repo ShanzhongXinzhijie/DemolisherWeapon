@@ -7,9 +7,8 @@ namespace DemolisherWeapon {
 	//定数バッファ　[model.fx:MaterialCb]
 	//マテリアルパラメーター
 	struct MaterialParam {
-		CVector4 albedoScale = CVector4::One();	//アルベドにかけるスケール
-		CVector3 emissive;						//エミッシブ(自己発光)
-		int isLighting = 1;						//ライティングするか
+		CVector4 albedoScale = CVector4::One();		//アルベドにかけるスケール
+		CVector4 emissive = {0.0f,0.0f,0.0f,1.0f};	//エミッシブ(自己発光) wがライティングするか
 	};
 
 	class MaterialSetting
@@ -35,7 +34,7 @@ namespace DemolisherWeapon {
 
 		//ライティングするかを設定
 		void SetLightingEnable(bool enable) {
-			m_materialParam.isLighting = enable ? 1 : 0;
+			m_materialParam.emissive.w = enable ? 1.0f : 0.0f;
 		}
 
 		//自己発光色(エミッシブ)を設定
@@ -88,11 +87,11 @@ namespace DemolisherWeapon {
 
 		//モーションブラー有効かを設定
 		void SetIsMotionBlur(bool enable) {
-			m_isMotionBlur = enable;
+			m_enableMotionBlur = enable;
 		}
 		//モーションブラー有効かを取得
 		bool GetIsMotionBlur() const{
-			return m_isMotionBlur;
+			return m_enableMotionBlur;
 		}
 		
 	private:
@@ -103,7 +102,7 @@ namespace DemolisherWeapon {
 		Shader* m_pPSShader = nullptr;						//シェーダー
 		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;	//テクスチャ
 
-		bool m_isMotionBlur = true;//モーションブラー
+		bool m_enableMotionBlur = true;
 	};
 
 }

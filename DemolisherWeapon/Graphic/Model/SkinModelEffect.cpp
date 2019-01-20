@@ -15,15 +15,15 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 		deviceContext->PSSetShader((ID3D11PixelShader*)m_psZShader.GetBody(), NULL, 0);
 		break;
 	default:
-		//動的リンク
-		if (m_pVSShader == &m_vsDefaultShader) {
-			deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSShader->GetBody(), m_vsDefaultShader.GetClassInstanceArray(), m_vsDefaultShader.GetNumInterfaces());
+		//モーションブラーの有効で切り替える
+		if (m_pVSShader == &m_vsDefaultShader[enALL] && !GetDefaultMaterialSetting().GetIsMotionBlur()) {
+			deviceContext->VSSetShader((ID3D11VertexShader*)m_vsDefaultShader[enNoMotionBlur].GetBody(), NULL, 0);
 		}
 		else {
 			deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSShader->GetBody(), NULL, 0);
 		}
-		if (m_pPSShader == &m_psDefaultShader) {
-			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader->GetBody(), m_psDefaultShader.GetClassInstanceArray(), m_psDefaultShader.GetNumInterfaces());
+		if (m_pPSShader == &m_psDefaultShader[enALL] && !GetDefaultMaterialSetting().GetIsMotionBlur()) {
+			deviceContext->PSSetShader((ID3D11PixelShader*)m_psDefaultShader[enNoMotionBlur].GetBody(), NULL, 0);
 		}
 		else {
 			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader->GetBody(), NULL, 0);
