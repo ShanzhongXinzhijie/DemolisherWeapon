@@ -58,10 +58,25 @@ public:
 	{
 		return m_blobOut->GetBufferSize();
 	}
+
+	//動的リンク関係
+	//インターフェイスインスタンスの数を取得
+	int GetNumInterfaces()const {
+		return m_numInterfaces;
+	}
+	//インターフェイスインスタンスの配列を取得
+	ID3D11ClassInstance** GetClassInstanceArray()const {
+		return m_dynamicLinkageArray;
+	}
+
 private:
 	void*				m_shader = nullptr;					//!<シェーダー。
 	ID3D11InputLayout*	m_inputLayout = nullptr;			//!<入力レイアウト。
 	ID3DBlob*			m_blobOut = nullptr;
+
+	//動的リンク関係
+	int m_numInterfaces = 0;
+	ID3D11ClassInstance** m_dynamicLinkageArray = nullptr;
 };
 
 }

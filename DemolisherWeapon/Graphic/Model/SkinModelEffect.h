@@ -2,6 +2,7 @@
 
 #include "Graphic/Shader/Shader.h"
 #include "Graphic/Shader/ShaderUtil.h"
+#include "Graphic/Shader/ShaderResources.h"
 
 #include "MaterialSetting.h"
 
@@ -28,24 +29,33 @@ private:
 protected:
 	Shader* m_pVSShader = nullptr;
 	Shader* m_pPSShader = nullptr;
-	Shader m_vsShader, m_vsZShader;
-	Shader m_psShader, m_psZShader;
+
+	Shader m_vsDefaultShader, m_vsZShader;
+	int m_clacOldPosOffset = 0;
+	ID3D11ClassInstance* m_cCalcOldPos = nullptr, *m_cNoCalcOldPos = nullptr;
+
+	Shader m_psDefaultShader, m_psZShader;
+	int m_clacVelocityOffset = 0;
+	ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;
+
 	bool isSkining;
 	ID3D11ShaderResourceView* m_albedoTex = nullptr, *m_pAlbedoTex = nullptr;
 	
-	MaterialSetting m_materialSetting;			//マテリアル設定
+	MaterialSetting m_defaultMaterialSetting;	//マテリアル設定
 	MaterialParam m_materialParam;				//マテリアルパラメータ
 	ID3D11Buffer* m_materialParamCB = nullptr;	//マテリアルパラメータ用の定数バッファ
 
 public:
 	ModelEffect()
 	{
-		m_psShader.Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
+		m_psDefaultShader.Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
 		m_psZShader.Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
 
-		m_pPSShader = &m_psShader;
+		LoadClassInstancePS();
 
-		MaterialSettingInit(m_materialSetting);
+		m_pPSShader = &m_psDefaultShader;
+
+		MaterialSettingInit(m_defaultMaterialSetting);
 
 		//マテリアルパラメーターの定数バッファ
 		ShaderUtil::CreateConstantBuffer(sizeof(MaterialParam), &m_materialParamCB);
@@ -55,44 +65,54 @@ public:
 		if (m_albedoTex) {
 			m_albedoTex->Release();
 		}
-		if (m_materialParamCB)m_materialParamCB->Release();
+		if (m_materialParamCB) {
+			m_materialParamCB->Release();
+		}
+
+		if (m_cCalcOldPos) {
+			m_cCalcOldPos->Release();
+		}
+		if (m_cNoCalcOldPos) {
+			m_cNoCalcOldPos->Release();
+		}
+		if (m_cCalcVelocity) {
+			m_cCalcVelocity->Release();
+		}
+		if (m_cNoCalcVelocity) {
+			m_cNoCalcVelocity->Release();
+		}
 	}
 	void __cdecl Apply(ID3D11DeviceContext* deviceContext) override;
 
 	void __cdecl GetVertexShaderBytecode(void const** pShaderByteCode, size_t* pByteCodeLength) override
 	{
-		*pShaderByteCode = m_vsShader.GetByteCode();
-		*pByteCodeLength = m_vsShader.GetByteCodeSize();
+		*pShaderByteCode = m_vsDefaultShader.GetByteCode();
+		*pByteCodeLength = m_vsDefaultShader.GetByteCodeSize();
 	}
 
-	//マテリアル設定を初期化してやる
+	//マテリアル設定をこのインスタンスをベースに初期化してやる
+	//MaterialSetting& matset　初期化するセッティング
 	void MaterialSettingInit(MaterialSetting& matset) {
 		matset.Init(this);
-		matset.SetMatrialName(GetMatrialName());
-		matset.SetMaterialParam(m_materialSetting.GetMaterialParam());
-		matset.SetPS(m_materialSetting.GetPS());
-		matset.SetAlbedoTexture(m_materialSetting.GetAlbedoTexture());
 	}
-	//マテリアル設定の取得
-	MaterialSetting& GetMaterialSetting() {
-		return m_materialSetting;
+	//デフォルトマテリアル設定の取得
+	MaterialSetting& GetDefaultMaterialSetting() {
+		return m_defaultMaterialSetting;
 	}
 
 	//アルベドテクスチャを設定
-	void SetAlbedoTexture(ID3D11ShaderResourceView* tex)
-	{
+	void SetAlbedoTexture(ID3D11ShaderResourceView* tex){
 		if (!m_albedoTex) {
 			//デフォルトテクスチャ
 			m_albedoTex = tex;
 			m_pAlbedoTex = m_albedoTex;
 		}
-
 		//テクスチャ変更
-		m_materialSetting.SetAlbedoTexture(tex);		
+		m_defaultMaterialSetting.SetAlbedoTexture(tex);		
 	}
 	//アルベドテクスチャをデフォに戻す
 	void SetDefaultAlbedoTexture() {
-		m_materialSetting.SetDefaultAlbedoTexture();
+		m_defaultMaterialSetting.SetDefaultAlbedoTexture();
 	}
 	//デフォルトのアルベドテクスチャを取得
 	ID3D11ShaderResourceView* GetDefaultAlbedoTexture() const{
@@ -101,43 +121,43 @@ public:
 
 	//シェーダを設定
 	void SetPS(Shader* ps) {
-		m_materialSetting.SetPS(ps);
+		m_defaultMaterialSetting.SetPS(ps);
 	}
 	//シェーダをデフォに戻す
 	void SetDefaultPS() {
-		m_materialSetting.SetDefaultPS();
+		m_defaultMaterialSetting.SetDefaultPS();
 	}
 	//デフォルトのシェーダを取得
 	Shader* GetDefaultPS() {
-		return &m_psShader;
+		return &m_psDefaultShader;
 	}
 
 	//名前を設定
 	void SetMatrialName(const wchar_t* matName)
 	{
-		m_materialSetting.SetMatrialName(matName);
+		m_defaultMaterialSetting.SetMatrialName(matName);
 	}
 	//名前を取得
 	const wchar_t* GetMatrialName()const {
-		return m_materialSetting.GetMatrialName();
+		return m_defaultMaterialSetting.GetMatrialName();
 	}
 	//名前の一致を判定
 	bool EqualMaterialName(const wchar_t* name) const
 	{
-		return m_materialSetting.EqualMaterialName(name);
+		return m_defaultMaterialSetting.EqualMaterialName(name);
 	}
 
 	//ライティングするかを設定
 	void SetLightingEnable(bool enable) {
-		m_materialSetting.SetLightingEnable(enable);
+		m_defaultMaterialSetting.SetLightingEnable(enable);
 	}
 	//自己発光色(エミッシブ)を設定
 	void SetEmissive(const CVector3& emissive) {
-		m_materialSetting.SetEmissive(emissive);
+		m_defaultMaterialSetting.SetEmissive(emissive);
 	}
 	//アルベドにかけるスケールを設定
 	void SetAlbedoScale(const CVector4& scale) {
-		m_materialSetting.SetAlbedoScale(scale);
+		m_defaultMaterialSetting.SetAlbedoScale(scale);
 	}
 
 
@@ -148,13 +168,62 @@ public:
 		m_materialParam = matset.GetMaterialParam();
 		m_pPSShader = matset.GetPS();
 		m_pAlbedoTex = matset.GetAlbedoTexture();
+
+		if (m_pVSShader == &m_vsDefaultShader) {
+			if (matset.GetIsMotionBlur()) {
+				ID3D11ClassInstance** array = m_vsDefaultShader.GetClassInstanceArray();
+				array[m_clacOldPosOffset] = m_cCalcOldPos;
+			}
+			else {
+				ID3D11ClassInstance** array = m_vsDefaultShader.GetClassInstanceArray();
+				array[m_clacOldPosOffset] = m_cNoCalcOldPos;
+			}
+		}
+		if (m_pPSShader == &m_psDefaultShader) {
+			if (matset.GetIsMotionBlur()) {
+				ID3D11ClassInstance** array = m_psDefaultShader.GetClassInstanceArray();
+				array[m_clacVelocityOffset] = m_cCalcVelocity;
+			}
+			else {
+				ID3D11ClassInstance** array = m_psDefaultShader.GetClassInstanceArray();
+				array[m_clacVelocityOffset] = m_cNoCalcVelocity;
+			}
+		}
 	}
 	void SetDefaultMaterialSetting() {
-		m_materialParam = m_materialSetting.GetMaterialParam();
-		m_pPSShader = m_materialSetting.GetPS();
-		m_pAlbedoTex = m_materialSetting.GetAlbedoTexture();
+		SetUseMaterialSetting(m_defaultMaterialSetting);
 	}
 	
+protected:
+	//動的リンク
+	void LoadClassInstanceVS(){
+		//オフセット取得
+		ID3D11ShaderReflection* pReflector = nullptr;
+		D3DReflect(m_vsDefaultShader.GetByteCode(), m_vsDefaultShader.GetByteCodeSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
+
+		ID3D11ShaderReflectionVariable* pAmbientLightingVar = pReflector->GetVariableByName("g_calcOldPos");
+		m_clacOldPosOffset = pAmbientLightingVar->GetInterfaceSlot(0);
+
+		pReflector->Release();
+
+		//インスタンス取得
+		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cCalcOldPos", 0, 0, 0, 0, &m_cCalcOldPos);
+		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cNotCalcOldPos", 0, 0, 0, 0, &m_cNoCalcOldPos);
+	}
+	void LoadClassInstancePS() {
+		//オフセット取得
+		ID3D11ShaderReflection* pReflector = nullptr;
+		D3DReflect(m_psDefaultShader.GetByteCode(), m_psDefaultShader.GetByteCodeSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
+
+		ID3D11ShaderReflectionVariable* pAmbientLightingVar = pReflector->GetVariableByName("g_calcVelocity");
+		m_clacVelocityOffset = pAmbientLightingVar->GetInterfaceSlot(0);
+
+		pReflector->Release();
+
+		//インスタンス取得
+		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cCalcVelocity", 0, 0, 0, 0, &m_cCalcVelocity);
+		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cNotCalcVelocity", 0, 0, 0, 0, &m_cNoCalcVelocity);
+	}
 };
 /*!
 *@brief
@@ -164,10 +233,12 @@ class NonSkinModelEffect : public ModelEffect {
 public:
 	NonSkinModelEffect()
 	{
-		m_vsShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS);
+		m_vsDefaultShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS);
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS);
+
+		LoadClassInstanceVS();
 		
-		m_pVSShader = &m_vsShader;
+		m_pVSShader = &m_vsDefaultShader;
 		isSkining = false;
 	}
 };
@@ -181,10 +252,12 @@ public:
 	{
 		wchar_t hoge[256];
 		GetCurrentDirectoryW(256, hoge);
-		m_vsShader.Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS);
+		m_vsDefaultShader.Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS);
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS);
 
-		m_pVSShader = &m_vsShader;
+		LoadClassInstanceVS();
+
+		m_pVSShader = &m_vsDefaultShader;
 		isSkining = true;
 	}
 };
@@ -211,7 +284,7 @@ public:
 		}
 
 		//名前設定
-		effect->GetMaterialSetting().SetMatrialName(info.name);
+		effect->GetDefaultMaterialSetting().SetMatrialName(info.name);
 
 		//テクスチャ設定
 		if (info.diffuseTexture && *info.diffuseTexture)

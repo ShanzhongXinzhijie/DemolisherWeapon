@@ -32,6 +32,7 @@ float4 PSMain(PSInput In) : SV_Target0
 	float3 velocity = VelocityMap.Sample(Sampler, In.uv);
 	velocity.xy *= blurscale;
 
+	//速度低いと出る
 	if (abs(velocity.x) < BUNBO*0.5f && abs(velocity.y) < BUNBO*0.5f) {//0.001f
 		return Out;
 	}
@@ -50,13 +51,8 @@ float4 PSMain(PSInput In) : SV_Target0
 		}
 	}
 
-	if (samplecnt < 0.9f) {
-		return Out;
-	}
-	else {
-		//　平均を求める
-		Out /= samplecnt + 1;
-	}
+	//　平均を求める
+	Out /= samplecnt + 1;
 
 	return Out;
 }

@@ -16,11 +16,7 @@ namespace DemolisherWeapon {
 	{
 	public:
 
-		void Init(ModelEffect* modeleffect) {
-			m_isInit = modeleffect;
-			SetDefaultPS();
-			SetDefaultAlbedoTexture();
-		}
+		void Init(ModelEffect* modeleffect);
 
 		//名前を設定
 		void SetMatrialName(const wchar_t* matName)
@@ -89,6 +85,15 @@ namespace DemolisherWeapon {
 		}
 		//アルベドテクスチャをデフォに戻す
 		void SetDefaultAlbedoTexture();
+
+		//モーションブラー有効かを設定
+		void SetIsMotionBlur(bool enable) {
+			m_isMotionBlur = enable;
+		}
+		//モーションブラー有効かを取得
+		bool GetIsMotionBlur() const{
+			return m_isMotionBlur;
+		}
 		
 	private:
 		ModelEffect *m_isInit = nullptr;
@@ -97,6 +102,8 @@ namespace DemolisherWeapon {
 		MaterialParam m_materialParam;						//マテリアルパラメータ
 		Shader* m_pPSShader = nullptr;						//シェーダー
 		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;	//テクスチャ
+
+		bool m_isMotionBlur = true;//モーションブラー
 	};
 
 }

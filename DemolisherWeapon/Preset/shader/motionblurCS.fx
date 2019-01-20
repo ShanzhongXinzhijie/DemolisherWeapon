@@ -1,4 +1,3 @@
-
 //定数
 cbuffer CSCb : register(b0) {
 	//フレームバッファ解像度
@@ -23,9 +22,6 @@ static const float BUNBO = 0.002f*(8.0f / samples);
 [numthreads(32, 32, 1)]
 void CSmain(uint3 run_xy : SV_DispatchThreadID)//uint3 run_xy : SV_GroupID , uint3 threadid : SV_GroupThreadID)
 {
-	//uint x = run_xy.x * 32 + threadid.x, y = run_xy.y * 32 + threadid.y;
-	//uint x = run_xy.x, y = run_xy.y;
-
 	uint2 uv = run_xy.xy;
 
 	if (uv.x % 2 == 0) {

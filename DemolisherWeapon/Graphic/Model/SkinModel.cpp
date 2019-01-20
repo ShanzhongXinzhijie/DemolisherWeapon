@@ -163,10 +163,6 @@ void SkinModel::Draw(bool reverseCull)
 	vsCb.mProj_old = GetMainCamera()->GetProjMatrixOld();
 	vsCb.mView_old = GetMainCamera()->GetViewMatrixOld();
 
-	vsCb.isMotionBlur = m_isMotionBlur ? 1 : 0;
-
-	vsCb.alignment[0] = vsCb.alignment[1] = vsCb.alignment[2] = 0;
-
 	d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
 
 	//定数バッファをGPUに転送。

@@ -133,12 +133,6 @@ public:
 		}
 	}
 
-	//モーションブラーフラグ
-	void SetMotionBlurFlag(const bool flag)
-	{
-		m_isMotionBlur = flag;
-	}
-
 	//FBXの設定取得
 	const EnFbxUpAxis& GetFBXUpAxis()const {
 		return m_enFbxUpAxis;
@@ -173,15 +167,10 @@ private:
 		CMatrix mWorld_old;
 		CMatrix mView_old;
 		CMatrix mProj_old;
-
-		int isMotionBlur;//モーションブラーかけるか?
-		
-		int alignment[3];
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
 	bool m_isFirstWorldMatRef = true;
-	bool m_isMotionBlur = true;//モーションブラー有効か
 
 	//マテリアル個別設定	
 	bool isMatSetInit = false;

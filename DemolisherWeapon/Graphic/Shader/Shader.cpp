@@ -117,7 +117,9 @@ bool Shader::Load(const char* filePath, const char* entryFuncName, EnType shader
 		m_blobOut,
 		filePath,
 		entryFuncName,
-		shaderType
+		shaderType,
+		m_numInterfaces,
+		m_dynamicLinkageArray
 	);
     return result;
 }

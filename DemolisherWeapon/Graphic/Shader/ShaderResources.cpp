@@ -107,6 +107,7 @@ namespace {
  */
 ShaderResources::ShaderResources()
 {
+	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateClassLinkage(&pClassLinkage);
 }
 /*!
  *@brief	デストラクタ。
@@ -133,9 +134,14 @@ void ShaderResources::Release()
 			it->second->inputLayout->Release();
 		}
 		it->second->blobOut->Release();
+
+		it->second->numInterfaces = 0;
+		free(it->second->dynamicLinkageArray);
 	}
 	m_shaderResourceMap.clear();
 	m_shaderProgramMap.clear();
+
+	pClassLinkage->Release();
 }
 bool ShaderResources::Load(
 	void*& shader,
@@ -143,7 +149,9 @@ bool ShaderResources::Load(
 	ID3DBlob*& blob,
 	const char* filePath, 
 	const char* entryFuncName,
-	Shader::EnType shaderType
+	Shader::EnType shaderType,
+	int& numInterfaces,
+	ID3D11ClassInstance**& dynamicLinkageArray
 )
 {
 	//ファイルパスからハッシュ値を作成する。
@@ -218,7 +226,7 @@ bool ShaderResources::Load(
 		switch (shaderType) {
 		case Shader::EnType::VS: {
 			//頂点シェーダー。
-			hr = pD3DDevice->CreateVertexShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), nullptr, (ID3D11VertexShader**)&resource->shader);
+			hr = pD3DDevice->CreateVertexShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), pClassLinkage, (ID3D11VertexShader**)&resource->shader);
 			if (FAILED(hr)) {
 				return false;
 			}
@@ -231,34 +239,54 @@ bool ShaderResources::Load(
 		}break;
 		case Shader::EnType::PS: {
 			//ピクセルシェーダー。
-			hr = pD3DDevice->CreatePixelShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), nullptr, (ID3D11PixelShader**)&resource->shader);
+			hr = pD3DDevice->CreatePixelShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), pClassLinkage, (ID3D11PixelShader**)&resource->shader);
 			if (FAILED(hr)) {
 				return false;
 			}
 		}break;
 		case Shader::EnType::CS: {
 			//コンピュートシェーダー。
-			hr = pD3DDevice->CreateComputeShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), nullptr, (ID3D11ComputeShader**)&resource->shader);
+			hr = pD3DDevice->CreateComputeShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), pClassLinkage, (ID3D11ComputeShader**)&resource->shader);
 			if (FAILED(hr)) {
 				return false;
 			}
 		}break;
 		}
+
+		//動的リンク関係
+		{
+			ID3D11ShaderReflection* pReflector = nullptr;
+			D3DReflect(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
+			//インターフェイスインスタンスの数を取得
+			resource->numInterfaces = pReflector->GetNumInterfaceSlots();
+			//配列確保
+			if (resource->numInterfaces > 0) {
+				resource->dynamicLinkageArray = (ID3D11ClassInstance**)malloc(sizeof(ID3D11ClassInstance*) * resource->numInterfaces);
+			}
+			pReflector->Release();
+		}
+
 		resource->blobOut = blobOut;
 		shader = resource->shader;
 		inputLayout = resource->inputLayout;
 		blob = blobOut;
+
+		numInterfaces = resource->numInterfaces;
+		dynamicLinkageArray = resource->dynamicLinkageArray;
+
 		std::pair<int, SShaderResourcePtr> pair;
 		pair.first = hash;
 		pair.second = std::move(resource);
-		m_shaderResourceMap.insert(std::move(pair));
-		 
+		m_shaderResourceMap.insert(std::move(pair));		 
 	}
 	else {
 		//すでに読み込み済み。
 		shader = itShaderResource->second->shader;
 		inputLayout = itShaderResource->second->inputLayout;
 		blob = itShaderResource->second->blobOut;
+
+		numInterfaces = itShaderResource->second->numInterfaces;
+		dynamicLinkageArray = itShaderResource->second->dynamicLinkageArray;
 	}
 	return true;
 }

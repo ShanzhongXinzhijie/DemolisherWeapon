@@ -34,6 +34,11 @@ public:
 		static ShaderResources instance;
 		return instance;
 	}
+	//クラス リンク オブジェクトを取得
+	ID3D11ClassLinkage* GetClassLinkage() const{
+		return pClassLinkage;
+	}
+
 	/*!
 	 *@brief	ロード
 	 *@param[out]	shader			ロードしたシェーダーの格納先。
@@ -44,12 +49,14 @@ public:
 	 *@param[in]	shaderType		シェーダータイプ。
 	 */
 	bool Load(
-		void*& shader, 
-		ID3D11InputLayout*& inputLayout, 
+		void*& shader,
+		ID3D11InputLayout*& inputLayout,
 		ID3DBlob*& blob,
-		const char* filePath, 
+		const char* filePath,
 		const char* entryFuncName,
-		Shader::EnType shaderType
+		Shader::EnType shaderType,
+		int& numInterfaces,
+		ID3D11ClassInstance**& dynamicLinkageArray
 	);
 	/*!
 	*@brief	開放。
@@ -66,12 +73,18 @@ private:
 		void* shader;					//!<シェーダー。
 		ID3D11InputLayout* inputLayout;	//!<入力レイアウト。
 		Shader::EnType type;			//!<シェーダータイプ。
-		ID3DBlob* blobOut;
+		ID3DBlob* blobOut;		
+
+		//動的リンク関係
+		int numInterfaces = 0;
+		ID3D11ClassInstance** dynamicLinkageArray = nullptr;
 	};
 	typedef std::unique_ptr<SShaderResource>	SShaderResourcePtr;
 	typedef std::unique_ptr<SShaderProgram>	SShaderProgramPtr;
 	std::map<int, SShaderProgramPtr>		m_shaderProgramMap;		//!<読み込み済みのシェーダープログラムのマップ。
 	std::map<int, SShaderResourcePtr>	m_shaderResourceMap;	//!<シェーダーリソースのマップ。
+
+	ID3D11ClassLinkage* pClassLinkage = nullptr;//クラス リンク オブジェクト
 };
 
 }

@@ -3,6 +3,19 @@
 
 namespace DemolisherWeapon {
 
+	void MaterialSetting::Init(ModelEffect* modeleffect) {
+		m_isInit = modeleffect;
+		SetDefaultPS();
+		SetDefaultAlbedoTexture();
+
+		//設定のコピー
+		SetMatrialName(modeleffect->GetDefaultMaterialSetting().GetMatrialName());
+		SetMaterialParam(modeleffect->GetDefaultMaterialSetting().GetMaterialParam());
+		SetPS(modeleffect->GetDefaultMaterialSetting().GetPS());
+		SetAlbedoTexture(modeleffect->GetDefaultMaterialSetting().GetAlbedoTexture());
+		SetIsMotionBlur(modeleffect->GetDefaultMaterialSetting().GetIsMotionBlur());
+	}
+
 	//シェーダをデフォに戻す
 	void MaterialSetting::SetDefaultPS() {
 		m_pPSShader = m_isInit->GetDefaultPS();

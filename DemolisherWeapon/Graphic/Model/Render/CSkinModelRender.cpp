@@ -55,8 +55,7 @@ void CSkinModelRender::Init(const wchar_t* filePath,
 
 	//モデル読み込み
 	m_model.Init(filePath, fbxUpAxis, fbxCoordinate);
-	m_model.SetMotionBlurFlag(true);
-
+	
 	//アニメーションの初期化。
 	if (animationClips != nullptr) {
 		m_animCon.Init(

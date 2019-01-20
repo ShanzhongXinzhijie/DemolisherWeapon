@@ -15,8 +15,19 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 		deviceContext->PSSetShader((ID3D11PixelShader*)m_psZShader.GetBody(), NULL, 0);
 		break;
 	default:
-		deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSShader->GetBody(), NULL, 0);
-		deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader->GetBody(), NULL, 0);
+		//“®“IƒŠƒ“ƒN
+		if (m_pVSShader == &m_vsDefaultShader) {
+			deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSShader->GetBody(), m_vsDefaultShader.GetClassInstanceArray(), m_vsDefaultShader.GetNumInterfaces());
+		}
+		else {
+			deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSShader->GetBody(), NULL, 0);
+		}
+		if (m_pPSShader == &m_psDefaultShader) {
+			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader->GetBody(), m_psDefaultShader.GetClassInstanceArray(), m_psDefaultShader.GetNumInterfaces());
+		}
+		else {
+			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader->GetBody(), NULL, 0);
+		}
 		break;
 	}
 
