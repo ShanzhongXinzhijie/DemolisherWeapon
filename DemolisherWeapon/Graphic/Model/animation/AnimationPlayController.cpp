@@ -46,8 +46,7 @@ void AnimationPlayController::StartLoop()
 }
 void AnimationPlayController::Update(float deltaTime, Animation* animation)
 {
-	if(m_animationClip == nullptr){
-		
+	if(m_animationClip == nullptr){		
 		return ;
 	}
 	const auto& topBoneKeyFrameList = m_animationClip->GetTopBoneKeyFrameList();
@@ -62,15 +61,20 @@ void AnimationPlayController::Update(float deltaTime, Animation* animation)
 		if (m_currentKeyFrameNo >= (int)topBoneKeyFrameList.size()) {
 			//終端まで行った。
 			if (m_animationClip->IsLoop()) {
+				float amariTime = m_time - topBoneKeyFrameList.back()->time;
+
 				//ループ。
 				StartLoop();
+
+				m_time = amariTime;
+				InvokeAnimationEvent(animation);
 			}
 			else {
 				//ワンショット再生。
 				m_currentKeyFrameNo--;
 				m_isPlaying = false;	//再生終わり。
+				break;
 			}
-			break;
 		}
 		if (topBoneKeyFrameList.at(m_currentKeyFrameNo)->time >= m_time) {
 			//終わり。
