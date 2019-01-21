@@ -263,6 +263,13 @@ void GameLoop::Run() {
 		if (GetAsyncKeyState(VK_ESCAPE)) {
 			break;
 		}
+		//É|Å[ÉY
+		if (GetAsyncKeyState(VK_F1)) {
+			while (1) {
+				Sleep(1);
+				if (!GetAsyncKeyState(VK_F1)) { break; }
+			}
+		}
 	}
 }
 
