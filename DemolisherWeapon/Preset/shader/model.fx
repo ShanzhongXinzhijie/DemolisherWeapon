@@ -157,6 +157,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 	{
 	
 		float w = 0.0f;
+		[unroll]
 	    for (int i = 0; i < 3; i++)
 	    {
 			//boneMatrixにボーン行列が設定されていて、
@@ -188,6 +189,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 		float4 oldpos = 0;
 		{
 			float w = 0.0f;
+			[unroll]
 			for (int i = 0; i < 3; i++)
 			{
 				oldskinning += boneMatrixOld[In.Indices[i]] * In.Weights[i];
@@ -227,6 +229,7 @@ ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In)
 	{
 
 		float w = 0.0f;
+		[unroll]
 		for (int i = 0; i < 3; i++)
 		{
 			//boneMatrixにボーン行列が設定されていて、

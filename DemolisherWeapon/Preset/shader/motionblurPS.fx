@@ -41,6 +41,7 @@ float4 PSMain(PSInput In) : SV_Target0
 
 	//　サンプリング
 	float samplecnt = 0.0f;
+	[unroll]
 	for (float i = 0; i < loopmax; i++)
 	{
 		float t = (i + 1) / loopmax;

@@ -124,7 +124,9 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	//ブロッカーの深度値取得(平均)
 	float blocker_z = 0.0f;
 	float avg_blocker_z = 0.0f;
+	[unroll]
 	for (float y = -0.00276f; y <= 0.00276f; y += 0.00138f) {
+	[unroll]
 	for (float x = -0.00276f; x <= 0.00276f; x += 0.00138f) {
 		switch (usemapnum) {
 		case 0:
@@ -188,7 +190,9 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 
 	//影に入ってるか判定(PCF)
 	cnt = 0;
+	//[unroll]
 	for (float y = -0.00138f*maxCnt; y <= 0.00138f*maxCnt; y += 0.00046f*maxCnt){//1.0/720.0
+	//[unroll]
 	for (float x = -0.00138f*maxCnt; x <= 0.00138f*maxCnt; x += 0.00046f*maxCnt){
 		switch (usemapnum) {
 		case 0:
@@ -289,14 +293,10 @@ float3 Lambert(float3 diffuse, float3 lightDir, float3 normal)
 
 float4 PSMain(PSDefferdInput In) : SV_Target0
 {
-	//float a = SHADOWMAP_ARRAY(0).Sample(Sampler, In.uv);
-	//return float4(a,a,a,1.0f);
-
 	float4 albedo = albedoTexture.Sample(Sampler, In.uv);
 
 	//αテスト
-	if (albedo.w > 0.0f) {
-	}else{
+	if (albedo.w == 0.0f) {
 		discard;
 	}
 
@@ -306,12 +306,13 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
 
 	//ライティング無効
-	if (lightParam.a < 0.5f) {
+	if (!lightParam.a) {
 		return float4(saturate(albedo.rgb + lightParam.rgb), albedo.w);//エミッシブ加算
 	}
 
 	//シャドウマップの範囲に入っているか判定
 	HideInShadow hideInShadow = (HideInShadow)0;
+	[unroll]
 	for (int i = 0; i < SHADOWMAP_NUM; i++) {
 		if (enableShadowMap[i].x){
 			hideInShadow.flag[i] = ShadowMapFunc(i, float4(worldpos, 1.0f));
@@ -320,30 +321,31 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 	//ライティング
 	float3 Out = 0; 
-	//エミッシブ
+	
 	//ディレクションライト
-	for (int i = 0; i < numDirectionLight; i++) {
+	[unroll]
+	for (int i = 0; i < 4; i++) {
+
+		if (numDirectionLight == i) { break; }
 
 		//シャドウマップの遮蔽適応
 		float nothide = 1.0f;
+		[unroll]
 		for (int swi = 0; swi < SHADOWMAP_NUM; swi++) {
-			if (hideInShadow.flag[swi] > 0.0f) {
-				//if (swi == 0) { return float4(1, 0, 0, 1); }
-				//if (swi == 1) { return float4(0, 1, 0, 1); }
-				//if (swi == 2) { return float4(0, 0, 1, 1); }
-				nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
-				if (nothide == 0.0f) { break; }
-			}
+			nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 		}
 
-		if (nothide == 0.0f) { continue; }
 		Out += Lambert(albedo.xyz, directionLight[i].direction, normal) * directionLight[i].color * nothide;
 	}
 	//ポイントライト
-	for (int i = 0; i < numPointLight; i++) {
+	[unroll]
+	for (int i = 0; i < 12; i++) {
+
+		if (numPointLight == i) { break; }
+
 		float3 dir = pointLightList[i].position - worldpos;
 		float len = length(dir);
-		if (len > 0.0f && len < pointLightList[i].range) {
+		if (len < pointLightList[i].range) {
 			
 			dir = normalize(dir);
 
