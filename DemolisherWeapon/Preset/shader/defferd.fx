@@ -50,6 +50,95 @@ Texture2D<float> shadowMap10 : register(t70);
 Texture2D<float> shadowMap11 : register(t71);
 SamplerComparisonState	shadowSamplerComparisonState	: register(s1);
 
+static const float2 blockerSampleMap[] = {
+	float2(-0.00276f,-0.00276f),
+	float2(-0.00276f,-0.00138f),
+	float2(-0.00276f, 0.0f),
+	float2(-0.00276f, 0.00138f),
+	float2(-0.00276f, 0.00276f),
+
+	float2(-0.00138f,-0.00276f),
+	float2(-0.00138f,-0.00138f),
+	float2(-0.00138f, 0.0f),
+	float2(-0.00138f, 0.00138f),
+	float2(-0.00138f, 0.00276f),
+
+	float2(0.0f,-0.00276f),
+	float2(0.0f,-0.00138f),
+	float2(0.0f, 0.0f),
+	float2(0.0f, 0.00138f),
+	float2(0.0f, 0.00276f),
+
+	float2(0.00138f,-0.00276f),
+	float2(0.00138f,-0.00138f),
+	float2(0.00138f, 0.0f),
+	float2(0.00138f, 0.00138f),
+	float2(0.00138f, 0.00276f),
+
+	float2(0.00276f,-0.00276f),
+	float2(0.00276f,-0.00138f),
+	float2(0.00276f, 0.0f),
+	float2(0.00276f, 0.00138f),
+	float2(0.00276f, 0.00276f),
+};
+static const float2 PCSSSampleMap[] = {
+	float2(-0.00138f,-0.00138f),
+	float2(-0.00138f,-0.00092f),
+	float2(-0.00138f,-0.00046f),
+	float2(-0.00138f, 0.0f),
+	float2(-0.00138f, 0.00046f),
+	float2(-0.00138f, 0.00092f),
+	float2(-0.00138f, 0.00138f),
+
+	float2(-0.00092f,-0.00138f),
+	float2(-0.00092f,-0.00092f),
+	float2(-0.00092f,-0.00046f),
+	float2(-0.00092f, 0.0f),
+	float2(-0.00092f, 0.00046f),
+	float2(-0.00092f, 0.00092f),
+	float2(-0.00092f, 0.00138f),
+
+	float2(-0.00046f,-0.00138f),
+	float2(-0.00046f,-0.00092f),
+	float2(-0.00046f,-0.00046f),
+	float2(-0.00046f, 0.0f),
+	float2(-0.00046f, 0.00046f),
+	float2(-0.00046f, 0.00092f),
+	float2(-0.00046f, 0.00138f),
+
+	float2(0.0f,-0.00138f),
+	float2(0.0f,-0.00092f),
+	float2(0.0f,-0.00046f),
+	float2(0.0f, 0.0f),
+	float2(0.0f, 0.00046f),
+	float2(0.0f, 0.00092f),
+	float2(0.0f, 0.00138f),
+
+	float2(0.00046f,-0.00138f),
+	float2(0.00046f,-0.00092f),
+	float2(0.00046f,-0.00046f),
+	float2(0.00046f, 0.0f),
+	float2(0.00046f, 0.00046f),
+	float2(0.00046f, 0.00092f),
+	float2(0.00046f, 0.00138f),
+
+	float2(0.00092f,-0.00138f),
+	float2(0.00092f,-0.00092f),
+	float2(0.00092f,-0.00046f),
+	float2(0.00092f, 0.0f),
+	float2(0.00092f, 0.00046f),
+	float2(0.00092f, 0.00092f),
+	float2(0.00092f, 0.00138f),
+
+	float2(0.00138f,-0.00138f),
+	float2(0.00138f,-0.00092f),
+	float2(0.00138f,-0.00046f),
+	float2(0.00138f, 0.0f),
+	float2(0.00138f, 0.00046f),
+	float2(0.00138f, 0.00092f),
+	float2(0.00138f, 0.00138f),
+};
+
 //シャドウマップの判定
 inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 
@@ -125,45 +214,49 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	float blocker_z = 0.0f;
 	float avg_blocker_z = 0.0f;
 	[unroll]
-	for (float y = -0.00276f; y <= 0.00276f; y += 0.00138f) {
-	[unroll]
-	for (float x = -0.00276f; x <= 0.00276f; x += 0.00138f) {
+	for (uint i = 0; i < 25; i++) {
+	//for (float y = -0.00276f; y <= 0.00276f; y += 0.00138f) {
+	//[unroll]
+	//for (float x = -0.00276f; x <= 0.00276f; x += 0.00138f) {
+
+		//float2 xy = lLViewPosition.xy + blockerSampleMap[i];
+
 		switch (usemapnum) {
 		case 0:
-			blocker_z = SHADOWMAP_ARRAY(0).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(0).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 1:
-			blocker_z = SHADOWMAP_ARRAY(1).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(1).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 2:
-			blocker_z = SHADOWMAP_ARRAY(2).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(2).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 3:
-			blocker_z = SHADOWMAP_ARRAY(3).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(3).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 4:
-			blocker_z = SHADOWMAP_ARRAY(4).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(4).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 5:
-			blocker_z = SHADOWMAP_ARRAY(5).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(5).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 6:
-			blocker_z = SHADOWMAP_ARRAY(6).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(6).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 7:
-			blocker_z = SHADOWMAP_ARRAY(7).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(7).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 8:
-			blocker_z = SHADOWMAP_ARRAY(8).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(8).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 9:
-			blocker_z = SHADOWMAP_ARRAY(9).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(9).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 10:
-			blocker_z = SHADOWMAP_ARRAY(10).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(10).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		case 11:
-			blocker_z = SHADOWMAP_ARRAY(11).Sample(NoFillteringSampler, lLViewPosition.xy + float2(x, y));
+			blocker_z = SHADOWMAP_ARRAY(11).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
 			break;
 		default:
 			break;
@@ -173,7 +266,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 			avg_blocker_z += blocker_z;
 			cnt++;
 		}
-	}
+	//}
 	}
 	if (cnt == 0) {
 		return 0.0f;
@@ -190,52 +283,56 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 
 	//影に入ってるか判定(PCF)
 	cnt = 0;
+	[unroll]
+	for (uint i = 0; i < 49; i++) {
+	//for (float y = -0.00138f; y <= 0.00138f; y += 0.00046f){//1.0/720.0
 	//[unroll]
-	for (float y = -0.00138f*maxCnt; y <= 0.00138f*maxCnt; y += 0.00046f*maxCnt){//1.0/720.0
-	//[unroll]
-	for (float x = -0.00138f*maxCnt; x <= 0.00138f*maxCnt; x += 0.00046f*maxCnt){
+	//for (float x = -0.00138f; x <= 0.00138f; x += 0.00046f){
+
+		//float2 xy = PCSSSampleMap[i] * maxCnt + lLViewPosition.xy;
+
 		switch (usemapnum) {
 		case 0:
-			kekka += 1.0f - SHADOWMAP_ARRAY(0).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(0).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 1:
-			kekka += 1.0f - SHADOWMAP_ARRAY(1).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(1).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 2:
-			kekka += 1.0f - SHADOWMAP_ARRAY(2).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(2).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 3:
-			kekka += 1.0f - SHADOWMAP_ARRAY(3).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(3).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 4:
-			kekka += 1.0f - SHADOWMAP_ARRAY(4).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(4).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 5:
-			kekka += 1.0f - SHADOWMAP_ARRAY(5).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(5).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 6:
-			kekka += 1.0f - SHADOWMAP_ARRAY(6).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(6).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 7:
-			kekka += 1.0f - SHADOWMAP_ARRAY(7).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(7).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 8:
-			kekka += 1.0f - SHADOWMAP_ARRAY(8).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(8).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 9:
-			kekka += 1.0f - SHADOWMAP_ARRAY(9).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(9).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 10:
-			kekka += 1.0f - SHADOWMAP_ARRAY(10).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(10).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		case 11:
-			kekka += 1.0f - SHADOWMAP_ARRAY(11).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy + float2(x, y), lLViewPosition.z);
+			kekka += 1.0f - SHADOWMAP_ARRAY(11).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
 			break;
 		default:
 			break;
 		}
 		cnt++;
-	}
+	//}
 	}
 
 	kekka /= cnt;
@@ -345,7 +442,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 		float3 dir = pointLightList[i].position - worldpos;
 		float len = length(dir);
-		if (len < pointLightList[i].range) {
+		//if (len < pointLightList[i].range) {
 			
 			dir = normalize(dir);
 
@@ -354,7 +451,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			float	attn = max(1.0 - litRate * litRate, 0.0);
 
 			Out += Lambert(albedo.xyz, dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
-		}
+		//}
 	}	
 
 	//AO
