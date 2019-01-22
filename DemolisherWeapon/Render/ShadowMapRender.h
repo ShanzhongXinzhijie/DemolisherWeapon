@@ -40,7 +40,7 @@ public:
 		int i = 0;
 		for (i = 0; i < SHADOWMAP_NUM; i++) {
 			if (!m_shadowMaps[i].GetIsInit()) {
-				m_shadowMaps[i].Init(width, height);
+				m_shadowMaps[i].Init(width, height, i);
 				return &m_shadowMaps[i];
 			}
 		}
@@ -57,8 +57,8 @@ public:
 		return m_setting == enPCSS && m_shadowMaps[num].GetEnablePCSS();
 	}
 	//シャドウマップのSRV取得
-	ID3D11ShaderResourceView*& GetShadowMapSRV(int num) {
-		return m_shadowMaps[num].GetShadowMapSRV();
+	ID3D11ShaderResourceView*& GetShadowMapSRV() {
+		return m_shadowMaps[0].GetShadowMapSRV();
 	}
 	//ライト視点のビュープロジェクション行列を出す
 	CMatrix GetLightViewProjMatrix(int num)const{
@@ -74,7 +74,7 @@ public:
 	}
 
 	//シャドウマップの最大数
-	static const int SHADOWMAP_NUM = 12;
+	static const int SHADOWMAP_NUM = ShadowMapResource::SHADOWMAP_NUM;
 
 private:
 	EnShadowMapMode m_setting = enPCSS;

@@ -306,7 +306,7 @@ public:
 	void PostUpdate()override final;
 
 	RegColObj* AddCollisionObj(Suicider::CCollisionObj* obj) {
-		m_colObjList.emplace_back(obj, m_colObjList.size());
+		m_colObjList.emplace_back(obj, (int)m_colObjList.size());
 		return &m_colObjList.back();
 	};
 

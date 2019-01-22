@@ -3,13 +3,47 @@
 
 namespace DemolisherWeapon {
 
+class ShadowMapResource {
+public:
+	~ShadowMapResource();
+	
+	void Init();
+	void Release();
+
+	ID3D11ShaderResourceView*& GetShadowMapSRV() {
+		return m_shadowMapSRV;
+	}
+	ID3D11Texture2D* GetShadowMapTex() {
+		return m_shadowMapTex;
+	}
+
+	ID3D11DepthStencilView* GetDSV() {
+		return m_depthStencilView;
+	}
+
+	//シャドウマップの最大数
+	static const int SHADOWMAP_NUM = 12;
+
+	static const int MAX_WIDTH  = 4096;
+	static const int MAX_HEIGHT = 4096;
+
+private:
+	bool m_isInit = false;
+
+	ID3D11Texture2D*		m_shadowMapTex = nullptr;		//シャドウマップテクスチャ
+	ID3D11ShaderResourceView* m_shadowMapSRV = nullptr;		//シャドウマップSRV
+
+	ID3D11Texture2D*		m_depthStencilTex = nullptr;	//デプスステンシルテクスチャ
+	ID3D11DepthStencilView* m_depthStencilView = nullptr;	//デプスステンシルビュー
+};
+
 class CShadowMap
 {
 public:
 	~CShadowMap();
 
 	//シャドウマップを作成
-	void Init(UINT width, UINT height);
+	void Init(UINT width, UINT height, UINT index);
 
 	//シャドウマップを削除
 	void Release();
@@ -24,7 +58,7 @@ public:
 
 	//シャドウマップのSRV取得
 	ID3D11ShaderResourceView*& GetShadowMapSRV() {
-		return m_shadowMapSRV;
+		return m_resource.GetShadowMapSRV();
 	}
 	//ライト視点のビュープロジェクション行列を出す
 	CMatrix GetLightViewProjMatrix()const {
@@ -66,14 +100,12 @@ private:
 	bool m_enable = true;
 	bool m_enablePCSS = true;
 
+	static ShadowMapResource m_resource;
+	//static bool m_usedIndexs[ShadowMapResource::SHADOWMAP_NUM];
+
 	GameObj::NoRegisterOrthoCamera m_lightCam;//ライト視点カメラ
-
-	ID3D11Texture2D*		m_shadowMapTex = nullptr;		//シャドウマップテクスチャ
-	ID3D11RenderTargetView* m_shadowMapView = nullptr;		//シャドウマップビュー
-	ID3D11ShaderResourceView* m_shadowMapSRV = nullptr;		//シャドウマップSRV
-
-	ID3D11Texture2D*		m_depthStencilTex = nullptr;	//デプスステンシルテクスチャ
-	ID3D11DepthStencilView* m_depthStencilView = nullptr;	//デプスステンシルビュー
+	ID3D11RenderTargetView* m_shadowMapRTV = nullptr;
+	//UINT m_useIndex = -1;
 
 	D3D11_VIEWPORT m_viewport;//ビューポート
 

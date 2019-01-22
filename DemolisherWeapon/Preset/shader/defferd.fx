@@ -24,7 +24,6 @@ StructuredBuffer<SPointLight> pointLightList : register(t101);
 
 //シャドウマップ系
 #define SHADOWMAP_NUM 12
-#define SHADOWMAP_ARRAY(a) shadowMap##a
 cbuffer ShadowCb : register(b1) {
 	float4x4 ViewProjInv;
 	float4x4 mLVP[SHADOWMAP_NUM];
@@ -36,18 +35,7 @@ cbuffer ShadowCb : register(b1) {
 struct HideInShadow {
 	float flag[SHADOWMAP_NUM];
 };
-Texture2D<float> shadowMap0  : register(t60);
-Texture2D<float> shadowMap1  : register(t61);
-Texture2D<float> shadowMap2  : register(t62);
-Texture2D<float> shadowMap3  : register(t63);
-Texture2D<float> shadowMap4  : register(t64);
-Texture2D<float> shadowMap5  : register(t65);
-Texture2D<float> shadowMap6  : register(t66);
-Texture2D<float> shadowMap7  : register(t67);
-Texture2D<float> shadowMap8  : register(t68);
-Texture2D<float> shadowMap9  : register(t69);
-Texture2D<float> shadowMap10 : register(t70);
-Texture2D<float> shadowMap11 : register(t71);
+Texture2DArray<float> shadowMaps  : register(t60);
 SamplerComparisonState	shadowSamplerComparisonState	: register(s1);
 
 static const float2 blockerSampleMap[] = {
@@ -165,46 +153,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 
 	//PCSS無効
 	if (!enableShadowMap[usemapnum].y) {
-		switch (usemapnum) {
-		case 0:
-			return 1.0f - SHADOWMAP_ARRAY(0).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 1:
-			return 1.0f - SHADOWMAP_ARRAY(1).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 2:
-			return 1.0f - SHADOWMAP_ARRAY(2).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 3:
-			return 1.0f - SHADOWMAP_ARRAY(3).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 4:
-			return 1.0f - SHADOWMAP_ARRAY(4).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 5:
-			return 1.0f - SHADOWMAP_ARRAY(5).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 6:
-			return 1.0f - SHADOWMAP_ARRAY(6).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 7:
-			return 1.0f - SHADOWMAP_ARRAY(7).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 8:
-			return 1.0f - SHADOWMAP_ARRAY(8).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 9:
-			return 1.0f - SHADOWMAP_ARRAY(9).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 10:
-			return 1.0f - SHADOWMAP_ARRAY(10).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 11:
-			return 1.0f - SHADOWMAP_ARRAY(11).SampleCmpLevelZero(shadowSamplerComparisonState, lLViewPosition.xy, lLViewPosition.z);
-			break;
-		default:
-			break;
-		}
+		return 1.0f - shadowMaps.SampleCmpLevelZero(shadowSamplerComparisonState, float3(lLViewPosition.xy, usemapnum), lLViewPosition.z);
 	}
 
 	float kekka = 0.0f;
@@ -219,48 +168,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	//[unroll]
 	//for (float x = -0.00276f; x <= 0.00276f; x += 0.00138f) {
 
-		//float2 xy = lLViewPosition.xy + blockerSampleMap[i];
-
-		switch (usemapnum) {
-		case 0:
-			blocker_z = SHADOWMAP_ARRAY(0).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 1:
-			blocker_z = SHADOWMAP_ARRAY(1).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 2:
-			blocker_z = SHADOWMAP_ARRAY(2).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 3:
-			blocker_z = SHADOWMAP_ARRAY(3).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 4:
-			blocker_z = SHADOWMAP_ARRAY(4).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 5:
-			blocker_z = SHADOWMAP_ARRAY(5).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 6:
-			blocker_z = SHADOWMAP_ARRAY(6).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 7:
-			blocker_z = SHADOWMAP_ARRAY(7).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 8:
-			blocker_z = SHADOWMAP_ARRAY(8).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 9:
-			blocker_z = SHADOWMAP_ARRAY(9).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 10:
-			blocker_z = SHADOWMAP_ARRAY(10).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		case 11:
-			blocker_z = SHADOWMAP_ARRAY(11).Sample(NoFillteringSampler, lLViewPosition.xy + blockerSampleMap[i]);
-			break;
-		default:
-			break;
-		}
+		blocker_z = shadowMaps.Sample(NoFillteringSampler, float3(lLViewPosition.xy + blockerSampleMap[i], usemapnum));
 
 		if (blocker_z < lLViewPosition.z) {
 			avg_blocker_z += blocker_z;
@@ -289,48 +197,8 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	//[unroll]
 	//for (float x = -0.00138f; x <= 0.00138f; x += 0.00046f){
 
-		//float2 xy = PCSSSampleMap[i] * maxCnt + lLViewPosition.xy;
+		kekka += 1.0f - shadowMaps.SampleCmpLevelZero(shadowSamplerComparisonState, float3(PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, usemapnum), lLViewPosition.z);
 
-		switch (usemapnum) {
-		case 0:
-			kekka += 1.0f - SHADOWMAP_ARRAY(0).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 1:
-			kekka += 1.0f - SHADOWMAP_ARRAY(1).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 2:
-			kekka += 1.0f - SHADOWMAP_ARRAY(2).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 3:
-			kekka += 1.0f - SHADOWMAP_ARRAY(3).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 4:
-			kekka += 1.0f - SHADOWMAP_ARRAY(4).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 5:
-			kekka += 1.0f - SHADOWMAP_ARRAY(5).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 6:
-			kekka += 1.0f - SHADOWMAP_ARRAY(6).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 7:
-			kekka += 1.0f - SHADOWMAP_ARRAY(7).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 8:
-			kekka += 1.0f - SHADOWMAP_ARRAY(8).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 9:
-			kekka += 1.0f - SHADOWMAP_ARRAY(9).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 10:
-			kekka += 1.0f - SHADOWMAP_ARRAY(10).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		case 11:
-			kekka += 1.0f - SHADOWMAP_ARRAY(11).SampleCmpLevelZero(shadowSamplerComparisonState, PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, lLViewPosition.z);
-			break;
-		default:
-			break;
-		}
 		cnt++;
 	//}
 	}
@@ -429,6 +297,8 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		float nothide = 1.0f;
 		[unroll]
 		for (int swi = 0; swi < SHADOWMAP_NUM; swi++) {
+			if (swi == 0&& hideInShadow.flag[swi]>0)return float4(1, 0, 0, 1);
+			if (swi == 1 && hideInShadow.flag[swi] > 0)return float4(0, 1, 0, 1);
 			nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 		}
 
