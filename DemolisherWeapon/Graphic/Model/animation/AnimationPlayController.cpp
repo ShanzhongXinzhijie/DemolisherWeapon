@@ -93,16 +93,96 @@ void AnimationPlayController::Update(float deltaTime, Animation* animation)
 		Keyframe* keyframe = keyFrameList.at(m_currentKeyFrameNo);
 		if (keyframe->boneIndex < m_boneMatrix.size()) {
 			m_boneMatrix[keyframe->boneIndex] = keyframe->transform;
+
+			//前のキーフレームとの補完
+			if (m_currentKeyFrameNo > 0 && m_time < keyframe->time) {
+				Keyframe* prevKeyframe = keyFrameList.at(m_currentKeyFrameNo - 1);
+				CMatrix prevKeyFrameBoneMatrix;
+				prevKeyFrameBoneMatrix = prevKeyframe->transform;
+
+				//ブレンド
+				float blend = (m_time - prevKeyframe->time) / (keyframe->time - prevKeyframe->time);
+
+				CMatrix& m = m_boneMatrix[keyframe->boneIndex];
+				//平行移動の補完
+				CVector3 move;
+				move.Lerp(
+					blend,
+					*(CVector3*)prevKeyFrameBoneMatrix.m[3],
+					*(CVector3*)m.m[3]
+				);
+				//平行移動成分を削除。
+				m.m[3][0] = 0.0f;
+				m.m[3][1] = 0.0f;
+				m.m[3][2] = 0.0f;
+				prevKeyFrameBoneMatrix.m[3][0] = 0.0f;
+				prevKeyFrameBoneMatrix.m[3][1] = 0.0f;
+				prevKeyFrameBoneMatrix.m[3][2] = 0.0f;
+
+				//拡大成分の補間。
+				CVector3 vBoneScale, vBoneScalePrev;
+				vBoneScale.x = (*(CVector3*)m.m[0]).Length();
+				vBoneScale.y = (*(CVector3*)m.m[1]).Length();
+				vBoneScale.z = (*(CVector3*)m.m[2]).Length();
+				vBoneScalePrev.x = (*(CVector3*)prevKeyFrameBoneMatrix.m[0]).Length();
+				vBoneScalePrev.y = (*(CVector3*)prevKeyFrameBoneMatrix.m[1]).Length();
+				vBoneScalePrev.z = (*(CVector3*)prevKeyFrameBoneMatrix.m[2]).Length();
+				CVector3 scale;
+				scale.Lerp(
+					blend,
+					vBoneScalePrev,
+					vBoneScale
+				);
+				//拡大成分を除去。
+				m.m[0][0] /= vBoneScale.x;
+				m.m[0][1] /= vBoneScale.x;
+				m.m[0][2] /= vBoneScale.x;
+				m.m[1][0] /= vBoneScale.y;
+				m.m[1][1] /= vBoneScale.y;
+				m.m[1][2] /= vBoneScale.y;
+				m.m[2][0] /= vBoneScale.z;
+				m.m[2][1] /= vBoneScale.z;
+				m.m[2][2] /= vBoneScale.z;
+				prevKeyFrameBoneMatrix.m[0][0] /= vBoneScalePrev.x;
+				prevKeyFrameBoneMatrix.m[0][1] /= vBoneScalePrev.x;
+				prevKeyFrameBoneMatrix.m[0][2] /= vBoneScalePrev.x;
+				prevKeyFrameBoneMatrix.m[1][0] /= vBoneScalePrev.y;
+				prevKeyFrameBoneMatrix.m[1][1] /= vBoneScalePrev.y;
+				prevKeyFrameBoneMatrix.m[1][2] /= vBoneScalePrev.y;
+				prevKeyFrameBoneMatrix.m[2][0] /= vBoneScalePrev.z;
+				prevKeyFrameBoneMatrix.m[2][1] /= vBoneScalePrev.z;
+				prevKeyFrameBoneMatrix.m[2][2] /= vBoneScalePrev.z;
+
+				//回転の補完
+				CQuaternion qBone, qBonePrev;
+				qBone.SetRotation(m);
+				qBonePrev.SetRotation(prevKeyFrameBoneMatrix);
+				CQuaternion rot;
+				rot.Slerp(blend, qBonePrev, qBone);
+
+				//拡大行列を作成。
+				CMatrix scaleMatrix;
+				scaleMatrix.MakeScaling(scale);
+				//回転行列を作成。
+				CMatrix rotMatrix;
+				rotMatrix.MakeRotationFromQuaternion(rot);
+				//平行移動行列を作成。
+				CMatrix transMat;
+				transMat.MakeTranslation(move);
+				//全部を合成して、ボーン行列を作成。
+				m_boneMatrix[keyframe->boneIndex].Mul(scaleMatrix, rotMatrix);
+				m_boneMatrix[keyframe->boneIndex].Mul(m_boneMatrix[keyframe->boneIndex], transMat);
+			}
 		}
-		else {
-#ifndef DW_MASTER			
+#ifndef DW_MASTER	
+		else {		
 			MessageBox(NULL, "AnimationPlayController::Update : 存在しないボーンに値を書き込もうとしています。次のような原因が考えられます。\n"
 				"① tkaファイルを出力する時に、選択したルートボーンがスケルトンのルートボーンと異なっている。\n"
 				"② 異なるスケルトンのアニメーションクリップを使っている。\n"
 				"もう一度tkaファイルを出力しなおしてください。", "error", MB_OK);
 			std::abort();
-#endif
 		}
+#endif
 	}
 }
 
