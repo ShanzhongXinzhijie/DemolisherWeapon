@@ -98,6 +98,16 @@ public:
 	//動作基準FPSを取得
 	int GetStandardFrameRate()const { return m_fpscounter.GetStandardFrameRate(); }
 
+	//デバッグ情報を描画するか設定
+	void SetIsDebugDraw(bool enable) { m_fpscounter.SetIsDebugDraw(enable); }
+	bool GetIsDebugDraw()const { return m_fpscounter.GetIsDebugDraw(); }
+	//debug操作を有効にするか設定
+	void SetIsDebugInput(bool enable) { m_isDebugInput = enable; }
+	bool GetIsDebugInput()const       { return m_isDebugInput; }
+
+	//ゲームループを抜ける
+	void BreakGameLoop() { m_loopBreak = true; }
+
 private:
 	bool DispatchWindowMessage();
 
@@ -110,6 +120,15 @@ private:
 	bool m_noVariableFramerateOnce = true;
 	float m_variableFpsMaxSec = -1.0f;
 	CFpsCounter m_fpscounter;
+
+	bool m_loopBreak = false;
+
+#ifndef DW_MASTER
+	bool m_isDebugInput = true;
+#else
+	bool m_isDebugInput = false;
+#endif
+
 };
 
 class Engine
@@ -222,6 +241,16 @@ public:
 	void SetUseFpsLimiter(bool use, int maxfps = -1) { m_gameLoop.SetUseFpsLimiter(use, maxfps); }
 	//動作基準FPSを取得
 	int GetStandardFrameRate()const { return m_gameLoop.GetStandardFrameRate(); }
+
+	//デバッグ情報を描画するか設定
+	void SetIsDebugDraw(bool enable) { m_gameLoop.SetIsDebugDraw(enable); }
+	bool GetIsDebugDraw()const { return m_gameLoop.GetIsDebugDraw(); }
+	//debug操作を有効にするか設定
+	void SetIsDebugInput(bool enable) { m_gameLoop.SetIsDebugInput(enable); }
+	bool GetIsDebugInput()const { return m_gameLoop.GetIsDebugInput(); }
+
+	//ゲームループを抜ける
+	void BreakGameLoop() { m_gameLoop.BreakGameLoop(); }
 
 private:
 	static LRESULT CALLBACK MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);	
@@ -434,5 +463,15 @@ static inline float GetDeltaTimeSec() {
 static inline RegColObj* AddCollisionObj(GameObj::Suicider::CCollisionObj* obj) {
 	return GetEngine().GetCollisionObjManager()->AddCollisionObj(obj);
 }
+
+//デバッグ情報を描画するか設定
+static inline void SetIsDebugDraw(bool enable) { GetEngine().SetIsDebugDraw(enable); }
+static inline bool GetIsDebugDraw() { return GetEngine().GetIsDebugDraw(); }
+//debug操作を有効にするか設定
+static inline void SetIsDebugInput(bool enable) { GetEngine().SetIsDebugInput(enable); }
+static inline bool GetIsDebugInput() { return GetEngine().GetIsDebugInput(); }
+
+//ゲームループを抜ける
+static inline void BreakGameLoop() { GetEngine().BreakGameLoop(); }
 
 }

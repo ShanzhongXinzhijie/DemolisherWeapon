@@ -260,14 +260,21 @@ void GameLoop::Run() {
 		///////////////////////////////////////////////////
 
 		//ゲーム終了
-		if (GetAsyncKeyState(VK_ESCAPE)) {
+		if (m_loopBreak) {
 			break;
 		}
-		//ポーズ
-		if (GetAsyncKeyState(VK_F1)) {
-			while (1) {
-				Sleep(1);
-				if (!GetAsyncKeyState(VK_F1)) { break; }
+
+		if (m_isDebugInput) {
+			//ゲーム終了
+			if (GetAsyncKeyState(VK_ESCAPE)) {
+				break;
+			}
+			//ポーズ
+			if (GetAsyncKeyState(VK_F1)) {
+				while (1) {
+					Sleep(1);
+					if (!GetAsyncKeyState(VK_F1)) { break; }
+				}
 			}
 		}
 	}

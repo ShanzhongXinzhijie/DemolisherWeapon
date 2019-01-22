@@ -45,17 +45,19 @@ void CFpsCounter::Count() {
 }
 
 void CFpsCounter::Draw() {
+	if (!m_isDebugDraw) { return; }
+
 	static float s_max = 0.0f, s_min = 100000.0f, s_avg = 0.0f, s_add = 0.0f;
 	static int s_avgcnt = 0;
 	s_max = max(s_max, m_fps);
 	s_min = min(s_min, m_fps);
 	s_add += m_fps; s_avgcnt++;
-	if (s_avgcnt >= 5) {
+	if (s_avgcnt >= m_standardfps) {
 		s_avg = s_add / s_avgcnt;
 		s_add = 0.0f; s_avgcnt = 0;
 	}
 
-	if (GetAsyncKeyState(VK_NUMPAD5)) {
+	if (GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD5)) {
 		s_max = 0.0f, s_min = 100000.0f;
 	}
 

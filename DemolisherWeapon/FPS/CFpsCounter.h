@@ -26,6 +26,10 @@ public:
 	//動作基準FPSを取得
 	int GetStandardFrameRate()const { return m_standardfps; }
 
+	//デバッグ情報を描画するか設定
+	void SetIsDebugDraw(bool enable) { m_isDebugDraw = enable; }
+	bool GetIsDebugDraw()const { return m_isDebugDraw; }
+
 private:
 	LARGE_INTEGER nFreq, nBefore, nAfter;
 	float m_frametimeSec = 0.0f, m_fps = 0.0f, m_runframecnt = 0.0f;
@@ -36,6 +40,13 @@ private:
 
 	int m_standardfps = 60;
 	float m_standardFrameTimeSec = 1.0f / m_standardfps;
+
+#ifndef DW_MASTER
+	bool m_isDebugDraw = true;
+#else
+	bool m_isDebugDraw = false;
+#endif
+
 };
 
 }
