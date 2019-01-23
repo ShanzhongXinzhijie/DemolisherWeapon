@@ -56,6 +56,13 @@ public:
 	bool GetEnablePCSS(int num)const {
 		return m_setting == enPCSS && m_shadowMaps[num].GetEnablePCSS();
 	}
+	//シャドウマップのサイズ取得
+	float GetSizeX(int num)const {
+		return m_shadowMaps[num].GetSizeX();
+	}
+	float GetSizeY(int num)const {
+		return m_shadowMaps[num].GetSizeY();
+	}
 	//シャドウマップのSRV取得
 	ID3D11ShaderResourceView*& GetShadowMapSRV() {
 		return m_shadowMaps[0].GetShadowMapSRV();

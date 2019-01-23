@@ -51,6 +51,8 @@ public:
 	bool GetIsInit()const { return m_isInit; }
 	bool GetEnable()const { return m_isInit && m_enable; }
 	bool GetEnablePCSS()const {	return m_enablePCSS; }
+	float GetSizeX()const { return m_viewport.Width; }
+	float GetSizeY()const { return m_viewport.Height; }
 
 	//シャドウマップへの書き込みを行う前の処理
 	//ビューポート・レンダーターゲット・カメラを変更する

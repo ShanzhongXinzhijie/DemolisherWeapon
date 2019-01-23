@@ -28,7 +28,7 @@ cbuffer ShadowCb : register(b1) {
 	float4x4 ViewProjInv;
 	float4x4 mLVP[SHADOWMAP_NUM];
 	float4 shadowDir[SHADOWMAP_NUM];//wはバイアス
-	float4 enableShadowMap[SHADOWMAP_NUM];//シャドウマップ有効か？
+	float4 enableShadowMap[SHADOWMAP_NUM];//x:シャドウマップ有効か？ y:PCSS有効 z:widthサイズ w:heightサイズ
 
 	int boolAO;//AOを有効にするか
 };
@@ -127,6 +127,9 @@ static const float2 PCSSSampleMap[] = {
 	float2(0.00138f, 0.00138f),
 };
 
+static const uint SHADOW_MAX_WIDTH  = 4096;
+static const uint SHADOW_MAX_HEIGHT = 4096;
+
 //シャドウマップの判定
 inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 
@@ -141,6 +144,10 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	lLViewPosition.x = lLViewPosition.x *0.5f + 0.5f;
 	// yは更に上下反転
 	lLViewPosition.y = -lLViewPosition.y *0.5f + 0.5f;
+
+	//ずらし
+	float2 scale = float2( enableShadowMap[usemapnum].z / SHADOW_MAX_WIDTH, enableShadowMap[usemapnum].w / SHADOW_MAX_HEIGHT);
+	lLViewPosition.xy *= scale;
 	
 	// 最大深度傾斜を求める.
 	//float  maxDepthSlope = max(abs(ddx(lLViewPosition.z)), abs(ddy(lLViewPosition.z)));
@@ -168,7 +175,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	//[unroll]
 	//for (float x = -0.00276f; x <= 0.00276f; x += 0.00138f) {
 
-		blocker_z = shadowMaps.Sample(NoFillteringSampler, float3(lLViewPosition.xy + blockerSampleMap[i], usemapnum));
+		blocker_z = shadowMaps.Sample(NoFillteringSampler, float3(lLViewPosition.xy + blockerSampleMap[i] * scale, usemapnum));
 
 		if (blocker_z < lLViewPosition.z) {
 			avg_blocker_z += blocker_z;
@@ -197,7 +204,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	//[unroll]
 	//for (float x = -0.00138f; x <= 0.00138f; x += 0.00046f){
 
-		kekka += 1.0f - shadowMaps.SampleCmpLevelZero(shadowSamplerComparisonState, float3(PCSSSampleMap[i] * maxCnt + lLViewPosition.xy, usemapnum), lLViewPosition.z);
+		kekka += 1.0f - shadowMaps.SampleCmpLevelZero(shadowSamplerComparisonState, float3(PCSSSampleMap[i] * maxCnt * scale + lLViewPosition.xy, usemapnum), lLViewPosition.z);
 
 		cnt++;
 	//}
@@ -297,8 +304,6 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		float nothide = 1.0f;
 		[unroll]
 		for (int swi = 0; swi < SHADOWMAP_NUM; swi++) {
-			if (swi == 0&& hideInShadow.flag[swi]>0)return float4(1, 0, 0, 1);
-			if (swi == 1 && hideInShadow.flag[swi] > 0)return float4(0, 1, 0, 1);
 			nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 		}
 

@@ -100,6 +100,9 @@ void DefferdRender::Render() {
 		sCb.enableShadowMap[i].x = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetShadowMapEnable(i) ? 1.0f : 0.0f;
 		//PCSS
 		sCb.enableShadowMap[i].y = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetEnablePCSS(i) ? 1.0f : 0.0f;
+		//ÉTÉCÉY
+		sCb.enableShadowMap[i].z = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetSizeX(i);
+		sCb.enableShadowMap[i].w = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetSizeY(i);
 
 		if (sCb.enableShadowMap[i].x) {
 			//íËêî
