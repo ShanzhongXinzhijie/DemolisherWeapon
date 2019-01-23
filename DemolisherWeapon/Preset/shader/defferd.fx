@@ -23,7 +23,10 @@ StructuredBuffer<SDirectionLight> directionLight : register(t100);
 StructuredBuffer<SPointLight> pointLightList : register(t101);
 
 //シャドウマップ系
-#define SHADOWMAP_NUM 12
+#define SHADOWMAP_NUM 8
+static const uint SHADOW_MAX_WIDTH = 4096 / 2;
+static const uint SHADOW_MAX_HEIGHT = 4096 / 2;
+
 cbuffer ShadowCb : register(b1) {
 	float4x4 ViewProjInv;
 	float4x4 mLVP[SHADOWMAP_NUM];
@@ -126,9 +129,6 @@ static const float2 PCSSSampleMap[] = {
 	float2(0.00138f, 0.00092f),
 	float2(0.00138f, 0.00138f),
 };
-
-static const uint SHADOW_MAX_WIDTH  = 4096;
-static const uint SHADOW_MAX_HEIGHT = 4096;
 
 //シャドウマップの判定
 inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {

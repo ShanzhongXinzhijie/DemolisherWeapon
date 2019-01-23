@@ -22,10 +22,10 @@ public:
 	}
 
 	//シャドウマップの最大数
-	static const int SHADOWMAP_NUM = 12;
+	static const int SHADOWMAP_NUM = 8;
 
-	static const int MAX_WIDTH  = 4096;
-	static const int MAX_HEIGHT = 4096;
+	static const int MAX_WIDTH  = 4096/2;
+	static const int MAX_HEIGHT = 4096/2;
 
 private:
 	bool m_isInit = false;
