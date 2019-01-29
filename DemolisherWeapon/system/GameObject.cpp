@@ -29,7 +29,7 @@ namespace DemolisherWeapon {
 	}
 
 	void GameObjectManager::PostRender() {
-		GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin();
+		GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin(DirectX::SpriteSortMode_BackToFront);
 
 		for (auto& go : m_gameObjectList) {
 			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {

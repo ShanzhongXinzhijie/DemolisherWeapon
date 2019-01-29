@@ -27,6 +27,7 @@ CSound::CSound(const wchar_t* fileName, bool isStreaming)
 	m_x3DDSPSettings.DstChannelCount = GetEngine().GetSoundEngine().GetMasterVoiceDetails().InputChannels;//転送先のボイスのチャンネル数	
 	m_matrixCoefficients.resize(m_x3DDSPSettings.SrcChannelCount * m_x3DDSPSettings.DstChannelCount);
 	m_x3DDSPSettings.pMatrixCoefficients = m_matrixCoefficients.data();
+	m_matrixCoefficientsTrs.resize(m_x3DDSPSettings.SrcChannelCount * m_x3DDSPSettings.DstChannelCount);
 }
 CSound::~CSound()
 {
@@ -104,12 +105,16 @@ void CSound::Update() {
 
 		//3Dオーディオの計算
 		GetEngine().GetSoundEngine().X3DAudioCalculate(&m_x3DEmitter, &m_x3DDSPSettings);
-		/*m_matrixCoefficients[0] = 1;
-		m_matrixCoefficients[1] = 1;
-		m_matrixCoefficients[2] = 0;
-		m_matrixCoefficients[3] = 0;*/
+
+		//転置行列にする(x64だとなんかそうなる)
+		for (int y = 0; y < m_x3DDSPSettings.DstChannelCount; y++) {
+			for (int x = 0; x < m_x3DDSPSettings.SrcChannelCount; x++) {
+				m_matrixCoefficientsTrs[m_x3DDSPSettings.SrcChannelCount * y + x] = m_matrixCoefficients[m_x3DDSPSettings.DstChannelCount * x + y];
+			}
+		}
+
 		//適用
-		m_sourceVoice->SetOutputMatrix(GetEngine().GetSoundEngine().GetMasterVoice(), m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_x3DDSPSettings.pMatrixCoefficients);
+		m_sourceVoice->SetOutputMatrix(GetEngine().GetSoundEngine().GetMasterVoice(), m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_matrixCoefficientsTrs.data());
 	}
 
 	m_isLockSourceVoice = false;//スピンロック解除
