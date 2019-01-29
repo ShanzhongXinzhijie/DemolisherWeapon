@@ -191,7 +191,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	}
 
 	//半影のサイズ計算
-	float maxCnt = 9.0f*(lLViewPosition.z - avg_blocker_z) / avg_blocker_z;// saturate();
+	float maxCnt = 4.5f*(lLViewPosition.z - avg_blocker_z) / avg_blocker_z;// saturate();
 	if (maxCnt <= 0.0f) {
 		return 0.0f;
 	}

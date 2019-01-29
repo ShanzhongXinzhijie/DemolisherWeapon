@@ -303,6 +303,11 @@ static inline PhotonNetworkLogic* GetPhoton() {
 
 	return GetEngine().GetPhoton();
 }
+//WAVManager‚Ìæ“¾
+static inline WAVManager& GetWAVManager() {
+
+	return GetEngine().GetSoundEngine().GetWAVManager();
+}
 
 //3Dƒ‚ƒfƒ‹ƒŒƒ“ƒ_[‚É•`‰æ‚·‚éƒ‚ƒfƒ‹‚ğ“o˜^
 static inline void AddDrawModelToD3Render(SkinModel* sm) 

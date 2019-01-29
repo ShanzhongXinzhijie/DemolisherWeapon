@@ -266,6 +266,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Sound\CSound.h" />
     <ClInclude Include="Graphic\Shadowmap\CShadowMap.h" />
     <ClInclude Include="Error\Error.h" />
     <ClInclude Include="Graphic\Model\MaterialSetting.h" />
@@ -336,8 +337,10 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="util\Util.h" />
     <ClInclude Include="Input\XInput.h" />
+    <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sound\CSound.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CShadowMap.cpp" />
     <ClCompile Include="Graphic\Model\MaterialSetting.cpp" />
     <ClCompile Include="Render\GaussianBlurRender.cpp" />
@@ -392,6 +395,7 @@
     <ClCompile Include="Render\IRander.cpp" />
     <ClCompile Include="physics\SphereCollider.cpp" />
     <ClCompile Include="Graphic\Shadowmap\ShadowMapHandler.cpp" />
+    <ClCompile Include="Sound\CSoundStreaming.cpp" />
     <ClCompile Include="Sound\SoundEngine.cpp" />
     <ClCompile Include="system\GameObject.cpp" />
     <ClCompile Include="Graphic\Model\Skeleton.cpp" />
@@ -405,6 +409,7 @@
     <ClCompile Include="math\Vector.cpp" />
     <ClCompile Include="system\GraphicsEngine.cpp" />
     <ClCompile Include="Input\XInput.cpp" />
+    <ClCompile Include="Sound\WAVManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont">

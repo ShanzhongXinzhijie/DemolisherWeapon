@@ -200,7 +200,6 @@ void GameLoop::Run() {
 
 		//可変フレームループ
 		while((int)m_runframecnt >= 1){
-
 			//通信
 			if (GetPhoton()) { GetPhoton()->Update(); }
 
@@ -215,6 +214,7 @@ void GameLoop::Run() {
 
 			//各種なんか
 			m_physics_Ptr->Update();
+			GetEngine().GetSoundEngine().Update();
 			m_effekseer_Ptr->Update();
 
 			//操作系のなんか

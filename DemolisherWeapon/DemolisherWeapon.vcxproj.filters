@@ -77,6 +77,8 @@
     <ClInclude Include="Graphic\Model\MaterialSetting.h" />
     <ClInclude Include="Graphic\Shadowmap\CShadowMap.h" />
     <ClInclude Include="Graphic\Shadowmap\ShadowMapHandler.h" />
+    <ClInclude Include="Sound\WAVManager.h" />
+    <ClInclude Include="Sound\CSound.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -143,6 +145,9 @@
     <ClCompile Include="Graphic\Model\MaterialSetting.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CShadowMap.cpp" />
     <ClCompile Include="Graphic\Shadowmap\ShadowMapHandler.cpp" />
+    <ClCompile Include="Sound\WAVManager.cpp" />
+    <ClCompile Include="Sound\CSound.cpp" />
+    <ClCompile Include="Sound\CSoundStreaming.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
