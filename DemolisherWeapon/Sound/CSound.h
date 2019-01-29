@@ -73,7 +73,7 @@ namespace GameObj {
 		bool m_is3D = false;
 		X3DAUDIO_EMITTER m_x3DEmitter = { 0 };
 		X3DAUDIO_DSP_SETTINGS m_x3DDSPSettings = { 0 };
-		std::vector<FLOAT32> m_matrixCoefficients, m_matrixCoefficientsTrs;
+		std::vector<FLOAT32> m_matrixCoefficients;
 		std::vector<FLOAT32> m_emitterAzimuths;
 		CVector3 m_3DPos;
 

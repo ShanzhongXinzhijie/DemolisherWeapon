@@ -25,7 +25,7 @@ void SoundEngine::Init() {
 		return;
 	}
 
-	if (FAILED(hr = m_pXAudio2->CreateMasteringVoice(&m_pMasterVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, 0, NULL))) {
+	if (FAILED(hr = m_pXAudio2->CreateMasteringVoice(&m_pMasterVoice, 8, XAUDIO2_DEFAULT_SAMPLERATE, 0, 0, NULL))) {
 #ifndef DW_MASTER
 		OutputDebugStringA("CreateMasteringVoiceÇ…é∏îsÇµÇ‹ÇµÇΩÅB\n");
 #endif
