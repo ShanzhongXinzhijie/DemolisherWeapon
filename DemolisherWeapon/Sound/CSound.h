@@ -49,25 +49,39 @@ namespace GameObj {
 		CSound(const wchar_t* fileName, bool isStreaming = false);
 		virtual ~CSound();
 
-		bool InitStreaming(const wchar_t* fileName);
-		void ReleaseStreaming();
-		void StreamingPlay();
-		void Streaming();
-
+		void Init(const wchar_t* fileName, bool isStreaming = false);
 		void Release();
 
 		void Update()override;
-		void Update3D();
+		void InUpdate(bool canStop = true);
 
-		void Play(bool enable3D = false);
+		void Play(bool enable3D = false, bool isLoop = false);
+		void Stop();
+		void Pause();
 
 		void SetPos(const CVector3& pos) { m_3DPos = pos; }
+		void SetDistance(float dis) { m_distance = dis; }
+
+		void SetVolume(float vol) { m_volume = vol; }
+
+		bool GetIsPlaying()const { return !m_isPause && m_sourceVoice; }
+		bool GetIsPausing()const { return m_isPause; }
 
 	private:
+		bool InitStreaming(const wchar_t* fileName);
+		void ReleaseStreaming();
+		void StreamingPlay(bool isLoop);
+		void Streaming();
+		
+	private:
+		bool m_isInit = false;
+
 		WAVManager::WAVData* m_wav = nullptr;
 		IXAudio2SourceVoice* m_sourceVoice = nullptr;
 
-		//static const int INPUTCHANNELS = 1;
+		bool m_isPause = false;
+
+		float m_volume = 1.0f;
 
 		//3D再生用
 		bool m_is3D = false;
@@ -76,9 +90,11 @@ namespace GameObj {
 		std::vector<FLOAT32> m_matrixCoefficients;
 		std::vector<FLOAT32> m_emitterAzimuths;
 		CVector3 m_3DPos;
+		float m_distance = 1000.0f;
 
 		//ストリーミング用
 		bool m_isStreaming = false;
+		bool m_isStreamingLoop = false;
 		std::thread m_thread;
 		std::atomic<bool> m_threadBreak = false;
 		std::atomic<bool> m_isLockSourceVoice = false;
@@ -98,16 +114,13 @@ namespace GameObj {
 	};
 	
 namespace Suicider {
-	class CSoundOneShot : public CSound
+	/*class CSE : public CSound
 	{
 	public:
-		//CSoundOneShot();
-		//virtual ~CSoundOneShot();
-	};
+
+	};*/
 }
-	//ループ
-	//一時停止・途中から再生・停止
-	//ボリューム・ピッチ・パン
 	//効果音ファイル自体への設定
+	//ピッチ・パン
 }
 }

@@ -63,8 +63,14 @@ void EffekseerManager::Release() {
 void EffekseerManager::Update() {
 	if (GetMainCamera()) {
 		// 3Dサウンド用リスナー設定の更新
-		//すべてのzを反転
-		m_sound->SetListener(GetMainCamera()->GetPos(), GetMainCamera()->GetTarget(), GetMainCamera()->GetUp()*-1.0f);
+
+		//右手系に
+		CVector3 pos, target, up;
+		pos = GetMainCamera()->GetPos();
+		target = GetMainCamera()->GetTarget();
+		up = GetMainCamera()->GetUp(); up *= -1.0f;
+
+		m_sound->SetListener( pos, target, up);
 	}
 
 	// 再生中のエフェクトの移動等(::Effekseer::Manager経由で様々なパラメーターが設定できます。)

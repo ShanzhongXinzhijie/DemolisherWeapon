@@ -82,7 +82,12 @@ void CSound::Streaming() {
 		buf.AudioBytes = cbValid;
 		buf.pAudioData = m_buffers[currentDiskReadBuffer];
 		if (currentPosition >= m_insAudioBytes) {
-			buf.Flags = XAUDIO2_END_OF_STREAM;
+			if (m_isStreamingLoop) {
+				currentPosition = 0;//ループする(最初に戻る)
+			}
+			else {
+				buf.Flags = XAUDIO2_END_OF_STREAM;//終わり
+			}
 		}
 		while (m_isLockSourceVoice.exchange(true)) {}//スピンロック
 		m_sourceVoice->SubmitSourceBuffer(&buf);
@@ -416,7 +421,7 @@ bool CSound::InitStreaming(const wchar_t* fileName) {
 	return (dpds || seek) ? false : true;
 }
 
-void CSound::StreamingPlay() {
+void CSound::StreamingPlay(bool isLoop) {
 	if (m_sourceVoice || !m_isStreaming)return;
 
 	for (int i = 0; i < MAX_BUFFER_COUNT; i++) {
@@ -424,6 +429,8 @@ void CSound::StreamingPlay() {
 			m_buffers[i][i2] = 0;
 		}
 	}
+
+	m_isStreamingLoop = isLoop;
 
 	//ストリーミング用読み込みハンドル作成
 	CREATEFILE2_EXTENDED_PARAMETERS params2 = { sizeof(CREATEFILE2_EXTENDED_PARAMETERS), 0 };
@@ -446,6 +453,8 @@ void CSound::StreamingPlay() {
 		m_sourceVoice = nullptr;
 		return;
 	}
+
+	InUpdate(false);
 
 	m_sourceVoice->Start();
 
