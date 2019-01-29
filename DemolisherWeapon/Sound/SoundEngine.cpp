@@ -6,6 +6,7 @@ namespace DemolisherWeapon {
 SoundEngine::SoundEngine()
 {
 	memset(&m_x3DListener, 0, sizeof(X3DAUDIO_LISTENER));
+	m_x3DListener.pCone = &m_x3DListenerCone;
 }
 SoundEngine::~SoundEngine()
 {
