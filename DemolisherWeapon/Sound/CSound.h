@@ -183,7 +183,7 @@ namespace Suicider {
 			}
 		}
 
-		IXAudio2SubmixVoice* GetSubmixVoice() { return m_SubmixVoice; }
+		static IXAudio2SubmixVoice* GetSubmixVoice() { return m_SubmixVoice; }
 
 	private:
 		static IXAudio2SubmixVoice* m_SubmixVoice;		 
@@ -213,7 +213,7 @@ namespace Suicider {
 			}
 		}
 
-		IXAudio2SubmixVoice* GetSubmixVoice() { return m_SubmixVoice; }
+		static IXAudio2SubmixVoice* GetSubmixVoice() { return m_SubmixVoice; }
 
 	private:
 		static IXAudio2SubmixVoice* m_SubmixVoice;
