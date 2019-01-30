@@ -199,6 +199,7 @@ void CSound::InUpdate(bool canStop) {
 		m_x3DEmitter.Position.x = m_3DPos.x;
 		m_x3DEmitter.Position.y = m_3DPos.y;
 		m_x3DEmitter.Position.z = m_3DPos.z;
+		m_x3DEmitter.CurveDistanceScaler = m_distance;//音が聞こえる範囲
 
 		//3Dオーディオの計算
 		GetEngine().GetSoundEngine().X3DAudioCalculate(&m_x3DEmitter, &m_x3DDSPSettings);		

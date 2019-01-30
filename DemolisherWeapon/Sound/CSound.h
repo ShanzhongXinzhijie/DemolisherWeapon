@@ -163,17 +163,7 @@ namespace Suicider {
 	{
 	public:
 		CSE(const wchar_t* fileName, bool isStreaming = false) : CSound::CSound(fileName, isStreaming) {
-			if (!m_SubmixVoice) {
-				HRESULT hr;
-				if (FAILED(hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSubmixVoice(&m_SubmixVoice, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputSampleRate))) {
-#ifndef DW_MASTER
-					OutputDebugStringA("CreateSubmixVoiceÇ…é∏îsÇµÇ‹ÇµÇΩÅB\n");
-#endif
-					return;
-				}
-			}
-
-			SetUseSubmixVoice(m_SubmixVoice, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels);
+			SetUseSubmixVoice(GetSubmixVoice(), GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels);
 		}
 		virtual ~CSE() {};
 
@@ -183,7 +173,18 @@ namespace Suicider {
 			}
 		}
 
-		static IXAudio2SubmixVoice* GetSubmixVoice() { return m_SubmixVoice; }
+		static IXAudio2SubmixVoice* GetSubmixVoice() {
+			if (!m_SubmixVoice) {
+				HRESULT hr;
+				if (FAILED(hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSubmixVoice(&m_SubmixVoice, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputSampleRate))) {
+#ifndef DW_MASTER
+					OutputDebugStringA("CreateSubmixVoiceÇ…é∏îsÇµÇ‹ÇµÇΩÅB\n");
+#endif
+					return nullptr;
+				}
+			}
+			return m_SubmixVoice; 
+		}
 
 	private:
 		static IXAudio2SubmixVoice* m_SubmixVoice;		 
@@ -193,17 +194,7 @@ namespace Suicider {
 	{
 	public:
 		CBGM(const wchar_t* fileName, bool isStreaming = true) : CSound::CSound(fileName, isStreaming) {
-			if (!m_SubmixVoice) {
-				HRESULT hr;
-				if (FAILED(hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSubmixVoice(&m_SubmixVoice, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputSampleRate))) {
-#ifndef DW_MASTER
-					OutputDebugStringA("CreateSubmixVoiceÇ…é∏îsÇµÇ‹ÇµÇΩÅB\n");
-#endif
-					return;
-				}
-			}
-
-			SetUseSubmixVoice(m_SubmixVoice, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels);
+			SetUseSubmixVoice(GetSubmixVoice(), GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels);
 		}
 		virtual ~CBGM() {};
 
@@ -213,7 +204,18 @@ namespace Suicider {
 			}
 		}
 
-		static IXAudio2SubmixVoice* GetSubmixVoice() { return m_SubmixVoice; }
+		static IXAudio2SubmixVoice* GetSubmixVoice() {
+			if (!m_SubmixVoice) {
+				HRESULT hr;
+				if (FAILED(hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSubmixVoice(&m_SubmixVoice, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputSampleRate))) {
+#ifndef DW_MASTER
+					OutputDebugStringA("CreateSubmixVoiceÇ…é∏îsÇµÇ‹ÇµÇΩÅB\n");
+#endif
+					return nullptr;
+				}
+			}
+			return m_SubmixVoice;
+		}
 
 	private:
 		static IXAudio2SubmixVoice* m_SubmixVoice;
