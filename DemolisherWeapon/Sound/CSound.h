@@ -89,6 +89,11 @@ namespace GameObj {
 		void SetDataFrequencyRatio(float ratio) { m_pDataSetting->frequencyRatio = ratio; SetDataFrequencyRatio(ratio); }
 		void SetDataOutChannelVolume(int channel, float vol) { m_pDataSetting->outChannelVolume[channel] = vol; SetOutChannelVolume(channel, vol); }
 
+		void SetUseSubmixVoice(IXAudio2SubmixVoice* submix, UINT32 channelCnt) {
+			m_pSubmixVoice = submix;
+			m_dstChannelcnt = channelCnt;
+		}
+
 		//çƒê∂íÜÇ©éÊìæ(àÍéûí‚é~ÇÕçló∂Ç≥ÇÍÇ»Ç¢)
 		bool GetIsPlaying()const { return m_sourceVoice; }
 		bool GetIsPlayingAndNotPause()const { return !m_isPause && m_sourceVoice; }
@@ -112,6 +117,8 @@ namespace GameObj {
 
 		WAVManager::WAVData* m_wav = nullptr;
 		IXAudio2SourceVoice* m_sourceVoice = nullptr;
+		IXAudio2SubmixVoice* m_pSubmixVoice = nullptr;
+		UINT32 m_dstChannelcnt = 0;
 
 		bool m_isPause = false;
 
@@ -155,7 +162,19 @@ namespace Suicider {
 	class CSE : public CSound
 	{
 	public:
-		using CSound::CSound;
+		CSE(const wchar_t* fileName, bool isStreaming = false) : CSound::CSound(fileName, isStreaming) {
+			if (!m_SubmixVoice) {
+				HRESULT hr;
+				if (FAILED(hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSubmixVoice(&m_SubmixVoice, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputSampleRate))) {
+#ifndef DW_MASTER
+					OutputDebugStringA("CreateSubmixVoiceÇ…é∏îsÇµÇ‹ÇµÇΩÅB\n");
+#endif
+					return;
+				}
+			}
+
+			SetUseSubmixVoice(m_SubmixVoice, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels);
+		}
 		virtual ~CSE() {};
 
 		void PostUpdate()override {
@@ -163,12 +182,29 @@ namespace Suicider {
 				delete this;
 			}
 		}
+
+		IXAudio2SubmixVoice* GetSubmixVoice() { return m_SubmixVoice; }
+
+	private:
+		static IXAudio2SubmixVoice* m_SubmixVoice;		 
 	}; 
 	
 	class CBGM : public CSound
 	{
 	public:
-		CBGM(const wchar_t* fileName, bool isStreaming = true) : CSound::CSound(fileName, isStreaming) {}
+		CBGM(const wchar_t* fileName, bool isStreaming = true) : CSound::CSound(fileName, isStreaming) {
+			if (!m_SubmixVoice) {
+				HRESULT hr;
+				if (FAILED(hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSubmixVoice(&m_SubmixVoice, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputSampleRate))) {
+#ifndef DW_MASTER
+					OutputDebugStringA("CreateSubmixVoiceÇ…é∏îsÇµÇ‹ÇµÇΩÅB\n");
+#endif
+					return;
+				}
+			}
+
+			SetUseSubmixVoice(m_SubmixVoice, GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels);
+		}
 		virtual ~CBGM() {};
 
 		void PostUpdate()override {
@@ -176,6 +212,11 @@ namespace Suicider {
 				delete this;
 			}
 		}
+
+		IXAudio2SubmixVoice* GetSubmixVoice() { return m_SubmixVoice; }
+
+	private:
+		static IXAudio2SubmixVoice* m_SubmixVoice;
 	};
 }
 

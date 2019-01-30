@@ -5,6 +5,8 @@ namespace DemolisherWeapon {
 namespace GameObj {
 
 CSound::CSound(const wchar_t* fileName, bool isStreaming) {
+	m_pSubmixVoice = GetEngine().GetSoundEngine().GetSubmixVoice();
+	m_dstChannelcnt = GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels;
 	Init(fileName, isStreaming);
 }
 
@@ -41,7 +43,7 @@ void CSound::Init(const wchar_t* fileName, bool isStreaming)
 	for (auto& azi : m_emitterAzimuths) { azi = 0.0f; }
 
 	m_x3DDSPSettings.SrcChannelCount = m_x3DEmitter.ChannelCount;//このボイスのチャンネル数
-	m_x3DDSPSettings.DstChannelCount = GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels;//転送先のボイスのチャンネル数	
+	m_x3DDSPSettings.DstChannelCount = m_dstChannelcnt;//転送先のボイスのチャンネル数	
 	m_matrixCoefficients.resize(m_x3DDSPSettings.SrcChannelCount * m_x3DDSPSettings.DstChannelCount);
 	m_x3DDSPSettings.pMatrixCoefficients = m_matrixCoefficients.data();
 
@@ -108,7 +110,7 @@ void CSound::Play(bool enable3D, bool isLoop) {
 
 	XAUDIO2_SEND_DESCRIPTOR sendDescriptors[1];
 	sendDescriptors[0].Flags = 0;
-	sendDescriptors[0].pOutputVoice = GetEngine().GetSoundEngine().GetSubmixVoice();
+	sendDescriptors[0].pOutputVoice = m_pSubmixVoice;
 	const XAUDIO2_VOICE_SENDS sendList = { 1, sendDescriptors };
 
 	HRESULT hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSourceVoice(&m_sourceVoice, m_wav->wfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, nullptr, &sendList);
@@ -121,7 +123,7 @@ void CSound::Play(bool enable3D, bool isLoop) {
 	}
 
 	//デフォ行列保存
-	m_sourceVoice->GetOutputMatrix(GetEngine().GetSoundEngine().GetSubmixVoice(), m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_defaultOutputMatrix.data());
+	m_sourceVoice->GetOutputMatrix(m_pSubmixVoice, m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_defaultOutputMatrix.data());
 	
 	XAUDIO2_BUFFER buffer = { 0 };
 	buffer.AudioBytes = m_wav->audioBytes;      //バッファのバイト数
@@ -214,9 +216,14 @@ void CSound::InUpdate(bool canStop) {
 	}
 
 	//適用
-	m_sourceVoice->SetOutputMatrix(GetEngine().GetSoundEngine().GetSubmixVoice(), m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_x3DDSPSettings.pMatrixCoefficients);
+	m_sourceVoice->SetOutputMatrix(m_pSubmixVoice, m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_x3DDSPSettings.pMatrixCoefficients);
 
 	m_isLockSourceVoice = false;//スピンロック解除
+}
+
+namespace Suicider {
+	IXAudio2SubmixVoice*  CSE::m_SubmixVoice = nullptr;
+	IXAudio2SubmixVoice* CBGM::m_SubmixVoice = nullptr;
 }
 
 }

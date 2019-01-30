@@ -449,7 +449,7 @@ void CSound::StreamingPlay(bool isLoop) {
 
 	XAUDIO2_SEND_DESCRIPTOR sendDescriptors[1];
 	sendDescriptors[0].Flags = 0;
-	sendDescriptors[0].pOutputVoice = GetEngine().GetSoundEngine().GetSubmixVoice();
+	sendDescriptors[0].pOutputVoice = m_pSubmixVoice;
 	const XAUDIO2_VOICE_SENDS sendList = { 1, sendDescriptors };
 
 	HRESULT hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSourceVoice(&m_sourceVoice, &m_insWfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &m_voiceContext, &sendList);
@@ -462,7 +462,7 @@ void CSound::StreamingPlay(bool isLoop) {
 	}
 
 	//デフォ行列保存
-	m_sourceVoice->GetOutputMatrix(GetEngine().GetSoundEngine().GetSubmixVoice(), m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_defaultOutputMatrix.data());
+	m_sourceVoice->GetOutputMatrix(m_pSubmixVoice, m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_defaultOutputMatrix.data());
 
 	InUpdate(false);
 
