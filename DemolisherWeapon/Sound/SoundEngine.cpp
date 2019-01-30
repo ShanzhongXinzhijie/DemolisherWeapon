@@ -25,14 +25,21 @@ void SoundEngine::Init() {
 		return;
 	}
 
-	if (FAILED(hr = m_pXAudio2->CreateMasteringVoice(&m_pMasterVoice, 8, XAUDIO2_DEFAULT_SAMPLERATE, 0, 0, NULL))) {
+	if (FAILED(hr = m_pXAudio2->CreateMasteringVoice(&m_pMasterVoice, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, 0, NULL))) {
 #ifndef DW_MASTER
 		OutputDebugStringA("CreateMasteringVoice‚ÉŽ¸”s‚µ‚Ü‚µ‚½B\n");
 #endif
 		return;
 	}
-
 	m_pMasterVoice->GetVoiceDetails(&m_masterVoiceDetails);
+
+	if (FAILED(hr = m_pXAudio2->CreateSubmixVoice(&m_pSubmixVoice, MAX_CHANNEL, GetEngine().GetSoundEngine().GetMasterVoiceDetails().InputSampleRate))) {
+#ifndef DW_MASTER
+		OutputDebugStringA("CreateSubmixVoice‚ÉŽ¸”s‚µ‚Ü‚µ‚½B\n");
+#endif
+		return;
+	}
+	m_pSubmixVoice->GetVoiceDetails(&m_submixVoiceDetails);
 
 	DWORD dwChannelMask;
 	if (FAILED(hr = m_pMasterVoice->GetChannelMask(&dwChannelMask))){

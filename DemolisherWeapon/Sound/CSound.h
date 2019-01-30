@@ -50,38 +50,69 @@ namespace GameObj {
 		virtual ~CSound();
 
 		void Init(const wchar_t* fileName, bool isStreaming = false);
-		void Release();
+
+		//ストリーミング再生の終了を待って自殺する
+		void Delete() {
+			Release();
+			m_willDelete = true;
+		}
 
 		void Update()override;
-		void InUpdate(bool canStop = true);
 
-		void Play(bool enable3D = false, bool isLoop = false);
+		void Play(bool enable3D = false, bool isLoop = false);		
+		//音を止める
+		//※ストリーミング再生はすぐには停止しません
 		void Stop();
+		//一時停止
 		void Pause();
 
+		//3D再生用パラメーターを設定
 		void SetPos(const CVector3& pos) { m_3DPos = pos; }
 		void SetDistance(float dis) { m_distance = dis; }
 
-		void SetVolume(float vol) { m_volume = vol; }
+		//設定を取得
+		WAVSettingManager::WAVSetting* GetSetting() {
+			return &m_setting;
+		}
+		void SetVolume(float vol) { m_setting.volume = vol; }
+		void SetFrequencyRatio(float ratio) { m_setting.frequencyRatio = ratio; }
+		void SetOutChannelVolume(int channel, float vol) { m_setting.outChannelVolume[channel] = vol; }
 
+		//音データ自体への設定を取得
+		WAVSettingManager::WAVSetting* GetDataSetting() {
+			return m_pDataSetting;
+		}
+		void SetDataVolume(float vol) { m_pDataSetting->volume = vol; SetVolume(vol); }
+		void SetDataFrequencyRatio(float ratio) { m_pDataSetting->frequencyRatio = ratio; SetDataFrequencyRatio(ratio); }
+		void SetDataOutChannelVolume(int channel, float vol) { m_pDataSetting->outChannelVolume[channel] = vol; SetOutChannelVolume(channel, vol); }
+
+		//再生中か取得
 		bool GetIsPlaying()const { return !m_isPause && m_sourceVoice; }
+		//一時停止中か取得
 		bool GetIsPausing()const { return m_isPause; }
 
 	private:
+		void Release();
+		void InUpdate(bool canStop = true);
+
 		bool InitStreaming(const wchar_t* fileName);
 		void ReleaseStreaming();
 		void StreamingPlay(bool isLoop);
 		void Streaming();
 		
-	private:
+	private:		
 		bool m_isInit = false;
+		bool m_willDelete = false;
 
 		WAVManager::WAVData* m_wav = nullptr;
 		IXAudio2SourceVoice* m_sourceVoice = nullptr;
 
 		bool m_isPause = false;
 
-		float m_volume = 1.0f;
+		WAVSettingManager::WAVSetting* m_pDataSetting = nullptr;
+		WAVSettingManager::WAVSetting m_setting;
+
+		std::vector<FLOAT32> m_defaultOutputMatrix;
 
 		//3D再生用
 		bool m_is3D = false;
@@ -98,6 +129,7 @@ namespace GameObj {
 		std::thread m_thread;
 		std::atomic<bool> m_threadBreak = false;
 		std::atomic<bool> m_isLockSourceVoice = false;
+		bool m_threadEnded = false;
 		std::wstring m_fileName;
 		WAVEFORMATEX m_insWfx;
 		DWORD m_insStartAudio;
@@ -120,7 +152,6 @@ namespace Suicider {
 
 	};*/
 }
-	//効果音ファイル自体への設定
-	//ピッチ・パン
+
 }
 }

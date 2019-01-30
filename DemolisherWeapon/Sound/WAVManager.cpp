@@ -4,15 +4,6 @@
 
 namespace DemolisherWeapon {
 
-	WAVManager::WAVManager()
-	{
-	}
-
-
-	WAVManager::~WAVManager()
-	{
-	}
-
 	WAVManager::WAVData* WAVManager::Load(const wchar_t* fileName) {
 
 		int index = Util::MakeHash(fileName);
@@ -47,4 +38,19 @@ namespace DemolisherWeapon {
 		}
 	}
 
+	WAVSettingManager::WAVSetting* WAVSettingManager::Load(const wchar_t* fileName) {
+
+		int index = Util::MakeHash(fileName);
+
+		//Šù‚É“o˜^‚³‚ê‚Ä‚È‚¢‚©?
+		if (m_settingMap.count(index) > 0) {
+			//“o˜^‚³‚ê‚Ä‚½‚çƒ}ƒbƒv‚©‚çæ“¾
+			return &m_settingMap[index];
+		}
+		else {
+			//V‹Kì¬
+			m_settingMap.emplace(index, WAVSetting());
+			return &m_settingMap[index];
+		}
+	}
 }

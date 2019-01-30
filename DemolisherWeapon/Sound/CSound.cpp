@@ -30,6 +30,9 @@ void CSound::Init(const wchar_t* fileName, bool isStreaming)
 		}
 	}
 
+	m_pDataSetting = GetWAVSettingManager().Load(fileName);
+	m_setting = *m_pDataSetting;
+
 	//初期化
 	m_x3DEmitter.ChannelCount = m_isStreaming ? m_insWfx.nChannels : m_wav->wfx->nChannels;
 	m_x3DEmitter.CurveDistanceScaler = m_distance;//音が聞こえる範囲?
@@ -38,14 +41,24 @@ void CSound::Init(const wchar_t* fileName, bool isStreaming)
 	for (auto& azi : m_emitterAzimuths) { azi = 0.0f; }
 
 	m_x3DDSPSettings.SrcChannelCount = m_x3DEmitter.ChannelCount;//このボイスのチャンネル数
-	m_x3DDSPSettings.DstChannelCount = GetEngine().GetSoundEngine().GetMasterVoiceDetails().InputChannels;//転送先のボイスのチャンネル数	
+	m_x3DDSPSettings.DstChannelCount = GetEngine().GetSoundEngine().GetSubmixVoiceDetails().InputChannels;//転送先のボイスのチャンネル数	
 	m_matrixCoefficients.resize(m_x3DDSPSettings.SrcChannelCount * m_x3DDSPSettings.DstChannelCount);
 	m_x3DDSPSettings.pMatrixCoefficients = m_matrixCoefficients.data();
+
+	m_defaultOutputMatrix.resize(m_x3DDSPSettings.SrcChannelCount * m_x3DDSPSettings.DstChannelCount);
 
 	m_isInit = true;
 }
 CSound::~CSound()
 {
+	Release();
+
+	if (m_thread.joinable()) {
+		m_threadBreak = true;
+		m_thread.join();
+		m_threadBreak = false;
+	}
+
 	Release();
 }
 
@@ -53,7 +66,8 @@ void CSound::Release() {
 
 	ReleaseStreaming();
 
-	//m_wav = nullptr;
+	if (m_thread.joinable()) { return; }
+
 	if (m_sourceVoice) { 
 		m_sourceVoice->Stop(0);
 		//m_sourceVoice->FlushSourceBuffers();
@@ -79,6 +93,8 @@ void CSound::Play(bool enable3D, bool isLoop) {
 		return;
 	}
 
+	if (m_sourceVoice) { return; }
+
 	m_is3D = enable3D;
 
 	//ストリーミング再生
@@ -90,7 +106,12 @@ void CSound::Play(bool enable3D, bool isLoop) {
 	//通常再生
 	if (m_sourceVoice || !m_wav)return;	
 
-	HRESULT hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSourceVoice(&m_sourceVoice, m_wav->wfx);
+	XAUDIO2_SEND_DESCRIPTOR sendDescriptors[1];
+	sendDescriptors[0].Flags = 0;
+	sendDescriptors[0].pOutputVoice = GetEngine().GetSoundEngine().GetSubmixVoice();
+	const XAUDIO2_VOICE_SENDS sendList = { 1, sendDescriptors };
+
+	HRESULT hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSourceVoice(&m_sourceVoice, m_wav->wfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, nullptr, &sendList);
 	if (FAILED(hr)) {
 		char message[256];
 		sprintf_s(message, "CreateSourceVoice()に失敗しました\nHRESULT:%x", hr);
@@ -99,6 +120,9 @@ void CSound::Play(bool enable3D, bool isLoop) {
 		return;
 	}
 
+	//デフォ行列保存
+	m_sourceVoice->GetOutputMatrix(GetEngine().GetSoundEngine().GetSubmixVoice(), m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_defaultOutputMatrix.data());
+	
 	XAUDIO2_BUFFER buffer = { 0 };
 	buffer.AudioBytes = m_wav->audioBytes;      //バッファのバイト数
 	buffer.pAudioData = m_wav->startAudio;      //バッファの先頭アドレス
@@ -136,6 +160,19 @@ void CSound::Update() {
 }
 
 void CSound::InUpdate(bool canStop) {
+
+	//スレッド終了待ち
+	if (m_threadBreak && m_threadEnded){
+		m_thread.join();
+		m_threadBreak = false;
+		m_threadEnded = false;
+
+		Release();
+	}
+	else if(m_willDelete){
+		delete this;
+	}
+
 	if (!m_sourceVoice)return;
 
 	while (m_isLockSourceVoice.exchange(true)) {}//スピンロック
@@ -150,7 +187,8 @@ void CSound::InUpdate(bool canStop) {
 		}
 	}
 
-	m_sourceVoice->SetVolume(m_volume);
+	m_sourceVoice->SetVolume(m_setting.volume);
+	m_sourceVoice->SetFrequencyRatio(m_setting.frequencyRatio);
 
 	if (m_is3D) {
 		//3D設定更新
@@ -162,10 +200,21 @@ void CSound::InUpdate(bool canStop) {
 
 		//3Dオーディオの計算
 		GetEngine().GetSoundEngine().X3DAudioCalculate(&m_x3DEmitter, &m_x3DDSPSettings);		
-
-		//適用
-		m_sourceVoice->SetOutputMatrix(GetEngine().GetSoundEngine().GetMasterVoice(), m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_x3DDSPSettings.pMatrixCoefficients);
 	}
+	else {
+		//デフォ行列取得
+		std::memcpy(m_x3DDSPSettings.pMatrixCoefficients, m_defaultOutputMatrix.data(), m_defaultOutputMatrix.size()*sizeof(FLOAT32));
+	}
+	
+	//チャンネルごとのボリューム設定
+	for (UINT32 x = 0; x < m_x3DDSPSettings.SrcChannelCount; x++) {
+		for (UINT32 y = 0; y < m_x3DDSPSettings.DstChannelCount; y++) {
+			m_x3DDSPSettings.pMatrixCoefficients[m_x3DDSPSettings.SrcChannelCount * y + x] *= m_setting.outChannelVolume[y];
+		}
+	}
+
+	//適用
+	m_sourceVoice->SetOutputMatrix(GetEngine().GetSoundEngine().GetSubmixVoice(), m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_x3DDSPSettings.pMatrixCoefficients);
 
 	m_isLockSourceVoice = false;//スピンロック解除
 }

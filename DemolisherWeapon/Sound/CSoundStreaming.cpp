@@ -16,7 +16,7 @@ void CSound::Streaming() {
 
 	while (currentPosition < m_insAudioBytes) {
 
-		if (m_threadBreak) { return; }
+		if (m_threadBreak) { m_threadEnded = true; return; }
 
 		DWORD cbValid = min(STREAMING_BUFFER_SIZE, m_insAudioBytes - currentPosition);
 		m_ovlCurrentRequest.Offset = m_insStartAudio + currentPosition;
@@ -63,7 +63,7 @@ void CSound::Streaming() {
 		XAUDIO2_VOICE_STATE state;
 		for (;; )
 		{
-			if (m_threadBreak) { return; }
+			if (m_threadBreak) { m_threadEnded = true; return; }
 
 			while (m_isLockSourceVoice.exchange(true)) {}//スピンロック
 			m_sourceVoice->GetState(&state); 
@@ -103,7 +103,7 @@ void CSound::Streaming() {
 		XAUDIO2_VOICE_STATE state;
 		for (; ; )
 		{
-			if (m_threadBreak) { return; }
+			if (m_threadBreak) { m_threadEnded = true; return; }
 
 			while (m_isLockSourceVoice.exchange(true)) {}//スピンロック
 			m_sourceVoice->GetState(&state);
@@ -114,6 +114,8 @@ void CSound::Streaming() {
 			WaitForSingleObject(m_voiceContext.hBufferEndEvent, INFINITE);
 		}
 	}
+
+	m_threadEnded = true;
 }
 
 bool CSound::InitStreaming(const wchar_t* fileName) {
@@ -445,7 +447,12 @@ void CSound::StreamingPlay(bool isLoop) {
 	m_ovlCurrentRequest = { 0 };
 	m_ovlCurrentRequest.hEvent = CreateEventEx(nullptr, nullptr, CREATE_EVENT_MANUAL_RESET, EVENT_MODIFY_STATE | SYNCHRONIZE);
 
-	HRESULT hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSourceVoice(&m_sourceVoice, &m_insWfx, 0, 1.0f, &m_voiceContext);
+	XAUDIO2_SEND_DESCRIPTOR sendDescriptors[1];
+	sendDescriptors[0].Flags = 0;
+	sendDescriptors[0].pOutputVoice = GetEngine().GetSoundEngine().GetSubmixVoice();
+	const XAUDIO2_VOICE_SENDS sendList = { 1, sendDescriptors };
+
+	HRESULT hr = GetEngine().GetSoundEngine().GetIXAudio2()->CreateSourceVoice(&m_sourceVoice, &m_insWfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &m_voiceContext, &sendList);
 	if (FAILED(hr)) {
 		char message[256];
 		sprintf_s(message, "CreateSourceVoice()に失敗しました\nHRESULT:%x", hr);
@@ -454,10 +461,15 @@ void CSound::StreamingPlay(bool isLoop) {
 		return;
 	}
 
+	//デフォ行列保存
+	m_sourceVoice->GetOutputMatrix(GetEngine().GetSoundEngine().GetSubmixVoice(), m_x3DDSPSettings.SrcChannelCount, m_x3DDSPSettings.DstChannelCount, m_defaultOutputMatrix.data());
+
 	InUpdate(false);
 
 	m_sourceVoice->Start();
 
+	m_threadEnded = false; 
+	m_threadBreak = false;
 	m_thread = std::thread([&] {Streaming(); });
 }
 
@@ -465,8 +477,7 @@ void CSound::ReleaseStreaming() {
 
 	if (m_thread.joinable()) {
 		m_threadBreak = true;
-		m_thread.join();
-		m_threadBreak = false;
+		return;
 	}
 
 	if (m_async != INVALID_HANDLE_VALUE)

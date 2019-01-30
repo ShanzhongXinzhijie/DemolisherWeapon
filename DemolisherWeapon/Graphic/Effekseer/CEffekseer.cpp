@@ -41,10 +41,19 @@ void CEffekseer::Play(const wchar_t* filePath, const float magnification, const 
 	SetPRS(pos,rot,scale);
 
 	m_handle = effek.Play(effect,m_pos);
+	SetBaseMatrix();
 }
 
 void CEffekseer::Update()
 {
+	SetBaseMatrix();
+
+	if (IsPlay() == false) {
+		delete this;
+	}
+}
+
+void CEffekseer::SetBaseMatrix(){
 	CMatrix mTrans, mRot, mScale, mBase;
 	mTrans.MakeTranslation(m_pos);
 	mRot.MakeRotationFromQuaternion(m_rot);
@@ -52,10 +61,6 @@ void CEffekseer::Update()
 	mBase = mScale * mRot;
 	mBase = mBase * mTrans;
 	GetEngine().GetEffekseer().GetManager()->SetBaseMatrix(m_handle, mBase);//SetMatrix
-
-	if (IsPlay() == false) {
-		delete this;
-	}
 }
 
 }

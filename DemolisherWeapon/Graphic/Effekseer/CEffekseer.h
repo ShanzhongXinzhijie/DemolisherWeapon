@@ -14,7 +14,6 @@ public:
 	
 	void Update() override;
 
-
 	/*!
 	*@brief	‰ğ•úB
 	*/
@@ -95,6 +94,9 @@ public:
 
 	//ƒnƒ“ƒhƒ‹‚ğæ“¾
 	Effekseer::Handle GetHandle()const { return m_handle; }
+
+private:
+	void SetBaseMatrix();
 
 private:
 	Effekseer::Handle m_handle = -1;

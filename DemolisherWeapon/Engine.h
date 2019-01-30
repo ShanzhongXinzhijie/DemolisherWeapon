@@ -308,6 +308,11 @@ static inline WAVManager& GetWAVManager() {
 
 	return GetEngine().GetSoundEngine().GetWAVManager();
 }
+//WAVSettingManager(音声データ自体への設定を扱うクラス)の取得
+static inline WAVSettingManager& GetWAVSettingManager() {
+
+	return GetEngine().GetSoundEngine().GetWAVSettingManager();
+}
 
 //3Dモデルレンダーに描画するモデルを登録
 static inline void AddDrawModelToD3Render(SkinModel* sm) 
