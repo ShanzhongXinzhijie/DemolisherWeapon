@@ -169,9 +169,9 @@ void CSound::InUpdate(bool canStop) {
 
 		Release();
 	}
-	else if(m_willDelete){
-		delete this;
-	}
+	//else if(m_willDelete){
+	//	delete this;
+	//}
 
 	if (!m_sourceVoice)return;
 

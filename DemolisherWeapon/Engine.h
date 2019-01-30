@@ -474,6 +474,16 @@ static inline RegColObj* AddCollisionObj(GameObj::Suicider::CCollisionObj* obj) 
 	return GetEngine().GetCollisionObjManager()->AddCollisionObj(obj);
 }
 
+//マスターボリュームを設定
+static inline void SetMasterVolume(float vol) {
+	GetEngine().GetSoundEngine().GetMasterVoice()->SetVolume(vol);
+}
+static inline float GetMasterVolume() {
+	float vol;
+	GetEngine().GetSoundEngine().GetMasterVoice()->GetVolume(&vol);
+	return vol;
+}
+
 //デバッグ情報を描画するか設定
 static inline void SetIsDebugDraw(bool enable) { GetEngine().SetIsDebugDraw(enable); }
 static inline bool GetIsDebugDraw() { return GetEngine().GetIsDebugDraw(); }

@@ -46,19 +46,22 @@ namespace GameObj {
 	class CSound : public IGameObject
 	{
 	public:
+		CSound() {}
 		CSound(const wchar_t* fileName, bool isStreaming = false);
 		virtual ~CSound();
 
 		void Init(const wchar_t* fileName, bool isStreaming = false);
 
 		//ストリーミング再生の終了を待って自殺する
-		void Delete() {
+		/*void Delete() {
 			Release();
 			m_willDelete = true;
-		}
+		}*/
 
+		//いつもの
 		void Update()override;
 
+		//再生
 		void Play(bool enable3D = false, bool isLoop = false);		
 		//音を止める
 		//※ストリーミング再生はすぐには停止しません
@@ -86,10 +89,13 @@ namespace GameObj {
 		void SetDataFrequencyRatio(float ratio) { m_pDataSetting->frequencyRatio = ratio; SetDataFrequencyRatio(ratio); }
 		void SetDataOutChannelVolume(int channel, float vol) { m_pDataSetting->outChannelVolume[channel] = vol; SetOutChannelVolume(channel, vol); }
 
-		//再生中か取得
-		bool GetIsPlaying()const { return !m_isPause && m_sourceVoice; }
+		//再生中か取得(一時停止は考慮されない)
+		bool GetIsPlaying()const { return m_sourceVoice; }
+		bool GetIsPlayingAndNotPause()const { return !m_isPause && m_sourceVoice; }
 		//一時停止中か取得
 		bool GetIsPausing()const { return m_isPause; }
+
+		bool GetIsStreaming()const { return m_isStreaming; }
 
 	private:
 		void Release();
@@ -102,7 +108,7 @@ namespace GameObj {
 		
 	private:		
 		bool m_isInit = false;
-		bool m_willDelete = false;
+		//bool m_willDelete = false;
 
 		WAVManager::WAVData* m_wav = nullptr;
 		IXAudio2SourceVoice* m_sourceVoice = nullptr;
@@ -146,11 +152,31 @@ namespace GameObj {
 	};
 	
 namespace Suicider {
-	/*class CSE : public CSound
+	class CSE : public CSound
 	{
 	public:
+		using CSound::CSound;
+		virtual ~CSE() {};
 
-	};*/
+		void PostUpdate()override {
+			if (!GetIsPlaying()) { 
+				delete this;
+			}
+		}
+	}; 
+	
+	class CBGM : public CSound
+	{
+	public:
+		CBGM(const wchar_t* fileName, bool isStreaming = true) : CSound::CSound(fileName, isStreaming) {}
+		virtual ~CBGM() {};
+
+		void PostUpdate()override {
+			if (!GetIsPlaying()) {
+				delete this;
+			}
+		}
+	};
 }
 
 }
