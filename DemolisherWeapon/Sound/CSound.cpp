@@ -203,13 +203,13 @@ void CSound::InUpdate(bool canStop) {
 	}
 	else {
 		//デフォ行列取得
-		std::memcpy(m_x3DDSPSettings.pMatrixCoefficients, m_defaultOutputMatrix.data(), m_defaultOutputMatrix.size()*sizeof(FLOAT32));
-	}
-	
-	//チャンネルごとのボリューム設定
-	for (UINT32 x = 0; x < m_x3DDSPSettings.SrcChannelCount; x++) {
-		for (UINT32 y = 0; y < m_x3DDSPSettings.DstChannelCount; y++) {
-			m_x3DDSPSettings.pMatrixCoefficients[m_x3DDSPSettings.SrcChannelCount * y + x] *= m_setting.outChannelVolume[y];
+		std::memcpy(m_x3DDSPSettings.pMatrixCoefficients, m_defaultOutputMatrix.data(), m_defaultOutputMatrix.size() * sizeof(FLOAT32));
+
+		//チャンネルごとのボリューム設定
+		for (UINT32 x = 0; x < m_x3DDSPSettings.SrcChannelCount; x++) {
+			for (UINT32 y = 0; y < m_x3DDSPSettings.DstChannelCount; y++) {
+				m_x3DDSPSettings.pMatrixCoefficients[m_x3DDSPSettings.SrcChannelCount * y + x] *= m_setting.outChannelVolume[y];
+			}
 		}
 	}
 
