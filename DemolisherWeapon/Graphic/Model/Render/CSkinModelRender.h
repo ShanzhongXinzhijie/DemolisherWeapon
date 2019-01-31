@@ -122,6 +122,16 @@ public:
 		m_isShadowCaster = flag;
 	}
 
+	//一番奥に描画するか設定
+	void SetIsMostDepth(bool enable) {
+		if (enable) {
+			m_model.SetRasterizerState(m_mostDepthRSCw, m_mostDepthRSCCw);
+		}
+		else {
+			m_model.SetRasterizerState(nullptr, nullptr);
+		}
+	}
+
 	//ワールド行列を更新
 	void UpdateWorldMatrix() {
 		m_model.UpdateWorldMatrix(m_pos, m_rot, m_scale);
@@ -143,6 +153,9 @@ private:
 
 	bool m_isUpdated = false;			//アップデート済みか?
 	bool m_isUpdatedWorldMatrix = false;//ワールド行列更新済みか?
+
+	static ID3D11RasterizerState* m_mostDepthRSCw;
+	static ID3D11RasterizerState* m_mostDepthRSCCw;
 };
 
 }

@@ -133,6 +133,12 @@ public:
 		}
 	}
 
+	//ラスタライザーステートをセット
+	void SetRasterizerState(ID3D11RasterizerState* RSCw, ID3D11RasterizerState* RSCCw) {
+		m_pRasterizerStateCw = RSCw;
+		m_pRasterizerStateCCw = RSCCw;
+	}
+
 	//FBXの設定取得
 	const EnFbxUpAxis& GetFBXUpAxis()const {
 		return m_enFbxUpAxis;
@@ -184,6 +190,8 @@ private:
 	DirectX::Model*		m_modelDx;						//!<DirectXTKが提供するモデルクラス。
 	std::wstring		m_modelName;					//!<モデルの名前。
 	ID3D11SamplerState* m_samplerState = nullptr;		//!<サンプラステート。
+	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;
+	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
 
 	static SkinModelDataManager m_skinModelDataManager;
 };

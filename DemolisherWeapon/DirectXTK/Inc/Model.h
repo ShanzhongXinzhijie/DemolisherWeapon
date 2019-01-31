@@ -222,7 +222,8 @@ namespace DirectX
         typedef std::vector<std::shared_ptr<ModelMesh>> Collection;
 
         // Setup states for drawing mesh
-        void __cdecl PrepareForRendering( _In_ ID3D11DeviceContext* deviceContext, const CommonStates& states, bool alpha = false, bool wireframe = false, bool reverseCull = false) const;
+        void __cdecl PrepareForRendering( _In_ ID3D11DeviceContext* deviceContext, const CommonStates& states, bool alpha = false, bool wireframe = false, bool reverseCull = false,
+			ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr) const;
 
         // Draw the mesh
         void XM_CALLCONV Draw( _In_ ID3D11DeviceContext* deviceContext, FXMMATRIX world, CXMMATRIX view, CXMMATRIX projection,
@@ -243,7 +244,8 @@ namespace DirectX
 
         // Draw all the meshes in the model
         void XM_CALLCONV Draw( _In_ ID3D11DeviceContext* deviceContext, const CommonStates& states, FXMMATRIX world, CXMMATRIX view, CXMMATRIX projection,
-                               bool wireframe = false, bool reverseCull = false) const;
+                               bool wireframe = false, bool reverseCull = false, 
+							   ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr) const;
 
         // Notify model that effects, parts list, or mesh list has changed
         void __cdecl Modified() { mEffectCache.clear(); }

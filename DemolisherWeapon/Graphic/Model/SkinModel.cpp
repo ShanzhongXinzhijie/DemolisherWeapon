@@ -199,7 +199,8 @@ void SkinModel::Draw(bool reverseCull)
 		GetMainCamera()->GetViewMatrix(),
 		GetMainCamera()->GetProjMatrix(),
 		false,
-		(m_enFbxCoordinate == enFbxRightHanded)!=reverseCull
+		(m_enFbxCoordinate == enFbxRightHanded) != reverseCull,
+		m_pRasterizerStateCw, m_pRasterizerStateCCw
 	);
 
 	//‹ŒÀ•W‚ÌXV

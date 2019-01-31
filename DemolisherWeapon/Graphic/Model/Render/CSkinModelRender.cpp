@@ -1,11 +1,38 @@
 #include "DWstdafx.h"
 #include "CSkinModelRender.h"
 
+#define DEPTH_BIAS_D32_FLOAT(d) (d/(1/pow(2,23))) 
+
 namespace DemolisherWeapon {
 namespace GameObj {
 
+ID3D11RasterizerState* CSkinModelRender::m_mostDepthRSCw = nullptr;
+ID3D11RasterizerState* CSkinModelRender::m_mostDepthRSCCw = nullptr;
+
 CSkinModelRender::CSkinModelRender()
 {
+	if (!m_mostDepthRSCw) {
+		D3D11_RASTERIZER_DESC desc = {};
+		desc.CullMode = D3D11_CULL_FRONT;
+		desc.FillMode = D3D11_FILL_SOLID;
+		desc.DepthClipEnable = true;
+		desc.MultisampleEnable = true;
+
+		desc.DepthBias = (INT)DEPTH_BIAS_D32_FLOAT(1.0f);
+
+		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, &m_mostDepthRSCw);
+	}
+	if (!m_mostDepthRSCCw) {
+		D3D11_RASTERIZER_DESC desc = {};
+		desc.CullMode = D3D11_CULL_BACK;
+		desc.FillMode = D3D11_FILL_SOLID;
+		desc.DepthClipEnable = true;
+		desc.MultisampleEnable = true;
+
+		desc.DepthBias = (INT)DEPTH_BIAS_D32_FLOAT(1.0f);
+
+		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, &m_mostDepthRSCCw);
+	}
 }
 CSkinModelRender::~CSkinModelRender()
 {

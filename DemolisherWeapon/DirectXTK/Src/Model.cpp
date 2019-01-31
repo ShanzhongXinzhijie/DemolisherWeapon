@@ -152,7 +152,8 @@ void ModelMesh::PrepareForRendering(
     const CommonStates& states,
     bool alpha,
     bool wireframe,
-	bool reverseCull) const
+	bool reverseCull,
+	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw) const
 {
     assert(deviceContext != 0);
 
@@ -183,12 +184,22 @@ void ModelMesh::PrepareForRendering(
     deviceContext->OMSetDepthStencilState(depthStencilState, 0);
 
     // Set the rasterizer state.
-    if (wireframe)
-        deviceContext->RSSetState(states.Wireframe());
-    else if(!reverseCull)
-        deviceContext->RSSetState( ccw ? states.CullCounterClockwise() : states.CullClockwise());
-	else
-		deviceContext->RSSetState(!ccw ? states.CullCounterClockwise() : states.CullClockwise());
+	if (pRasterizerStateCw && pRasterizerStateCCw) {
+		if (!reverseCull) {
+			deviceContext->RSSetState(ccw ? pRasterizerStateCCw : pRasterizerStateCw);
+		}
+		else {
+			deviceContext->RSSetState(!ccw ? pRasterizerStateCCw : pRasterizerStateCw);
+		}
+	}
+	else {
+		if (wireframe)
+			deviceContext->RSSetState(states.Wireframe());
+		else if (!reverseCull)
+			deviceContext->RSSetState(ccw ? states.CullCounterClockwise() : states.CullClockwise());
+		else
+			deviceContext->RSSetState(!ccw ? states.CullCounterClockwise() : states.CullClockwise());
+	}
 
     // Set sampler state.
     ID3D11SamplerState* samplers[] =
@@ -251,7 +262,8 @@ void XM_CALLCONV Model::Draw(
     CXMMATRIX view,
     CXMMATRIX projection,
     bool wireframe,
-	bool reverseCull) const
+	bool reverseCull,
+	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw) const
 {
     assert(deviceContext != 0);
 
@@ -261,7 +273,7 @@ void XM_CALLCONV Model::Draw(
         auto mesh = it->get();
         assert(mesh != 0);
 
-        mesh->PrepareForRendering(deviceContext, states, false, wireframe, reverseCull);
+        mesh->PrepareForRendering(deviceContext, states, false, wireframe, reverseCull, pRasterizerStateCw, pRasterizerStateCCw);
 
         mesh->Draw(deviceContext, world, view, projection, false);
     }
@@ -272,7 +284,7 @@ void XM_CALLCONV Model::Draw(
         auto mesh = it->get();
         assert(mesh != 0);
 
-        mesh->PrepareForRendering(deviceContext, states, true, wireframe, reverseCull);
+        mesh->PrepareForRendering(deviceContext, states, true, wireframe, reverseCull, pRasterizerStateCw, pRasterizerStateCCw);
 
         mesh->Draw(deviceContext, world, view, projection, true);
     }
