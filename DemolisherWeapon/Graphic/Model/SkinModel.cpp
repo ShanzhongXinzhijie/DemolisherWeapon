@@ -36,12 +36,14 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	//SkinModelDataManagerを使用してCMOファイルのロード。
 	m_modelDx = m_skinModelDataManager.Load(filePath, m_skeleton);	
 
-	//マテリアル設定の確保
-	FindMaterial(
-		[&](ModelEffect* mat) {
+	if (m_modelDx) {
+		//マテリアル設定の確保
+		FindMaterial(
+			[&](ModelEffect* mat) {
 			m_materialSetting.emplace_back();
 		}
-	);
+		);
+	}
 
 	//ファイル名記録
 	std::experimental::filesystem::path ps = filePath;

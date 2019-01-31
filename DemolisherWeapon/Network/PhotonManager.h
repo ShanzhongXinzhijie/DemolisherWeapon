@@ -48,7 +48,7 @@ namespace DemolisherWeapon {
 		bool ConnectServer(const wchar_t* userName);
 		//サーバーとの接続を切断
 		void DisconnectServer() {
-			if (!GetConnected() || m_state == DISCONNECTING) { return; }
+			if (m_state == DISCONNECTING) { return; }//!GetConnected() || 
 			m_LoadBalancingClient.disconnect();
 			m_state = DISCONNECTING;
 		}
@@ -101,7 +101,7 @@ namespace DemolisherWeapon {
 		}
 
 		//サーバーに接続しているか取得
-		bool GetConnected()const { return m_LoadBalancingClient.getIsInLobby(); }//return m_isConnected; }
+		bool GetConnected()const { return m_LoadBalancingClient.getIsInRoom(); }//getIsInLobby　return m_isConnected; }
 		//ルームに入っているか取得
 		bool GetJoinedRoom()const { return m_LoadBalancingClient.getIsInGameRoom(); }//return m_isJoinedRoom; }
 
