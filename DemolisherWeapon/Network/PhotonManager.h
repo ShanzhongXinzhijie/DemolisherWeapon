@@ -39,6 +39,16 @@ namespace DemolisherWeapon {
 		using LeaveEventActionFunc = std::function<void(int playerNr, bool isInactive)>;
 
 		PhotonNetworkLogic(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion, EventActionFunc eventAction);
+		~PhotonNetworkLogic() {
+			if (GetState() != INITIALIZED && GetState() != DISCONNECTED) {
+				DisconnectServer();
+				while (1) {
+					Update();
+					if (GetState() == DISCONNECTED) { break; }
+					Sleep(16);
+				}
+			}
+		}
 
 		void Update() {
 			m_LoadBalancingClient.service();

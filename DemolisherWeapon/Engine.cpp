@@ -3,6 +3,8 @@
 
 namespace DemolisherWeapon {
 
+Engine* Engine::instance = nullptr;
+
 int Engine::m_wheelNotch = 0, Engine::m_wheelRot = 0;//マウスホイールの回転量(縦)
 int Engine::m_wheelHNotch = 0, Engine::m_wheelHRot = 0;//マウスホイールの回転量(横)
 

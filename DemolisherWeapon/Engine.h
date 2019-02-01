@@ -23,7 +23,7 @@
 
 namespace DemolisherWeapon {
 
-static constexpr wchar_t DW_VER[] = L"ポテト";//エンジンのバージョン
+static constexpr wchar_t DW_VER[] = L"なんかバグったらゴメンEdition";//エンジンのバージョン
 
 enum EnSplitScreenMode {
 	enNoSplit=0,
@@ -149,12 +149,24 @@ public:
 	//インスタンスを取得
 	static Engine& GetInstance()
 	{
-		static Engine* instance = nullptr;
 		if (instance == nullptr) {
 			instance = new Engine;
 		}
 		return *instance;
 	}
+
+private:
+
+	static Engine* instance;
+
+	//インスタンスの削除
+	static void DeleteInstance() {
+		if (instance) {
+			delete instance; instance = nullptr;
+		}
+	}
+
+public:
 
 	//ゲームの初期化。
 	void InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, InitEngineParameter initParam);
@@ -168,7 +180,10 @@ public:
 	}
 
 	//ゲームループ
-	void RunGameLoop() { m_gameLoop.Run(); };
+	void RunGameLoop() { 
+		m_gameLoop.Run(); 
+		DeleteInstance();
+	}
 
 	//ウインドウ更新
 	void UpdateWindow() {

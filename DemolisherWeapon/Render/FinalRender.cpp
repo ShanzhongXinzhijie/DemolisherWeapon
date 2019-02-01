@@ -41,12 +41,12 @@ void CFinalRenderTarget::Init() {
 }
 void CFinalRenderTarget::Release() {
 	for (int i = 0; i < 2; i++) {
-		m_Tex[i]->Release();
-		m_RTV[i]->Release();
-		m_SRV[i]->Release();
+		if (m_Tex[i]) { m_Tex[i]->Release(); m_Tex[i] = nullptr; }
+		if (m_RTV[i]) { m_RTV[i]->Release(); m_RTV[i] = nullptr; }
+		if (m_SRV[i]) { m_SRV[i]->Release(); m_SRV[i] = nullptr; }
 	}
-	m_depthStencilTex->Release();
-	m_depthStencilView->Release();
+	if (m_depthStencilTex) { m_depthStencilTex->Release(); m_depthStencilTex = nullptr; }
+	if (m_depthStencilView) { m_depthStencilView->Release(); m_depthStencilView = nullptr; }
 }
 void CFinalRenderTarget::Clear(int num) {
 	int n = num;
