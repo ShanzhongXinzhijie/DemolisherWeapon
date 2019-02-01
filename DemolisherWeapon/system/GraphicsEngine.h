@@ -92,6 +92,13 @@ public:
 	{
 		return m_spriteFont.get();
 	}
+	float AddAndGetLayerDepthCnt() {
+		m_layerDepthCnt += 0.001f / 2048.0f;
+		return m_layerDepthCnt;
+	}
+	void ResetLayerDepthCnt() {
+		m_layerDepthCnt = 0.0f;
+	}
 
 	//フルスクリーン描画
 	void DrawFullScreen() {
@@ -188,6 +195,7 @@ private:
 	//Sprite
 	std::unique_ptr<DirectX::SpriteFont> m_spriteFont;
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
+	float m_layerDepthCnt = 0.0f;
 
 	//フルスクリーン描画プリミティブ
 	CPrimitive m_fullscreen;

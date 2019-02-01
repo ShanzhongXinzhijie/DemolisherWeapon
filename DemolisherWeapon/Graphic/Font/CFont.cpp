@@ -43,6 +43,9 @@ namespace DemolisherWeapon {
 			return;
 		}		
 
+		layerDepth *= 0.999f; layerDepth += 0.001f;
+		layerDepth -= GetEngine().GetGraphicsEngine().AddAndGetLayerDepthCnt();
+
 		m_spriteFont->DrawString(
 			m_spriteBatch,
 			text,

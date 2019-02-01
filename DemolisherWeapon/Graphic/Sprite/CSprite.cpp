@@ -90,6 +90,9 @@ namespace DemolisherWeapon {
 
 		if (!m_srv) { return; }
 
+		layerDepth *= 0.999f; layerDepth += 0.001f;
+		layerDepth -= GetEngine().GetGraphicsEngine().AddAndGetLayerDepthCnt();
+
 		m_spriteBatch->Draw(m_srv, pos.vec, &m_sourceRectangle, color, rotation, DirectX::XMFLOAT2(pivot.x*m_width, pivot.y*m_height), DirectX::XMFLOAT2(scale.x, scale.y), effects, layerDepth);
 	}
 

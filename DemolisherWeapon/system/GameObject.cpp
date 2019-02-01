@@ -38,5 +38,6 @@ namespace DemolisherWeapon {
 		}
 
 		GetEngine().GetGraphicsEngine().GetSpriteBatch()->End();
+		GetEngine().GetGraphicsEngine().ResetLayerDepthCnt();
 	}
 }

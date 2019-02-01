@@ -14,6 +14,7 @@ namespace DemolisherWeapon {
 		void Init(const wchar_t* fileName);
 
 		//描画する
+		//※layerDepthの第三小数点以下は使わないほうがいいと思う
 		//const CVector2& pos は0.0f～1.0fの範囲。{0.0f,0.0f}で画面左上
 		void Draw(const CVector2& pos,
 			const CVector2& scale = CVector2::One(),
