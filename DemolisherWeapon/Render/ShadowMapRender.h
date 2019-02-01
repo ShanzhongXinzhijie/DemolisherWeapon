@@ -30,8 +30,8 @@ public:
 	}
 
 	//シャドウマップに描画するモデルを追加
-	void AddDrawModel(SkinModel* caster) {
-		m_drawModelList.push_back(caster);
+	void AddDrawModel(SkinModel* caster, int priority) {
+		m_drawModelList[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX)].push_back(caster);
 	}
 
 	//シャドウマップをひとつ有効化
@@ -86,7 +86,7 @@ public:
 private:
 	EnShadowMapMode m_setting = enPCSS;
 
-	std::list<SkinModel*> m_drawModelList;
+	std::list<SkinModel*> m_drawModelList[DRAW_PRIORITY_MAX];
 
 	CShadowMap m_shadowMaps[SHADOWMAP_NUM];
 };

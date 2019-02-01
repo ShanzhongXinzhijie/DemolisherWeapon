@@ -68,8 +68,8 @@ void CSkinModelRender::PostLoopUpdate() {
 	if (!m_isInit) { return; }
 	
 	if (!m_isDraw) { return; }
-	if (m_isShadowCaster) { AddDrawModelToShadowMapRender(&m_model); }
-	AddDrawModelToD3Render(&m_model);
+	if (m_isShadowCaster) { AddDrawModelToShadowMapRender(&m_model, m_priority); }
+	AddDrawModelToD3Render(&m_model, m_priority);
 }
 
 void CSkinModelRender::Init(const wchar_t* filePath,

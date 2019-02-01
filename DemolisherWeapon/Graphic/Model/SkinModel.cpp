@@ -165,6 +165,9 @@ void SkinModel::Draw(bool reverseCull)
 	vsCb.mProj_old = GetMainCamera()->GetProjMatrixOld();
 	vsCb.mView_old = GetMainCamera()->GetViewMatrixOld();
 
+	vsCb.depthBias.x = m_depthBias;
+	vsCb.depthBias.y =(GetMainCamera()->GetFar() - GetMainCamera()->GetNear())*vsCb.depthBias.x;
+
 	d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
 
 	//定数バッファをGPUに転送。

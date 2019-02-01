@@ -129,8 +129,10 @@ void GBufferRender::Render() {
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(enGBufferNum, renderTargetViews, m_depthStencilView);
 
 	//モデル描画
-	for (auto& model : m_drawModelList) {
-		model->Draw();
+	for (auto& list : m_drawModelList) {
+		for (auto& model : list) {
+			model->Draw();
+		}
 	}
 
 	//ラスタライザーステート戻す
@@ -140,7 +142,9 @@ void GBufferRender::Render() {
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
 }
 void GBufferRender::PostRender() {
-	m_drawModelList.clear();
+	for (auto& list : m_drawModelList) {
+		list.clear();
+	}
 }
 
 }

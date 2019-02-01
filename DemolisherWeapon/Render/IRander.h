@@ -27,3 +27,7 @@ public:
 private:
 	std::multimap<int, IRander*> m_renderList;
 };
+
+//•`‰æ‡ŠÖŒW
+static const int DRAW_PRIORITY_MAX = 5;
+static const int DRAW_PRIORITY_DEFAULT = 3;

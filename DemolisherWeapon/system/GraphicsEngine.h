@@ -99,11 +99,11 @@ public:
 	}
 
 	//3Dモデルレンダーに描画するモデルを登録
-	void AddDrawModelToD3Render(SkinModel* sm) {
-		m_gbufferRender.AddDrawModel(sm);//m_d3render.AddDrawModel(sm);
+	void AddDrawModelToD3Render(SkinModel* sm, int priority) {
+		m_gbufferRender.AddDrawModel(sm, priority);
 	};
-	void AddDrawModelToShadowMapRender(SkinModel* sm) {
-		m_shadowMapRender.AddDrawModel(sm);
+	void AddDrawModelToShadowMapRender(SkinModel* sm, int priority) {
+		m_shadowMapRender.AddDrawModel(sm, priority);
 	}
 
 	//Gバッファレンダーの取得

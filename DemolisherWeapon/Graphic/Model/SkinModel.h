@@ -138,6 +138,10 @@ public:
 		m_pRasterizerStateCw = RSCw;
 		m_pRasterizerStateCCw = RSCCw;
 	}
+	//深度バイアスをセット(シェーダ用)
+	void SetDepthBias(float bias) {
+		m_depthBias = bias;
+	}
 
 	//FBXの設定取得
 	const EnFbxUpAxis& GetFBXUpAxis()const {
@@ -173,6 +177,9 @@ private:
 		CMatrix mWorld_old;
 		CMatrix mView_old;
 		CMatrix mProj_old;
+
+		CVector4 depthBias;
+		//float depthBiasScaleFromNearToFar;
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
@@ -192,6 +199,7 @@ private:
 	ID3D11SamplerState* m_samplerState = nullptr;		//!<サンプラステート。
 	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
+	float m_depthBias = 0.0f;
 
 	static SkinModelDataManager m_skinModelDataManager;
 };

@@ -34,6 +34,10 @@ public:
 		return t0 + (t1 - t0)*rate;
 	}
 
+	static inline int Clamp(int in, int low, int high) {
+		return min(max(in, low), high);
+	}
+
 	//—”
 	static std::random_device rd;
 	static std::mt19937 mt;

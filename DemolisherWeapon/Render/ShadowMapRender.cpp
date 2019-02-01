@@ -44,8 +44,10 @@ void ShadowMapRender::Render() {
 		m_shadowMaps[i].PreparePreDraw();
 
 		//•`‰æ
-		for (auto& cas : m_drawModelList) {
-			cas->Draw(true);
+		for (auto& list : m_drawModelList) {
+			for (auto& cas : list) {
+				cas->Draw(true);
+			}
 		}
 	}
 
@@ -62,7 +64,9 @@ void ShadowMapRender::Render() {
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
 }
 void ShadowMapRender::PostRender() {
-	m_drawModelList.clear();
+	for (auto& list : m_drawModelList) {
+		list.clear();
+	}
 }
 
 }

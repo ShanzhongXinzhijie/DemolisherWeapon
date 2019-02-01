@@ -126,10 +126,20 @@ public:
 	void SetIsMostDepth(bool enable) {
 		if (enable) {
 			m_model.SetRasterizerState(m_mostDepthRSCw, m_mostDepthRSCCw);
+			m_model.SetDepthBias(1.0f);
 		}
 		else {
 			m_model.SetRasterizerState(nullptr, nullptr);
+			m_model.SetDepthBias(0.0f);
 		}
+	}
+
+	//描画順を設定
+	void SetDrawPriority(int prio) {
+		m_priority = prio;
+	}
+	int GetDrawPriority()const {
+		return m_priority;
 	}
 
 	//ワールド行列を更新
@@ -140,6 +150,8 @@ public:
 
 private:
 	bool m_isInit = false;
+
+	int m_priority = DRAW_PRIORITY_DEFAULT;
 	
 	SkinModel m_model;
 	CVector3		m_pos;

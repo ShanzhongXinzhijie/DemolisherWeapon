@@ -23,7 +23,7 @@
 
 namespace DemolisherWeapon {
 
-static constexpr wchar_t DW_VER[] = L"3.14159265";//エンジンのバージョン
+static constexpr wchar_t DW_VER[] = L"ポテト";//エンジンのバージョン
 
 enum EnSplitScreenMode {
 	enNoSplit=0,
@@ -315,14 +315,14 @@ static inline WAVSettingManager& GetWAVSettingManager() {
 }
 
 //3Dモデルレンダーに描画するモデルを登録
-static inline void AddDrawModelToD3Render(SkinModel* sm) 
+static inline void AddDrawModelToD3Render(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT)
 {
-	GetEngine().GetGraphicsEngine().AddDrawModelToD3Render(sm);
+	GetEngine().GetGraphicsEngine().AddDrawModelToD3Render(sm, priority);
 }
 //シャドウマップレンダーに描画するモデルを登録
-static inline void AddDrawModelToShadowMapRender(SkinModel* sm)
+static inline void AddDrawModelToShadowMapRender(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT)
 {
-	GetEngine().GetGraphicsEngine().AddDrawModelToShadowMapRender(sm);
+	GetEngine().GetGraphicsEngine().AddDrawModelToShadowMapRender(sm, priority);
 }
 //物理エンジンのデバッグ表示のモードを設定する
 static inline void SetPhysicsDebugDrawMode(int debugMode) {
