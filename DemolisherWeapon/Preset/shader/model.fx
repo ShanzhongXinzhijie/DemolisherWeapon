@@ -112,14 +112,12 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 #if MOTIONBLUR
 		float4 oldpos = mul(mWorld_old, In.Position);
 
-		/*if (distance(posW - mView[3].xyz, oldpos.xyz - mView_old[3].xyz) > 0.0f) {
-		if(abs((posW.x - mView[3].x) - (oldpos.x - mView_old[3].x)) > 0.0f ||
-		   abs((posW.y - mView[3].y) - (oldpos.y - mView_old[3].y)) > 0.0f ||
-		   abs((posW.z - mView[3].z) - (oldpos.z - mView_old[3].z)) > 0.0f) {*/
-		if (distance(posW, oldpos.xyz) > 0.0f) {
+		if (distance((mView[3].xyz - mView_old[3].xyz), (mWorld[3].xyz - mWorld_old[3].xyz)) > 0.0f //distance(posW, oldpos.xyz)
+			|| distance(mWorld[0].xyz, mWorld_old[0].xyz) > 0.0f
+			|| distance(mWorld[1].xyz, mWorld_old[1].xyz) > 0.0f
+			|| distance(mWorld[2].xyz, mWorld_old[2].xyz) > 0.0f){
 			psInput.isWorldMove = true;
 		}
-		//}
 
 		oldpos = mul(mView_old, oldpos);
 		oldpos = mul(mProj_old, oldpos);
@@ -207,14 +205,17 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 			oldpos = mul(oldskinning, In.Position);
 		}
 
-		if (distance(posW, oldpos.xyz) > 0.0f) {
+		if (distance((mView[3].xyz - mView_old[3].xyz), (skinning[3].xyz - oldskinning[3].xyz)) > 0.0f
+			|| distance(skinning[0].xyz, oldskinning[0].xyz) > 0.0f
+			|| distance(skinning[1].xyz, oldskinning[1].xyz) > 0.0f
+			|| distance(skinning[2].xyz, oldskinning[2].xyz) > 0.0f) {
 			psInput.isWorldMove = true;
 		}
 
 		oldpos = mul(mView_old, oldpos);
 		oldpos = mul(mProj_old, oldpos);
 
-		if (oldpos.z < 0.0f) {
+		if (oldpos.z < 0.0f){
 			psInput.lastPos = pos;
 		}
 		else {
@@ -296,18 +297,12 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 
 	//‘¬“x
 #if MOTIONBLUR
-		//In.lastPos.w = 1.0f;
-		//In.lastPos = mul(mView_old, In.lastPos);
-		//In.lastPos = mul(mProj_old, In.lastPos);
 
 		float3	current = In.curPos.xyz / In.curPos.w;
 		float3	last = In.lastPos.xyz / In.lastPos.w;
 
-		if (last.z < 0.0f || last.z > 1.0f) {//current.z < 0.0f || current.z > 1.0f || 			
-			//last = In.lastPos.xyz / In.curPos.w;
-			//if (last.z < 0.0f || last.z > 1.0f) {
-				current *= 0.0f; last *= 0.0f;
-			//}
+		if (In.lastPos.z < 0.0f) {// || last.z < 0.0f || last.z > 1.0f) {			
+			current *= 0.0f; last *= 0.0f;
 		}
 
 		current.xy *= float2(0.5f, -0.5f); current.xy += 0.5f;
