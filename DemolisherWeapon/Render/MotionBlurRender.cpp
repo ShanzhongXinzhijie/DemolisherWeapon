@@ -82,7 +82,7 @@ void MotionBlurRender::Render() {
 	if (!m_isEnable) { return; }
 
 	ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
-	//PSBlur(rc);
+	PSBlur(rc);
 	CSBlur(rc);
 }
 
@@ -98,7 +98,7 @@ void MotionBlurRender::PSBlur(ID3D11DeviceContext* rc){
 	//最終的なレンダーターゲットのスワップ
 	GetEngine().GetGraphicsEngine().GetFRT().SetNow(0);// Swap();
 	//描画先を最終レンダーターゲットにする
-	GetEngine().GetGraphicsEngine().GetFRT().Clear(0);
+	//GetEngine().GetGraphicsEngine().GetFRT().Clear(0);
 	GetEngine().GetGraphicsEngine().SetFinalRenderTarget();
 
 	//シェーダーを設定
