@@ -45,11 +45,11 @@ float4 PSMain(PSInput In) : SV_Target0
 	for (float i = 0; i < loopmax; i++)
 	{
 		float t = (i + 1) / loopmax;
-		float sampz = VelocityMap.Sample(Sampler, In.uv + t * velocity.xy).w;
-		if (sampz > 0.0f) {// && velocity.z < sampz + Z_OFFSET) {//手前のピクセルからはサンプルしない
+		//float sampz = VelocityMap.Sample(Sampler, In.uv + t * velocity).w;
+		//if (sampz > 0.0f){// && velocity.z < sampz + Z_OFFSET) {//手前のピクセルからはサンプルしない
 			Out += sceneTexture.Sample(Sampler, In.uv + t * velocity.xy);
 			samplecnt += 1.0f;
-		}
+		//}
 	}
 
 	//　平均を求める
