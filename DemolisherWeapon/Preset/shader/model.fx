@@ -112,7 +112,10 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 #if MOTIONBLUR
 		float4 oldpos = mul(mWorld_old, In.Position);
 
-		if (distance(posW - mView[3].xyz, oldpos.xyz - mView_old[3].xyz) > 0.0f) {
+		//if (distance(posW - mView[3].xyz, oldpos.xyz - mView_old[3].xyz) > 0.0f) {
+		if(abs((posW.x - mView[3].x) - (oldpos.x - mView_old[3].x)) > 0.0f ||
+		   abs((posW.y - mView[3].y) - (oldpos.y - mView_old[3].y)) > 0.0f ||
+		   abs((posW.z - mView[3].z) - (oldpos.z - mView_old[3].z)) > 0.0f) {
 			psInput.isWorldMove = true;
 		}
 
@@ -202,8 +205,9 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 			oldpos = mul(oldskinning, In.Position);
 		}
 
-		if (distance(posW - mView[3].xyz, oldpos.xyz - mView_old[3].xyz) > 0.0f) {
-			//‹——£‚¶‚á‚È‚­‚Ä·ˆÙ‚Å
+		if (abs((posW.x - mView[3].x) - (oldpos.x - mView_old[3].x)) > 0.0f ||
+			abs((posW.y - mView[3].y) - (oldpos.y - mView_old[3].y)) > 0.0f ||
+			abs((posW.z - mView[3].z) - (oldpos.z - mView_old[3].z)) > 0.0f) {
 			psInput.isWorldMove = true;
 		}
 

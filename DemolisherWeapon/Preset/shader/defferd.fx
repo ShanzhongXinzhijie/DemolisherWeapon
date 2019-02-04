@@ -240,13 +240,13 @@ PSDefferdInput VSMain(VSDefferdInput In)
 }
 
 //Z値からワールド座標を復元
-float3 CalcWorldPosFromUVZ(float2 uv, float zInScreen, float4x4 mViewProjInv)
+float3 CalcWorldPosFromUVZ(float2 uv, float zInScreen)//, float4x4 mViewProjInv)
 {
 	float3 screenPos;
 	screenPos.xy = (uv * float2(2.0f, -2.0f)) + float2(-1.0f, 1.0f);
 	screenPos.z = zInScreen;
 
-	float4 worldPos = mul(mViewProjInv, float4(screenPos, 1.0f));
+	float4 worldPos = mul(ViewProjInv, float4(screenPos, 1.0f));
 	worldPos.xyz /= worldPos.w;
 	return worldPos.xyz;
 }
@@ -274,7 +274,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 	float3 normal = normalMap.Sample(Sampler, In.uv).xyz;
 	float4 viewpos = PosMap.Sample(Sampler, In.uv);
-	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w, ViewProjInv);
+	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w);// , ViewProjInv);
 	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
 
 	//ライティング無効
