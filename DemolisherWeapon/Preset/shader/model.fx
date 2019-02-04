@@ -113,21 +113,18 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 		float4 oldpos = mul(mWorld_old, In.Position);
 
 		//if (distance(posW - mView[3].xyz, oldpos.xyz - mView_old[3].xyz) > 0.0f) {
-		if(abs((posW.x - mView[3].x) - (oldpos.x - mView_old[3].x)) > 0.0f ||
+		/*if(abs((posW.x - mView[3].x) - (oldpos.x - mView_old[3].x)) > 0.0f ||
 		   abs((posW.y - mView[3].y) - (oldpos.y - mView_old[3].y)) > 0.0f ||
 		   abs((posW.z - mView[3].z) - (oldpos.z - mView_old[3].z)) > 0.0f) {
+		if (distance(posW, oldpos.xyz) > 0.0f) {
 			psInput.isWorldMove = true;
 		}
+		}*/
 
 		oldpos = mul(mView_old, oldpos);
 		oldpos = mul(mProj_old, oldpos);
 		
-		//if (oldpos.z < 0.0f) {
-		//	psInput.lastPos = pos;
-		//}
-		//else {
-			psInput.lastPos = oldpos;
-		//}
+		psInput.lastPos = oldpos;
 #endif
 
 	return psInput;
@@ -205,21 +202,18 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 			oldpos = mul(oldskinning, In.Position);
 		}
 
-		if (abs((posW.x - mView[3].x) - (oldpos.x - mView_old[3].x)) > 0.0f ||
+		/*if (abs((posW.x - mView[3].x) - (oldpos.x - mView_old[3].x)) > 0.0f ||
 			abs((posW.y - mView[3].y) - (oldpos.y - mView_old[3].y)) > 0.0f ||
 			abs((posW.z - mView[3].z) - (oldpos.z - mView_old[3].z)) > 0.0f) {
+		if (distance(posW, oldpos.xyz) > 0.0f) {
 			psInput.isWorldMove = true;
 		}
+		}*/
 
 		oldpos = mul(mView_old, oldpos);
 		oldpos = mul(mProj_old, oldpos);
 
-		//if (oldpos.z < 0.0f) {
-		//	psInput.lastPos = pos;
-		//}
-		//else {
-			psInput.lastPos = oldpos;
-		//}
+		psInput.lastPos = oldpos;		
 #endif
 
     return psInput;
@@ -303,8 +297,11 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 		float3	current = In.curPos.xyz / In.curPos.w;
 		float3	last = In.lastPos.xyz / In.lastPos.w;
 
-		if (current.z < 0.0f || current.z > 1.0f || last.z < 0.0f || last.z > 1.0f) {
-			current *= 0.0f; last *= 0.0f;
+		if (last.z < 0.0f || last.z > 1.0f) {//current.z < 0.0f || current.z > 1.0f || 			
+			//last = In.lastPos.xyz / In.curPos.w;
+			//if (last.z < 0.0f || last.z > 1.0f) {
+				current *= 0.0f; last *= 0.0f;
+			//}
 		}
 
 		current.xy *= float2(0.5f, -0.5f); current.xy += 0.5f;
@@ -313,16 +310,16 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 		Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 		Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
 
-		if (In.isWorldMove) {
+		//if (In.isWorldMove) {
 			Out.velocity.xy = current.xy - last.xy;
 			Out.velocityPS.z = -1.0f;
 			Out.velocityPS.w = -1.0f;
-		}
+		/*}
 		else {
 			Out.velocityPS.xy = current.xy - last.xy;
 			Out.velocityPS.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 			Out.velocityPS.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
-		}
+		}*/
 #else
 		Out.velocity.z = In.curPos.z + depthBias.y;
 		Out.velocity.w = In.curPos.z + depthBias.y;

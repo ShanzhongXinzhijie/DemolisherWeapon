@@ -20,7 +20,7 @@ static const float Z_OFFSET = 15.0f;
 static const float BUNBO = 0.002f*(8.0f / samples);
 
 [numthreads(32, 32, 1)]
-void CSmain(uint3 run_xy : SV_DispatchThreadID)//uint3 run_xy : SV_GroupID , uint3 threadid : SV_GroupThreadID)
+void CSmain(uint3 run_xy : SV_DispatchThreadID)
 {
 	uint2 uv = run_xy.xy;
 
@@ -65,11 +65,6 @@ void CSmain(uint3 run_xy : SV_DispatchThreadID)//uint3 run_xy : SV_GroupID , uin
 
 		if (velocity.z < samp.w+Z_OFFSET*distanceScale) {//手前のピクセルからはサンプルしない
 			rwOutputTex[sampuv] = lerp(rwOutputTex[sampuv], color, 1.0f / (i + 2.0f));//サンプル数で透明度
-			//rwVelocityTex[sampuv] = float4(samp.xyz, velocity.z);
-			//rwOutputTex[sampuv] = color;
-
-			//rwOutputTex[sampuv] += color;			
-			//samp.w += 1.0f; rwVelocityTex[sampuv] = samp;
 		}
 	}
 }
