@@ -380,7 +380,7 @@ template <typename T>
 static inline void AddGO(T* go) {
 	GetEngine().GetGameObjectManager().AddGameObj(go);
 }
-//ゲームオブジェクトの作成(つくるだけ。AddGOが必要なものはAddGOして。)
+//ゲームオブジェクトの作成
 template<class T, class... TArgs>
 static inline T* NewGO(TArgs... ctorArgs)
 {

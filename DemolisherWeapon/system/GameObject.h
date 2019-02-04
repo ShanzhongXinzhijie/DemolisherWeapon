@@ -377,6 +377,11 @@ public:
 
 class GameObjectManager {
 public:
+	~GameObjectManager() {
+		for (auto& go : m_gameObjectList) {
+			if (go.isEnable) { go.gameObject->RegisterRegister(nullptr); }
+		}
+	}
 
 	void Start() {
 		for (auto& go : m_gameObjectList) {
@@ -573,7 +578,6 @@ class GONewDeleteManager {
 
 public:
 
-	//GOを"つくるだけ"。AddGOが必要なものはAddGOして。
 	template<class T, class... TArgs>
 	T*  NewGO(TArgs... ctorArgs) {
 		//newする+フラグおん

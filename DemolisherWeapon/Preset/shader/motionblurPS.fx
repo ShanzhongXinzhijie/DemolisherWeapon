@@ -29,7 +29,7 @@ float4 PSMain(PSInput In) : SV_Target0
 	float4 Out = sceneTexture.Sample(Sampler, In.uv);
 	
 	//ベロシティマップ取得
-	float3 velocity = VelocityMap.Sample(Sampler, In.uv);
+	float2 velocity = VelocityMap.Sample(Sampler, In.uv);
 	velocity.xy *= blurscale;
 
 	//速度低いと出る
@@ -45,11 +45,11 @@ float4 PSMain(PSInput In) : SV_Target0
 	for (float i = 0; i < loopmax; i++)
 	{
 		float t = (i + 1) / loopmax;
-		float sampz = VelocityMap.Sample(Sampler, In.uv + t * velocity).w;
-		if (sampz > 0.0f){// && velocity.z < sampz + Z_OFFSET) {//手前のピクセルからはサンプルしない
-			Out += sceneTexture.Sample(Sampler, In.uv + t * velocity);
+		//float sampz = VelocityMap.Sample(Sampler, In.uv + t * velocity).w;
+		//if (sampz > 0.0f){// && velocity.z < sampz + Z_OFFSET) {//手前のピクセルからはサンプルしない
+			Out += sceneTexture.Sample(Sampler, In.uv + t * velocity.xy);
 			samplecnt += 1.0f;
-		}
+		//}
 	}
 
 	//　平均を求める

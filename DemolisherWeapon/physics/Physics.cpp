@@ -100,7 +100,7 @@ void CPhysicsWorld::AddRigidBody(RigidBody& rb, short group, short mask)
 void CPhysicsWorld::RemoveRigidBody(RigidBody& rb)
 {
 	if (rb.IsAddPhysicsWorld() == true) {
-		dynamicWorld->removeRigidBody(rb.GetBody());
+		if (dynamicWorld) { dynamicWorld->removeRigidBody(rb.GetBody()); }
 		rb.SetUnmarkAddPhysicsWorld();
 	}
 }

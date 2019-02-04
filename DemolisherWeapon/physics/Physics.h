@@ -58,7 +58,7 @@ public:
 	*/
 	void RemoveCollisionObject(btCollisionObject& colliObj)
 	{
-		dynamicWorld->removeCollisionObject(&colliObj);
+		if (dynamicWorld) { dynamicWorld->removeCollisionObject(&colliObj); }
 	}
 
 	void ConvexSweepTest(

@@ -112,19 +112,19 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 #if MOTIONBLUR
 		float4 oldpos = mul(mWorld_old, In.Position);
 
-		if (distance(posW, oldpos.xyz) > 0.0f) {
+		if (distance(posW - mView[3].xyz, oldpos.xyz - mView_old[3].xyz) > 0.0f) {
 			psInput.isWorldMove = true;
 		}
 
 		oldpos = mul(mView_old, oldpos);
 		oldpos = mul(mProj_old, oldpos);
-
-		if (oldpos.z < 0.0f) {
-			psInput.lastPos = pos;
-		}
-		else {
+		
+		//if (oldpos.z < 0.0f) {
+		//	psInput.lastPos = pos;
+		//}
+		//else {
 			psInput.lastPos = oldpos;
-		}
+		//}
 #endif
 
 	return psInput;
@@ -202,19 +202,20 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 			oldpos = mul(oldskinning, In.Position);
 		}
 
-		if (distance(posW, oldpos.xyz) > 0.0f) {
+		if (distance(posW - mView[3].xyz, oldpos.xyz - mView_old[3].xyz) > 0.0f) {
+			//ãóó£Ç∂Ç·Ç»Ç≠Çƒç∑àŸÇ≈
 			psInput.isWorldMove = true;
 		}
 
 		oldpos = mul(mView_old, oldpos);
 		oldpos = mul(mProj_old, oldpos);
 
-		if (oldpos.z < 0.0f) {
-			psInput.lastPos = pos;
-		}
-		else {
+		//if (oldpos.z < 0.0f) {
+		//	psInput.lastPos = pos;
+		//}
+		//else {
 			psInput.lastPos = oldpos;
-		}
+		//}
 #endif
 
     return psInput;
@@ -291,10 +292,14 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 
 	//ë¨ìx
 #if MOTIONBLUR
-		float2	current = In.curPos.xy / In.curPos.w;
-		float2	last = In.lastPos.xy / In.lastPos.w;
+		//In.lastPos.w = 1.0f;
+		//In.lastPos = mul(mView_old, In.lastPos);
+		//In.lastPos = mul(mProj_old, In.lastPos);
 
-		if (In.curPos.z < 0.0f || In.lastPos.z < 0.0f) {
+		float3	current = In.curPos.xyz / In.curPos.w;
+		float3	last = In.lastPos.xyz / In.lastPos.w;
+
+		if (current.z < 0.0f || current.z > 1.0f || last.z < 0.0f || last.z > 1.0f) {
 			current *= 0.0f; last *= 0.0f;
 		}
 

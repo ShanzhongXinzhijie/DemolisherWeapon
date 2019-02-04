@@ -26,7 +26,7 @@ namespace DemolisherWeapon {
 		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bufferDesc, NULL, &m_cb);
 	}
 	void PhysicsDebugDraw::Release() {
-		m_cb->Release();
+		if (m_cb) { m_cb->Release(); m_cb = nullptr; }
 	}
 	void PhysicsDebugDraw::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 	{
