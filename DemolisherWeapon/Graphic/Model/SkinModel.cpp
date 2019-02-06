@@ -166,7 +166,7 @@ void SkinModel::Draw(bool reverseCull)
 	vsCb.mView_old = GetMainCamera()->GetViewMatrixOld();
 
 	vsCb.depthBias.x = m_depthBias;
-	vsCb.depthBias.y =(GetMainCamera()->GetFar() - GetMainCamera()->GetNear())*vsCb.depthBias.x;
+	vsCb.depthBias.y = (GetMainCamera()->GetFar() - GetMainCamera()->GetNear())*vsCb.depthBias.x;
 
 	d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
 

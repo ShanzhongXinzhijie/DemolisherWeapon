@@ -33,10 +33,20 @@ namespace DemolisherWeapon {
 		virtual void joinLobbyReturn(void);
 		virtual void leaveLobbyReturn(void);
 
+		// info, that certain values have been updated
+		virtual void onRoomPropertiesChange(const ExitGames::Common::Hashtable& gameProperties) {
+			m_roomPropetyAction(gameProperties);
+		}
+		virtual void onPlayerPropertiesChange(int playerNr, const ExitGames::Common::Hashtable& changes) {
+			m_playerPropetyAction(playerNr, changes);
+		}
+
 	public:
 		using EventActionFunc = std::function<void(int playerNr, nByte eventCode, const ExitGames::Common::Object& eventContentObj)>;
 		using JoinEventActionFunc = std::function<void(int playerNr, const ExitGames::Common::JVector<int>& playernrs, const ExitGames::LoadBalancing::Player& player)>;
 		using LeaveEventActionFunc = std::function<void(int playerNr, bool isInactive)>;
+		using RoomPropetyActionFunc = std::function<void(const ExitGames::Common::Hashtable& gameProperties)>;
+		using PlayerPropetyActionFunc = std::function<void(int playerNr, const ExitGames::Common::Hashtable& changes)>;
 
 		PhotonNetworkLogic(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion, EventActionFunc eventAction);
 		~PhotonNetworkLogic() {
@@ -87,6 +97,36 @@ namespace DemolisherWeapon {
 			m_eventAction = eventAction;
 		}
 
+		//ルームプロパティを設定
+		template<typename ktype, typename vtype>
+		void SetRoomProperty(const ktype& key, const vtype& value) {
+			GetMutableRoom().addCustomProperty(key, value);
+			//GetMutableRoom().getCustomProperties();
+			//GetMutableRoom().mergeCustomProperties();
+		}
+		//ルームプロパティが変更された際に実行する関数を設定
+		void SetRoomPropetyAction(RoomPropetyActionFunc roomPropetyAction) {
+			m_roomPropetyAction = roomPropetyAction;
+		}
+		//ルームプロパティを取得
+		const ExitGames::Common::Hashtable& GetRoomProperty() {
+			return GetMutableRoom().getCustomProperties();
+		}
+
+		//プレイヤープロパティを設定
+		template<typename ktype, typename vtype>
+		void SetPlayerProperty(const ktype& key, const vtype& value) {
+			GetLocalPlayer().addCustomProperty(key, value);
+		}
+		//プレイヤープロパティが変更された際に実行する関数を設定
+		void SetPlayerPropetyAction(PlayerPropetyActionFunc playerPropetyAction) {
+			m_playerPropetyAction = playerPropetyAction;
+		}
+		//プレイヤープロパティを取得
+		const ExitGames::Common::Hashtable& GetPlayerProperty(int plyNum) {
+			return m_LoadBalancingClient.getCurrentlyJoinedRoom().getPlayerForNumber(plyNum)->getCustomProperties();
+		}
+
 		//何者かが参加した際に呼ばれる関数を設定
 		void SetJoinEventAction(JoinEventActionFunc func) {
 			m_joinEventAction = func;
@@ -133,6 +173,11 @@ namespace DemolisherWeapon {
 		//ローカルプレイヤー番号の取得
 		int GetLocalPlayerNumber()const { return m_localPlayerNum; }
 
+		//自分がマスタークライアントかを取得
+		bool GetIsMasterClient() {
+			return m_LoadBalancingClient.getLocalPlayer().getIsMasterClient();
+		}
+
 		//現在のルームのプレイヤー数を取得
 		unsigned int GetCountLocalPlayer() {
 			return m_LoadBalancingClient.getCurrentlyJoinedRoom().getPlayers().getSize();
@@ -146,10 +191,22 @@ namespace DemolisherWeapon {
 		ExitGames::LoadBalancing::Client& GetClient() {
 			return m_LoadBalancingClient;
 		}
+		//Roomを取得
+		ExitGames::LoadBalancing::MutableRoom& GetMutableRoom() {
+			return m_LoadBalancingClient.getCurrentlyJoinedRoom();
+		}
+		//LocalPlayerを取得
+		ExitGames::LoadBalancing::MutablePlayer& GetLocalPlayer() {
+			return m_LoadBalancingClient.getLocalPlayer();
+		}
 
 		//Pingを取得
 		int GetPing_ms() const{
 			return m_LoadBalancingClient.getRoundTripTime();
+		}
+		//PhotonSeverの時間(ms)を取得
+		int GetSeverTime_ms()const {
+			return m_LoadBalancingClient.getServerTime();
 		}
 
 	private:
@@ -159,6 +216,8 @@ namespace DemolisherWeapon {
 		EventActionFunc m_eventAction = nullptr;
 		JoinEventActionFunc m_joinEventAction = nullptr;
 		LeaveEventActionFunc m_leaveEventAction = nullptr;
+		RoomPropetyActionFunc m_roomPropetyAction = nullptr;
+		PlayerPropetyActionFunc m_playerPropetyAction = nullptr;
 
 		std::function<void(int errorCode, const wchar_t* errorString, const wchar_t* errorPoint)> m_errorReturnAction = nullptr;
 		std::function<void(int warningCode)> m_warningReturnAction = nullptr;

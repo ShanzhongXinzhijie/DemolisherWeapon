@@ -175,7 +175,7 @@ void GameLoop::Run() {
 	while (DispatchWindowMessage() == true) {
 
 		//FPS計測
-		m_fpscounter.Count();
+		m_fpscounter->Count();
 
 		//ウィンドウ更新
 		GetEngine().UpdateWindow();
@@ -188,11 +188,11 @@ void GameLoop::Run() {
 		GetEngine().GetXInputManager().Update();
 
 		//実行時間を加算
-		m_runframecnt += m_fpscounter.GetRunFrameCnt();
+		m_runframecnt += m_fpscounter->GetRunFrameCnt();
 
 		//今回は可変フレームにしない
 		//フラグがON or 1fの処理時間が上限設定より長い
-		if (m_noVariableFramerateOnce || m_variableFpsMaxSec > -FLT_EPSILON && m_variableFpsMaxSec < m_fpscounter.GetFrameTimeSec()) {
+		if (m_noVariableFramerateOnce || m_variableFpsMaxSec > -FLT_EPSILON && m_variableFpsMaxSec < m_fpscounter->GetFrameTimeSec()) {
 			m_runframecnt = 1.0f;
 			m_noVariableFramerateOnce = false;
 		}
@@ -254,7 +254,7 @@ void GameLoop::Run() {
 		m_gameObjectManager_Ptr->PostRender();
 
 		//FPS表示		
-		m_fpscounter.Draw();
+		m_fpscounter->Draw();
 
 		//バックバッファを表へ
 		GetEngine().GetGraphicsEngine().SwapBackBuffer();

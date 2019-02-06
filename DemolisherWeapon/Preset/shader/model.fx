@@ -122,12 +122,12 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 		oldpos = mul(mView_old, oldpos);
 		oldpos = mul(mProj_old, oldpos);
 		
-		if (oldpos.z < 0.0f) {
+		/*if (oldpos.z < 0.0f) {
 			psInput.lastPos = pos;
 		}
-		else {
+		else {*/
 			psInput.lastPos = oldpos;
-		}
+		//}
 #endif
 
 	return psInput;
@@ -215,12 +215,12 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 		oldpos = mul(mView_old, oldpos);
 		oldpos = mul(mProj_old, oldpos);
 
-		if (oldpos.z < 0.0f){
+		/*if (oldpos.z < 0.0f){
 			psInput.lastPos = pos;
 		}
-		else {
+		else {*/
 			psInput.lastPos = oldpos;
-		}
+		//}
 #endif
 
     return psInput;
@@ -290,20 +290,56 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	Out.normal = In.Normal;
 
 	//ビュー座標
-	Out.viewpos = float4(In.Viewpos, In.curPos.z / In.curPos.w + depthBias.x);
+	Out.viewpos = float4(In.Viewpos.x, In.Viewpos.y, In.Viewpos.z + depthBias.y, In.curPos.z / In.curPos.w + depthBias.x);
 
 	//ライティング用パラメーター
 	Out.lightingParam = emissive;
 
 	//速度
 #if MOTIONBLUR
+	
+		//In.curPos.z	= max(In.curPos.z, 1.0f);
+		//In.lastPos.z = max(In.lastPos.z, 1.0f);
+
+		//In.lastPos = mul(mView_old, In.lastPos);
+		//In.lastPos = mul(mProj_old, In.lastPos);
 
 		float3	current = In.curPos.xyz / In.curPos.w;
-		float3	last = In.lastPos.xyz / In.lastPos.w;
+		float3	last = In.lastPos.xyz / In.lastPos.w;		
 
-		if (In.lastPos.z < 0.0f) {// || last.z < 0.0f || last.z > 1.0f) {			
-			current *= 0.0f; last *= 0.0f;
-		}
+		if (last.z < 0.0f || last.z > 1.0f) { discard; }
+		//	current.xy *= 0.0f;
+		//	last.xy *= 0.0f; //last = current;
+		//}
+
+		//In.curPos.z < 0.0f || In.lastPos.z < 0.0f || 
+		//current.z < 0.0f || current.z > 1.0f || 
+		/*if (current.z > 0.0f && last.z < 0.2f || last.z > 1.0f) {
+
+			last.z = saturate(last.z);
+			current.y *= -1.0f;
+			
+			Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
+			Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+
+			if (In.isWorldMove) {
+				Out.velocity.xy = current.xy;
+				Out.velocityPS.z = -1.0f;
+				Out.velocityPS.w = -1.0f;
+			}
+			else {
+				Out.velocityPS.xy = current.xy;
+				Out.velocityPS.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
+				Out.velocityPS.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+			}
+			
+			Out.albedo.r = 1.0f;
+			Out.albedo.g = 0.0f;
+			Out.albedo.b = 0.0f;
+
+			return Out;			
+			// discard; current *= 0.0f; last *= 0.0f;
+		}*/
 
 		current.xy *= float2(0.5f, -0.5f); current.xy += 0.5f;
 		last.xy *= float2(0.5f, -0.5f); last.xy += 0.5f;
@@ -313,11 +349,21 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 
 		if (In.isWorldMove) {
 			Out.velocity.xy = current.xy - last.xy;
+			//Out.velocity.xy = min(max(Out.velocity.xy, -1.0f), 1.0f);
+			//if (In.curPos.z <= 0.0f || In.lastPos.z <= 0.0f) {
+			//	Out.velocity.xy *= -1.0f;
+			//}
+
 			Out.velocityPS.z = -1.0f;
 			Out.velocityPS.w = -1.0f;
 		}
 		else {
 			Out.velocityPS.xy = current.xy - last.xy;
+			//if (In.lastPos.z < 1.0f) {
+			//	Out.velocityPS.xy *= -1.0f;
+			//}
+			//Out.velocityPS.xy = min(max(Out.velocityPS.xy, -1.0f), 1.0f);
+			
 			Out.velocityPS.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 			Out.velocityPS.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
 		}

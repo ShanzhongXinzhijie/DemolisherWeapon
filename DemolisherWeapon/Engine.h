@@ -83,8 +83,13 @@ public:
 	};
 
 	void Init(int maxfps, int stdfps, float variableFpsMaxSec) {
-		m_fpscounter.Init(maxfps, stdfps);
+		m_fpscounter = std::make_unique<CFpsCounter>();
+		m_fpscounter->Init(maxfps, stdfps);
 		m_variableFpsMaxSec = variableFpsMaxSec;
+	}
+
+	void Release() {
+		m_fpscounter.reset();
 	}
 
 	void Run();
@@ -93,14 +98,14 @@ public:
 	void UnableVariableFramerateOnce() { m_noVariableFramerateOnce = true; }
 
 	//FPS上限を設定
-	void SetUseFpsLimiter(bool use, int maxfps = -1) { m_fpscounter.SetUseFpsLimiter(use, maxfps); }
+	void SetUseFpsLimiter(bool use, int maxfps = -1) { m_fpscounter->SetUseFpsLimiter(use, maxfps); }
 
 	//動作基準FPSを取得
-	int GetStandardFrameRate()const { return m_fpscounter.GetStandardFrameRate(); }
+	int GetStandardFrameRate()const { return m_fpscounter->GetStandardFrameRate(); }
 
 	//デバッグ情報を描画するか設定
-	void SetIsDebugDraw(bool enable) { m_fpscounter.SetIsDebugDraw(enable); }
-	bool GetIsDebugDraw()const { return m_fpscounter.GetIsDebugDraw(); }
+	void SetIsDebugDraw(bool enable) { m_fpscounter->SetIsDebugDraw(enable); }
+	bool GetIsDebugDraw()const { return m_fpscounter->GetIsDebugDraw(); }
 	//debug操作を有効にするか設定
 	void SetIsDebugInput(bool enable) { m_isDebugInput = enable; }
 	bool GetIsDebugInput()const       { return m_isDebugInput; }
@@ -119,7 +124,7 @@ private:
 	float m_runframecnt = 1.0f;
 	bool m_noVariableFramerateOnce = true;
 	float m_variableFpsMaxSec = -1.0f;
-	CFpsCounter m_fpscounter;
+	std::unique_ptr<CFpsCounter> m_fpscounter;
 
 	bool m_loopBreak = false;
 
@@ -182,7 +187,18 @@ public:
 	//ゲームループ
 	void RunGameLoop() { 
 		m_gameLoop.Run(); 
-		DeleteInstance();
+		PostGameLoop();
+	}
+
+	void PostGameLoop() {
+		//DeleteInstance();
+
+		//Photon削除
+		//通信を切断するため
+		m_photon.reset();
+		//fpsカウンター削除
+		//Sleepの精度をもとに戻すため
+		m_gameLoop.Release();
 	}
 
 	//ウインドウ更新
