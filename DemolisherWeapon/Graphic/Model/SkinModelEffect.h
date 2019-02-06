@@ -50,6 +50,7 @@ protected:
 	MaterialParam m_materialParam;				//マテリアルパラメータ
 	ID3D11Buffer* m_materialParamCB = nullptr;	//マテリアルパラメータ用の定数バッファ
 
+	bool m_enableMotionBlur = true;
 public:
 	ModelEffect()
 	{
@@ -175,6 +176,7 @@ public:
 		m_materialParam = matset.GetMaterialParam();
 		m_pPSShader = matset.GetPS();
 		m_pAlbedoTex = matset.GetAlbedoTexture();
+		m_enableMotionBlur = matset.GetIsMotionBlur();
 
 		/*if (m_pVSShader == &m_vsDefaultShader) {
 			if (matset.GetIsMotionBlur()) {

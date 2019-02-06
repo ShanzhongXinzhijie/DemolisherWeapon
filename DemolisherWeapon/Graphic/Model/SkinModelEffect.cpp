@@ -16,13 +16,13 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 		break;
 	default:
 		//モーションブラーの有効で切り替える
-		if (m_pVSShader == &m_vsDefaultShader[enALL] && !GetDefaultMaterialSetting().GetIsMotionBlur()) {
+		if (m_pVSShader == &m_vsDefaultShader[enALL] && !m_enableMotionBlur) {
 			deviceContext->VSSetShader((ID3D11VertexShader*)m_vsDefaultShader[enNoMotionBlur].GetBody(), NULL, 0);
 		}
 		else {
 			deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSShader->GetBody(), NULL, 0);
 		}
-		if (m_pPSShader == &m_psDefaultShader[enALL] && !GetDefaultMaterialSetting().GetIsMotionBlur()) {
+		if (m_pPSShader == &m_psDefaultShader[enALL] && !m_enableMotionBlur) {
 			deviceContext->PSSetShader((ID3D11PixelShader*)m_psDefaultShader[enNoMotionBlur].GetBody(), NULL, 0);
 		}
 		else {
