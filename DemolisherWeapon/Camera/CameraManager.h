@@ -44,6 +44,7 @@ public:
 	};
 
 	void UpdateOldMatrix() {
+		m_posOld = m_pos; m_targetOld = m_target; m_upOld = m_up;
 		m_projMatOld = m_projMat, m_viewMatOld = m_viewMat;
 		isFirstMatrixUpdate = false;
 	}
@@ -54,6 +55,10 @@ public:
 	CMatrix GetViewMatrixOld() const;
 
 	const CVector3& GetPos() const { return m_pos; }
+	CVector3 GetPosOld() const {
+		CVector3 move; move.Lerp(MotionBlurScale, m_pos, m_posOld);
+		return move;
+	}
 	const CVector3& GetTarget() const { return m_target; }
 	const CVector3& GetUp() const { return m_up; }
 	float GetNear() const { return m_near; }
@@ -84,6 +89,7 @@ protected:
 	bool m_change = true;//ïœçXì_Ç†ÇÈÇ©
 
 	CVector3 m_pos = { 0.0f, 0.0f, 500.0f }, m_target = { 0.0f, 0.0f, 0.0f }, m_up = { 0.0f, 1.0f, 0.0f };
+	CVector3 m_posOld = { 0.0f, 0.0f, 500.0f }, m_targetOld = { 0.0f, 0.0f, 0.0f }, m_upOld = { 0.0f, 1.0f, 0.0f };
 	float m_near = 1.0f, m_far = 1000.0f;
 
 	CMatrix m_projMat, m_viewMat;

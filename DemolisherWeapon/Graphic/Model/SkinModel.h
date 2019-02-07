@@ -197,6 +197,9 @@ private:
 		CMatrix mView_old;
 		CMatrix mProj_old;
 
+		//ƒJƒƒ‰‚ÌˆÚ“®—Ê
+		CVector4 camMoveVec;
+
 		CVector4 depthBias;
 		//float depthBiasScaleFromNearToFar;
 	};
