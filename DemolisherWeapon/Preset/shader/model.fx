@@ -112,7 +112,8 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 #if MOTIONBLUR
 		float4 oldpos = mul(mWorld_old, In.Position);
 
-		if (distance((mView[3].xyz - mView_old[3].xyz), (mWorld[3].xyz - mWorld_old[3].xyz)) > 0.0f //distance(posW, oldpos.xyz)
+		if (distance(float3(mWorld._m03, mWorld._m13, mWorld._m23) , float3(mWorld_old._m03, mWorld_old._m13, mWorld_old._m23)) > 0.0f
+			&& distance((float3(mView._m03, mView._m13, mView._m23), float3(mView_old._m03, mView_old._m13, mView_old._m23)), (float3(mWorld._m03, mWorld._m13, mWorld._m23) - float3(mWorld_old._m03, mWorld_old._m13, mWorld_old._m23))) > 0.0f //distance(posW, oldpos.xyz)
 			|| distance(mWorld[0].xyz, mWorld_old[0].xyz) > 0.0f
 			|| distance(mWorld[1].xyz, mWorld_old[1].xyz) > 0.0f
 			|| distance(mWorld[2].xyz, mWorld_old[2].xyz) > 0.0f){
@@ -200,7 +201,8 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 			oldpos = mul(oldskinning, In.Position);
 		}
 
-		if (distance((mView[3].xyz - mView_old[3].xyz), (skinning[3].xyz - oldskinning[3].xyz)) > 0.0f
+		if (distance(float3(skinning._m03, skinning._m13, skinning._m23), float3(oldskinning._m03, oldskinning._m13, oldskinning._m23)) > 0.0f
+			&& distance((float3(mView._m03, mView._m13, mView._m23), float3(mView_old._m03, mView_old._m13, mView_old._m23)), (float3(skinning._m03, skinning._m13, skinning._m23) - float3(oldskinning._m03, oldskinning._m13, oldskinning._m23))) > 0.0f
 			|| distance(skinning[0].xyz, oldskinning[0].xyz) > 0.0f
 			|| distance(skinning[1].xyz, oldskinning[1].xyz) > 0.0f
 			|| distance(skinning[2].xyz, oldskinning[2].xyz) > 0.0f) {
@@ -292,8 +294,10 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 		float3	last = In.lastPos.xyz / In.lastPos.w;		
 
 		if (last.z < 0.0f || last.z > 1.0f) {
-			Out.velocity.z = In.curPos.z + depthBias.y;
-			Out.velocity.w = In.curPos.z + depthBias.y;
+			//Out.velocity.z = In.curPos.z + depthBias.y;
+			//Out.velocity.w = In.curPos.z + depthBias.y;
+			Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
+			Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y; 
 			Out.velocityPS.z = -1.0f;
 			Out.velocityPS.w = -1.0f;
 			return Out;

@@ -27,7 +27,7 @@ private:
 
 public:
 	void PreLoopUpdate()override {
-		m_projMatOld = m_projMat, m_viewMatOld = m_viewMat;
+		UpdateOldMatrix();
 	};
 	void Update()override {
 		UpdateMatrix();
@@ -39,15 +39,19 @@ public:
 		UpdateViewMatrix();
 		UpdateProjMatrix();
 		if (isFirstMatrixUpdate) {
-			m_projMatOld = m_projMat, m_viewMatOld = m_viewMat;
-			isFirstMatrixUpdate = false;
+			UpdateOldMatrix();
 		}
 	};
+
+	void UpdateOldMatrix() {
+		m_projMatOld = m_projMat, m_viewMatOld = m_viewMat;
+		isFirstMatrixUpdate = false;
+	}
 
 	const CMatrix& GetProjMatrix() const { return m_projMat; };
 	const CMatrix& GetViewMatrix() const { return m_viewMat; };
 	const CMatrix& GetProjMatrixOld() const { return m_projMatOld; };
-	const CMatrix& GetViewMatrixOld() const { return m_viewMatOld; };
+	CMatrix GetViewMatrixOld() const;
 
 	const CVector3& GetPos() const { return m_pos; }
 	const CVector3& GetTarget() const { return m_target; }

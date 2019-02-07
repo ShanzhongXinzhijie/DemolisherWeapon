@@ -129,8 +129,8 @@ void SkinModel::UpdateWorldMatrix(CVector3 position, CQuaternion rotation, CVect
 	m_worldMatrix.Mul(m_worldMatrix, transMatrix);
 
 	//バイアス適応
-	mBiasRot.Mul(mBiasScr, mBiasRot);
-	m_worldMatrix.Mul(mBiasRot, m_worldMatrix);
+	//mBiasRot.Mul(mBiasScr, mBiasRot);
+	//m_worldMatrix.Mul(mBiasRot, m_worldMatrix);
 
 	//スケルトンの更新。
 	m_skeleton.Update(m_worldMatrix);
@@ -205,9 +205,6 @@ void SkinModel::Draw(bool reverseCull)
 		(m_enFbxCoordinate == enFbxRightHanded) != reverseCull,
 		m_pRasterizerStateCw, m_pRasterizerStateCCw
 	);
-
-	//旧座標の更新
-	//UpdateOldMatrix();
 }
 
 }

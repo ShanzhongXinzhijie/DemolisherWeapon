@@ -3,6 +3,8 @@
 
 namespace DemolisherWeapon {
 
+static const float MotionBlurScale = 0.15f;
+
 class MotionBlurRender :
 	public IRander
 {

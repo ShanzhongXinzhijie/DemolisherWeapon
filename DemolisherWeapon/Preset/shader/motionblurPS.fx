@@ -21,7 +21,7 @@ PSInput VSMain(VSInput In)
 }
 
 static const float samples = 8;
-static const float blurscale = -0.15f;// 0.4f;
+static const float blurscale = -1.0f;// -0.15f;// 0.4f;
 static const float BUNBO = 0.002f*(8.0f / samples);//0.001953125f
 
 float4 PSMain(PSInput In) : SV_Target0

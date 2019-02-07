@@ -275,6 +275,10 @@ public:
 			DirectX::XMMatrixTranspose(*this)
 		);
 	}
+
+	//2‚Â‚Ìs—ñ‚ğ•âŠÔ‚·‚é
+	void Interpolate(CMatrix m1, CMatrix m2, float blendTrans, float blendRot, float blendScale);
+
 	static const CMatrix Identity()
 	{
 		static const CMatrix identity(

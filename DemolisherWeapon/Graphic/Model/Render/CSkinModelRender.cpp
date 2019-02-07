@@ -65,10 +65,15 @@ void CSkinModelRender::PostUpdate() {
 }
 
 void CSkinModelRender::PostLoopUpdate() {
-	if (!m_isInit) { return; }
+	if (!m_isInit) { return; }	
 	
 	if (!m_isDraw) { return; }
+
 	if (m_isShadowCaster) { AddDrawModelToShadowMapRender(&m_model, m_priority); }
+
+	//ãåçsóÒÇÃåvéZ
+	m_model.CalcBlurScaleOldMatrix();
+
 	AddDrawModelToD3Render(&m_model, m_priority);
 }
 
