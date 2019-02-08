@@ -124,9 +124,10 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 
 		if (length(trans) > camMoveVec.w
 			&& distance(camMoveVec.xyz, trans) > camMoveVec.w
-			|| distance(mWorld[0].xyz, mWorld_old[0].xyz) > 0.0f
-			|| distance(mWorld[1].xyz, mWorld_old[1].xyz) > 0.0f
-			|| distance(mWorld[2].xyz, mWorld_old[2].xyz) > 0.0f){
+			|| distance(float3(mWorld._m00, mWorld._m10, mWorld._m20), float3(mWorld_old._m00, mWorld_old._m10, mWorld_old._m20)) > 0.0f
+			|| distance(float3(mWorld._m01, mWorld._m11, mWorld._m21), float3(mWorld_old._m01, mWorld_old._m11, mWorld_old._m21)) > 0.0f
+			|| distance(float3(mWorld._m02, mWorld._m12, mWorld._m22), float3(mWorld_old._m02, mWorld_old._m12, mWorld_old._m22)) > 0.0f
+		){
 			psInput.isWorldMove = true;
 		}
 
@@ -220,9 +221,10 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 
 		if (length(trans) > camMoveVec.w
 			&& distance(camMoveVec.xyz, trans) > camMoveVec.w
-			|| distance(skinning[0].xyz, oldskinning[0].xyz) > 0.0f
-			|| distance(skinning[1].xyz, oldskinning[1].xyz) > 0.0f
-			|| distance(skinning[2].xyz, oldskinning[2].xyz) > 0.0f) {
+			|| distance(float3(skinning._m00, skinning._m10, skinning._m20), float3(oldskinning._m00, oldskinning._m10, oldskinning._m20)) > 0.0f
+			|| distance(float3(skinning._m01, skinning._m11, skinning._m21), float3(oldskinning._m01, oldskinning._m11, oldskinning._m21)) > 0.0f
+			|| distance(float3(skinning._m02, skinning._m12, skinning._m22), float3(oldskinning._m02, oldskinning._m12, oldskinning._m22)) > 0.0f
+		) {
 			psInput.isWorldMove = true;
 		}
 
