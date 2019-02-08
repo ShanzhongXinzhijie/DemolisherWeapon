@@ -260,11 +260,6 @@ void Skeleton::UpdateBoneMatrixOld() {
 		m_boneMatrixs_Old[boneNo] = m_boneMatrixs[boneNo];
 	}
 }
-void Skeleton::CalcBlurScaleBoneMatrixOld() {
-	for (int boneNo = 0; boneNo < m_bones.size(); boneNo++) {
-		m_boneMatrixs_Old[boneNo].Interpolate(m_boneMatrixs[boneNo], m_boneMatrixs_Old[boneNo], MotionBlurScale, MotionBlurScale, MotionBlurScale);
-	}
-}
 /*!
 *@brief	ボーン行列の配列をGPUに転送。
 */

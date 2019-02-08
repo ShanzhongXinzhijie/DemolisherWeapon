@@ -159,5 +159,6 @@
     <CustomBuild Include="Preset\shader\motionblurCS.fx" />
     <CustomBuild Include="Preset\shader\motionblurPS.fx" />
     <CustomBuild Include="Preset\shader\primitive.fx" />
+    <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
   </ItemGroup>
 </Project>

@@ -129,8 +129,8 @@ void SkinModel::UpdateWorldMatrix(CVector3 position, CQuaternion rotation, CVect
 	m_worldMatrix.Mul(m_worldMatrix, transMatrix);
 
 	//バイアス適応
-	//mBiasRot.Mul(mBiasScr, mBiasRot);
-	//m_worldMatrix.Mul(mBiasRot, m_worldMatrix);
+	mBiasRot.Mul(mBiasScr, mBiasRot);
+	m_worldMatrix.Mul(mBiasRot, m_worldMatrix);
 
 	//スケルトンの更新。
 	m_skeleton.Update(m_worldMatrix);
@@ -166,6 +166,7 @@ void SkinModel::Draw(bool reverseCull)
 	vsCb.mView_old = GetMainCamera()->GetViewMatrixOld();
 
 	vsCb.camMoveVec = GetMainCamera()->GetPos() - GetMainCamera()->GetPosOld();
+	vsCb.camMoveVec.w = GetEngine().GetDistanceScale();
 
 	vsCb.depthBias.x = m_depthBias;
 	vsCb.depthBias.y = (GetMainCamera()->GetFar() - GetMainCamera()->GetNear())*vsCb.depthBias.x;

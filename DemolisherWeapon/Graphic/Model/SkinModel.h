@@ -40,29 +40,9 @@ public:
 	//旧行列の記録
 	void UpdateOldMatrix() {
 		//前回のワールド行列を記録
-		m_worldMatrixOld = m_worldMatrix2;
+		m_worldMatrixOld = m_worldMatrix;
 		//ボーン
 		m_skeleton.UpdateBoneMatrixOld();
-	}
-	//モーションブラー用旧行列の計算
-	void CalcBlurScaleOldMatrix() {
-
-		m_worldMatrix2 = m_worldMatrix;
-
-		//ワールド行列
-		m_worldMatrixOld.Interpolate(m_worldMatrix, m_worldMatrixOld, MotionBlurScale, MotionBlurScale, MotionBlurScale);
-
-		CMatrix mBiasRot;
-		CMatrix mBiasScr;
-
-		CoordinateSystemBias::GetBias(mBiasRot, mBiasScr, m_enFbxUpAxis, m_enFbxCoordinate);
-
-		mBiasRot.Mul(mBiasScr, mBiasRot);
-		m_worldMatrix.Mul(mBiasRot, m_worldMatrix);
-		m_worldMatrixOld.Mul(mBiasRot, m_worldMatrixOld);
-
-		//ボーン
-		m_skeleton.CalcBlurScaleBoneMatrixOld();
 	}
 
 	/*!
@@ -203,7 +183,7 @@ private:
 		CVector4 depthBias;
 		//float depthBiasScaleFromNearToFar;
 	};
-	CMatrix	m_worldMatrix, m_worldMatrix2;		//ワールド行列
+	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
 	bool m_isFirstWorldMatRef = true;
 

@@ -25,12 +25,38 @@ private:
 	}
 	virtual void UpdateProjMatrix() = 0;
 
+	//前回フレームの情報を記録
+	void UpdateOldMatrix() {
+		m_posOld = m_pos; m_targetOld = m_target; m_upOld = m_up;
+		m_nearOld = m_near, m_farOld = m_far;
+		UpdateOldProjParameter();
+
+		m_projMatOld = m_projMat, m_viewMatOld = m_viewMat;
+		
+		isFirstMatrixUpdate = false;
+	}
+	virtual void UpdateOldProjParameter() = 0;
+
+	//モーションブラー用の情報を計算
+	void CalcMBlurParameter() {
+		m_posOld.Lerp(MotionBlurScale, m_pos, m_posOld);
+		m_nearOld = CMath::Lerp(MotionBlurScale, m_near, m_nearOld);
+		m_farOld = CMath::Lerp(MotionBlurScale, m_far, m_farOld);
+
+		m_viewMatOld.Interpolate(m_viewMat, m_viewMatOld, MotionBlurScale, MotionBlurScale, MotionBlurScale);
+		CalcMBlurProjMatrix(m_projMatOld, MotionBlurScale);
+	}
+	virtual void CalcMBlurProjMatrix(CMatrix& projMOld, float rate) = 0;
+
 public:
 	void PreLoopUpdate()override {
 		UpdateOldMatrix();
 	};
 	void Update()override {
 		UpdateMatrix();
+	}
+	void PostLoopUpdate()override {
+		CalcMBlurParameter();
 	}
 
 	//カメラ(行列)を更新
@@ -43,22 +69,13 @@ public:
 		}
 	};
 
-	void UpdateOldMatrix() {
-		m_posOld = m_pos; m_targetOld = m_target; m_upOld = m_up;
-		m_projMatOld = m_projMat, m_viewMatOld = m_viewMat;
-		isFirstMatrixUpdate = false;
-	}
-
 	const CMatrix& GetProjMatrix() const { return m_projMat; };
 	const CMatrix& GetViewMatrix() const { return m_viewMat; };
 	const CMatrix& GetProjMatrixOld() const { return m_projMatOld; };
-	CMatrix GetViewMatrixOld() const;
+	const CMatrix& GetViewMatrixOld() const { return m_viewMatOld; };
 
 	const CVector3& GetPos() const { return m_pos; }
-	CVector3 GetPosOld() const {
-		CVector3 move; move.Lerp(MotionBlurScale, m_pos, m_posOld);
-		return move;
-	}
+	const CVector3& GetPosOld() const { return m_posOld; }
 	const CVector3& GetTarget() const { return m_target; }
 	const CVector3& GetUp() const { return m_up; }
 	float GetNear() const { return m_near; }
@@ -91,6 +108,7 @@ protected:
 	CVector3 m_pos = { 0.0f, 0.0f, 500.0f }, m_target = { 0.0f, 0.0f, 0.0f }, m_up = { 0.0f, 1.0f, 0.0f };
 	CVector3 m_posOld = { 0.0f, 0.0f, 500.0f }, m_targetOld = { 0.0f, 0.0f, 0.0f }, m_upOld = { 0.0f, 1.0f, 0.0f };
 	float m_near = 1.0f, m_far = 1000.0f;
+	float m_nearOld = 1.0f, m_farOld = 1000.0f;
 
 	CMatrix m_projMat, m_viewMat;
 	CMatrix m_projMatOld, m_viewMatOld;
@@ -113,9 +131,18 @@ private:
 	void UpdateProjMatrix()override {
 		m_projMat.MakeProjectionMatrix(m_viewAngle, m_aspect, m_near, m_far);
 	}
+	void UpdateOldProjParameter()override {
+		m_viewAngleOld = m_viewAngle;
+		m_aspectOld = m_aspect;
+	}
+	void CalcMBlurProjMatrix(CMatrix& projMOld, float rate)override {
+		m_viewAngleOld = CMath::Lerp(rate, m_viewAngle, m_viewAngleOld);
+		m_aspectOld = CMath::Lerp(rate, m_aspect, m_aspectOld);
+		projMOld.MakeProjectionMatrix(m_viewAngleOld, m_aspectOld, m_nearOld, m_farOld);
+	}
 
-	float m_viewAngle = 3.14f*0.5f;
-	float m_aspect = 1280.0f / 720.0f;
+	float m_viewAngle = 3.14f*0.5f, m_viewAngleOld = 3.14f*0.5f;
+	float m_aspect = 1280.0f / 720.0f, m_aspectOld = 1280.0f / 720.0f;
 };
 
 //平行カメラ
@@ -133,8 +160,18 @@ private:
 	void UpdateProjMatrix()override {
 		m_projMat.MakeOrthoProjectionMatrix(m_width, m_height, m_near, m_far);
 	}
+	void UpdateOldProjParameter()override {
+		m_widthOld = m_width;
+		m_heightOld = m_height;
+	}
+	void CalcMBlurProjMatrix(CMatrix& projMOld, float rate)override {
+		m_widthOld = CMath::Lerp(rate, m_width, m_widthOld);
+		m_heightOld = CMath::Lerp(rate, m_height, m_heightOld);
+		projMOld.MakeOrthoProjectionMatrix(m_widthOld, m_heightOld, m_nearOld, m_farOld);
+	}
 
 	float m_width = 1280.0f, m_height = 720.0f;
+	float m_widthOld = 1280.0f, m_heightOld = 720.0f;
 };
 class NoRegisterOrthoCamera : public OrthoCamera {
 public:

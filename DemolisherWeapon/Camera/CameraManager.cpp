@@ -11,14 +11,6 @@ ICamera::~ICamera() {
 	}
 }
 
-CMatrix ICamera::GetViewMatrixOld() const {
-	CMatrix mat;
-
-	mat.Interpolate(m_viewMat, m_viewMatOld, MotionBlurScale, MotionBlurScale, MotionBlurScale);
-
-	return mat;// m_viewMatOld;
-};
-
 //ワールド座標からスクリーン座標を計算する
 CVector3 ICamera::CalcScreenPosFromWorldPosScreenPos(const CVector3& worldPos)  {
 	CVector3 screenPos = CalcScreenPosFromWorldPos(worldPos);

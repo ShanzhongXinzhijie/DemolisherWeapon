@@ -2,6 +2,7 @@
  * @brief	モデルシェーダー。
  */
 
+#include"MotionBlurHeader.h"
 
 /////////////////////////////////////////////////////////////
 // Shader Resource View
@@ -34,7 +35,7 @@ cbuffer VSPSCb : register(b0){
 	float4x4 mProj_old;
 
 	//カメラの移動量
-	float4 camMoveVec;
+	float4 camMoveVec;//w:しきい値≒距離スケール
 
 	float4 depthBias;//xとy
 };
@@ -114,8 +115,15 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 #if MOTIONBLUR
 		float4 oldpos = mul(mWorld_old, In.Position);
 
-		if (distance(float3(mWorld._m03, mWorld._m13, mWorld._m23) , float3(mWorld_old._m03, mWorld_old._m13, mWorld_old._m23)) > 0.0f
-			&& distance(camMoveVec.xyz, (float3(mWorld._m03, mWorld._m13, mWorld._m23) - float3(mWorld_old._m03, mWorld_old._m13, mWorld_old._m23))) > 0.0f //distance(posW, oldpos.xyz)
+		oldpos.xyz = lerp(posW, oldpos.xyz, MotionBlurScale);
+
+		float3 trans = float3(mWorld._m03, mWorld._m13, mWorld._m23);
+		float3 transOld = float3(mWorld_old._m03, mWorld_old._m13, mWorld_old._m23);
+		transOld = lerp(trans, transOld, MotionBlurScale);
+		trans -= transOld;
+
+		if (length(trans) > camMoveVec.w
+			&& distance(camMoveVec.xyz, trans) > camMoveVec.w
 			|| distance(mWorld[0].xyz, mWorld_old[0].xyz) > 0.0f
 			|| distance(mWorld[1].xyz, mWorld_old[1].xyz) > 0.0f
 			|| distance(mWorld[2].xyz, mWorld_old[2].xyz) > 0.0f){
@@ -203,8 +211,15 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 			oldpos = mul(oldskinning, In.Position);
 		}
 
-		if (distance(float3(skinning._m03, skinning._m13, skinning._m23), float3(oldskinning._m03, oldskinning._m13, oldskinning._m23)) > 0.0f
-			&& distance(camMoveVec.xyz, (float3(skinning._m03, skinning._m13, skinning._m23) - float3(oldskinning._m03, oldskinning._m13, oldskinning._m23))) > 0.0f
+		oldpos.xyz = lerp(posW, oldpos.xyz, MotionBlurScale);
+
+		float3 trans = float3(skinning._m03, skinning._m13, skinning._m23);
+		float3 transOld = float3(oldskinning._m03, oldskinning._m13, oldskinning._m23);
+		transOld = lerp(trans, transOld, MotionBlurScale);
+		trans -= transOld;
+
+		if (length(trans) > camMoveVec.w
+			&& distance(camMoveVec.xyz, trans) > camMoveVec.w
 			|| distance(skinning[0].xyz, oldskinning[0].xyz) > 0.0f
 			|| distance(skinning[1].xyz, oldskinning[1].xyz) > 0.0f
 			|| distance(skinning[2].xyz, oldskinning[2].xyz) > 0.0f) {
@@ -317,12 +332,16 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 
 			Out.velocityPS.z = -1.0f;
 			Out.velocityPS.w = -1.0f;
+
+			//Out.albedo.r = 1.0f; Out.albedo.b = 0.0f; Out.albedo.g = 0.0f;
 		}
 		else {
 			Out.velocityPS.xy = current.xy - last.xy;
 			
 			Out.velocityPS.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 			Out.velocityPS.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+
+			//Out.albedo.r *= 0.1f; Out.albedo.b = 1.0f; Out.albedo.g *= 0.1f;
 		}
 #else
 		Out.velocity.z = In.curPos.z + depthBias.y;

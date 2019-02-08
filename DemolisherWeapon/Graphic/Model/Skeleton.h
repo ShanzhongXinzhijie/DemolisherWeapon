@@ -247,7 +247,6 @@ public:
 	 */
 	void Update(const CMatrix& mWorld);
 	void UpdateBoneMatrixOld();
-	void CalcBlurScaleBoneMatrixOld();
 	/*!
 	*@brief	ボーンのワールド行列の更新関数。
 	*@details

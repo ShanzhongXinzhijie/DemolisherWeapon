@@ -266,6 +266,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <ClInclude Include="Sound\CSound.h" />
     <ClInclude Include="Graphic\Shadowmap\CShadowMap.h" />
     <ClInclude Include="Error\Error.h" />

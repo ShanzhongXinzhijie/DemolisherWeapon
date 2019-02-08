@@ -71,9 +71,6 @@ void CSkinModelRender::PostLoopUpdate() {
 
 	if (m_isShadowCaster) { AddDrawModelToShadowMapRender(&m_model, m_priority); }
 
-	//ãåçsóÒÇÃåvéZ
-	m_model.CalcBlurScaleOldMatrix();
-
 	AddDrawModelToD3Render(&m_model, m_priority);
 }
 
