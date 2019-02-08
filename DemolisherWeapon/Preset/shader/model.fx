@@ -340,7 +340,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 			Out.velocityPS.z = -1.0f;
 			Out.velocityPS.w = -1.0f;
 
-			Out.albedo.r = 1.0f; Out.albedo.b = 0.0f; Out.albedo.g = 0.0f;
+			//Out.albedo.r = 1.0f; Out.albedo.b = 0.0f; Out.albedo.g = 0.0f;
 		}
 		else {
 			Out.velocityPS.xy = current.xy - last.xy;
@@ -348,7 +348,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 			Out.velocityPS.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 			Out.velocityPS.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
 
-			Out.albedo.r *= 0.1f; Out.albedo.b = 1.0f; Out.albedo.g *= 0.1f;
+			//Out.albedo.r *= 0.1f; Out.albedo.b = 1.0f; Out.albedo.g *= 0.1f;
 		}
 #else
 		Out.velocity.z = In.curPos.z + depthBias.y;
