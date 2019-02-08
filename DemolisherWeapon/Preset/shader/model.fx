@@ -312,7 +312,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 		float3	current = In.curPos.xyz / In.curPos.w;
 		float3	last = In.lastPos.xyz / In.lastPos.w;		
 
-		if (last.z < 0.0f || last.z > 1.0f) {
+		if (last.z < 0.0f){// || last.z > 1.0f) {
 			//Out.velocity.z = In.curPos.z + depthBias.y;
 			//Out.velocity.w = In.curPos.z + depthBias.y;
 			Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
