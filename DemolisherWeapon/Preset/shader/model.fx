@@ -309,12 +309,11 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	//‘¬“x
 #if MOTIONBLUR
 
-		float3	current = In.curPos.xyz / In.curPos.w;
-		float3	last = In.lastPos.xyz / In.lastPos.w;		
+		float2	current = In.curPos.xy / In.curPos.w;
+		float2	last = In.lastPos.xy / In.lastPos.w;		
 
-		if (last.z < 0.0f){// || last.z > 1.0f) {
-			//Out.velocity.z = In.curPos.z + depthBias.y;
-			//Out.velocity.w = In.curPos.z + depthBias.y;
+		if (In.lastPos.z < 0.0f) {
+		//if (last.z < 0.0f || last.z > 1.0f) {
 			Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 			Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y; 
 			Out.velocityPS.z = -1.0f;
