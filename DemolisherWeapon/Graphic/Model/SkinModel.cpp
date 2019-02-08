@@ -165,7 +165,7 @@ void SkinModel::Draw(bool reverseCull)
 	vsCb.mProj_old = GetMainCamera()->GetProjMatrixOld();
 	vsCb.mView_old = GetMainCamera()->GetViewMatrixOld();
 
-	vsCb.camMoveVec = GetMainCamera()->GetPos() - GetMainCamera()->GetPosOld();
+	vsCb.camMoveVec = (GetMainCamera()->GetPos() - GetMainCamera()->GetPosOld())*MotionBlurScale;
 	vsCb.camMoveVec.w = GetEngine().GetDistanceScale();
 
 	vsCb.depthBias.x = m_depthBias;

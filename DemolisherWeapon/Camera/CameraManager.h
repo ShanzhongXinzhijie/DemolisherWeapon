@@ -57,9 +57,9 @@ public:
 	void Update()override {
 		UpdateMatrix();
 	}
-	void PostLoopUpdate()override {
-		CalcMBlurParameter();
-	}
+	//void PostLoopUpdate()override {
+		//CalcMBlurParameter();
+	//}
 
 	//カメラ(行列)を更新
 	void UpdateMatrix() {
