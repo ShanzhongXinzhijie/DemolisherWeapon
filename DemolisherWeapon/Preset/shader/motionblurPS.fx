@@ -20,16 +20,14 @@ PSInput VSMain(VSInput In)
 	return psIn;
 }
 
-static const float samples = 8;
-static const float blurscale = -1.0f;// -0.15f;// 0.4f;
-static const float BUNBO = 0.002f*(8.0f / samples);//0.001953125f
-
 #include"MotionBlurHeader.h"
+
+static const float DistantThreshold = 500.0f;
 
 float4 PSMain(PSInput In) : SV_Target0
 {	
 	//ベロシティマップ取得
-	float2 velocity = VelocityMap.Sample(Sampler, In.uv);
+	float3 velocity = VelocityMap.Sample(Sampler, In.uv);
 	velocity.xy *= blurscale;
 
 	//速度低いと出る
@@ -47,8 +45,9 @@ float4 PSMain(PSInput In) : SV_Target0
 	for (float i = 0; i < loopmax; i++)
 	{
 		float t = (i + 1) / loopmax;
-		float sampz = VelocityMap.Sample(Sampler, In.uv + t * velocity.xy).w;
-		if (sampz > 0.0f) {// && velocity.z < sampz + Z_OFFSET) {//手前のピクセルからはサンプルしない
+		float4 sampz = VelocityMap.Sample(Sampler, In.uv + t * velocity.xy);
+
+		if (sampz.w > 0.0f && sampz.z  > DistantThreshold || velocity.z < sampz.z + Z_OFFSET) {//手前のピクセルからはサンプルしない
 			Out += sceneTexture.Sample(Sampler, In.uv + t * velocity.xy);
 			samplecnt += 1.0f;
 		}

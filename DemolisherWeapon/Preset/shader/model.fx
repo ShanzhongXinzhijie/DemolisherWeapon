@@ -37,7 +37,7 @@ cbuffer VSPSCb : register(b0){
 	//カメラの移動量
 	float4 camMoveVec;//w:しきい値≒距離スケール
 
-	float4 depthBias;//xとy
+	float4 depthBias;//x:max=(1.0f) y:max=(far-near) z:ブラーの近距離しきい値
 };
 
 //マテリアルパラメーター
@@ -334,10 +334,10 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 		Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 		Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
 
-		if (In.isWorldMove) {
+		if (In.isWorldMove || In.curPos.z + depthBias.y < depthBias.z) {
 			Out.velocity.xy = current.xy - last.xy;
 
-			Out.velocityPS.z = -1.0f;
+			Out.velocityPS.z = max(In.curPos.z, In.lastPos.z) + depthBias.y;
 			Out.velocityPS.w = -1.0f;
 
 			//Out.albedo.r = 1.0f; Out.albedo.b = 0.0f; Out.albedo.g = 0.0f;
@@ -347,6 +347,11 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 			
 			Out.velocityPS.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 			Out.velocityPS.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+
+			if (abs(Out.velocityPS.x) < BUNBO*0.5f && abs(Out.velocityPS.y) < BUNBO*0.5f) {
+				Out.velocityPS.z = Out.velocityPS.w;
+				Out.velocityPS.w = -1.0f;
+			}
 
 			//Out.albedo.r *= 0.1f; Out.albedo.b = 1.0f; Out.albedo.g *= 0.1f;
 		}

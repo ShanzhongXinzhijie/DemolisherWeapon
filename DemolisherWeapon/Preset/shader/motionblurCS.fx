@@ -14,10 +14,6 @@ Texture2D<float4> albedoTexture : register(t2);
 RWTexture2D<float4> rwOutputTex		: register(u0);
 RWTexture2D<float4> rwVelocityTex	: register(u1);
 
-static const float samples = 8.0f;
-static const float blurscale = -1.0f;// -0.15f;
-static const float BUNBO = 0.002f*(8.0f / samples);
-
 #include"MotionBlurHeader.h"
 
 [numthreads(32, 32, 1)]

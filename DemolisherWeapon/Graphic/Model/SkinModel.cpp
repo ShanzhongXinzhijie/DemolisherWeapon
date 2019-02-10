@@ -142,6 +142,9 @@ void SkinModel::UpdateWorldMatrix(CVector3 position, CQuaternion rotation, CVect
 		UpdateOldMatrix();
 	}
 }
+
+static const float REFERENCE_FRUSTUM_SIZE = (1.0f / tan(3.14f*0.5f / 2.0f));
+
 void SkinModel::Draw(bool reverseCull)
 {
 	DirectX::CommonStates state(GetEngine().GetGraphicsEngine().GetD3DDevice());
@@ -170,6 +173,7 @@ void SkinModel::Draw(bool reverseCull)
 
 	vsCb.depthBias.x = m_depthBias;
 	vsCb.depthBias.y = (GetMainCamera()->GetFar() - GetMainCamera()->GetNear())*vsCb.depthBias.x;
+	vsCb.depthBias.z = 50.0f*( GetMainCamera()->GetProjMatrix().m[1][1] / REFERENCE_FRUSTUM_SIZE);
 
 	d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
 
