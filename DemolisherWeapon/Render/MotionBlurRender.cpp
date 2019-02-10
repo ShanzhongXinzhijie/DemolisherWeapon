@@ -67,13 +67,20 @@ void MotionBlurRender::Init() {
 	bufferDesc.ByteWidth = (((sizeof(SCSConstantBuffer) - 1) / 16) + 1) * 16;
 	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;	
 	bufferDesc.CPUAccessFlags = 0;
-
 	ge.GetD3DDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cb);
+
+	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = (((sizeof(SPSConstantBuffer) - 1) / 16) + 1) * 16;
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	ge.GetD3DDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cbPS);
 }
 void MotionBlurRender::Release() {
 	m_outputUAV->Release();
 	m_maskUAV->Release();
 	m_cb->Release();
+	m_cbPS->Release();
 	m_samplerState->Release();
 }
 
@@ -101,6 +108,12 @@ void MotionBlurRender::PSBlur(ID3D11DeviceContext* rc){
 	//GetEngine().GetGraphicsEngine().GetFRT().Clear(0);
 	GetEngine().GetGraphicsEngine().SetFinalRenderTarget();
 
+	//定数バッファ
+	SPSConstantBuffer psCb;
+	psCb.DistantThreshold = 500.0f*GetEngine().GetDistanceScale();
+	rc->UpdateSubresource(m_cbPS, 0, nullptr, &psCb, 0, 0);
+	rc->PSSetConstantBuffers(0, 1, &m_cbPS);
+
 	//シェーダーを設定
 	rc->VSSetShader((ID3D11VertexShader*)m_vs.GetBody(), NULL, 0);
 	rc->PSSetShader((ID3D11PixelShader*)m_ps.GetBody(), NULL, 0);
@@ -111,6 +124,10 @@ void MotionBlurRender::PSBlur(ID3D11DeviceContext* rc){
 
 	//描画
 	GetEngine().GetGraphicsEngine().DrawFullScreen();
+
+	//定数バッファ解除
+	ID3D11Buffer* pCB = NULL;
+	rc->PSSetConstantBuffers(0, 1, &pCB);
 
 	//SRVを解除
 	ID3D11ShaderResourceView* view[] = {

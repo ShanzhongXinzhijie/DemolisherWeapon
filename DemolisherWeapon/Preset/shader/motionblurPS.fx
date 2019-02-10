@@ -12,6 +12,10 @@ Texture2D<float4> sceneTexture : register(t0);	//シーンテクスチャ
 Texture2D<float4> VelocityMap : register(t1);	//ベロシティマップ
 sampler Sampler : register(s0);
 
+cbuffer PSCb : register(b0) {
+	float DistantThreshold;
+};
+
 PSInput VSMain(VSInput In)
 {
 	PSInput psIn;
@@ -22,7 +26,7 @@ PSInput VSMain(VSInput In)
 
 #include"MotionBlurHeader.h"
 
-static const float DistantThreshold = 500.0f;
+//static const float DistantThreshold = 500.0f;
 
 float4 PSMain(PSInput In) : SV_Target0
 {	

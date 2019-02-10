@@ -32,6 +32,7 @@ private:
 	ID3D11UnorderedAccessView*	m_outputUAV = nullptr;
 	ID3D11UnorderedAccessView*	m_maskUAV = nullptr;
 	ID3D11Buffer* m_cb = nullptr;
+	ID3D11Buffer* m_cbPS = nullptr;
 
 	//定数バッファ
 	struct SCSConstantBuffer {
@@ -40,6 +41,9 @@ private:
 		unsigned int win_y;
 		//距離スケール
 		float distanceScale;
+	};
+	struct SPSConstantBuffer {
+		float DistantThreshold;
 	};
 
 	ID3D11SamplerState* m_samplerState = nullptr;
