@@ -134,7 +134,7 @@ public:
 		}
 	}
 
-	//•`‰æ‡‚ğİ’è
+	//•`‰æ‡‚ğİ’è(”’l‚ª‘å‚«‚¢‚Ù‚ÇŒã‚É•`‰æ‚³‚ê‚é)
 	void SetDrawPriority(int prio) {
 		m_priority = prio;
 	}
