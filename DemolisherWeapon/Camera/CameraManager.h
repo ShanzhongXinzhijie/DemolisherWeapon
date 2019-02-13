@@ -83,6 +83,9 @@ public:
 	float GetNear() const { return m_near; }
 	float GetFar() const{ return m_far; }
 
+	virtual float GetFOV()const = 0;
+	virtual float GetAspect()const = 0;
+
 	//座標等設定
 	void SetPos(const CVector3& v) { m_pos = v; m_change = true; }
 	void SetTarget(const CVector3& v) { m_target = v; m_change = true; }
@@ -129,6 +132,13 @@ public:
 	//アス比設定
 	void SetAspect(const float v) { m_aspect = v; m_change = true;}
 
+	float GetFOV()const override {
+		return m_viewAngle;
+	}
+	float GetAspect() const override {
+		return m_aspect;
+	}
+
 private:
 	void UpdateProjMatrix()override {
 		m_projMat.MakeProjectionMatrix(m_viewAngle, m_aspect, m_near, m_far);
@@ -157,6 +167,13 @@ public:
 	//幅・高さ設定
 	void SetWidth(const float v) { m_width = v; m_change = true;}
 	void SetHeight(const float v) { m_height = v; m_change = true;}
+
+	float GetFOV()const override {
+		return -1.0f;
+	}
+	float GetAspect() const override {
+		return m_width / m_height;
+	}
 
 private:
 	void UpdateProjMatrix()override {

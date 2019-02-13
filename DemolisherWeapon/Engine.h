@@ -273,6 +273,9 @@ public:
 	//動作基準FPSを取得
 	int GetStandardFrameRate()const { return m_gameLoop.GetStandardFrameRate(); }
 
+	//可変フレーム無効(一回のみ)
+	void UnableVariableFramerateOnce() { m_gameLoop.UnableVariableFramerateOnce(); }
+
 	//デバッグ情報を描画するか設定
 	void SetIsDebugDraw(bool enable) { m_gameLoop.SetIsDebugDraw(enable); }
 	bool GetIsDebugDraw()const { return m_gameLoop.GetIsDebugDraw(); }

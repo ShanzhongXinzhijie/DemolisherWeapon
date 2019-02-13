@@ -73,7 +73,7 @@ namespace DemolisherWeapon {
 	void PhotonNetworkLogic::customEventAction(int playerNr, nByte eventCode, const ExitGames::Common::Object& eventContentObj)
 	{
 		//イベントを受信
-		m_eventAction(playerNr, eventCode, eventContentObj);
+		if(m_eventAction) m_eventAction(playerNr, eventCode, eventContentObj);
 
 		/*switch (eventCode)
 		{

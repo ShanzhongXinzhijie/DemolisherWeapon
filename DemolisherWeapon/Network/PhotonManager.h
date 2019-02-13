@@ -35,10 +35,10 @@ namespace DemolisherWeapon {
 
 		// info, that certain values have been updated
 		virtual void onRoomPropertiesChange(const ExitGames::Common::Hashtable& gameProperties) {
-			m_roomPropetyAction(gameProperties);
+			if(m_roomPropetyAction) m_roomPropetyAction(gameProperties);
 		}
 		virtual void onPlayerPropertiesChange(int playerNr, const ExitGames::Common::Hashtable& changes) {
-			m_playerPropetyAction(playerNr, changes);
+			if(m_playerPropetyAction) m_playerPropetyAction(playerNr, changes);
 		}
 
 	public:

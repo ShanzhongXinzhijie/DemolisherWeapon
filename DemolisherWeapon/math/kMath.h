@@ -34,7 +34,8 @@ public:
 		return t0 + (t1 - t0)*rate;
 	}
 
-	static inline int Clamp(int in, int low, int high) {
+	template<typename Ttype>
+	static inline Ttype Clamp(Ttype in, Ttype low, Ttype high) {
 		return min(max(in, low), high);
 	}
 
@@ -42,8 +43,12 @@ public:
 	static std::random_device rd;
 	static std::mt19937 mt;
 	static std::uniform_real_distribution<float> zeroToOne;
+	static std::uniform_int_distribution<> intRandom;
 
 	static float RandomZeroToOne() {
 		return zeroToOne(mt);
+	}
+	static int RandomInt() {
+		return intRandom(mt);
 	}
 };

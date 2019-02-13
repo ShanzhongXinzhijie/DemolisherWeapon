@@ -58,10 +58,20 @@ public:
 private:
 	//CFinalRenderTarget m_FRT;
 	Shader m_vs;
-	Shader m_ps;
+	Shader m_ps, m_psNormal;
 	ID3D11SamplerState* m_samplerState = nullptr;
+	ID3D11Buffer* m_cb = nullptr;
+
+	struct SPSConstantBuffer {
+		float k4;
+		float LENS_DISTORTION_UV_MAGNIFICATION;
+		float ASPECT_RATIO;
+		float INV_ASPECT_RATIO;
+	};
 
 	CPrimitive m_drawSpace;
+
+	ID3D11ShaderResourceView* m_gridTex = nullptr;
 };
 
 }
