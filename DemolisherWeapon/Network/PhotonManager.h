@@ -68,7 +68,7 @@ namespace DemolisherWeapon {
 		bool ConnectServer(const wchar_t* userName);
 		//サーバーとの接続を切断
 		void DisconnectServer() {
-			if (m_state == DISCONNECTING) { return; }//!GetConnected() || 
+			if (m_state == INITIALIZED || m_state == DISCONNECTING || m_state == DISCONNECTED) { return; }//!GetConnected() || 
 			m_LoadBalancingClient.disconnect();
 			m_state = DISCONNECTING;
 		}
