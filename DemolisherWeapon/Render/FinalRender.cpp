@@ -146,7 +146,7 @@ void FinalRender::Render() {
 
 	//シェーダーを設定
 	rc->VSSetShader((ID3D11VertexShader*)m_vs.GetBody(), NULL, 0);
-	if (GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD1)) {
+	if (1){//GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD1)) {
 		rc->PSSetShader((ID3D11PixelShader*)m_psNormal.GetBody(), NULL, 0);
 	}
 	else {
