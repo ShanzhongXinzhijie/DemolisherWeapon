@@ -23,3 +23,10 @@ float4 PSMain(PSInput In) : SV_Target0
 {
 	return Texture.Sample(Sampler, In.uv);
 }
+
+float4 PSConvertLinearToSRGB(PSInput In) : SV_Target0
+{
+	float4 Out = Texture.Sample(Sampler, In.uv);
+	Out.xyz = pow(Out.xyz, 1.0f / 2.2f);
+	return Out;
+}

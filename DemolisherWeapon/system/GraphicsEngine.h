@@ -10,6 +10,7 @@
 #include"Render/PhysicsDebugDrawRender.h"
 #include"Render/CameraSwitchRender.h"
 #include"Render/EffekseerRender.h"
+#include"Render/ConvertLinearToSRGBRender.h"
 
 #include"Camera/CameraManager.h"
 #include"Graphic/Light/Lights.h"
@@ -207,6 +208,7 @@ private:
 	AmbientOcclusionRender m_ambientOcclusionRender;
 	DefferdRender m_defferdRender;
 	MotionBlurRender m_motionBlurRender;
+	ConvertLinearToSRGBRender m_ConvertLinearToSRGB;
 #ifndef DW_MASTER
 	PhysicsDebugDrawRender m_physicsDebugDrawRender;
 #endif

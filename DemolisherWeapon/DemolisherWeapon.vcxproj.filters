@@ -80,6 +80,7 @@
     <ClInclude Include="Sound\WAVManager.h" />
     <ClInclude Include="Sound\CSound.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowMap.h" />
+    <ClInclude Include="Render\ConvertLinearToSRGBRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -150,6 +151,7 @@
     <ClCompile Include="Sound\CSound.cpp" />
     <ClCompile Include="Sound\CSoundStreaming.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowMap.cpp" />
+    <ClCompile Include="Render\ConvertLinearToSRGBRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

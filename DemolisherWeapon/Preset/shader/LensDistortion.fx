@@ -76,14 +76,5 @@ float4 PSMain(PSInput In) : SV_Target0
 	//‚±‚ê‚ÌƒRƒƒ“ƒgŠO‚·‚Æ–Ê”’‚¢‚±‚Æ‚É‚È‚é
 	//In.uv = GetLensDistortion(In.uv);
 
-	float4 Out = GetLensDistortion(In.uv);
-	Out.xyz = pow(Out.xyz, 1.0f / 2.2f);
-	return Out;
-}
-
-float4 PSMainNormal(PSInput In) : SV_Target0
-{
-	float4 Out = Texture.Sample(Sampler, In.uv);
-	Out.xyz = pow(Out.xyz, 1.0f / 2.2f);
-	return Out;
+	return GetLensDistortion(In.uv);
 }
