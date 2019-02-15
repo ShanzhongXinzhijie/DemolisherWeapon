@@ -32,6 +32,7 @@ cbuffer ShadowCb : register(b1) {
 	float4x4 mLVP[SHADOWMAP_NUM];
 	float4 shadowDir[SHADOWMAP_NUM];//wはバイアス
 	float4 enableShadowMap[SHADOWMAP_NUM];//x:シャドウマップ有効か？ y:PCSS有効 z:widthサイズ w:heightサイズ
+	float4 cascadeArea[SHADOWMAP_NUM];
 
 	int boolAO;//AOを有効にするか
 };
@@ -286,8 +287,21 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	HideInShadow hideInShadow = (HideInShadow)0;
 	[unroll]
 	for (int i = 0; i < SHADOWMAP_NUM; i++) {
-		if (enableShadowMap[i].x){
+		if (enableShadowMap[i].x && viewpos.z > cascadeArea[i].x && viewpos.z < cascadeArea[i].y){
 			hideInShadow.flag[i] = ShadowMapFunc(i, float4(worldpos, 1.0f));
+
+			/*if (i == 0 && hideInShadow.flag[i] > 0.0f) {
+				albedo = float4(1, 0, 0, 1); 
+			}
+			if (i == 1 && hideInShadow.flag[i] > 0.0f) {
+				albedo = float4(0, 1, 0, 1); 
+			}
+			if (i == 2 && hideInShadow.flag[i] > 0.0f) {
+				albedo = float4(0, 0, 1, 1); 
+			}
+			if (i == 3 && hideInShadow.flag[i] > 0.0f) {
+				albedo = float4(0, 0, 0, 1);
+			}*/
 		}
 	}
 

@@ -29,6 +29,7 @@ private:
 		CMatrix mLVP[ShadowMapRender::SHADOWMAP_NUM];
 		CVector4 shadowDir[ShadowMapRender::SHADOWMAP_NUM];
 		CVector4 enableShadowMap[ShadowMapRender::SHADOWMAP_NUM];
+		CVector4 cascadeArea[ShadowMapRender::SHADOWMAP_NUM];
 
 		int boolAO;
 		//定数バッファは float4(4*4=16)で区切られる

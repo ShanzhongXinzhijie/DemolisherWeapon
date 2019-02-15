@@ -109,6 +109,10 @@ void DefferdRender::Render() {
 			sCb.mLVP[i] = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightViewProjMatrix(i);
 			sCb.shadowDir[i] = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightDir(i);
 			sCb.shadowDir[i].w = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetDepthBias(i);
+
+			//カスケードの範囲
+			sCb.cascadeArea[i].x = GetMainCamera()->GetFar() * GetEngine().GetGraphicsEngine().GetShadowMapRender().GetCascadeNear(i);
+			sCb.cascadeArea[i].y = GetMainCamera()->GetFar() * GetEngine().GetGraphicsEngine().GetShadowMapRender().GetCascadeFar(i);
 		}
 	}
 	rc->UpdateSubresource(m_scb, 0, nullptr, &sCb, 0, 0);

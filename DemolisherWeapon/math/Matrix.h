@@ -223,6 +223,13 @@ public:
 			DirectX::XMMatrixOrthographicLH(w, h, fNear, fFar)
 		);
 	}
+	void MakeOrthoProjectionMatrixOffCenter(float left, float right, float bottom, float top, float fNear, float fFar)
+	{
+		DirectX::XMStoreFloat4x4(
+			&mat,
+			DirectX::XMMatrixOrthographicOffCenterLH(left, right, bottom, top, fNear, fFar)
+		);
+	}
 	/*!
 	 * @brief	注視点、上方向、カメラ位置からカメラ行列を作成。
 	 *@param[in]	position	カメラ位置。

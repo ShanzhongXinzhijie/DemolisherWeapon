@@ -62,6 +62,7 @@ public:
 	ID3D11ShaderResourceView*& GetShadowMapSRV() {
 		return m_resource.GetShadowMapSRV();
 	}
+
 	//ライト視点のビュープロジェクション行列を出す
 	CMatrix GetLightViewProjMatrix()const {
 		CMatrix remat;
@@ -75,6 +76,14 @@ public:
 	//深度バイアスを取得
 	float GetDepthBias()const {
 		return m_zBias;
+	}
+
+	//カスケードの範囲取得
+	float GetCascadeNear()const {
+		return m_cascadeAreaNear;
+	}
+	float GetCascadeFar()const {
+		return m_cascadeAreaFar;
 	}
 
 
@@ -97,6 +106,14 @@ public:
 		m_zBias = bias;
 	}
 
+	//カスケードの範囲設定
+	void SetCascadeNear(float Near) {
+		m_cascadeAreaNear = Near;
+	}
+	void SetCascadeFar(float Far) {
+		m_cascadeAreaFar = Far;
+	}
+
 private:
 	bool m_isInit = false;
 	bool m_enable = true;
@@ -113,6 +130,9 @@ private:
 
 	float m_zBias = 0.0f;//深度バイアス
 	// 0.00025f*0.1f; // *0.38f; // *4.0f;
+
+	//カスケード用パラルータ
+	float m_cascadeAreaNear = 0.0f, m_cascadeAreaFar = 1.0f;
 };
 
 }

@@ -175,9 +175,21 @@ public:
 		return m_width / m_height;
 	}
 
+	void SetProjMatMode(bool widthHeight){
+		m_isWidthHeight = widthHeight;
+	}
+	void Set4Point(float left, float right, float bottom, float top) {
+		m_left = left, m_right = right, m_bottom = bottom, m_top = top;
+	}
+
 private:
 	void UpdateProjMatrix()override {
-		m_projMat.MakeOrthoProjectionMatrix(m_width, m_height, m_near, m_far);
+		if (m_isWidthHeight) {
+			m_projMat.MakeOrthoProjectionMatrix(m_width, m_height, m_near, m_far);
+		}
+		else {
+			m_projMat.MakeOrthoProjectionMatrixOffCenter(m_left, m_right, m_bottom, m_top, m_near, m_far);
+		}
 	}
 	void UpdateOldProjParameter()override {
 		m_widthOld = m_width;
@@ -189,8 +201,11 @@ private:
 		projMOld.MakeOrthoProjectionMatrix(m_widthOld, m_heightOld, m_nearOld, m_farOld);
 	}
 
+	bool m_isWidthHeight = true;
 	float m_width = 1280.0f, m_height = 720.0f;
 	float m_widthOld = 1280.0f, m_heightOld = 720.0f;
+
+	float m_left = -640.0f, m_right = 640.0f, m_bottom = -360.0f, m_top = 360.0f;
 };
 class NoRegisterOrthoCamera : public OrthoCamera {
 public:

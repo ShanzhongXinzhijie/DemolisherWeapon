@@ -63,10 +63,12 @@ public:
 	float GetSizeY(int num)const {
 		return m_shadowMaps[num].GetSizeY();
 	}
+
 	//シャドウマップのSRV取得
 	ID3D11ShaderResourceView*& GetShadowMapSRV() {
 		return m_shadowMaps[0].GetShadowMapSRV();
 	}
+
 	//ライト視点のビュープロジェクション行列を出す
 	CMatrix GetLightViewProjMatrix(int num)const{
 		return m_shadowMaps[num].GetLightViewProjMatrix();
@@ -78,6 +80,14 @@ public:
 	//深度バイアスを取得
 	float GetDepthBias(int num)const {
 		return  m_shadowMaps[num].GetDepthBias();
+	}
+
+	//カスケードの範囲取得
+	float GetCascadeNear(int num)const {
+		return m_shadowMaps[num].GetCascadeNear();
+	}
+	float GetCascadeFar(int num)const {
+		return m_shadowMaps[num].GetCascadeFar();
 	}
 
 	//シャドウマップの最大数

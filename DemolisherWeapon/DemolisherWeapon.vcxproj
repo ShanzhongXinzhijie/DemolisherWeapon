@@ -267,6 +267,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
+    <ClInclude Include="Graphic\Shadowmap\CascadeShadowMap.h" />
     <ClInclude Include="Sound\CSound.h" />
     <ClInclude Include="Graphic\Shadowmap\CShadowMap.h" />
     <ClInclude Include="Error\Error.h" />
@@ -341,6 +342,7 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Graphic\Shadowmap\CascadeShadowMap.cpp" />
     <ClCompile Include="Sound\CSound.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CShadowMap.cpp" />
     <ClCompile Include="Graphic\Model\MaterialSetting.cpp" />
