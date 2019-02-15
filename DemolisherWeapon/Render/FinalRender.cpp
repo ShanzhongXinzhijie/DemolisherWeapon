@@ -82,9 +82,9 @@ void FinalRender::Init(const CVector2 screen_min, const CVector2 screen_max) {
 
 	m_vs.Load("Preset/shader/LensDistortion.fx", "VSMain", Shader::EnType::VS);
 	m_ps.Load("Preset/shader/LensDistortion.fx", "PSMain", Shader::EnType::PS);
+	m_psNormal.Load("Preset/shader/LensDistortion.fx", "PSMainNormal", Shader::EnType::PS);
+	//m_psNormal.Load("Preset/shader/primitive.fx", "PSMain", Shader::EnType::PS);
 
-	m_psNormal.Load("Preset/shader/primitive.fx", "PSMain", Shader::EnType::PS);
-	
 	D3D11_SAMPLER_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
 	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -147,7 +147,7 @@ void FinalRender::Render() {
 
 	//シェーダーを設定
 	rc->VSSetShader((ID3D11VertexShader*)m_vs.GetBody(), NULL, 0);
-	if (1){//GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD1)) {
+	if (GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD1)) {
 		rc->PSSetShader((ID3D11PixelShader*)m_psNormal.GetBody(), NULL, 0);
 	}
 	else {

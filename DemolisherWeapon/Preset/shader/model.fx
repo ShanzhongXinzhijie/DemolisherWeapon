@@ -293,7 +293,9 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
 
 	//アルベド
-	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord) * albedoScale;
+	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord);
+	Out.albedo.xyz = pow(Out.albedo.xyz, 2.2f);
+	Out.albedo *= albedoScale;
 
 	//αテスト
 	if (Out.albedo.a > 0.5f) { 
