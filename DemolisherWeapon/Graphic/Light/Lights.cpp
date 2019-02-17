@@ -113,6 +113,7 @@ void LightManager::UpdateStructuredBuffers() {
 		for (auto& DL : m_directionLights) {
 			if (DL->GetActiveFlag()) {
 				m_rawDirectionLights[i] = DL->GetStruct();
+				m_rawDirectionLights[i].color *= CMath::PI;
 				i++;
 				if (i >= DIRLIGHT_NUM) {
 #ifndef DW_MASTER
@@ -136,6 +137,7 @@ void LightManager::UpdateStructuredBuffers() {
 		for (auto& PL : m_pointLights) {
 			if (PL->GetActiveFlag()) {
 				m_rawPointLights[i] = PL->GetStruct();
+				m_rawPointLights[i].color *= CMath::PI;
 				i++;
 				if (i >= POILIGHT_NUM) {
 #ifndef DW_MASTER
