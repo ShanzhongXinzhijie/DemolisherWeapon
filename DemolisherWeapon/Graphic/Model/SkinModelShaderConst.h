@@ -19,5 +19,4 @@ enum EnSkinModelSRVReg{
 	enSkinModelSRVReg_AlbedoTexture,		//!<アルベドテクスチャ。
 	enSkinModelSRVReg_BoneMatrixArray,		//!<ボーン行列の配列。
 	enSkinModelSRVReg_BoneMatrixArrayOld,
-	enRenderZViewProjMatrix,				//Z値書き込み用ビュープロジェクション行列
 };

@@ -21,14 +21,12 @@ public:
 	};
 
 	//使用するシェーダーモードを設定
-	static void SetShaderMode(enShaderMode sm, int num = 0) {
+	static void SetShaderMode(enShaderMode sm) {
 		m_s_shadermode = sm;
-		m_s_shadernum = num;
 	}
 
 private:
 	static enShaderMode m_s_shadermode ;
-	static int m_s_shadernum ;
 protected:
 	Shader* m_pVSShader = nullptr;
 	Shader* m_pPSShader = nullptr;
@@ -37,7 +35,7 @@ protected:
 	//int m_clacOldPosOffset = 0;
 	//ID3D11ClassInstance* m_cCalcOldPos = nullptr, *m_cNoCalcOldPos = nullptr;
 
-	Shader m_psDefaultShader[2], m_psZShader[SHADOWMAP_NUM];
+	Shader m_psDefaultShader[2], m_psZShader;
 	//int m_clacVelocityOffset = 0;
 	//ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;
 
@@ -60,15 +58,8 @@ public:
 		D3D_SHADER_MACRO macros[] = { "MOTIONBLUR", "1", NULL, NULL };
 		m_psDefaultShader[enALL].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, "ALL", macros);
 		m_psDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
-		for (int i = 0; i < SHADOWMAP_NUM; i++) {
-			char macronum[4];
-			sprintf_s(macronum, "%d", i + 1);
-			D3D_SHADER_MACRO macros[] = { "SHADOWMAP_NUM", macronum, NULL, NULL };
-			char macroname[32];
-			sprintf_s(macroname, "SM_NUM%d", i + 1);
-			m_psZShader[i].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS, macroname, macros);
-		}
-
+		m_psZShader.Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
+		
 		LoadClassInstancePS();
 
 		m_pPSShader = &m_psDefaultShader[enALL];

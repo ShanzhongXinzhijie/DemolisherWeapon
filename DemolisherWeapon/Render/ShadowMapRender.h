@@ -99,12 +99,6 @@ private:
 	std::list<SkinModel*> m_drawModelList[DRAW_PRIORITY_MAX];
 
 	CShadowMap m_shadowMaps[SHADOWMAP_NUM];
-
-	ID3D11Buffer*				m_lightCameraSB = nullptr;
-	ID3D11ShaderResourceView*	m_lightCameraSRV = nullptr;
-
-	ID3D11BlendState* m_blendState = nullptr;
-	D3D11_VIEWPORT m_viewport;
 };
 
 }
