@@ -23,10 +23,7 @@ StructuredBuffer<SDirectionLight> directionLight : register(t100);
 StructuredBuffer<SPointLight> pointLightList : register(t101);
 
 //シャドウマップ系
-#define SHADOWMAP_NUM 8
-static const uint SHADOW_MAX_WIDTH = 4096 / 2;
-static const uint SHADOW_MAX_HEIGHT = 4096 / 2;
-
+#include"ShadowMapHeader.h"
 cbuffer ShadowCb : register(b1) {
 	float4x4 ViewProjInv;
 	float4x4 mLVP[SHADOWMAP_NUM];
@@ -252,16 +249,18 @@ float3 CalcWorldPosFromUVZ(float2 uv, float zInScreen)//, float4x4 mViewProjInv)
 	return worldPos.xyz;
 }
 
+static const float PI = 3.14f;
+
 //スペキュラ
 float3 NormalizedPhong(float3 specular, float power, float3 viewDir, float3 normal, float3 lightDir)
 {
 	float3 R = -viewDir + (2.0f * dot(normal, viewDir) * normal);
-	return specular * pow(max(dot(lightDir, R), 0.0f), power) * ((power + 1.0f) / (2.0 * 3.14));
+	return specular * pow(max(dot(lightDir, R), 0.0f), power) * ((power + 1.0f) / (2.0f * PI));
 }
 //ディフューズ
 float3 Lambert(float3 diffuse, float3 lightDir, float3 normal)
 {
-	return max(diffuse * dot(normal, lightDir), 0.0f);
+	return max(diffuse * dot(normal, lightDir), 0.0f)* (1.0f / PI);
 }
 
 float4 PSMain(PSDefferdInput In) : SV_Target0

@@ -159,11 +159,12 @@
     <CustomBuild Include="Preset\shader\defferd.fx" />
     <CustomBuild Include="Preset\shader\gaussianblur.fx" />
     <CustomBuild Include="Preset\shader\linePrimitive.fx" />
-    <CustomBuild Include="Preset\shader\model.fx" />
     <CustomBuild Include="Preset\shader\motionblurCS.fx" />
     <CustomBuild Include="Preset\shader\motionblurPS.fx" />
     <CustomBuild Include="Preset\shader\primitive.fx" />
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\LensDistortion.fx" />
+    <CustomBuild Include="Preset\shader\model.fx" />
+    <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
   </ItemGroup>
 </Project>

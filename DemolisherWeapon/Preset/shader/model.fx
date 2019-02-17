@@ -12,6 +12,8 @@ Texture2D<float4> albedoTexture : register(t0);
 //ボーン行列
 StructuredBuffer<float4x4> boneMatrix : register(t1);
 StructuredBuffer<float4x4> boneMatrixOld : register(t2);
+//Z値書き込み用ビュープロジェクション行列
+StructuredBuffer<float4x4> RenderZViewProjMatrix : register(t3);
 
 /////////////////////////////////////////////////////////////
 // SamplerState
@@ -92,6 +94,7 @@ struct ZPSInput {
 	float4 Position 	: SV_POSITION;
 	float2 TexCoord 	: TEXCOORD0;
 	float4 posInProj	: TEXCOORD1;
+	uint instanceID		: InstanceID;
 };
 
 
@@ -143,15 +146,18 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 	return psInput;
 }
 //Z値書き込み用
-ZPSInput VSMain_RenderZ(VSInputNmTxVcTangent In)
+ZPSInput VSMain_RenderZ(VSInputNmTxVcTangent In, uint instanceID : SV_InstanceID)
 {
 	ZPSInput psInput = (ZPSInput)0;
 	float4 pos = mul(mWorld, In.Position);
-	pos = mul(mView, pos);
-	pos = mul(mProj, pos);
+	pos = mul(RenderZViewProjMatrix[instanceID], pos);
+	//pos = mul(mView, pos);
+	//pos = mul(mProj, pos);
 	psInput.Position = pos;
 	psInput.posInProj = pos;
 	psInput.TexCoord = In.TexCoord;
+
+	psInput.instanceID = instanceID;
 
 	return psInput;
 }
@@ -243,7 +249,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
     return psInput;
 }
 //Z値書き込み用
-ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In)
+ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In, uint instanceID : SV_InstanceID)
 {
 	ZPSInput psInput = (ZPSInput)0;
 	///////////////////////////////////////////////////
@@ -271,11 +277,15 @@ ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In)
 		pos = mul(skinning, In.Position);
 	}
 
-	pos = mul(mView, pos);
-	pos = mul(mProj, pos);
+	pos = mul(RenderZViewProjMatrix[instanceID], pos);
+	//pos = mul(mView, pos);
+	//pos = mul(mProj, pos);
 	psInput.Position = pos;
 	psInput.posInProj = pos;
 	psInput.TexCoord = In.TexCoord;
+
+	psInput.instanceID = instanceID;
+
 	return psInput;
 }
 
@@ -368,8 +378,56 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 }
 
 //Z値出力
-float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
+struct PSOutput_RenderZ {
+	float shadow0 : SV_Target0;
+#if SHADOWMAP_NUM >= 2
+	float shadow1 : SV_Target1;
+#endif
+#if SHADOWMAP_NUM >= 3
+	float shadow2 : SV_Target2;
+#endif
+#if SHADOWMAP_NUM >= 4
+	float shadow3 : SV_Target3;
+#endif
+#if SHADOWMAP_NUM >= 5
+	float shadow4 : SV_Target4;
+#endif
+#if SHADOWMAP_NUM >= 6
+	float shadow5 : SV_Target5;
+#endif
+#if SHADOWMAP_NUM >= 7
+	float shadow6 : SV_Target6;
+#endif
+#if SHADOWMAP_NUM >= 8
+	float shadow7 : SV_Target7;
+#endif
+};
+PSOutput_RenderZ PSMain_RenderZ(ZPSInput In)//, uint instanceID : SV_InstanceID
 {
+	PSOutput_RenderZ Out;
+	Out.shadow0 = 2.0f;
+#if SHADOWMAP_NUM >= 2
+	Out.shadow1 = 2.0f;
+#endif
+#if SHADOWMAP_NUM >= 3
+	Out.shadow2 = 2.0f;
+#endif
+#if SHADOWMAP_NUM >= 4
+	Out.shadow3 = 2.0f;
+#endif
+#if SHADOWMAP_NUM >= 5
+	Out.shadow4 = 2.0f;
+#endif
+#if SHADOWMAP_NUM >= 6
+	Out.shadow5 = 2.0f;
+#endif
+#if SHADOWMAP_NUM >= 7
+	Out.shadow6 = 2.0f;
+#endif
+#if SHADOWMAP_NUM >= 8
+	Out.shadow7 = 2.0f;
+#endif
+
 	//アルベド
 	float alpha = albedoTexture.Sample(Sampler, In.TexCoord).a * albedoScale.a;
 
@@ -380,5 +438,48 @@ float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 		discard;
 	}
 
-	return In.posInProj.z / In.posInProj.w + depthBias.x;
+	float z = In.posInProj.z / In.posInProj.w + depthBias.x + 1.0f*max(abs(ddx(In.posInProj.z / In.posInProj.w)), abs(ddy(In.posInProj.z / In.posInProj.w)));
+
+	switch (In.instanceID) {
+#if SHADOWMAP_NUM >= 2
+	case 1:
+		Out.shadow1 = z;
+		break;
+#endif
+#if SHADOWMAP_NUM >= 3
+	case 2:
+		Out.shadow2 = z;
+		break;
+#endif
+#if SHADOWMAP_NUM >= 4
+	case 3:
+		Out.shadow3 = z;
+		break;
+#endif
+#if SHADOWMAP_NUM >= 5
+	case 4:
+		Out.shadow4 = z;
+		break;
+#endif
+#if SHADOWMAP_NUM >= 6
+	case 5:
+		Out.shadow5 = z;
+		break;
+#endif
+#if SHADOWMAP_NUM >= 7
+	case 6:
+		Out.shadow6 = z;
+		break;
+#endif
+#if SHADOWMAP_NUM >= 8
+	case 7:
+		Out.shadow7 = z;
+		break;
+#endif
+	default:
+		Out.shadow0 = z;
+		break;
+	};
+
+	return Out;
 }

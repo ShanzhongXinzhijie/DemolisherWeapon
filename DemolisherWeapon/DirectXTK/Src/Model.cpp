@@ -51,7 +51,8 @@ void ModelMeshPart::Draw(
     ID3D11DeviceContext* deviceContext,
     IEffect* ieffect,
     ID3D11InputLayout* iinputLayout,
-    std::function<void()> setCustomState) const
+    std::function<void()> setCustomState,
+	int instanceNum) const
 {
     deviceContext->IASetInputLayout(iinputLayout);
 
@@ -75,7 +76,13 @@ void ModelMeshPart::Draw(
     // Draw the primitive.
     deviceContext->IASetPrimitiveTopology(primitiveType);
 
-    deviceContext->DrawIndexed(indexCount, startIndex, vertexOffset);
+	if (instanceNum == 1) {
+		deviceContext->DrawIndexed(indexCount, startIndex, vertexOffset);
+	}
+	else {
+		//インスタンシング
+		deviceContext->DrawIndexedInstanced(indexCount, instanceNum, startIndex, vertexOffset, 0 );
+	}
 }
 
 
@@ -153,6 +160,7 @@ void ModelMesh::PrepareForRendering(
     bool alpha,
     bool wireframe,
 	bool reverseCull,
+	ID3D11BlendState* pBlendState,
 	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw) const
 {
     assert(deviceContext != 0);
@@ -179,6 +187,7 @@ void ModelMesh::PrepareForRendering(
         blendState = states.Opaque();
         depthStencilState = states.DepthDefault();
     }
+	if (pBlendState) { blendState = pBlendState; }
 
     deviceContext->OMSetBlendState(blendState, nullptr, 0xFFFFFFFF);
     deviceContext->OMSetDepthStencilState(depthStencilState, 0);
@@ -219,7 +228,8 @@ void XM_CALLCONV ModelMesh::Draw(
     CXMMATRIX view,
     CXMMATRIX projection,
     bool alpha,
-    std::function<void()> setCustomState) const
+    std::function<void()> setCustomState,
+	int instanceNum) const
 {
     assert(deviceContext != 0);
 
@@ -240,7 +250,7 @@ void XM_CALLCONV ModelMesh::Draw(
             imatrices->SetMatrices(world, view, projection);
         }
 
-        part->Draw(deviceContext, part->effect.get(), part->inputLayout.Get(), setCustomState);
+        part->Draw(deviceContext, part->effect.get(), part->inputLayout.Get(), setCustomState, instanceNum);
     }
 }
 
@@ -263,7 +273,9 @@ void XM_CALLCONV Model::Draw(
     CXMMATRIX projection,
     bool wireframe,
 	bool reverseCull,
-	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw) const
+	ID3D11BlendState* blendState,
+	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw,
+	int instanceNum) const
 {
     assert(deviceContext != 0);
 
@@ -273,9 +285,9 @@ void XM_CALLCONV Model::Draw(
         auto mesh = it->get();
         assert(mesh != 0);
 
-        mesh->PrepareForRendering(deviceContext, states, false, wireframe, reverseCull, pRasterizerStateCw, pRasterizerStateCCw);
+        mesh->PrepareForRendering(deviceContext, states, false, wireframe, reverseCull, blendState, pRasterizerStateCw, pRasterizerStateCCw);
 
-        mesh->Draw(deviceContext, world, view, projection, false);
+        mesh->Draw(deviceContext, world, view, projection, false, nullptr, instanceNum);
     }
 
     // Draw alpha parts
@@ -284,9 +296,9 @@ void XM_CALLCONV Model::Draw(
         auto mesh = it->get();
         assert(mesh != 0);
 
-        mesh->PrepareForRendering(deviceContext, states, true, wireframe, reverseCull, pRasterizerStateCw, pRasterizerStateCCw);
+        mesh->PrepareForRendering(deviceContext, states, true, wireframe, reverseCull, blendState, pRasterizerStateCw, pRasterizerStateCCw);
 
-        mesh->Draw(deviceContext, world, view, projection, true);
+        mesh->Draw(deviceContext, world, view, projection, true, nullptr, instanceNum);
     }
 }
 

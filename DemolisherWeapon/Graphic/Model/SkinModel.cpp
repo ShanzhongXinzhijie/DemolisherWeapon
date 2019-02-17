@@ -145,7 +145,7 @@ void SkinModel::UpdateWorldMatrix(CVector3 position, CQuaternion rotation, CVect
 
 static const float REFERENCE_FRUSTUM_SIZE = (1.0f / tan(3.14f*0.5f / 2.0f));
 
-void SkinModel::Draw(bool reverseCull)
+void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlendState)
 {
 	DirectX::CommonStates state(GetEngine().GetGraphicsEngine().GetD3DDevice());
 
@@ -210,7 +210,9 @@ void SkinModel::Draw(bool reverseCull)
 		GetMainCamera()->GetProjMatrix(),
 		false,
 		(m_enFbxCoordinate == enFbxRightHanded) != reverseCull,
-		m_pRasterizerStateCw, m_pRasterizerStateCCw
+		pBlendState,
+		m_pRasterizerStateCw, m_pRasterizerStateCCw,
+		instanceNum
 	);
 }
 

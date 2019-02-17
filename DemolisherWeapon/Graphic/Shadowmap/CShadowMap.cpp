@@ -133,15 +133,19 @@ namespace DemolisherWeapon {
 		m_isInit = false;
 	}
 
-	void CShadowMap::PreparePreDraw() {
-		//ビューポート設定
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &m_viewport);
-
+	void CShadowMap::ClearShadowMap() {
 		//クリア
 		float clearcolor[4] = {}; clearcolor[0] = 2.0f;
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearRenderTargetView(m_shadowMapRTV, clearcolor);
 		//デプスクリア
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearDepthStencilView(m_resource.GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	}
+
+	void CShadowMap::PreparePreDraw() {
+		//ビューポート設定
+		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &m_viewport);
+
+		ClearShadowMap();
 
 		// RenderTarget設定
 		ID3D11RenderTargetView* renderTargetViews[1] = { m_shadowMapRTV };

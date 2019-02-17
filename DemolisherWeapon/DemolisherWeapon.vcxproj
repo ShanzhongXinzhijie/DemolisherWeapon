@@ -267,6 +267,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
+    <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
     <ClInclude Include="Render\ConvertLinearToSRGBRender.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowMap.h" />
     <ClInclude Include="Sound\CSound.h" />

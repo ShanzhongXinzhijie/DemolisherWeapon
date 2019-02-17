@@ -58,9 +58,10 @@ public:
 
 	/*!
 	*@brief	モデルを描画。
-	*@param[in]	reverseCull　面を反転するか
+	*@param[in]	reverseCull  面を反転するか
+	*@param[in]	instanceNum  インスタンス数
 	*/
-	void Draw(bool reverseCull = false);
+	void Draw(bool reverseCull = false, int instanceNum = 1, ID3D11BlendState* pBlendState = nullptr);
 
 	//モデルの名前を取得
 	const wchar_t* GetModelName()const

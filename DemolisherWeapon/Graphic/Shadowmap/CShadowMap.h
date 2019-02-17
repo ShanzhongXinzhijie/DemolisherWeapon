@@ -22,10 +22,10 @@ public:
 	}
 
 	//シャドウマップの最大数
-	static const int SHADOWMAP_NUM = 8;
+	static const int SHADOWMAP_NUM = DemolisherWeapon::SHADOWMAP_NUM;
 
-	static const int MAX_WIDTH  = 4096/2;
-	static const int MAX_HEIGHT = 4096/2;
+	static const int MAX_WIDTH  = SHADOW_MAX_WIDTH;
+	static const int MAX_HEIGHT = SHADOW_MAX_HEIGHT;
 
 private:
 	bool m_isInit = false;
@@ -54,6 +54,9 @@ public:
 	float GetSizeX()const { return m_viewport.Width; }
 	float GetSizeY()const { return m_viewport.Height; }
 
+	//シャドウマップをクリア
+	void ClearShadowMap();
+
 	//シャドウマップへの書き込みを行う前の処理
 	//ビューポート・レンダーターゲット・カメラを変更する
 	void PreparePreDraw();
@@ -61,6 +64,14 @@ public:
 	//シャドウマップのSRV取得
 	ID3D11ShaderResourceView*& GetShadowMapSRV() {
 		return m_resource.GetShadowMapSRV();
+	}
+	//DSV取得
+	static ID3D11DepthStencilView* GetShadowMapDSV() {
+		return m_resource.GetDSV();
+	}
+	//RTV取得
+	ID3D11RenderTargetView*& GetShadowMapRTV() {
+		return m_shadowMapRTV;
 	}
 
 	//ライト視点のビュープロジェクション行列を出す

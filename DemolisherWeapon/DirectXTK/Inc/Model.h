@@ -194,7 +194,7 @@ namespace DirectX
 
         // Draw mesh part with custom effect
         void __cdecl Draw( _In_ ID3D11DeviceContext* deviceContext, _In_ IEffect* ieffect, _In_ ID3D11InputLayout* iinputLayout,
-                           _In_opt_ std::function<void __cdecl()> setCustomState = nullptr ) const;
+                           _In_opt_ std::function<void __cdecl()> setCustomState = nullptr, int instanceNum = 1) const;
 
         // Create input layout for drawing with a custom effect.
         void __cdecl CreateInputLayout( _In_ ID3D11Device* d3dDevice, _In_ IEffect* ieffect, _Outptr_ ID3D11InputLayout** iinputLayout ) const;
@@ -223,11 +223,12 @@ namespace DirectX
 
         // Setup states for drawing mesh
         void __cdecl PrepareForRendering( _In_ ID3D11DeviceContext* deviceContext, const CommonStates& states, bool alpha = false, bool wireframe = false, bool reverseCull = false,
+			ID3D11BlendState* pBlendState = nullptr,
 			ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr) const;
 
         // Draw the mesh
         void XM_CALLCONV Draw( _In_ ID3D11DeviceContext* deviceContext, FXMMATRIX world, CXMMATRIX view, CXMMATRIX projection,
-                               bool alpha = false, _In_opt_ std::function<void __cdecl()> setCustomState = nullptr ) const;
+                               bool alpha = false, _In_opt_ std::function<void __cdecl()> setCustomState = nullptr, int instanceNum = 1) const;
     };
 
 
@@ -245,7 +246,9 @@ namespace DirectX
         // Draw all the meshes in the model
         void XM_CALLCONV Draw( _In_ ID3D11DeviceContext* deviceContext, const CommonStates& states, FXMMATRIX world, CXMMATRIX view, CXMMATRIX projection,
                                bool wireframe = false, bool reverseCull = false, 
-							   ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr) const;
+							   ID3D11BlendState* blendState = nullptr,
+							   ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr,
+							   int instanceNum = 1) const;
 
         // Notify model that effects, parts list, or mesh list has changed
         void __cdecl Modified() { mEffectCache.clear(); }
