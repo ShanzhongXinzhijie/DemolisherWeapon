@@ -50,7 +50,9 @@ void CSmain(uint3 run_xy : SV_DispatchThreadID)
 
 	int maxcnt = 7 * saturate(1.0f - viewpos.z / (AO_RANGE*distanceScale)) + 0.5f;
 	float ao = 0.0f;
+	[unroll]
 	for (int i2 = 1; i2 < maxcnt; i2++) {
+		[unroll]
 		for (int i = 0; i < 2; i++) {
 			uint2 uv2 = sampuv, uv22 = sampuv;
 			const uint offset = 2;// 1.0f + 3.0f*((float)i2 / (maxcnt - 1.0f));// +1.0f*(maxcnt / 7.0f);

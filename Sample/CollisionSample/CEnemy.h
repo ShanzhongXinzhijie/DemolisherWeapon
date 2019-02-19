@@ -9,7 +9,7 @@ public:
 		m_model.SetScale(CVector3::One()*20.0f);
 		m_pos = CVector3(300.0f,0.0f,0.0f);
 
-		//くらい判定の作成
+		//喰らい判定の作成
 		m_collision = std::make_unique<SuicideObj::CCollisionObj>();
 		//形状の作成
 		m_collision->CreateSphere(m_pos + CVector3::AxisY()*100.0f, CQuaternion::Identity(), 200.0f);
@@ -19,6 +19,8 @@ public:
 		m_collision->SetName(L"CEnemy");
 		//クラスのポインタを設定
 		m_collision->SetClass(this);
+		//喰らい判定のフラグ設定(自分から判定処理を行わなくなる)
+		m_collision->SetIsHurtCollision(true);
 
 		return true;
 	};

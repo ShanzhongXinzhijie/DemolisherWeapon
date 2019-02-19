@@ -2,6 +2,7 @@
  * @brief	モデルシェーダー。
  */
 
+#include"MotionBlurHeader.h"
 
 /////////////////////////////////////////////////////////////
 // Shader Resource View
@@ -33,10 +34,17 @@ cbuffer VSPSCb : register(b0){
 	float4x4 mView_old;
 	float4x4 mProj_old;
 
-	int isMotionBlur;//モーションブラーかけるか?
+	//カメラの移動量
+	float4 camMoveVec;//w:しきい値≒距離スケール
 
-	int3 alignment;
+	float4 depthBias;//x:max=(1.0f) y:max=(far-near) z:ブラーの近距離しきい値
 };
+
+//マテリアルパラメーター
+cbuffer MaterialCb : register(b1) {
+	float4 albedoScale;	//アルベドにかけるスケール
+	float4 emissive;	//エミッシブ(自己発光) wがライティングするか
+}
 
 /////////////////////////////////////////////////////////////
 //各種構造体
@@ -86,23 +94,7 @@ struct ZPSInput {
 	float4 posInProj	: TEXCOORD1;
 };
 
-/*!
- *@brief	スキン行列を計算。
- */
-/*float4x4 CalcSkinMatrix(VSInputNmTxWeights In)
-{
-	float4x4 skinning = 0;	
-	float w = 0.0f;
-	[unroll]
-    for (int i = 0; i < 3; i++)
-    {
-        skinning += boneMatrix[In.Indices[i]] * In.Weights[i];
-        w += In.Weights[i];
-    }
-    
-    skinning += boneMatrix[In.Indices[3]] * (1.0f - w);
-    return skinning;
-}*/
+
 /*!--------------------------------------------------------------------------------------
  * @brief	スキンなしモデル用の頂点シェーダー。
 -------------------------------------------------------------------------------------- */
@@ -120,23 +112,33 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 	psInput.curPos = pos;
 
 	//ベロシティマップ用情報
-	if (isMotionBlur) {
+#if MOTIONBLUR
 		float4 oldpos = mul(mWorld_old, In.Position);
 
-		if (distance(posW, oldpos.xyz) > 0.0f) {
+		oldpos.xyz = lerp(posW, oldpos.xyz, MotionBlurScale);
+
+		float3 trans = float3(mWorld._m03, mWorld._m13, mWorld._m23);
+		float3 transOld = float3(mWorld_old._m03, mWorld_old._m13, mWorld_old._m23);
+		transOld = lerp(trans, transOld, MotionBlurScale);
+		trans -= transOld;
+
+		if (length(trans) > camMoveVec.w
+			&& distance(camMoveVec.xyz, trans) > camMoveVec.w
+			|| distance(float3(mWorld._m00, mWorld._m10, mWorld._m20), float3(mWorld_old._m00, mWorld_old._m10, mWorld_old._m20)) > 0.0f
+			|| distance(float3(mWorld._m01, mWorld._m11, mWorld._m21), float3(mWorld_old._m01, mWorld_old._m11, mWorld_old._m21)) > 0.0f
+			|| distance(float3(mWorld._m02, mWorld._m12, mWorld._m22), float3(mWorld_old._m02, mWorld_old._m12, mWorld_old._m22)) > 0.0f
+		){
 			psInput.isWorldMove = true;
 		}
 
-		oldpos = mul(mView_old, oldpos);
-		oldpos = mul(mProj_old, oldpos);
+		float4 oldpos2 = mul(mView_old, oldpos);
+		oldpos = mul(mView, oldpos);
+		oldpos.xyz = lerp(oldpos.xyz, oldpos2.xyz, MotionBlurScale);
 
-		if (oldpos.z < 0.0f) {
-			psInput.lastPos = pos;
-		}
-		else {
-			psInput.lastPos = oldpos;
-		}
-	}
+		oldpos = mul(mProj_old, oldpos);
+		
+		psInput.lastPos = oldpos;
+#endif
 
 	return psInput;
 }
@@ -171,6 +173,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 	{
 	
 		float w = 0.0f;
+		[unroll]
 	    for (int i = 0; i < 3; i++)
 	    {
 			//boneMatrixにボーン行列が設定されていて、
@@ -197,40 +200,45 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 	psInput.curPos = pos;
 
 	//ベロシティマップ用情報
-	if (isMotionBlur) {
+#if MOTIONBLUR
 		float4x4 oldskinning = 0;
 		float4 oldpos = 0;
 		{
 			float w = 0.0f;
+			[unroll]
 			for (int i = 0; i < 3; i++)
 			{
-				//boneMatrixOldにボーン行列が設定されていて、
-				//In.indicesは頂点に埋め込まれた、関連しているボーンの番号。
-				//In.weightsは頂点に埋め込まれた、関連しているボーンのウェイト。
 				oldskinning += boneMatrixOld[In.Indices[i]] * In.Weights[i];
 				w += In.Weights[i];
 			}
-			//最後のボーンを計算する。
 			oldskinning += boneMatrixOld[In.Indices[3]] * (1.0f - w);
-			//頂点座標にスキン行列を乗算して、頂点をワールド空間に変換。
-			//mulは乗算命令。
 			oldpos = mul(oldskinning, In.Position);
 		}
 
-		if (distance(posW, oldpos.xyz) > 0.0f) {
+		oldpos.xyz = lerp(posW, oldpos.xyz, MotionBlurScale);
+
+		float3 trans = float3(skinning._m03, skinning._m13, skinning._m23);
+		float3 transOld = float3(oldskinning._m03, oldskinning._m13, oldskinning._m23);
+		transOld = lerp(trans, transOld, MotionBlurScale);
+		trans -= transOld;
+
+		if (length(trans) > camMoveVec.w
+			&& distance(camMoveVec.xyz, trans) > camMoveVec.w
+			|| distance(float3(skinning._m00, skinning._m10, skinning._m20), float3(oldskinning._m00, oldskinning._m10, oldskinning._m20)) > 0.0f
+			|| distance(float3(skinning._m01, skinning._m11, skinning._m21), float3(oldskinning._m01, oldskinning._m11, oldskinning._m21)) > 0.0f
+			|| distance(float3(skinning._m02, skinning._m12, skinning._m22), float3(oldskinning._m02, oldskinning._m12, oldskinning._m22)) > 0.0f
+		) {
 			psInput.isWorldMove = true;
 		}
 
-		oldpos = mul(mView_old, oldpos);
-		oldpos = mul(mProj_old, oldpos);
+		float4 oldpos2 = mul(mView_old, oldpos);
+		oldpos = mul(mView, oldpos);
+		oldpos.xyz = lerp(oldpos.xyz, oldpos2.xyz, MotionBlurScale);
 
-		if (oldpos.z < 0.0f) {
-			psInput.lastPos = pos;
-		}
-		else {
-			psInput.lastPos = oldpos;
-		}
-	}
+		oldpos = mul(mProj_old, oldpos);
+			
+		psInput.lastPos = oldpos;
+#endif
 
     return psInput;
 }
@@ -247,6 +255,7 @@ ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In)
 	{
 
 		float w = 0.0f;
+		[unroll]
 		for (int i = 0; i < 3; i++)
 		{
 			//boneMatrixにボーン行列が設定されていて、
@@ -264,9 +273,11 @@ ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In)
 
 	pos = mul(mView, pos);
 	pos = mul(mProj, pos);
+
 	psInput.Position = pos;
 	psInput.posInProj = pos;
 	psInput.TexCoord = In.TexCoord;
+
 	return psInput;
 }
 
@@ -277,58 +288,83 @@ struct PSOutput_RenderGBuffer {
 	float4 viewpos		: SV_Target2;		//ビュー座標
 	float4 velocity		: SV_Target3;		//速度
 	float4 velocityPS	: SV_Target4;		//速度(ピクセルシェーダ)
+	float4 lightingParam: SV_Target5;		//ライティング用パラメーター
 };
 PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 {
 	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
 
 	//アルベド
-	Out.albedo = float4(albedoTexture.Sample(Sampler, In.TexCoord).xyz, 1.0f);
+	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord);
+	Out.albedo.xyz = pow(Out.albedo.xyz, 2.2f);
+	Out.albedo *= albedoScale;
+
+	//αテスト
+	if (Out.albedo.a > 0.5f) { 
+		Out.albedo.a = 1.0f;//半透明無効
+	}
+	else {
+		discard;
+	}
 
 	//法線
 	Out.normal = In.Normal;
 
 	//ビュー座標
-	Out.viewpos = float4(In.Viewpos, In.curPos.z / In.curPos.w);// In.curPos.z);
+	Out.viewpos = float4(In.Viewpos.x, In.Viewpos.y, In.Viewpos.z + depthBias.y, In.curPos.z / In.curPos.w + depthBias.x);
+
+	//ライティング用パラメーター
+	Out.lightingParam = emissive;
 
 	//速度
-	if (isMotionBlur) {
+#if MOTIONBLUR
+
 		float2	current = In.curPos.xy / In.curPos.w;
-		float2	last = In.lastPos.xy / In.lastPos.w;
+		float2	last = In.lastPos.xy / In.lastPos.w;		
 
-		//if (In.curPos.z < 0.0f) { current *= -1.0f; }
-		//if (In.lastPos.z < 0.0f) { last *= -1.0f;  }
-
-		if (In.curPos.z < 0.0f || In.lastPos.z < 0.0f) {
-			current *= 0.0f; last *= 0.0f;
-		}
-
-		current.xy = current.xy * float2(0.5f, -0.5f) + 0.5f;
-		last.xy = last.xy * float2(0.5f, -0.5f) + 0.5f;
-
-		if (In.isWorldMove) {
-			Out.velocity.xy = current.xy - last.xy;	
-
-			Out.velocity.z = min(In.curPos.z, In.lastPos.z);
-			Out.velocity.w = max(In.curPos.z, In.lastPos.z);
+		if (In.lastPos.z < 0.0f) {
+		//if (last.z < 0.0f || last.z > 1.0f) {
+			Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
+			Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y; 
 			Out.velocityPS.z = -1.0f;
 			Out.velocityPS.w = -1.0f;
+			return Out;
+			//discard; 
+		}
+
+		current.xy *= float2(0.5f, -0.5f); current.xy += 0.5f;
+		last.xy *= float2(0.5f, -0.5f); last.xy += 0.5f;
+
+		Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
+		Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+
+		if (In.isWorldMove || In.curPos.z + depthBias.y < depthBias.z) {
+			Out.velocity.xy = current.xy - last.xy;
+
+			Out.velocityPS.z = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+			Out.velocityPS.w = -1.0f;
+
+			//Out.albedo.r = 1.0f; Out.albedo.b = 0.0f; Out.albedo.g = 0.0f;
 		}
 		else {
-			Out.velocityPS.xy = current.xy - last.xy;	
+			Out.velocityPS.xy = current.xy - last.xy;
+			
+			Out.velocityPS.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
+			Out.velocityPS.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
 
-			Out.velocity.z = min(In.curPos.z, In.lastPos.z);
-			Out.velocity.w = max(In.curPos.z, In.lastPos.z);
-			Out.velocityPS.z = min(In.curPos.z, In.lastPos.z);
-			Out.velocityPS.w = max(In.curPos.z, In.lastPos.z);
-		}		
-	}
-	else {
-		Out.velocity.z = In.curPos.z;
-		Out.velocity.w = In.curPos.z;
-		Out.velocityPS.z = In.curPos.z;
-		Out.velocityPS.w = In.curPos.z;
-	}
+			if (abs(Out.velocityPS.x) < BUNBO*0.5f && abs(Out.velocityPS.y) < BUNBO*0.5f) {
+				Out.velocityPS.z = Out.velocityPS.w;
+				Out.velocityPS.w = -1.0f;
+			}
+
+			//Out.albedo.r *= 0.1f; Out.albedo.b = 1.0f; Out.albedo.g *= 0.1f;
+		}
+#else
+		Out.velocity.z = In.curPos.z + depthBias.y;
+		Out.velocity.w = In.curPos.z + depthBias.y;
+		Out.velocityPS.z = -1.0f;// In.curPos.z + depthBias.y;
+		Out.velocityPS.w = -1.0f;// In.curPos.z + depthBias.y;
+#endif
 
 	return Out;
 }
@@ -336,6 +372,15 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 //Z値出力
 float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 {
-	float z = In.posInProj.z / In.posInProj.w;
-	return z;
+	//アルベド
+	float alpha = albedoTexture.Sample(Sampler, In.TexCoord).a * albedoScale.a;
+
+	//αテスト
+	if (alpha > 0.5f) {
+	}
+	else {
+		discard;
+	}
+
+	return In.posInProj.z / In.posInProj.w + depthBias.x ;// +1.0f*max(abs(ddx(In.posInProj.z / In.posInProj.w)), abs(ddy(In.posInProj.z / In.posInProj.w)));
 }

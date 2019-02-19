@@ -1,4 +1,3 @@
-
 //定数
 cbuffer CSCb : register(b0) {
 	//フレームバッファ解像度
@@ -15,17 +14,11 @@ Texture2D<float4> albedoTexture : register(t2);
 RWTexture2D<float4> rwOutputTex		: register(u0);
 RWTexture2D<float4> rwVelocityTex	: register(u1);
 
-static const float samples = 8.0f;
-static const float blurscale = -0.15f;
-static const float Z_OFFSET = 15.0f;
-static const float BUNBO = 0.002f*(8.0f / samples);
+#include"MotionBlurHeader.h"
 
 [numthreads(32, 32, 1)]
-void CSmain(uint3 run_xy : SV_DispatchThreadID)//uint3 run_xy : SV_GroupID , uint3 threadid : SV_GroupThreadID)
+void CSmain(uint3 run_xy : SV_DispatchThreadID)
 {
-	//uint x = run_xy.x * 32 + threadid.x, y = run_xy.y * 32 + threadid.y;
-	//uint x = run_xy.x, y = run_xy.y;
-
 	uint2 uv = run_xy.xy;
 
 	if (uv.x % 2 == 0) {
@@ -69,11 +62,6 @@ void CSmain(uint3 run_xy : SV_DispatchThreadID)//uint3 run_xy : SV_GroupID , uin
 
 		if (velocity.z < samp.w+Z_OFFSET*distanceScale) {//手前のピクセルからはサンプルしない
 			rwOutputTex[sampuv] = lerp(rwOutputTex[sampuv], color, 1.0f / (i + 2.0f));//サンプル数で透明度
-			//rwVelocityTex[sampuv] = float4(samp.xyz, velocity.z);
-			//rwOutputTex[sampuv] = color;
-
-			//rwOutputTex[sampuv] += color;			
-			//samp.w += 1.0f; rwVelocityTex[sampuv] = samp;
 		}
 	}
 }
