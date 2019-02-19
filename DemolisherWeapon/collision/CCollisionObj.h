@@ -113,6 +113,14 @@ public:
 		return m_enable;
 	}
 
+	//©•ª‚©‚ç”»’è‚·‚é‚©
+	void SetContactTestEnable(bool enable) {
+		m_contactTestEnable = enable;
+	}
+	bool GetContactTestEnable()const {
+		return m_contactTestEnable;
+	}
+
 	/*!
 	* @brief	À•W‚ğİ’èB
 	*/
@@ -273,6 +281,7 @@ private:
 	RegColObj* m_register = nullptr;
 
 	bool m_enable = true;//—LŒø?
+	bool m_contactTestEnable = true;//©•ª‚©‚ç”»’è‚·‚é?
 	bool m_isDeath = false;//€?
 	bool m_killMark = false;//€Šú‚ª‹ß‚¢?
 	bool m_isInit = false;//‰Šú‰»Ï‚İ?

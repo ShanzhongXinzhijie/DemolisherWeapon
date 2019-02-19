@@ -34,7 +34,7 @@ namespace Suicider {
 	}
 
 	void CCollisionObj::Register(bool compulsion) {
-		if (!m_isregistered && (compulsion || IsEnable())) {
+		if (!m_isregistered && (compulsion || IsEnable()) && GetContactTestEnable()) {
 			m_register = AddCollisionObj(this);
 			m_isregistered = true;
 		}
@@ -82,7 +82,7 @@ namespace Suicider {
 				}
 				
 				//このループで既に実行した組み合わせか?
-				if (RegiObjA->m_CObj->GetIndex() > ObjB->GetIndex()) {
+				if (ObjB->GetContactTestEnable() && RegiObjA->m_CObj->GetIndex() > ObjB->GetIndex()) {
 					return false;
 				}
 
@@ -143,7 +143,7 @@ namespace Suicider {
 
 			Suicider::CCollisionObj* ObjA = (*itr).m_CObj;
 
-			if (!(*itr).m_isEnable || !ObjA->IsEnable()) { continue; }
+			if (!(*itr).m_isEnable || !ObjA->IsEnable() || !ObjA->GetContactTestEnable() ) { continue; }
 
 			ObjA->SetHanteing(true);//判定中!
 
