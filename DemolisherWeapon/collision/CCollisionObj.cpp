@@ -27,7 +27,7 @@ namespace Suicider {
 		m_ghostObject.setUserPointer(this);
 
 		//物理エンジンに登録
-		GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject, btBroadphaseProxy::StaticFilter + CCollisionObjFilter, btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter ^ CCollisionObjFilter);
+		GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject, btBroadphaseProxy::StaticFilter + CCollisionObjFilter, 0);// btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter ^ CCollisionObjFilter);
 		m_isRegistPhysicsWorld = true;
 
 		m_isInit = true;
@@ -65,9 +65,14 @@ namespace Suicider {
 				}
 
 				//Bulletのマスク判定
-				bool collides = (proxy0->m_collisionFilterGroup & m_collisionFilterMask) != 0;
+				/*bool collides = (proxy0->m_collisionFilterGroup & m_collisionFilterMask) != 0;
 				collides = collides && (m_collisionFilterGroup & proxy0->m_collisionFilterMask);
-				if (!collides) { return false; }
+				if (!collides) { return false; }*/
+				
+				//CCollisionObjとのみ判定
+				if (!(CCollisionObjFilter & proxy0->m_collisionFilterGroup)) {
+					return false;
+				}
 
 				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)((btCollisionObject*)proxy0->m_clientObject)->getUserPointer();
 				

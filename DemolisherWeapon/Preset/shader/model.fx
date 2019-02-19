@@ -382,5 +382,5 @@ float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 		discard;
 	}
 
-	return In.posInProj.z / In.posInProj.w + depthBias.x + 1.0f*max(abs(ddx(In.posInProj.z / In.posInProj.w)), abs(ddy(In.posInProj.z / In.posInProj.w)));
+	return In.posInProj.z / In.posInProj.w + depthBias.x ;// +1.0f*max(abs(ddx(In.posInProj.z / In.posInProj.w)), abs(ddy(In.posInProj.z / In.posInProj.w)));
 }

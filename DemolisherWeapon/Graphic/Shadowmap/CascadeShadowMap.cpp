@@ -6,7 +6,7 @@ namespace GameObj {
 
 	CascadeShadowMap::CascadeShadowMap(float areaNear, float areaFar): m_cascadeAreaNear(areaNear), m_cascadeAreaFar(areaFar)
 	{
-		m_shadowMap = CreateShadowMap(2048, 2048);
+		m_shadowMap = CreateShadowMap(2048/2, 2048/2);
 		m_shadowMap->SetCascadeNear(m_cascadeAreaNear);
 		m_shadowMap->SetCascadeFar(m_cascadeAreaFar);
 
