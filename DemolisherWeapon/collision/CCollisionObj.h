@@ -121,6 +121,11 @@ public:
 		return m_contactTestEnable;
 	}
 
+	//‹ò‚ç‚¢”»’è‚©‚Ç‚¤‚©İ’è
+	void SetIsHurtCollision(bool isHurtCol) {
+		SetContactTestEnable(!isHurtCol);
+	}
+
 	/*!
 	* @brief	À•W‚ğİ’èB
 	*/
