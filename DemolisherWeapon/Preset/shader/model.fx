@@ -12,6 +12,9 @@ Texture2D<float4> albedoTexture : register(t0);
 //ボーン行列
 StructuredBuffer<float4x4> boneMatrix : register(t1);
 StructuredBuffer<float4x4> boneMatrixOld : register(t2);
+//インスタンシング用ワールド行列
+StructuredBuffer<float4x4> InstancingWorldMatrix : register(t3);
+StructuredBuffer<float4x4> InstancingWorldMatrixOld : register(t4);
 
 /////////////////////////////////////////////////////////////
 // SamplerState
@@ -98,35 +101,68 @@ struct ZPSInput {
 /*!--------------------------------------------------------------------------------------
  * @brief	スキンなしモデル用の頂点シェーダー。
 -------------------------------------------------------------------------------------- */
-PSInput VSMain( VSInputNmTxVcTangent In ) 
-{
+PSInput VSMain( VSInputNmTxVcTangent In
+#if defined(INSTANCING)
+	, uint instanceID : SV_InstanceID 
+#endif 
+){
 	PSInput psInput = (PSInput)0;
-	float4 pos = mul(mWorld, In.Position); float3 posW = pos.xyz;
+
+#if defined(INSTANCING)
+	float4 pos = mul(InstancingWorldMatrix[instanceID], In.Position);
+#else
+	float4 pos = mul(mWorld, In.Position);
+#endif
+
+	float3 posW = pos.xyz;
 	pos = mul(mView, pos); psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
 	psInput.Position = pos;
 	psInput.TexCoord = In.TexCoord;
+
+#if defined(INSTANCING)
+	psInput.Normal = normalize(mul(InstancingWorldMatrix[instanceID], In.Normal));
+	psInput.Tangent = normalize(mul(InstancingWorldMatrix[instanceID], In.Tangent));
+#else
 	psInput.Normal = normalize(mul(mWorld, In.Normal));
 	psInput.Tangent = normalize(mul(mWorld, In.Tangent));
+#endif
 
 	psInput.curPos = pos;
 
 	//ベロシティマップ用情報
-#if MOTIONBLUR
+#if !defined(NO_MOTIONBLUR)
+
+#if defined(INSTANCING)
+		float4 oldpos = mul(InstancingWorldMatrixOld[instanceID], In.Position);
+#else
 		float4 oldpos = mul(mWorld_old, In.Position);
+#endif
 
 		oldpos.xyz = lerp(posW, oldpos.xyz, MotionBlurScale);
 
+#if defined(INSTANCING)
+		float3 trans = float3(InstancingWorldMatrix[instanceID]._m03, InstancingWorldMatrix[instanceID]._m13, InstancingWorldMatrix[instanceID]._m23);
+		float3 transOld = float3(InstancingWorldMatrixOld[instanceID]._m03, InstancingWorldMatrixOld[instanceID]._m13, InstancingWorldMatrixOld[instanceID]._m23);
+#else
 		float3 trans = float3(mWorld._m03, mWorld._m13, mWorld._m23);
 		float3 transOld = float3(mWorld_old._m03, mWorld_old._m13, mWorld_old._m23);
+#endif
+
 		transOld = lerp(trans, transOld, MotionBlurScale);
 		trans -= transOld;
 
 		if (length(trans) > camMoveVec.w
 			&& distance(camMoveVec.xyz, trans) > camMoveVec.w
+#if defined(INSTANCING)
+			|| distance(float3(InstancingWorldMatrix[instanceID]._m00, InstancingWorldMatrix[instanceID]._m10, InstancingWorldMatrix[instanceID]._m20), float3(InstancingWorldMatrixOld[instanceID]._m00, InstancingWorldMatrixOld[instanceID]._m10, InstancingWorldMatrixOld[instanceID]._m20)) > 0.0f
+			|| distance(float3(InstancingWorldMatrix[instanceID]._m01, InstancingWorldMatrix[instanceID]._m11, InstancingWorldMatrix[instanceID]._m21), float3(InstancingWorldMatrixOld[instanceID]._m01, InstancingWorldMatrixOld[instanceID]._m11, InstancingWorldMatrixOld[instanceID]._m21)) > 0.0f
+			|| distance(float3(InstancingWorldMatrix[instanceID]._m02, InstancingWorldMatrix[instanceID]._m12, InstancingWorldMatrix[instanceID]._m22), float3(InstancingWorldMatrixOld[instanceID]._m02, InstancingWorldMatrixOld[instanceID]._m12, InstancingWorldMatrixOld[instanceID]._m22)) > 0.0f
+#else
 			|| distance(float3(mWorld._m00, mWorld._m10, mWorld._m20), float3(mWorld_old._m00, mWorld_old._m10, mWorld_old._m20)) > 0.0f
 			|| distance(float3(mWorld._m01, mWorld._m11, mWorld._m21), float3(mWorld_old._m01, mWorld_old._m11, mWorld_old._m21)) > 0.0f
 			|| distance(float3(mWorld._m02, mWorld._m12, mWorld._m22), float3(mWorld_old._m02, mWorld_old._m12, mWorld_old._m22)) > 0.0f
+#endif
 		){
 			psInput.isWorldMove = true;
 		}
@@ -143,10 +179,19 @@ PSInput VSMain( VSInputNmTxVcTangent In )
 	return psInput;
 }
 //Z値書き込み用
-ZPSInput VSMain_RenderZ(VSInputNmTxVcTangent In)
-{
+ZPSInput VSMain_RenderZ(VSInputNmTxVcTangent In
+#if defined(INSTANCING)
+	, uint instanceID : SV_InstanceID
+#endif 
+){
 	ZPSInput psInput = (ZPSInput)0;
+
+#if defined(INSTANCING)
+	float4 pos = mul(InstancingWorldMatrix[instanceID], In.Position);
+#else
 	float4 pos = mul(mWorld, In.Position);
+#endif
+
 	pos = mul(mView, pos);
 	pos = mul(mProj, pos);
 	psInput.Position = pos;
@@ -161,8 +206,11 @@ ZPSInput VSMain_RenderZ(VSInputNmTxVcTangent In)
  * 全ての頂点に対してこのシェーダーが呼ばれる。
  * Inは1つの頂点データ。VSInputNmTxWeightsを見てみよう。
 -------------------------------------------------------------------------------------- */
-PSInput VSMainSkin( VSInputNmTxWeights In ) 
-{
+PSInput VSMainSkin( VSInputNmTxWeights In
+#if defined(INSTANCING)
+	, uint instanceID : SV_InstanceID
+#endif 
+){
 	PSInput psInput = (PSInput)0;
 	///////////////////////////////////////////////////
 	//ここからスキニングを行っている箇所。
@@ -170,8 +218,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 	///////////////////////////////////////////////////
 	float4x4 skinning = 0;	
 	float4 pos = 0;
-	{
-	
+	{	
 		float w = 0.0f;
 		[unroll]
 	    for (int i = 0; i < 3; i++)
@@ -183,15 +230,21 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 	        w += In.Weights[i];
 	    }
 	    //最後のボーンを計算する。
-	    skinning += boneMatrix[In.Indices[3]] * (1.0f - w);
-	  	//頂点座標にスキン行列を乗算して、頂点をワールド空間に変換。
-		//mulは乗算命令。
-	    pos = mul(skinning, In.Position);
+	    skinning += boneMatrix[In.Indices[3]] * (1.0f - w);	  	
 	}
-	float3 posW = pos.xyz;
+#if defined(INSTANCING)
+	//インスタンシング
+	skinning = mul(InstancingWorldMatrix[instanceID], skinning);
+#endif
+	
+	//頂点座標にスキン行列を乗算して、頂点をワールド空間に変換。
+	//mulは乗算命令。
+	pos = mul(skinning, In.Position);
 	psInput.Normal = normalize( mul(skinning, In.Normal) );
 	psInput.Tangent = normalize( mul(skinning, In.Tangent) );
-	
+
+	float3 posW = pos.xyz;	
+
 	pos = mul(mView, pos);  psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
 	psInput.Position = pos;
@@ -200,7 +253,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 	psInput.curPos = pos;
 
 	//ベロシティマップ用情報
-#if MOTIONBLUR
+#if !defined(NO_MOTIONBLUR)
 		float4x4 oldskinning = 0;
 		float4 oldpos = 0;
 		{
@@ -212,9 +265,12 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
 				w += In.Weights[i];
 			}
 			oldskinning += boneMatrixOld[In.Indices[3]] * (1.0f - w);
-			oldpos = mul(oldskinning, In.Position);
 		}
-
+#if defined(INSTANCING)
+		//インスタンシング
+		oldskinning = mul(InstancingWorldMatrixOld[instanceID], oldskinning);
+#endif
+		oldpos = mul(oldskinning, In.Position);
 		oldpos.xyz = lerp(posW, oldpos.xyz, MotionBlurScale);
 
 		float3 trans = float3(skinning._m03, skinning._m13, skinning._m23);
@@ -243,8 +299,11 @@ PSInput VSMainSkin( VSInputNmTxWeights In )
     return psInput;
 }
 //Z値書き込み用
-ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In)
-{
+ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In
+#if defined(INSTANCING)
+	, uint instanceID : SV_InstanceID
+#endif 
+){
 	ZPSInput psInput = (ZPSInput)0;
 	///////////////////////////////////////////////////
 	//ここからスキニングを行っている箇所。
@@ -253,7 +312,6 @@ ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In)
 	float4x4 skinning = 0;
 	float4 pos = 0;
 	{
-
 		float w = 0.0f;
 		[unroll]
 		for (int i = 0; i < 3; i++)
@@ -265,12 +323,16 @@ ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In)
 			w += In.Weights[i];
 		}
 		//最後のボーンを計算する。
-		skinning += boneMatrix[In.Indices[3]] * (1.0f - w);
-		//頂点座標にスキン行列を乗算して、頂点をワールド空間に変換。
-		//mulは乗算命令。
-		pos = mul(skinning, In.Position);
+		skinning += boneMatrix[In.Indices[3]] * (1.0f - w);		
 	}
+#if defined(INSTANCING)
+	//インスタンシング
+	skinning = mul(InstancingWorldMatrix[instanceID], skinning);
+#endif
 
+	//頂点座標にスキン行列を乗算して、頂点をワールド空間に変換。
+	//mulは乗算命令。
+	pos = mul(skinning, In.Position);	
 	pos = mul(mView, pos);
 	pos = mul(mProj, pos);
 
@@ -317,8 +379,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	Out.lightingParam = emissive;
 
 	//速度
-#if MOTIONBLUR
-
+#if !defined(NO_MOTIONBLUR)
 		float2	current = In.curPos.xy / In.curPos.w;
 		float2	last = In.lastPos.xy / In.lastPos.w;		
 

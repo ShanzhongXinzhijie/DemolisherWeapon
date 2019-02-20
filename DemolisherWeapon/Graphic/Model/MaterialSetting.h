@@ -57,14 +57,28 @@ namespace DemolisherWeapon {
 		}
 
 		//シェーダを取得
+		Shader* GetVS() const {
+			return m_pVSShader;
+		}
+		Shader* GetVSZ() const {
+			return m_pVSZShader;
+		}
 		Shader* GetPS() const{
 			return m_pPSShader;
 		}
 		//シェーダを設定
+		void SetVS(Shader* ps) {
+			m_pVSShader = ps;
+		}
+		void SetVSZ(Shader* ps) {
+			m_pVSZShader = ps;
+		}
 		void SetPS(Shader* ps) {
 			m_pPSShader = ps;
 		}
 		//シェーダをデフォに戻す
+		void SetDefaultVS();
+		void SetDefaultVSZ();
 		void SetDefaultPS();
 
 		//アルベドテクスチャを取得
@@ -93,14 +107,19 @@ namespace DemolisherWeapon {
 		bool GetIsMotionBlur() const{
 			return m_enableMotionBlur;
 		}
+
+		ModelEffect* GetModelEffect() {
+			return m_isInit;
+		}
 		
 	private:
 		ModelEffect *m_isInit = nullptr;
 
-		std::wstring m_materialName;						//マテリアル名
-		MaterialParam m_materialParam;						//マテリアルパラメータ
-		Shader* m_pPSShader = nullptr;						//シェーダー
-		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;	//テクスチャ
+		std::wstring m_materialName;							//マテリアル名
+		MaterialParam m_materialParam;							//マテリアルパラメータ
+		Shader *m_pVSShader = nullptr, *m_pVSZShader = nullptr; //頂点シェーダ
+		Shader *m_pPSShader = nullptr;							//ピクセルシェーダ
+		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;		//テクスチャ
 
 		bool m_enableMotionBlur = true;
 	};

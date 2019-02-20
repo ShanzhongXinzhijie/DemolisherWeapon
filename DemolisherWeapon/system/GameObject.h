@@ -334,6 +334,7 @@ public:
 	virtual void Update() {};
 	virtual void PostUpdate() {};
 	virtual void PostLoopUpdate() {};
+	virtual void PostLoopPostUpdate() {};
 	//virtual void Rengoku() {};
 
 	virtual void PostRender() {};
@@ -422,6 +423,11 @@ public:
 				go.gameObject->PostLoopUpdate();
 			}
 		}
+		for (auto& go : m_gameObjectList) {
+			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
+				go.gameObject->PostLoopPostUpdate();
+			}
+		}		
 	}
 	void PostRender();
 

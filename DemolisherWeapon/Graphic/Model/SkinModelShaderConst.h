@@ -19,4 +19,8 @@ enum EnSkinModelSRVReg{
 	enSkinModelSRVReg_AlbedoTexture,		//!<アルベドテクスチャ。
 	enSkinModelSRVReg_BoneMatrixArray,		//!<ボーン行列の配列。
 	enSkinModelSRVReg_BoneMatrixArrayOld,
+	enSkinModelSRVReg_InstancingWorldMatrix,//インスタンシング用ワールド行列
+	enSkinModelSRVReg_InstancingWorldMatrixOld, 
+	
+	enSkinModelSRVReg_Free,					//ここから使ってない
 };

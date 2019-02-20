@@ -105,35 +105,18 @@ void SkinModel::InitSamplerState()
 	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
 }
-void SkinModel::UpdateWorldMatrix(CVector3 position, CQuaternion rotation, CVector3 scale)
+void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale)
 {
-	CMatrix mBiasRot;
-	CMatrix mBiasScr;
-
-	CoordinateSystemBias::GetBias(mBiasRot, mBiasScr, m_enFbxUpAxis, m_enFbxCoordinate);
-
-	CMatrix transMatrix, rotMatrix, scaleMatrix;
-	//平行移動行列を作成する。
-	transMatrix.MakeTranslation( position );
-	//回転行列を作成する。
-	rotMatrix.MakeRotationFromQuaternion( rotation );
-	//rotMatrix.Mul(mBiasRot, rotMatrix);
-	//拡大行列を作成する。
-	scaleMatrix.MakeScaling(scale);
-	//scaleMatrix.Mul(mBiasScr, scaleMatrix);
-
-	//ワールド行列を作成する。
-	//拡大×回転×平行移動の順番で乗算するように！
-	//順番を間違えたら結果が変わるよ。
-	m_worldMatrix.Mul(scaleMatrix, rotMatrix);
-	m_worldMatrix.Mul(m_worldMatrix, transMatrix);
-
-	//バイアス適応
-	mBiasRot.Mul(mBiasScr, mBiasRot);
-	m_worldMatrix.Mul(mBiasRot, m_worldMatrix);
-
-	//スケルトンの更新。
-	m_skeleton.Update(m_worldMatrix);
+	if (m_isCalcWorldMatrix) {
+		//ワールド行列を計算
+		CalcWorldMatrix(position, rotation, scale, m_worldMatrix);
+		//スケルトンの更新。
+		m_skeleton.Update(m_worldMatrix);
+	}
+	else {
+		//スケルトンの更新。
+		m_skeleton.Update(CMatrix::Identity());
+	}
 
 	//最初のワールド座標更新なら...
 	if (m_isFirstWorldMatRef) {
@@ -143,10 +126,33 @@ void SkinModel::UpdateWorldMatrix(CVector3 position, CQuaternion rotation, CVect
 	}
 }
 
+void SkinModel::CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix) {
+	//バイアス取得
+	CMatrix mBiasRot;
+	CMatrix mBiasScr;
+	CoordinateSystemBias::GetBias(mBiasRot, mBiasScr, m_enFbxUpAxis, m_enFbxCoordinate);
+	
+	//ワールド行列を作成する。
+	//拡大×回転×平行移動の順番で乗算するように！
+	//順番を間違えたら結果が変わるよ。
+	CMatrix mat;
+	returnWorldMatrix.MakeScaling(scale);//拡大
+	mat.MakeRotationFromQuaternion(rotation);//回転
+	returnWorldMatrix.Mul(returnWorldMatrix, mat);//拡大×回転
+	mat.MakeTranslation(position);//平行移動
+	returnWorldMatrix.Mul(returnWorldMatrix, mat);//(拡大×回転)×平行移動
+
+	//バイアス適応
+	mBiasRot.Mul(mBiasScr, mBiasRot);
+	returnWorldMatrix.Mul(mBiasRot, returnWorldMatrix);
+}
+
 static const float REFERENCE_FRUSTUM_SIZE = (1.0f / tan(3.14f*0.5f / 2.0f));
 
 void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlendState)
 {
+	if (m_instanceNum <= 0) { return; }
+
 	DirectX::CommonStates state(GetEngine().GetGraphicsEngine().GetD3DDevice());
 
 	ID3D11DeviceContext* d3dDeviceContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
@@ -212,7 +218,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		(m_enFbxCoordinate == enFbxRightHanded) != reverseCull,
 		pBlendState,
 		m_pRasterizerStateCw, m_pRasterizerStateCCw,
-		instanceNum
+		instanceNum*m_instanceNum
 	);
 }
 

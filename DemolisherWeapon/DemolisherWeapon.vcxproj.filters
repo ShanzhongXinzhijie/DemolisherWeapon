@@ -81,6 +81,7 @@
     <ClInclude Include="Sound\CSound.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowMap.h" />
     <ClInclude Include="Render\ConvertLinearToSRGBRender.h" />
+    <ClInclude Include="Graphic\Model\Render\CInstancingModelRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="Sound\CSoundStreaming.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowMap.cpp" />
     <ClCompile Include="Render\ConvertLinearToSRGBRender.cpp" />
+    <ClCompile Include="Graphic\Model\Render\CInstancingModelRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

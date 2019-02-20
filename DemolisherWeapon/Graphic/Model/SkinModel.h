@@ -35,7 +35,10 @@ public:
 	*@param[in]	rotation	モデルの回転。
 	*@param[in]	scale		モデルの拡大率。
 	*/
-	void UpdateWorldMatrix(CVector3 position, CQuaternion rotation, CVector3 scale);
+	void UpdateWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale);
+
+	//ワールド行列を計算する
+	void CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix);
 
 	//旧行列の記録
 	void UpdateOldMatrix() {
@@ -143,6 +146,16 @@ public:
 		m_depthBias = bias;
 	}
 
+	//インスタンス数を設定
+	void SetInstanceNum(int num) {
+		m_instanceNum = num;
+	}
+
+	//ワールド行列を計算するか設定
+	void SetIsCalcWorldMatrix(bool enable) {
+		m_isCalcWorldMatrix = enable;
+	}
+
 	//FBXの設定取得
 	const EnFbxUpAxis& GetFBXUpAxis()const {
 		return m_enFbxUpAxis;
@@ -203,6 +216,10 @@ private:
 	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
 	float m_depthBias = 0.0f;
+
+	int m_instanceNum = 1;//インスタンス数
+
+	bool m_isCalcWorldMatrix = true;//ワールド行列を計算するか?
 
 	static SkinModelDataManager m_skinModelDataManager;
 };

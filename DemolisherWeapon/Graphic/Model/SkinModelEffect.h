@@ -28,7 +28,7 @@ public:
 private:
 	static enShaderMode m_s_shadermode ;
 protected:
-	Shader* m_pVSShader = nullptr;
+	Shader* m_pVSShader = nullptr, *m_pVSZShader = nullptr;
 	Shader* m_pPSShader = nullptr;
 
 	Shader m_vsDefaultShader[2], m_vsZShader;
@@ -55,9 +55,9 @@ protected:
 public:
 	ModelEffect()
 	{
-		D3D_SHADER_MACRO macros[] = { "MOTIONBLUR", "1", NULL, NULL };
-		m_psDefaultShader[enALL].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, "ALL", macros);
-		m_psDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
+		D3D_SHADER_MACRO macros[] = { "NO_MOTIONBLUR", "1", NULL, NULL };
+		m_psDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, "NO_MOTIONBLUR", macros);
+		m_psDefaultShader[enALL].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
 		m_psZShader.Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
 		
 		LoadClassInstancePS();
@@ -99,6 +99,11 @@ public:
 		*pByteCodeLength = m_vsDefaultShader[enALL].GetByteCodeSize();
 	}
 
+	//スキンモデルかどうか取得
+	bool GetIsSkining()const {
+		return isSkining;
+	}
+
 	//マテリアル設定をこのインスタンスをベースに初期化してやる
 	//MaterialSetting& matset　初期化するセッティング
 	void MaterialSettingInit(MaterialSetting& matset) {
@@ -129,14 +134,32 @@ public:
 	}
 
 	//シェーダを設定
+	void SetVS(Shader* vs) {
+		m_defaultMaterialSetting.SetVS(vs);
+	}
+	void SetVSZ(Shader* vs) {
+		m_defaultMaterialSetting.SetVSZ(vs);
+	}
 	void SetPS(Shader* ps) {
 		m_defaultMaterialSetting.SetPS(ps);
 	}
 	//シェーダをデフォに戻す
+	void SetDefaultVS() {
+		m_defaultMaterialSetting.SetDefaultVS();
+	}
+	void SetDefaultVSZ() {
+		m_defaultMaterialSetting.SetDefaultVSZ();
+	}
 	void SetDefaultPS() {
 		m_defaultMaterialSetting.SetDefaultPS();
 	}
 	//デフォルトのシェーダを取得
+	Shader* GetDefaultVS() {
+		return &m_vsDefaultShader[enALL];
+	}
+	Shader* GetDefaultVSZ() {
+		return &m_vsZShader;
+	}
 	Shader* GetDefaultPS() {
 		return &m_psDefaultShader[enALL];
 	}
@@ -175,6 +198,8 @@ public:
 	//使うマテリアル設定を適応
 	void SetUseMaterialSetting(MaterialSetting& matset) {
 		m_materialParam = matset.GetMaterialParam();
+		m_pVSShader = matset.GetVS();
+		m_pVSZShader = matset.GetVSZ(); 
 		m_pPSShader = matset.GetPS();
 		m_pAlbedoTex = matset.GetAlbedoTexture();
 		m_enableMotionBlur = matset.GetIsMotionBlur();
@@ -247,14 +272,15 @@ class NonSkinModelEffect : public ModelEffect {
 public:
 	NonSkinModelEffect()
 	{
-		D3D_SHADER_MACRO macros[] = { "MOTIONBLUR", "1", NULL, NULL };
-		m_vsDefaultShader[enALL].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "ALL", macros);
-		m_vsDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS);
+		D3D_SHADER_MACRO macros[] = { "NO_MOTIONBLUR", "1", NULL, NULL };
+		m_vsDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "NO_MOTIONBLUR", macros);
+		m_vsDefaultShader[enALL].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS);
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS);
 
 		LoadClassInstanceVS();
 		
 		m_pVSShader = &m_vsDefaultShader[enALL];
+		m_pVSZShader = &m_vsZShader;
 		isSkining = false;
 	}
 };
@@ -268,14 +294,15 @@ public:
 	{
 		wchar_t hoge[256];
 		GetCurrentDirectoryW(256, hoge);
-		D3D_SHADER_MACRO macros[] = { "MOTIONBLUR", "1", NULL, NULL };
-		m_vsDefaultShader[enALL].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, "ALL", macros);
-		m_vsDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS);
+		D3D_SHADER_MACRO macros[] = { "NO_MOTIONBLUR", "1", NULL, NULL };
+		m_vsDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, "NO_MOTIONBLUR", macros);
+		m_vsDefaultShader[enALL].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS);
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS);
 
 		LoadClassInstanceVS();
 
 		m_pVSShader = &m_vsDefaultShader[enALL];
+		m_pVSZShader = &m_vsZShader;
 		isSkining = true;
 	}
 };
