@@ -38,39 +38,11 @@ namespace GameObj {
 			AnimationClip* animationClip = nullptr,
 			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded
-		) {			
-			//モデル初期化
-			m_model.Init(filePath, animationClip, animationClip ? 1 : 0, fbxUpAxis, fbxCoordinate);
-			//ワールド行列を計算させない
-			m_model.GetSkinModel().SetIsCalcWorldMatrix(false);
-			//インスタンシング用頂点シェーダをロード
-			D3D_SHADER_MACRO macros[] = { "INSTANCING", "1", NULL, NULL };
-			m_vsShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "INSTANCING", macros);
-			m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS, "INSTANCING", macros);
-			m_vsSkinShader.Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, "INSTANCING", macros);
-			m_vsZSkinShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS, "INSTANCING", macros);
-			//インスタンシング用頂点シェーダをセット
-			m_model.GetSkinModel().FindMaterialSetting(
-				[&](MaterialSetting* mat) {
-					if (mat->GetModelEffect()->GetIsSkining()) {
-						//スキンモデル
-						mat->SetVS(&m_vsSkinShader);
-						mat->SetVSZ(&m_vsZSkinShader);
-					}
-					else {
-						//スキンじゃないモデル
-						mat->SetVS(&m_vsShader);
-						mat->SetVSZ(&m_vsZShader);
-					}
-				}
-			);
-
-			//最大インスタンス数設定
-			SetInstanceMax(instanceMax);
-		}
+		);
 
 		//最大インスタンス数の設定
 		void SetInstanceMax(int instanceMax);
+		int  GetInstanceMax()const { return m_instanceMax; }
 
 		//モデルの取得
 		GameObj::CSkinModelRender& GetModelRender() { return m_model; }
@@ -127,6 +99,9 @@ namespace GameObj {
 			}
 		}
 
+		//指定のモデルを削除
+		void Delete(const wchar_t* filePath, AnimationClip* animationClip = nullptr, const wchar_t* identifier = nullptr);
+
 		GameObj::InstancingModel* Load(
 			int instanceMax,										//新規読み込み時のみ使用
 			const wchar_t* filePath,
@@ -155,29 +130,29 @@ namespace GameObj {
 	class CInstancingModelRender : public IQSGameObject
 	{
 	public:
-		CInstancingModelRender();
-		~CInstancingModelRender();
-
 		//初期化
-		void Init(int instanceMax,									//新規読み込み時のみ使用
+		void Init(int instanceMax,									
 			const wchar_t* filePath,
 			AnimationClip* animationClips = nullptr,
 			int numAnimationClips = 0,
 			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,					//新規読み込み時のみ使用
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//新規読み込み時のみ使用
-			const wchar_t* identifier = nullptr
+			const wchar_t** identifiers = nullptr					//animationClipsと同数必要
 		) {
+			m_model.clear();
 			for (int i = 0; i < max(numAnimationClips,1); i++) {
-				m_model = m_s_instancingModelManager.Load(instanceMax, filePath, &animationClips[i], fbxUpAxis, fbxCoordinate, identifier);
+				const wchar_t* identifier = nullptr; if (identifiers) { identifier = identifiers[i]; }
+				m_model.emplace_back(m_s_instancingModelManager.Load(instanceMax, filePath, &animationClips[i], fbxUpAxis, fbxCoordinate, identifier));
+				if (m_model.back()->GetInstanceMax() < instanceMax) {
+					m_model.back()->SetInstanceMax(instanceMax);
+				}
 			}
+			m_playingAnimNum = 0;
 		}
-
-		//CSkinModelRender& GetCSkinModelRender(int num) { return m_modelRender[num]; }
-
-		//ワールド行列を求める(バイアス含む)
-		//インスタンスに送る
+		
 		void PostLoopUpdate()override final {
-			m_model->GetModelRender().GetSkinModel().CalcWorldMatrix( m_pos, m_rot, m_scale, m_worldMatrix);
+			//ワールド行列を求める(バイアス含む)
+			m_model[m_playingAnimNum]->GetModelRender().GetSkinModel().CalcWorldMatrix( m_pos, m_rot, m_scale, m_worldMatrix);
 
 			//最初のワールド座標更新なら...
 			if (m_isFirstWorldMatRef) {
@@ -186,10 +161,12 @@ namespace GameObj {
 				m_worldMatrixOld = m_worldMatrix;
 			}
 
-			m_model->AddDrawInstance(&m_worldMatrix, &m_worldMatrixOld);
+			//インスタンシングモデルに送る
+			m_model[m_playingAnimNum]->AddDrawInstance(&m_worldMatrix, &m_worldMatrixOld);
 			m_worldMatrixOld = m_worldMatrix;
 		}
 
+		//座標とか設定
 		void SetPos(const CVector3& pos) {
 			m_pos = pos;
 		}
@@ -205,8 +182,19 @@ namespace GameObj {
 			SetScale(scale);
 		}
 
+		//再生アニメーションの変更
+		void ChangeAnim(int animNum) {
+			if (animNum >= m_model.size()) { return; }
+			m_playingAnimNum = animNum;
+		}
+
+		//モデルの取得
+		InstancingModel* GetInstancingModel(int num) { return m_model[num]; }
+		InstancingModel* GetInstancingModel() { return GetInstancingModel(m_playingAnimNum); }
+
 	private:
-		GameObj::InstancingModel* m_model;
+		std::vector<GameObj::InstancingModel*> m_model;
+		int m_playingAnimNum = 0;
 
 		bool m_isFirstWorldMatRef = true;
 		CVector3 m_pos;

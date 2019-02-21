@@ -120,6 +120,7 @@ struct AnimationClipData {
 	EnChangeAnimationClipUpAxis m_changeUpAxis = enNonChange;
 
 	std::wstring m_clipName;	//!<アニメーションクリップの名前。
+	std::wstring m_clipPass;	//ファイルパス
 
 	std::vector<Keyframe*> m_keyframes;						//全てのキーフレーム。
 	std::vector<keyFramePtrList> m_keyFramePtrListArray;	//ボーンごとのキーフレームのリストを管理するための配列。
@@ -215,6 +216,13 @@ public:
 	{
 		if (!m_animationClipData) { return nullptr; }
 		return m_animationClipData->m_clipName.c_str();
+	}
+
+	//ファイルパスの取得
+	const wchar_t* GetPass() const
+	{
+		if (!m_animationClipData) { return nullptr; }
+		return m_animationClipData->m_clipPass.c_str();
 	}
 
 	/*!

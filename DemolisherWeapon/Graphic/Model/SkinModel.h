@@ -156,6 +156,11 @@ public:
 		m_isCalcWorldMatrix = enable;
 	}
 
+	//描画前に行う処理を設定
+	void SetPreDrawFunction(std::function<void(SkinModel*)> func) {
+		m_preDrawFunc = func;
+	}
+
 	//FBXの設定取得
 	const EnFbxUpAxis& GetFBXUpAxis()const {
 		return m_enFbxUpAxis;
@@ -220,6 +225,8 @@ private:
 	int m_instanceNum = 1;//インスタンス数
 
 	bool m_isCalcWorldMatrix = true;//ワールド行列を計算するか?
+
+	std::function<void(SkinModel*)> m_preDrawFunc = nullptr;//ユーザー設定の処理
 
 	static SkinModelDataManager m_skinModelDataManager;
 };

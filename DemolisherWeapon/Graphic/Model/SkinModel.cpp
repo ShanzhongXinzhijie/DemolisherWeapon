@@ -207,6 +207,9 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		FindMaterial([&](ModelEffect* mat) { mat->SetDefaultMaterialSetting(); });
 	}
 
+	//ユーザー設定の処理実行
+	if (m_preDrawFunc) { m_preDrawFunc(this); }
+
 	//描画。
 	m_modelDx->Draw(
 		d3dDeviceContext,

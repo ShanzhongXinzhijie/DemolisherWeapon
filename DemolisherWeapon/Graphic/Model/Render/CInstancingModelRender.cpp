@@ -4,6 +4,25 @@
 
 namespace DemolisherWeapon {
 
+	namespace {
+		//キーを作成
+		std::tuple<int, int, int> CreateInstancingModelMapKey(const wchar_t* filePath, AnimationClip* animationClip, const wchar_t* identifier) {
+			int modelHash, animHash, idenHash;
+			modelHash = Util::MakeHash(filePath);
+			if (animationClip) { animHash = Util::MakeHash(animationClip->GetPass()); } else { animHash = Util::MakeHash(L""); }
+			if (identifier) { idenHash = Util::MakeHash(identifier); } else { idenHash = Util::MakeHash(L""); }
+			return std::make_tuple(modelHash, animHash, idenHash);
+		}
+	}
+
+	void InstancingModelManager::Delete(const wchar_t* filePath, AnimationClip* animationClip, const wchar_t* identifier) {
+		//キーを作成
+		std::tuple<int, int, int> key = CreateInstancingModelMapKey(filePath, animationClip, identifier);
+		//削除
+		delete m_instancingModelMap[key];
+		m_instancingModelMap.erase(key);
+	}
+
 	GameObj::InstancingModel* InstancingModelManager::Load(
 		int instanceMax,
 		const wchar_t* filePath,
@@ -13,11 +32,7 @@ namespace DemolisherWeapon {
 		const wchar_t* identifier
 	) {
 		//キーを作成
-		int modelHash, animHash, idenHash;
-		modelHash = Util::MakeHash(filePath);
-		if (animationClip) { animHash = Util::MakeHash(animationClip->GetName()); }else{ animHash = Util::MakeHash(L""); }
-		if (identifier)    { idenHash = Util::MakeHash(identifier);               }else{ idenHash = Util::MakeHash(L""); }
-		std::tuple<int, int, int> key = std::make_tuple(modelHash, animHash, idenHash);
+		std::tuple<int, int, int> key = CreateInstancingModelMapKey(filePath, animationClip, identifier);
 
 		//既に登録されてないか?
 		if (m_instancingModelMap.count(key) > 0) {
@@ -32,6 +47,51 @@ namespace DemolisherWeapon {
 	}
 
 namespace GameObj {
+
+	//初期化
+	void InstancingModel::Init(int instanceMax,
+		const wchar_t* filePath,
+		AnimationClip* animationClip,
+		EnFbxUpAxis fbxUpAxis,
+		EnFbxCoordinateSystem fbxCoordinate
+	) {
+		//モデル初期化
+		m_model.Init(filePath, animationClip, animationClip ? 1 : 0, fbxUpAxis, fbxCoordinate);
+		//ワールド行列を計算させない
+		m_model.GetSkinModel().SetIsCalcWorldMatrix(false);
+		//インスタンシング用頂点シェーダをロード
+		D3D_SHADER_MACRO macros[] = { "INSTANCING", "1", NULL, NULL };
+		m_vsShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "INSTANCING", macros);
+		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS, "INSTANCING", macros);
+		m_vsSkinShader.Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, "INSTANCING", macros);
+		m_vsZSkinShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS, "INSTANCING", macros);
+		//インスタンシング用頂点シェーダをセット
+		m_model.GetSkinModel().FindMaterialSetting(
+			[&](MaterialSetting* mat) {
+			if (mat->GetModelEffect()->GetIsSkining()) {
+				//スキンモデル
+				mat->SetVS(&m_vsSkinShader);
+				mat->SetVSZ(&m_vsZSkinShader);
+			}
+			else {
+				//スキンじゃないモデル
+				mat->SetVS(&m_vsShader);
+				mat->SetVSZ(&m_vsZShader);
+			}
+		}
+		);
+		//描画前にやる処理を設定
+		m_model.GetSkinModel().SetPreDrawFunction(
+			[&](SkinModel*) {
+			//ボーン行列を頂点シェーダーステージに設定。
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrix, 1, &m_worldMatrixSRV);
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, &m_worldMatrixSRVOld);
+		}
+		);
+
+		//最大インスタンス数設定
+		SetInstanceMax(instanceMax);
+	}
 
 	void InstancingModel::SetInstanceMax(int instanceMax) {
 
@@ -88,21 +148,10 @@ namespace GameObj {
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
 			m_worldMatrixSBOld, 0, NULL, m_instancingWorldMatrixOld.get(), 0, 0
 		);
-		//ボーン行列を頂点シェーダーステージに設定。
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrix, 1, &m_worldMatrixSRV);
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, &m_worldMatrixSRVOld);
-	
+		
 		m_instanceNum = 0;
 	}
 	
 	InstancingModelManager CInstancingModelRender::m_s_instancingModelManager;
-
-	CInstancingModelRender::CInstancingModelRender()
-	{
-	}
-	CInstancingModelRender::~CInstancingModelRender()
-	{
-	}
-
 }
 }
