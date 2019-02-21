@@ -187,12 +187,25 @@ namespace GameObj {
 			if (animNum >= m_model.size()) { return; }
 			m_playingAnimNum = animNum;
 		}
+		int GetPlayAnimNum()const {
+			return m_playingAnimNum;
+		}
+
+		//•`‰æ‚·‚é‚©İ’è
+		void SetIsDraw(bool enable) {
+			m_isDraw = enable;
+		}
+		bool GetIsDraw() const{
+			return m_isDraw;
+		}
 
 		//ƒ‚ƒfƒ‹‚Ìæ“¾
 		InstancingModel* GetInstancingModel(int num) { return m_model[num]; }
 		InstancingModel* GetInstancingModel() { return GetInstancingModel(m_playingAnimNum); }
 
 	private:
+		bool m_isDraw = true;
+
 		std::vector<GameObj::InstancingModel*> m_model;
 		int m_playingAnimNum = 0;
 
