@@ -10,17 +10,55 @@
 
 namespace DemolisherWeapon {
 
-AnimationClip::~AnimationClip()
-{
-	//キーフレームを破棄。
-	for (auto& keyFrame : m_keyframes) {
-		delete keyFrame;
+bool AnimationClipDataManager::Load(AnimationClipData*& returnACD, const wchar_t* filePath, EnChangeAnimationClipUpAxis changeUpAxis) {
+	//キーを作成
+	int filenameHash, paramHash;
+	filenameHash = Util::MakeHash(filePath);
+
+	int param = changeUpAxis;
+	wchar_t str[6]; swprintf_s(str, L"%d", param);
+	paramHash = Util::MakeHash(str);
+
+	std::pair<int, int> key = std::make_pair(filenameHash, paramHash);
+
+	//既に登録されてないか?
+	if (m_animationClipDataMap.count(key) > 0) {
+		//登録されてたらマップから取得
+		returnACD = m_animationClipDataMap[key];
+		return false;
+	}
+	else {
+		//新規読み込み
+		m_animationClipDataMap[key] = new AnimationClipData();
+		returnACD = m_animationClipDataMap[key];
+		return true;
 	}
 }
 
-void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationClipUpAxis changeUpAxis)
+AnimationClipDataManager AnimationClip::m_s_animationClipDataManager;
+
+AnimationClip::~AnimationClip()
 {
-	m_changeUpAxis = changeUpAxis;
+	//キーフレームを破棄。
+	/*for (auto& keyFrame : m_keyframes) {
+		delete keyFrame;
+	}*/
+}
+
+void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationClipUpAxis changeUpAxis)
+{	
+	//マネージャーからデータ読み込み
+	if (m_s_animationClipDataManager.Load(m_animationClipData, filePath, changeUpAxis) == false) {
+		//新規作成でない
+
+		//ループ設定
+		SetLoopFlag(loop);
+
+		return;
+	}
+
+	//新規作成なら初期化する
+	m_animationClipData->m_changeUpAxis = changeUpAxis;
 
 	FILE* fp;
 	if (_wfopen_s(&fp, filePath, L"rb") != 0) {
@@ -32,12 +70,13 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 		//止める。
 		std::abort();
 #endif
+		m_animationClipData = nullptr;
 		return;
 	}
 
 	//クリップ名記録
 	std::experimental::filesystem::path ps = filePath;
-	m_clipName = ps.stem();
+	m_animationClipData->m_clipName = ps.stem();
 	
 	//アニメーションクリップのヘッダーをロード。
 	AnimClipHeader header;
@@ -48,7 +87,7 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 		//ソート用
 		std::vector<std::pair<float, AnimationEvent>> sortEvent;
 
-		m_animationEvent = std::make_unique<AnimationEvent[]>(header.numAnimationEvent);
+		m_animationClipData->m_animationEvent = std::make_unique<AnimationEvent[]>(header.numAnimationEvent);
 		//アニメーションイベントがあるなら、イベント情報をロードする。
 		for (auto i = 0; i < (int)header.numAnimationEvent; i++) {
 			AnimationEventData animEvent;
@@ -63,11 +102,11 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 			size_t rval = 0;
 			mbstowcs_s(&rval, wEventName, 256, eventName, animEvent.eventNameLength + 1);
 
-			m_animationEvent[i].SetInvokeTime(animEvent.invokeTime);
-			m_animationEvent[i].SetEventName(wEventName);
+			m_animationClipData->m_animationEvent[i].SetInvokeTime(animEvent.invokeTime);
+			m_animationClipData->m_animationEvent[i].SetEventName(wEventName);
 
 			//ソート用配列作る
-			sortEvent.push_back(std::make_pair(animEvent.invokeTime, m_animationEvent[i]));
+			sortEvent.push_back(std::make_pair(animEvent.invokeTime, m_animationClipData->m_animationEvent[i]));
 		}
 
 		//一応、昇順にソート
@@ -75,10 +114,10 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 			return a.first < b.first;
 		});
 		for (auto i = 0; i < (int)header.numAnimationEvent; i++) {
-			m_animationEvent[i] = sortEvent[i].second;
+			m_animationClipData->m_animationEvent[i] = sortEvent[i].second;
 		}
 	}
-	m_numAnimationEvent = header.numAnimationEvent;
+	m_animationClipData->m_numAnimationEvent = header.numAnimationEvent;
 
 	//中身コピーするためのメモリをドカッと確保。
 	KeyframeRow* keyframes = new KeyframeRow[header.numKey];
@@ -103,13 +142,13 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 		}
 
 		//ルートボーンに軸バイアスを掛ける
-		if (m_changeUpAxis != enNonChange && keyframe->boneIndex == 0) {
+		if (m_animationClipData->m_changeUpAxis != enNonChange && keyframe->boneIndex == 0) {
 			CMatrix mBias = CMatrix::Identity();
-			if (m_changeUpAxis == enZtoY) {
+			if (m_animationClipData->m_changeUpAxis == enZtoY) {
 				//Z to Y-up
 				mBias.MakeRotationX(CMath::PI * -0.5f);
 			}
-			if (m_changeUpAxis == enYtoZ) {
+			if (m_animationClipData->m_changeUpAxis == enYtoZ) {
 				//Y to Z-up
 				mBias.MakeRotationX(CMath::PI * 0.5f);
 			}
@@ -117,18 +156,18 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 		}
 
 		//新しく作ったキーフレームを可変長配列に追加。
-		m_keyframes.push_back(keyframe);
+		m_animationClipData->m_keyframes.push_back(keyframe);
 	}
 
 	//キーフレームは全部コピー終わったので、ファイルから読み込んだ分は破棄する。
 	delete[] keyframes;
 
 	//ボーン番号ごとにキーフレームを振り分けていく。
-	m_keyFramePtrListArray.resize(Skeleton::MAX_BONE);
-	for (Keyframe* keyframe : m_keyframes) {
-		m_keyFramePtrListArray[keyframe->boneIndex].push_back(keyframe);
-		if (m_topBoneKeyFramList == nullptr) {
-			m_topBoneKeyFramList = &m_keyFramePtrListArray[keyframe->boneIndex];
+	m_animationClipData->m_keyFramePtrListArray.resize(Skeleton::MAX_BONE);
+	for (Keyframe* keyframe : m_animationClipData->m_keyframes) {
+		m_animationClipData->m_keyFramePtrListArray[keyframe->boneIndex].push_back(keyframe);
+		if (m_animationClipData->m_topBoneKeyFramList == nullptr) {
+			m_animationClipData->m_topBoneKeyFramList = &m_animationClipData->m_keyFramePtrListArray[keyframe->boneIndex];
 		}
 	}
 

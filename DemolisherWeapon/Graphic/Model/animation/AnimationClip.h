@@ -50,8 +50,8 @@ enum EnChangeAnimationClipUpAxis {
 };
 
 /*!
-	*@brief	アニメーションイベント。
-	*/
+*@brief	アニメーションイベント。
+*/
 class AnimationEvent {
 public:
 	AnimationEvent()
@@ -105,13 +105,64 @@ private:
 	std::wstring m_eventName;	//!<イベント名。
 };
 
+//タイプ量が長ったらしくて、うざいのでstd::vector<KeyFrame*>の別名定義。
+using keyFramePtrList = std::vector<Keyframe*>;
+
+struct AnimationClipData {
+
+	~AnimationClipData(){
+		//キーフレームを破棄。
+		for (auto& keyFrame : m_keyframes) {
+			delete keyFrame;
+		}
+	}
+
+	EnChangeAnimationClipUpAxis m_changeUpAxis = enNonChange;
+
+	std::wstring m_clipName;	//!<アニメーションクリップの名前。
+
+	std::vector<Keyframe*> m_keyframes;						//全てのキーフレーム。
+	std::vector<keyFramePtrList> m_keyFramePtrListArray;	//ボーンごとのキーフレームのリストを管理するための配列。
+															//例えば、m_keyFramePtrListArray[0]は0番目のボーンのキーフレームのリスト、
+															//m_keyFramePtrListArray[1]は1番目のボーンのキーフレームのリストといった感じ。
+	keyFramePtrList* m_topBoneKeyFramList = nullptr;
+
+	std::unique_ptr<AnimationEvent[]>	m_animationEvent;			//アニメーションイベント。
+	int									m_numAnimationEvent = 0;	//アニメーションイベントの数。
+};
+
+class AnimationClipDataManager {
+public:
+	~AnimationClipDataManager() { Release(); }
+	void Release() {
+		//マップ内のすべてのAnimationClipDataを解放
+		for (auto& p : m_animationClipDataMap) {
+			delete p.second;
+		}
+	}
+
+	//新規作成したら、戻り値=true
+	bool Load(AnimationClipData*& returnACD, const wchar_t* filePath, EnChangeAnimationClipUpAxis changeUpAxis = enNonChange);
+
+private:
+	typedef std::pair<int, int> key_t;
+
+	struct key_hash
+	{
+		std::size_t operator()(const key_t& k) const
+		{
+			return k.first ^ k.second;
+		}
+	};
+
+	std::unordered_map<key_t, AnimationClipData*, key_hash> m_animationClipDataMap;
+};
+
 /*!
 *@brief	アニメーションクリップ。
 */
 class AnimationClip  {
 public:
-	//タイプ量が長ったらしくて、うざいのでstd::vector<KeyFrame*>の別名定義。
-	using keyFramePtrList = std::vector<Keyframe*>;
 	/*!
 	* @brief	コンストラクタ
 	*/
@@ -130,7 +181,7 @@ public:
 	void Load(const wchar_t* filePath, EnChangeAnimationClipUpAxis changeUpAxis) {
 		Load(filePath, false, changeUpAxis);
 	};
-
+	
 	/*!
 	*@brief	ループする？
 	*/
@@ -150,11 +201,11 @@ public:
 	*/
 	const std::vector<keyFramePtrList>& GetKeyFramePtrListArray() const
 	{
-		return m_keyFramePtrListArray;
+		return m_animationClipData->m_keyFramePtrListArray;
 	}
 	const keyFramePtrList& GetTopBoneKeyFrameList() const
 	{
-		return *m_topBoneKeyFramList;
+		return *m_animationClipData->m_topBoneKeyFramList;
 	}
 
 	/*!
@@ -162,39 +213,31 @@ public:
 	*/
 	const wchar_t* GetName() const
 	{
-		return m_clipName.c_str();
+		if (!m_animationClipData) { return nullptr; }
+		return m_animationClipData->m_clipName.c_str();
 	}
 
 	/*!
 	*@brief	アニメーションイベントを取得。
 	*/
-	std::unique_ptr<AnimationEvent[]>& GetAnimationEvent()
+	const std::unique_ptr<AnimationEvent[]>& GetAnimationEvent() const
 	{
-		return m_animationEvent;
+		return m_animationClipData->m_animationEvent;
 	}
 	/*!
 	*@brief	アニメーションイベントの数を取得。
 	*/
 	int GetNumAnimationEvent() const
 	{
-		return m_numAnimationEvent;
+		if (!m_animationClipData) { return 0; }
+		return m_animationClipData->m_numAnimationEvent;
 	}
 
 private:
-
-	EnChangeAnimationClipUpAxis m_changeUpAxis = enNonChange;
-
-	std::wstring m_clipName;	//!<アニメーションクリップの名前。
-
+	AnimationClipData* m_animationClipData = nullptr;
 	bool m_isLoop = false;									//!<ループフラグ。
-	std::vector<Keyframe*> m_keyframes;						//全てのキーフレーム。
-	std::vector<keyFramePtrList> m_keyFramePtrListArray;	//ボーンごとのキーフレームのリストを管理するための配列。
-															//例えば、m_keyFramePtrListArray[0]は0番目のボーンのキーフレームのリスト、
-															//m_keyFramePtrListArray[1]は1番目のボーンのキーフレームのリストといった感じ。
-	keyFramePtrList* m_topBoneKeyFramList = nullptr;
 
-	std::unique_ptr<AnimationEvent[]>	m_animationEvent;			//アニメーションイベント。
-	int									m_numAnimationEvent = 0;	//アニメーションイベントの数。
+	static AnimationClipDataManager m_s_animationClipDataManager;
 };
 
 }

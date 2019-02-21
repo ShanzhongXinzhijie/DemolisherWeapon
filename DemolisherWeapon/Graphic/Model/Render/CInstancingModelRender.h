@@ -161,12 +161,15 @@ namespace GameObj {
 		//初期化
 		void Init(int instanceMax,									//新規読み込み時のみ使用
 			const wchar_t* filePath,
-			AnimationClip* animationClip = nullptr,
+			AnimationClip* animationClips = nullptr,
+			int numAnimationClips = 0,
 			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,					//新規読み込み時のみ使用
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//新規読み込み時のみ使用
 			const wchar_t* identifier = nullptr
 		) {
-			m_model = m_s_instancingModelManager.Load(instanceMax, filePath, animationClip, fbxUpAxis, fbxCoordinate, identifier);
+			for (int i = 0; i < max(numAnimationClips,1); i++) {
+				m_model = m_s_instancingModelManager.Load(instanceMax, filePath, &animationClips[i], fbxUpAxis, fbxCoordinate, identifier);
+			}
 		}
 
 		//CSkinModelRender& GetCSkinModelRender(int num) { return m_modelRender[num]; }
