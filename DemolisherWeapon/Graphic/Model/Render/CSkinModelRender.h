@@ -143,13 +143,22 @@ public:
 	}
 
 	//ワールド行列を更新
-	void UpdateWorldMatrix() {
-		m_model.UpdateWorldMatrix(m_pos, m_rot, m_scale);
+	void UpdateWorldMatrix(bool reflesh = false) {
+		m_model.UpdateWorldMatrix(m_pos, m_rot, m_scale, reflesh);
 		m_isUpdatedWorldMatrix = true;
+	}
+	//ワールド行列をリフレッシュ
+	void RefreshWorldMatrix() {
+		ImNonUpdate();
+		ImNonUpdateWorldMatrix();
+		m_isRefreshMode = true;
+		Update();
+		m_isRefreshMode = false;
 	}
 
 private:
 	bool m_isInit = false;
+	bool m_isRefreshMode = false;
 
 	int m_priority = DRAW_PRIORITY_DEFAULT;
 	

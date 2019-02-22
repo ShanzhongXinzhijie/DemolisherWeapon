@@ -47,6 +47,11 @@ namespace GameObj {
 		//モデルの取得
 		GameObj::CSkinModelRender& GetModelRender() { return m_model; }
 
+		//描画前にやる処理を設定
+		void SetPreDrawFunction(std::function<void()> func) {
+			m_preDrawFunc = func;
+		}
+
 		//このフレームに描画するインスタンスの追加
 		void AddDrawInstance(const CMatrix* woridMatrix, const CMatrix* woridMatrixOld = nullptr) {
 			if (m_instanceNum + 1 >= m_instanceMax) {
@@ -71,6 +76,7 @@ namespace GameObj {
 		int m_instanceMax = 0;
 
 		GameObj::CSkinModelRender m_model;
+		AnimationClip m_animationClip;
 
 		std::unique_ptr<CMatrix[]>	m_instancingWorldMatrix;
 		ID3D11Buffer*				m_worldMatrixSB = nullptr;
@@ -79,6 +85,8 @@ namespace GameObj {
 		std::unique_ptr<CMatrix[]>	m_instancingWorldMatrixOld;
 		ID3D11Buffer*				m_worldMatrixSBOld = nullptr;
 		ID3D11ShaderResourceView*	m_worldMatrixSRVOld = nullptr;
+
+		std::function<void()> m_preDrawFunc = nullptr;
 
 		Shader m_vsShader, m_vsZShader;
 		Shader m_vsSkinShader, m_vsZSkinShader;
@@ -137,8 +145,9 @@ namespace GameObj {
 			int numAnimationClips = 0,
 			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,					//新規読み込み時のみ使用
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//新規読み込み時のみ使用
-			const wchar_t** identifiers = nullptr					//animationClipsと同数必要
+			const wchar_t** identifiers = nullptr					//numAnimationClipsと同数必要
 		) {
+			//アニメーションの数だけモデルロード
 			m_model.clear();
 			for (int i = 0; i < max(numAnimationClips,1); i++) {
 				const wchar_t* identifier = nullptr; if (identifiers) { identifier = identifiers[i]; }
@@ -162,7 +171,9 @@ namespace GameObj {
 			}
 
 			//インスタンシングモデルに送る
-			m_model[m_playingAnimNum]->AddDrawInstance(&m_worldMatrix, &m_worldMatrixOld);
+			if (m_isDraw) {
+				m_model[m_playingAnimNum]->AddDrawInstance(&m_worldMatrix, &m_worldMatrixOld);
+			}
 			m_worldMatrixOld = m_worldMatrix;
 		}
 

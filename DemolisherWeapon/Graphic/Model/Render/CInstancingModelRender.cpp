@@ -55,8 +55,14 @@ namespace GameObj {
 		EnFbxUpAxis fbxUpAxis,
 		EnFbxCoordinateSystem fbxCoordinate
 	) {
+		//アニメーションクリップのコピー
+		AnimationClip* animPtr = nullptr;
+		if (animationClip) { 
+			m_animationClip = *animationClip; 
+			animPtr = &m_animationClip;
+		}
 		//モデル初期化
-		m_model.Init(filePath, animationClip, animationClip ? 1 : 0, fbxUpAxis, fbxCoordinate);
+		m_model.Init(filePath, animPtr, animPtr ? 1 : 0, fbxUpAxis, fbxCoordinate);
 		//ワールド行列を計算させない
 		m_model.GetSkinModel().SetIsCalcWorldMatrix(false);
 		//インスタンシング用頂点シェーダをロード
@@ -83,10 +89,12 @@ namespace GameObj {
 		//描画前にやる処理を設定
 		m_model.GetSkinModel().SetPreDrawFunction(
 			[&](SkinModel*) {
-			//ボーン行列を頂点シェーダーステージに設定。
-			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrix, 1, &m_worldMatrixSRV);
-			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, &m_worldMatrixSRVOld);
-		}
+				//シェーダーリソースにワールド行列をセット
+				GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrix, 1, &m_worldMatrixSRV);
+				GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, &m_worldMatrixSRVOld);
+
+				if (m_preDrawFunc) { m_preDrawFunc(); }
+			}
 		);
 
 		//最大インスタンス数設定

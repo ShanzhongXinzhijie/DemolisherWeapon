@@ -35,9 +35,9 @@ public:
 	*@param[in]	clipNo	アニメーションクリップの番号。Init関数に渡したanimClipListの並びとなる。
 	*@param[in]	interpolateTime		補完時間(単位：秒)
 	*/
-	void Play(int clipNo, float interpolateTime = 0.0f)
+	void Play(int clipNo, float interpolateTime = 0.0f, bool replay = false)
 	{
-		PlayCommon(m_animationClips[clipNo], interpolateTime);
+		PlayCommon(m_animationClips[clipNo], interpolateTime, replay);
 	}
 	/*!
 	* @brief	アニメーションの再生中？
@@ -85,12 +85,12 @@ public:
 	}
 	
 private:
-	void PlayCommon(AnimationClip* nextClip, float interpolateTime)
+	void PlayCommon(AnimationClip* nextClip, float interpolateTime, bool replay)
 	{
 		//最終ポーズのインデックス取得
 		int index = GetLastAnimationControllerIndex();
-		//最終ポーズと同じアニメーションならreturn
-		if (m_animationPlayControllerPtr[index]->GetAnimClip() == nextClip) {
+		//replay==falseで最終ポーズと同じアニメーションならreturn
+		if (m_animationPlayControllerPtr[index]->GetAnimClip() == nextClip && !replay) {
 			return;
 		}
 

@@ -35,7 +35,7 @@ public:
 	*@param[in]	rotation	モデルの回転。
 	*@param[in]	scale		モデルの拡大率。
 	*/
-	void UpdateWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale);
+	void UpdateWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, bool RefreshOldPos = false);
 
 	//ワールド行列を計算する
 	void CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix);

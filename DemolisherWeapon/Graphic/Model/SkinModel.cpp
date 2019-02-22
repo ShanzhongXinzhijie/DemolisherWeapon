@@ -105,7 +105,7 @@ void SkinModel::InitSamplerState()
 	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
 }
-void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale)
+void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, bool RefreshOldPos)
 {
 	if (m_isCalcWorldMatrix) {
 		//ワールド行列を計算
@@ -119,7 +119,7 @@ void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& r
 	}
 
 	//最初のワールド座標更新なら...
-	if (m_isFirstWorldMatRef) {
+	if (m_isFirstWorldMatRef || RefreshOldPos) {
 		m_isFirstWorldMatRef = false;
 		//旧座標の更新
 		UpdateOldMatrix();

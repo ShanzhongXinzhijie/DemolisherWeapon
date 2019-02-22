@@ -27,8 +27,11 @@ public:
 	}
 
 	//アニメーションを再生
-	void Play(int clipNo, float interpolateTime = 0.0f) {
-		m_animations[0].Play(clipNo, interpolateTime);
+	void Play(int clipNo, float interpolateTime = 0.0f, bool replay = false) {
+		m_animations[0].Play(clipNo, interpolateTime, replay);
+	}
+	void Replay(int clipNo, float interpolateTime = 0.0f) {
+		Play(clipNo, interpolateTime, true);
 	}
 
 	//アニメーションの再生速度を設定

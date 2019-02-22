@@ -52,7 +52,7 @@ void CSkinModelRender::Update() {
 		m_animCon.Update();
 	}
 	if(!m_isUpdated || !m_isUpdatedWorldMatrix){
-		UpdateWorldMatrix();
+		UpdateWorldMatrix(m_isRefreshMode);
 	}
 
 	m_isUpdated = true;
