@@ -55,6 +55,7 @@ public:
 	}
 
 	void Update();
+	void Update(float updateTime);//指定時間アニメーション進める
 
 private:
 

@@ -6,7 +6,7 @@ namespace DemolisherWeapon {
 
 	namespace {
 		//キーを作成
-		std::tuple<int, int, int> CreateInstancingModelMapKey(const wchar_t* filePath, AnimationClip* animationClip, const wchar_t* identifier) {
+		std::tuple<int, int, int> CreateInstancingModelMapKey(const wchar_t* filePath, const AnimationClip* animationClip, const wchar_t* identifier) {
 			int modelHash, animHash, idenHash;
 			modelHash = Util::MakeHash(filePath);
 			if (animationClip) { animHash = Util::MakeHash(animationClip->GetPass()); } else { animHash = Util::MakeHash(L""); }
@@ -15,7 +15,7 @@ namespace DemolisherWeapon {
 		}
 	}
 
-	void InstancingModelManager::Delete(const wchar_t* filePath, AnimationClip* animationClip, const wchar_t* identifier) {
+	void InstancingModelManager::Delete(const wchar_t* filePath, const AnimationClip* animationClip, const wchar_t* identifier) {
 		//キーを作成
 		std::tuple<int, int, int> key = CreateInstancingModelMapKey(filePath, animationClip, identifier);
 		//削除
@@ -26,7 +26,7 @@ namespace DemolisherWeapon {
 	GameObj::InstancingModel* InstancingModelManager::Load(
 		int instanceMax,
 		const wchar_t* filePath,
-		AnimationClip* animationClip,
+		const AnimationClip* animationClip,
 		EnFbxUpAxis fbxUpAxis,
 		EnFbxCoordinateSystem fbxCoordinate,
 		const wchar_t* identifier
@@ -51,7 +51,7 @@ namespace GameObj {
 	//初期化
 	void InstancingModel::Init(int instanceMax,
 		const wchar_t* filePath,
-		AnimationClip* animationClip,
+		const AnimationClip* animationClip,
 		EnFbxUpAxis fbxUpAxis,
 		EnFbxCoordinateSystem fbxCoordinate
 	) {

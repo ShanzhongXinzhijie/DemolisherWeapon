@@ -40,13 +40,17 @@ void AnimationController::Init(SkinModel& skinModel, AnimationClip animClipList[
 }
 
 void AnimationController::Update() {
+	Update(GetDeltaTimeSec());
+}
+
+void AnimationController::Update(float updateTime) {
 
 	//アニメーションある?
 	if (m_animations.size() == 0) { return; }
 
 	int i = 0;
 	for (auto& anim : m_animations) {
-		anim.Update(m_animPlaySpeedSec[i]*(1.0f / GetStandardFrameRate()));
+		anim.Update(m_animPlaySpeedSec[i]*updateTime);
 		i++;
 	}
 

@@ -10,7 +10,7 @@ namespace GameObj {
 		InstancingModel() {};
 		InstancingModel(int instanceMax,
 			const wchar_t* filePath,
-			AnimationClip* animationClip = nullptr,
+			const AnimationClip* animationClip = nullptr,
 			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded
 		) {
@@ -35,7 +35,7 @@ namespace GameObj {
 		//初期化
 		void Init(int instanceMax,
 			const wchar_t* filePath,
-			AnimationClip* animationClip = nullptr,
+			const AnimationClip* animationClip = nullptr,
 			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded
 		);
@@ -108,12 +108,12 @@ namespace GameObj {
 		}
 
 		//指定のモデルを削除
-		void Delete(const wchar_t* filePath, AnimationClip* animationClip = nullptr, const wchar_t* identifier = nullptr);
+		void Delete(const wchar_t* filePath, const AnimationClip* animationClip = nullptr, const wchar_t* identifier = nullptr);
 
 		GameObj::InstancingModel* Load(
 			int instanceMax,										//新規読み込み時のみ使用
 			const wchar_t* filePath,
-			AnimationClip* animationClip = nullptr,
+			const AnimationClip* animationClip = nullptr,
 			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,					//新規読み込み時のみ使用
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//新規読み込み時のみ使用
 			const wchar_t* identifier = nullptr
@@ -141,7 +141,7 @@ namespace GameObj {
 		//初期化
 		void Init(int instanceMax,									
 			const wchar_t* filePath,
-			AnimationClip* animationClips = nullptr,
+			const AnimationClip* animationClips = nullptr,
 			int numAnimationClips = 0,
 			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,					//新規読み込み時のみ使用
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//新規読み込み時のみ使用
@@ -226,6 +226,9 @@ namespace GameObj {
 		CVector3 m_scale = CVector3::One();
 		CMatrix m_worldMatrix, m_worldMatrixOld;
 
+	public:
+		static InstancingModelManager& GetInstancingModelManager() { return m_s_instancingModelManager; }
+	private:
 		static InstancingModelManager m_s_instancingModelManager;
 	};
 
