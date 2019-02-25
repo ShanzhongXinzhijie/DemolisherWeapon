@@ -24,12 +24,12 @@ void AnimationPlayController::InvokeAnimationEvent(Animation* animation, bool is
 	for (auto i = 0; i < m_animationClip->GetNumAnimationEvent(); i++) {
 		//アニメーションの起動時間を過ぎている且つ、まだイベント起動していない。
 		if (m_time > animEventArray[i].GetInvokeTime() && m_animEventedCnt <= i){//animEventArray[i].IsInvoked() == false) {
+			m_animEventedCnt++;	//animEventArray[i].SetInvokedFlag(true);
 			if (isPlayEvent) {
 				animation->NotifyAnimationEventToListener(
 					m_animationClip->GetName(), animEventArray[i].GetEventName()
 				);
 			}
-			m_animEventedCnt++;	//animEventArray[i].SetInvokedFlag(true);
 		}
 	}
 }
