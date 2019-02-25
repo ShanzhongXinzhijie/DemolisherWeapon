@@ -175,6 +175,8 @@ private:
 	bool m_isUpdated = false;			//アップデート済みか?
 	bool m_isUpdatedWorldMatrix = false;//ワールド行列更新済みか?
 
+	bool m_animUpdating = false;
+
 	static ID3D11RasterizerState* m_mostDepthRSCw;
 	static ID3D11RasterizerState* m_mostDepthRSCCw;
 };

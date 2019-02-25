@@ -48,8 +48,10 @@ void CSkinModelRender::PreLoopUpdate() {
 void CSkinModelRender::Update() {
 	if (!m_isInit) { return; }
 
-	if (!m_isUpdated) {
+	if (!m_isUpdated && !m_animUpdating) {
+		m_animUpdating = true;
 		m_animCon.Update();
+		m_animUpdating = false;
 	}
 	if(!m_isUpdated || !m_isUpdatedWorldMatrix){
 		UpdateWorldMatrix(m_isRefreshMode);
