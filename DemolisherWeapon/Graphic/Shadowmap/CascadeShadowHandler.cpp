@@ -21,19 +21,21 @@ namespace DemolisherWeapon {
 		delete[] resolutions;
 	}
 
-	void CascadeShadowHandler::Init(int cascadeNum){
+	void CascadeShadowHandler::Init(int cascadeNum, float farScale){
 		float* splitCoefficient = new float[cascadeNum + 1];
+
+		farScale = min(1.0f, farScale);
 
 		float f = 0.0f;
 		for (int i = 0; i < cascadeNum + 1; i++) {
 			//splitCoefficient[i] = f;
-			//f += 1.0f / cascadeNum;
+			//f += farScale / cascadeNum;
 
 			if (i == 0) {
 				splitCoefficient[i] = 0.0f;
 			}
 			else {
-				splitCoefficient[i] = 1.0f*(pow(4.0f, i - 1) / pow(4.0f, cascadeNum - 1));
+				splitCoefficient[i] = farScale *(pow(4.0f, i - 1) / pow(4.0f, cascadeNum - 1));
 			}
 		}
 

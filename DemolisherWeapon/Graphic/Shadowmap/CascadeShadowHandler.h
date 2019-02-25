@@ -12,14 +12,15 @@ namespace DemolisherWeapon {
 		CascadeShadowHandler(int cascadeNum, const float splitCoefficient[], const CVector2 resolutions[]) { Init(cascadeNum, splitCoefficient, resolutions); }
 		CascadeShadowHandler(int cascadeNum, const float splitCoefficient[]) { Init(cascadeNum, splitCoefficient); }
 		CascadeShadowHandler(int cascadeNum) { Init(cascadeNum); }
-		CascadeShadowHandler(int cascadeNum, const CVector3& dir) { Init(cascadeNum, dir); }
+		CascadeShadowHandler(int cascadeNum, const CVector3& dir, float farScale = 1.0f) { Init(cascadeNum, dir, farScale); }
 
 		~CascadeShadowHandler() { Release(); }
 
 		//splitCoefficient ...cascadeNum+1ŒÂ‚Ìfloat”z—ñ
 		//resolutions ...cascadeNumŒÂ‚ÌCVector2”z—ñ
-		void Init(int cascadeNum);
-		void Init(int cascadeNum, const CVector3& dir) { Init(cascadeNum); SetDirection(dir); }
+		void Init(int cascadeNum) { Init(cascadeNum, 1.0f); }
+		void Init(int cascadeNum, float farScale);
+		void Init(int cascadeNum, const CVector3& dir, float farScale=1.0f) { Init(cascadeNum, farScale); SetDirection(dir); }
 		void Init(int cascadeNum, const float splitCoefficient[]);
 		void Init(int cascadeNum, const float splitCoefficient[], const CVector2 resolutions[]);
 		
