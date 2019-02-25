@@ -38,9 +38,9 @@ void DefferdRender::Init() {
 
 	//SampleCmp用
 	ZeroMemory(&desc, sizeof(desc));
-	desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-	desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-	desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP; //D3D11_TEXTURE_ADDRESS_BORDER;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP; //D3D11_TEXTURE_ADDRESS_BORDER;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP; //D3D11_TEXTURE_ADDRESS_BORDER;
 	desc.BorderColor[0] = 2.0f;
 	desc.BorderColor[1] = 2.0f;
 	desc.BorderColor[2] = 2.0f;
@@ -100,7 +100,7 @@ void DefferdRender::Render() {
 		sCb.enableShadowMap[i].x = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetShadowMapEnable(i) ? 1.0f : 0.0f;
 		//PCSS
 		sCb.enableShadowMap[i].y = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetEnablePCSS(i) ? 1.0f : 0.0f;
-		//サイズ
+		//シャドウマップ解像度
 		sCb.enableShadowMap[i].z = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetSizeX(i);
 		sCb.enableShadowMap[i].w = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetSizeY(i);
 
@@ -113,6 +113,10 @@ void DefferdRender::Render() {
 			//カスケードの範囲
 			sCb.cascadeArea[i].x = GetMainCamera()->GetFar() * GetEngine().GetGraphicsEngine().GetShadowMapRender().GetCascadeNear(i);
 			sCb.cascadeArea[i].y = GetMainCamera()->GetFar() * GetEngine().GetGraphicsEngine().GetShadowMapRender().GetCascadeFar(i);
+		
+			//平行投影カメラ Width・Height
+			sCb.cascadeArea[i].z = 4000.0f / GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightCamera(i).GetWidth();
+			sCb.cascadeArea[i].w = 4000.0f / GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightCamera(i).GetHeight();
 		}
 	}
 	rc->UpdateSubresource(m_scb, 0, nullptr, &sCb, 0, 0);

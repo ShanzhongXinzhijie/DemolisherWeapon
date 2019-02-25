@@ -6,7 +6,7 @@ namespace GameObj {
 
 	CascadeShadowMap::CascadeShadowMap(float areaNear, float areaFar): m_cascadeAreaNear(areaNear), m_cascadeAreaFar(areaFar)
 	{
-		m_shadowMap = CreateShadowMap(2048/2, 2048/2);
+		m_shadowMap = CreateShadowMap(2048, 2048);
 		m_shadowMap->SetCascadeNear(m_cascadeAreaNear);
 		m_shadowMap->SetCascadeFar(m_cascadeAreaFar);
 
@@ -73,7 +73,7 @@ namespace GameObj {
 
 		float midv = (GetMainCamera()->GetFar()*m_cascadeAreaNear + GetMainCamera()->GetFar()*m_cascadeAreaFar)*0.5f;
 
-		m_lightCam->SetPos(GetMainCamera()->GetPos() + vZ * midv + m_lightDir*-m_far*0.5f);
+		m_lightCam->SetPos( GetMainCamera()->GetPos() + vZ * midv + m_lightDir*-m_far*0.5f + m_lightDir*(-midv*max(vZ.Dot(m_lightDir),0.0f)) );
 		m_lightCam->SetTarget(GetMainCamera()->GetPos() + vZ * midv);
 		m_lightCam->SetUp(CVector3::AxisY());
 		m_lightCam->SetNear(m_near);
@@ -84,8 +84,6 @@ namespace GameObj {
 		CVector4 minmax = CreateAABB(GetMainCamera()->GetFar()*m_cascadeAreaNear, GetMainCamera()->GetFar()*m_cascadeAreaFar);
 		m_lightCam->SetProjMatMode(false);
 		m_lightCam->Set4Point(minmax.x, minmax.z, minmax.y, minmax.w);
-		//m_lightCam->SetWidth((minmax.z - minmax.x)*1.0f);
-		//m_lightCam->SetHeight((minmax.w - minmax.y)*1.0f);
 	}
 }
 }

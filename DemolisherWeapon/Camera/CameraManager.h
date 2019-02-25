@@ -164,10 +164,6 @@ public:
 	using ICamera::ICamera;
 	virtual ~OrthoCamera() {};
 
-	//幅・高さ設定
-	void SetWidth(const float v) { m_width = v; m_change = true;}
-	void SetHeight(const float v) { m_height = v; m_change = true;}
-
 	float GetFOV()const override {
 		return -1.0f;
 	}
@@ -175,11 +171,33 @@ public:
 		return m_width / m_height;
 	}
 
-	void SetProjMatMode(bool widthHeight){
-		m_isWidthHeight = widthHeight;
+	//プロジェクション行列を求めるために使うパラメータを選択
+	void SetProjMatMode(bool iswidthHeight){
+		m_isWidthHeight = iswidthHeight;
 	}
+	//四隅を設定
 	void Set4Point(float left, float right, float bottom, float top) {
 		m_left = left, m_right = right, m_bottom = bottom, m_top = top;
+	}
+	//幅・高さ設定
+	void SetWidth(const float v) { m_width = v; m_change = true; }
+	void SetHeight(const float v) { m_height = v; m_change = true; }
+
+	float GetWidth()const { 
+		if (m_isWidthHeight) {
+			return m_width;
+		}
+		else {
+			return abs(m_left - m_right);
+		}
+	}
+	float GetHeight()const {  
+		if (m_isWidthHeight) {
+			return m_height;
+		}
+		else {
+			return abs(m_bottom - m_top);
+		}
 	}
 
 private:

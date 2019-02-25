@@ -90,6 +90,11 @@ public:
 		return m_shadowMaps[num].GetCascadeFar();
 	}
 
+	//カメラを取得
+	GameObj::NoRegisterOrthoCamera& GetLightCamera(int num){
+		return m_shadowMaps[num].GetLightCamera();
+	}
+
 	//シャドウマップの最大数
 	static const int SHADOWMAP_NUM = ShadowMapResource::SHADOWMAP_NUM;
 
