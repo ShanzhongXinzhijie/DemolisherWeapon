@@ -88,6 +88,8 @@ struct PSInput{
 	float4	curPos		: CUR_POSITION;//現在座標
 	float4	lastPos		: LAST_POSITION;//過去座標
 	bool isWorldMove	: IS_WORLD_BLUR;//ワールド空間で移動しているか?
+
+	uint instanceID		: InstanceID;
 };
 
 //Z値書き込みピクセルシェーダーの入力
@@ -109,6 +111,7 @@ PSInput VSMain( VSInputNmTxVcTangent In
 	PSInput psInput = (PSInput)0;
 
 #if defined(INSTANCING)
+	psInput.instanceID = instanceID;
 	float4 pos = mul(InstancingWorldMatrix[instanceID], In.Position);
 #else
 	float4 pos = mul(mWorld, In.Position);
@@ -233,6 +236,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In
 	    skinning += boneMatrix[In.Indices[3]] * (1.0f - w);	  	
 	}
 #if defined(INSTANCING)
+	psInput.instanceID = instanceID;
 	//インスタンシング
 	skinning = mul(InstancingWorldMatrix[instanceID], skinning);
 #endif
