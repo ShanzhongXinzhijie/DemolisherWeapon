@@ -12,12 +12,14 @@ namespace DemolisherWeapon {
 		CascadeShadowHandler(int cascadeNum, const float splitCoefficient[], const CVector2 resolutions[]) { Init(cascadeNum, splitCoefficient, resolutions); }
 		CascadeShadowHandler(int cascadeNum, const float splitCoefficient[]) { Init(cascadeNum, splitCoefficient); }
 		CascadeShadowHandler(int cascadeNum) { Init(cascadeNum); }
+		CascadeShadowHandler(int cascadeNum, const CVector3& dir) { Init(cascadeNum, dir); }
 
 		~CascadeShadowHandler() { Release(); }
 
 		//splitCoefficient ...cascadeNum+1個のfloat配列
 		//resolutions ...cascadeNum個のCVector2配列
 		void Init(int cascadeNum);
+		void Init(int cascadeNum, const CVector3& dir) { Init(cascadeNum); SetDirection(dir); }
 		void Init(int cascadeNum, const float splitCoefficient[]);
 		void Init(int cascadeNum, const float splitCoefficient[], const CVector2 resolutions[]);
 		
@@ -26,13 +28,6 @@ namespace DemolisherWeapon {
 				sm->Release();
 			}
 			m_cShadowMaps.clear();
-		}
-
-		//シャドウマップの範囲の中心位置を設定
-		void SetTarget(const CVector3& target) {
-			for (auto& sm : m_cShadowMaps) {
-				sm->SetPos(target);
-			}
 		}
 
 		//ライトの方向を設定
