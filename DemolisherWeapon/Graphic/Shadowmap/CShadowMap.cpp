@@ -114,6 +114,7 @@ namespace DemolisherWeapon {
 		m_lightCam.SetFar(4000.0f);
 		m_lightCam.SetWidth(2000.0f);
 		m_lightCam.SetHeight(2000.0f*(height / width));
+		m_lightCam.SetProjMatMode(true);
 		m_lightCam.UpdateMatrix();
 
 		m_isInit = true;
@@ -124,11 +125,11 @@ namespace DemolisherWeapon {
 		if (!m_isInit) { return; }
 
 		m_shadowMapRTV->Release();
-
-		/*if (m_useIndex >= 0) {
-			m_usedIndexs[m_useIndex] = false;
-			m_useIndex = -1;
-		}*/
+		
+		m_zBias = 0.0f;
+		m_cascadeAreaNear = 0.0f, m_cascadeAreaFar = 1.0f;
+		m_enable = true;
+		m_enablePCSS = true;
 
 		m_isInit = false;
 	}
