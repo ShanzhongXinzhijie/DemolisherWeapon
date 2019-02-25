@@ -82,6 +82,7 @@
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowMap.h" />
     <ClInclude Include="Render\ConvertLinearToSRGBRender.h" />
     <ClInclude Include="Graphic\Model\Render\CInstancingModelRender.h" />
+    <ClInclude Include="Graphic\Shadowmap\CascadeShadowHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -154,6 +155,7 @@
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowMap.cpp" />
     <ClCompile Include="Render\ConvertLinearToSRGBRender.cpp" />
     <ClCompile Include="Graphic\Model\Render\CInstancingModelRender.cpp" />
+    <ClCompile Include="Graphic\Shadowmap\CascadeShadowHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

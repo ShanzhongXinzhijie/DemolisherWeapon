@@ -272,7 +272,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		if (enableShadowMap[i].x && viewpos.z > cascadeArea[i].x && viewpos.z < cascadeArea[i].y){
 			hideInShadow.flag[i] = ShadowMapFunc(i, float4(worldpos, 1.0f));
 		}
-		/*if (!enableShadowMap[i].y && viewpos.z > cascadeArea[i].x && viewpos.z < cascadeArea[i].y) {
+		if (!enableShadowMap[i].y && viewpos.z > cascadeArea[i].x && viewpos.z < cascadeArea[i].y) {
 			if (i == 0) {
 				albedo = float4(1, 0, 0, 1);
 			}
@@ -285,7 +285,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			if (i == 3) {
 				albedo = float4(0, 0, 0, 1);
 			}
-		}*/
+		}
 	}
 
 	//ライティング

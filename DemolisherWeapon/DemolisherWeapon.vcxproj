@@ -268,6 +268,7 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="Graphic\Shadowmap\CascadeShadowHandler.h" />
     <ClInclude Include="Graphic\Model\Render\CInstancingModelRender.h" />
     <ClInclude Include="Render\ConvertLinearToSRGBRender.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowMap.h" />
@@ -345,6 +346,7 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Graphic\Shadowmap\CascadeShadowHandler.cpp" />
     <ClCompile Include="Graphic\Model\Render\CInstancingModelRender.cpp" />
     <ClCompile Include="Render\ConvertLinearToSRGBRender.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowMap.cpp" />

@@ -4,20 +4,23 @@
 namespace DemolisherWeapon {
 namespace GameObj {
 
-	CascadeShadowMap::CascadeShadowMap(float areaNear, float areaFar): m_cascadeAreaNear(areaNear), m_cascadeAreaFar(areaFar)
-	{
-		m_shadowMap = CreateShadowMap(2048, 2048);
-		m_shadowMap->SetCascadeNear(m_cascadeAreaNear);
-		m_shadowMap->SetCascadeFar(m_cascadeAreaFar);
+	void CascadeShadowMap::Init(UINT width, UINT height, float areaNear, float areaFar){
+
+		m_shadowMap = CreateShadowMap(width, height);
+		SetCascadeNear(areaNear);
+		SetCascadeFar(areaFar);
 
 		m_lightCam = &m_shadowMap->GetLightCamera();
+
+		m_isInit = true;
 	}
 
-
-	CascadeShadowMap::~CascadeShadowMap()
-	{
+	void CascadeShadowMap::Release() {
+		if (m_shadowMap) {
+			m_shadowMap->Release(); m_shadowMap = nullptr;
+		}
+		m_isInit = false;
 	}
-
 
 	CVector4 CascadeShadowMap::CreateAABB(float Near, float Far) {
 
@@ -67,7 +70,9 @@ namespace GameObj {
 		return { mini.x, mini.y, maxi.x, maxi.y };
 	}
 
-	void CascadeShadowMap::Update() {
+	void CascadeShadowMap::PostLoopUpdate() {
+
+		if (!m_isInit) { return; }
 
 		CVector3 vZ = (GetMainCamera()->GetTarget() - GetMainCamera()->GetPos()).GetNorm();		
 
