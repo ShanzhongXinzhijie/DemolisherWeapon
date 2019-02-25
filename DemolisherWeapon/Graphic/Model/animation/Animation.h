@@ -133,6 +133,10 @@ private:
 
 		//再生
 		m_animationPlayControllerPtr[index]->ChangeAnimationClip(nextClip);
+		if (abs(nextClip->GetStartTimeOffset()) > 0.0f) {
+			//オフセット分進める
+			m_animationPlayControllerPtr[index]->Update(nextClip->GetStartTimeOffset(), this, false);
+		}
 		m_animationPlayControllerPtr[index]->SetInterpolateTime(interpolateTime);
 
 		//補完率のリセット

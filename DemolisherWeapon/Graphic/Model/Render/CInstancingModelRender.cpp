@@ -6,10 +6,10 @@ namespace DemolisherWeapon {
 
 	namespace {
 		//キーを作成
-		std::tuple<int, int, int> CreateInstancingModelMapKey(const wchar_t* filePath, const AnimationClip* animationClip, const wchar_t* identifier) {
-			int modelHash, animHash, idenHash;
+		std::tuple<std::size_t, std::size_t, std::size_t> CreateInstancingModelMapKey(const wchar_t* filePath, const AnimationClip* animationClip, const wchar_t* identifier) {
+			std::size_t modelHash, animHash, idenHash;
 			modelHash = Util::MakeHash(filePath);
-			if (animationClip) { animHash = Util::MakeHash(animationClip->GetPass()); } else { animHash = Util::MakeHash(L""); }
+			if (animationClip) { animHash = animationClip->GetHash(); } else { animHash = Util::MakeHash(L""); }
 			if (identifier) { idenHash = Util::MakeHash(identifier); } else { idenHash = Util::MakeHash(L""); }
 			return std::make_tuple(modelHash, animHash, idenHash);
 		}
@@ -17,7 +17,7 @@ namespace DemolisherWeapon {
 
 	void InstancingModelManager::Delete(const wchar_t* filePath, const AnimationClip* animationClip, const wchar_t* identifier) {
 		//キーを作成
-		std::tuple<int, int, int> key = CreateInstancingModelMapKey(filePath, animationClip, identifier);
+		std::tuple<std::size_t, std::size_t, std::size_t> key = CreateInstancingModelMapKey(filePath, animationClip, identifier);
 		//削除
 		delete m_instancingModelMap[key];
 		m_instancingModelMap.erase(key);
@@ -32,7 +32,7 @@ namespace DemolisherWeapon {
 		const wchar_t* identifier
 	) {
 		//キーを作成
-		std::tuple<int, int, int> key = CreateInstancingModelMapKey(filePath, animationClip, identifier);
+		std::tuple<std::size_t, std::size_t, std::size_t> key = CreateInstancingModelMapKey(filePath, animationClip, identifier);
 
 		//既に登録されてないか?
 		if (m_instancingModelMap.count(key) > 0) {

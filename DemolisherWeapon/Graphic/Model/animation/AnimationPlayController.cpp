@@ -18,15 +18,17 @@ void AnimationPlayController::Init(Skeleton* skeleton)
 	m_boneMatrix.resize(numBones);
 }
 	
-void AnimationPlayController::InvokeAnimationEvent(Animation* animation)
+void AnimationPlayController::InvokeAnimationEvent(Animation* animation, bool isPlayEvent)
 {
 	auto& animEventArray = m_animationClip->GetAnimationEvent();
 	for (auto i = 0; i < m_animationClip->GetNumAnimationEvent(); i++) {
 		//アニメーションの起動時間を過ぎている且つ、まだイベント起動していない。
 		if (m_time > animEventArray[i].GetInvokeTime() && m_animEventedCnt <= i){//animEventArray[i].IsInvoked() == false) {
-			animation->NotifyAnimationEventToListener(
-				m_animationClip->GetName(), animEventArray[i].GetEventName()
-			);
+			if (isPlayEvent) {
+				animation->NotifyAnimationEventToListener(
+					m_animationClip->GetName(), animEventArray[i].GetEventName()
+				);
+			}
 			m_animEventedCnt++;	//animEventArray[i].SetInvokedFlag(true);
 		}
 	}
@@ -44,7 +46,7 @@ void AnimationPlayController::StartLoop()
 		animEventArray[i].SetInvokedFlag(false);
 	}*/
 }
-void AnimationPlayController::Update(float deltaTime, Animation* animation)
+void AnimationPlayController::Update(float deltaTime, Animation* animation, bool isPlayAnimEvent)
 {
 	if(m_animationClip == nullptr){		
 		return ;
@@ -53,7 +55,7 @@ void AnimationPlayController::Update(float deltaTime, Animation* animation)
 	m_time += deltaTime;
 
 	//アニメーションイベントの発生。
-	InvokeAnimationEvent(animation);
+	InvokeAnimationEvent(animation, isPlayAnimEvent);
 
 	//補完時間も進めていく。
 	m_interpolateTime = min(m_interpolateEndTime, m_interpolateTime + deltaTime);
@@ -67,7 +69,7 @@ void AnimationPlayController::Update(float deltaTime, Animation* animation)
 				StartLoop();
 
 				m_time = amariTime;
-				InvokeAnimationEvent(animation);
+				InvokeAnimationEvent(animation, isPlayAnimEvent);
 			}
 			else {
 				//ワンショット再生。
@@ -83,6 +85,9 @@ void AnimationPlayController::Update(float deltaTime, Animation* animation)
 		//次へ。
 		m_currentKeyFrameNo++;
 	}
+
+	if (!isPlayAnimEvent) { return; }
+
 	//ボーン行列を計算していく。
 	const auto& keyFramePtrListArray = m_animationClip->GetKeyFramePtrListArray();
 	for (const auto& keyFrameList : keyFramePtrListArray) {

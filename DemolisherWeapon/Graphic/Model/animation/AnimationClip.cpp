@@ -45,7 +45,7 @@ AnimationClip::~AnimationClip()
 	}*/
 }
 
-void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationClipUpAxis changeUpAxis)
+void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationClipUpAxis changeUpAxis, float startTimeOffset)
 {	
 	//マネージャーからデータ読み込み
 	if (m_s_animationClipDataManager.Load(m_animationClipData, filePath, changeUpAxis) == false) {
@@ -53,6 +53,8 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 
 		//ループ設定
 		SetLoopFlag(loop);
+		//開始時間
+		m_startTimeOffset = startTimeOffset;
 
 		return;
 	}
@@ -176,6 +178,8 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 
 	//ループ設定
 	SetLoopFlag(loop);
+	//開始時間
+	m_startTimeOffset = startTimeOffset;
 }
 
 }

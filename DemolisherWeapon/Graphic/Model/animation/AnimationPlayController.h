@@ -73,7 +73,7 @@ public:
 	* @brief	アニメーションを進める。
 	*@param[in]	deltaTime		アニメーションを進める時間。
 	*/
-	void Update(float deltaTime, Animation* animation);
+	void Update(float deltaTime, Animation* animation, bool isPlayAnimEvent = true);
 	/*!
 	* @brief	ローカルボーン行列を取得。
 	*/
@@ -97,7 +97,7 @@ private:
 	/*!
 	*@brief	アニメーションイベントを起動する。
 	*/
-	void InvokeAnimationEvent(Animation* animation);
+	void InvokeAnimationEvent(Animation* animation, bool isPlayEvent);
 
 	/*!
 	*@brief	ループ再生開始する時の処理。

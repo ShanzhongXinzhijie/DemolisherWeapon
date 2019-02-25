@@ -152,7 +152,7 @@ private:
 	{
 		std::size_t operator()(const key_t& k) const
 		{
-			return k.first ^ k.second;
+			return Util::HashCombine(k.first, k.second);
 		}
 	};
 
@@ -178,11 +178,14 @@ public:
 	*@brief	アニメーションクリップをロード。
 	*@param[in]	filePath	ファイルパス。
 	*/
-	void Load(const wchar_t* filePath, bool loop = false, EnChangeAnimationClipUpAxis changeUpAxis = enNonChange);
+	void Load(const wchar_t* filePath, bool loop = false, EnChangeAnimationClipUpAxis changeUpAxis = enNonChange, float startTimeOffset = 0.0f);
 	void Load(const wchar_t* filePath, EnChangeAnimationClipUpAxis changeUpAxis) {
 		Load(filePath, false, changeUpAxis);
 	};
-	
+	void Load(const wchar_t* filePath, bool loop, float startTimeOffset) {
+		Load(filePath, loop, enNonChange, startTimeOffset);
+	};
+		
 	/*!
 	*@brief	ループする？
 	*/
@@ -197,6 +200,12 @@ public:
 	{
 		m_isLoop = flag;
 	}
+
+	//開始時間を取得
+	float GetStartTimeOffset()const {
+		return m_startTimeOffset;
+	}
+
 	/*!
 	*@brief
 	*/
@@ -225,6 +234,17 @@ public:
 		return m_animationClipData->m_clipPass.c_str();
 	}
 
+	//ハッシュ値の取得
+	std::size_t GetHash()const{
+		if (!m_animationClipData) { return -1; }
+		
+		std::size_t hash = Util::MakeHash(GetPass());
+		hash = Util::HashCombine(hash, std::hash<bool>()(m_isLoop));
+		hash = Util::HashCombine(hash, std::hash<float>()(m_startTimeOffset));
+
+		return hash;
+	}
+
 	/*!
 	*@brief	アニメーションイベントを取得。
 	*/
@@ -244,6 +264,7 @@ public:
 private:
 	AnimationClipData* m_animationClipData = nullptr;
 	bool m_isLoop = false;									//!<ループフラグ。
+	float m_startTimeOffset = 0.0f;
 
 	static AnimationClipDataManager m_s_animationClipDataManager;
 };

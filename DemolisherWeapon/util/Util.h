@@ -31,5 +31,11 @@ public:
 		}
 		return hash;
 	}
+
+	//ハッシュ値を合成
+	static std::size_t HashCombine(std::size_t hash, std::size_t hash2)
+	{
+		return hash ^ (hash2 + 0x9e3779b9 + (hash << 6) + (hash >> 2));
+	}
 };
 

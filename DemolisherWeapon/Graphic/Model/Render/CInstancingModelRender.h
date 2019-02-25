@@ -119,13 +119,13 @@ namespace GameObj {
 			const wchar_t* identifier = nullptr
 		);
 	private:
-		typedef std::tuple<int, int, int> key_t;
+		typedef std::tuple<std::size_t, std::size_t, std::size_t> key_t;
 
 		struct key_hash 
 		{
 			std::size_t operator()(const key_t& k) const
 			{
-				return std::get<0>(k) ^ std::get<1>(k) ^ std::get<2>(k);
+				return Util::HashCombine(Util::HashCombine(std::get<0>(k), std::get<1>(k)), std::get<2>(k));
 			}
 		};
 
