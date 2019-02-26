@@ -200,7 +200,9 @@ private:
 		CVector4 camMoveVec;
 
 		CVector4 depthBias;
-		//float depthBiasScaleFromNearToFar;
+
+		//カメラのワールド座標
+		CVector3 camWorldPos;
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列

@@ -83,6 +83,7 @@
     <ClInclude Include="Render\ConvertLinearToSRGBRender.h" />
     <ClInclude Include="Graphic\Model\Render\CInstancingModelRender.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowHandler.h" />
+    <ClInclude Include="Graphic\Sky\CSkybox.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -156,6 +157,7 @@
     <ClCompile Include="Render\ConvertLinearToSRGBRender.cpp" />
     <ClCompile Include="Graphic\Model\Render\CInstancingModelRender.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowHandler.cpp" />
+    <ClCompile Include="Graphic\Sky\CSkybox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
@@ -170,5 +172,9 @@
     <CustomBuild Include="Preset\shader\LensDistortion.fx" />
     <CustomBuild Include="Preset\shader\model.fx" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <CustomBuild Include="Preset\modelData\sky.cmo" />
+  </ItemGroup>
+  <ItemGroup>
+    <MeshContentTask Include="Preset\modelData\sky.fbx" />
   </ItemGroup>
 </Project>

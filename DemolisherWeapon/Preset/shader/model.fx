@@ -7,8 +7,13 @@
 /////////////////////////////////////////////////////////////
 // Shader Resource View
 /////////////////////////////////////////////////////////////
+#if !defined(SKY_CUBE)
 //アルベドテクスチャ。
 Texture2D<float4> albedoTexture : register(t0);	
+#else
+//スカイボックス用キューブマップ
+TextureCube<float4> skyCubeMap : register(t0);
+#endif
 //ボーン行列
 StructuredBuffer<float4x4> boneMatrix : register(t1);
 StructuredBuffer<float4x4> boneMatrixOld : register(t2);
@@ -41,6 +46,9 @@ cbuffer VSPSCb : register(b0){
 	float4 camMoveVec;//w:しきい値≒距離スケール
 
 	float4 depthBias;//x:max=(1.0f) y:max=(far-near) z:ブラーの近距離しきい値
+
+	//カメラのワールド座標
+	float3 camWorldPos;
 };
 
 //マテリアルパラメーター
@@ -90,6 +98,8 @@ struct PSInput{
 	bool isWorldMove	: IS_WORLD_BLUR;//ワールド空間で移動しているか?
 
 	uint instanceID		: InstanceID;
+
+	float3 cubemapPos	: CUBE_POS;
 };
 
 //Z値書き込みピクセルシェーダーの入力
@@ -117,7 +127,7 @@ PSInput VSMain( VSInputNmTxVcTangent In
 	float4 pos = mul(mWorld, In.Position);
 #endif
 
-	float3 posW = pos.xyz;
+	float3 posW = pos.xyz; psInput.cubemapPos = normalize(posW - camWorldPos);
 	pos = mul(mView, pos); psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
 	psInput.Position = pos;
@@ -247,7 +257,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In
 	psInput.Normal = normalize( mul(skinning, In.Normal) );
 	psInput.Tangent = normalize( mul(skinning, In.Tangent) );
 
-	float3 posW = pos.xyz;	
+	float3 posW = pos.xyz; psInput.cubemapPos = normalize(posW - camWorldPos);
 
 	pos = mul(mView, pos);  psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
@@ -361,7 +371,13 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
 
 	//アルベド
-	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord);
+#if !defined(SKY_CUBE)
+	//通常
+	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord);	
+#else
+	//スカイボックス
+	Out.albedo = skyCubeMap.Sample(Sampler, In.cubemapPos);
+#endif
 	Out.albedo.xyz = pow(Out.albedo.xyz, 2.2f);
 	Out.albedo *= albedoScale;
 
@@ -434,6 +450,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	return Out;
 }
 
+#if !defined(SKY_CUBE)
 //Z値出力
 float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 {
@@ -449,3 +466,4 @@ float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 
 	return In.posInProj.z / In.posInProj.w + depthBias.x ;// +1.0f*max(abs(ddx(In.posInProj.z / In.posInProj.w)), abs(ddy(In.posInProj.z / In.posInProj.w)));
 }
+#endif

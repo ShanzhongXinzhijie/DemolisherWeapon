@@ -40,7 +40,7 @@ public:
 	void PostRender()override;
 
 	void AddDrawModel(SkinModel* sm, int priority) {
-		m_drawModelList[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX)].emplace_back(sm);
+		m_drawModelList[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX-1)].emplace_back(sm);
 	};
 
 private:

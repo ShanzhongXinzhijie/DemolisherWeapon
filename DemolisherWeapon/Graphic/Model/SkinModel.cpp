@@ -181,6 +181,8 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	vsCb.depthBias.y = (GetMainCamera()->GetFar() - GetMainCamera()->GetNear())*vsCb.depthBias.x;
 	vsCb.depthBias.z = 50.0f*GetEngine().GetDistanceScale()*( GetMainCamera()->GetProjMatrix().m[1][1] / REFERENCE_FRUSTUM_SIZE);
 
+	vsCb.camWorldPos = GetMainCamera()->GetPos();
+
 	d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
 
 	//定数バッファをGPUに転送。

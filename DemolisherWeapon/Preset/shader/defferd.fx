@@ -257,7 +257,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 	float3 normal = normalMap.Sample(Sampler, In.uv).xyz;
 	float4 viewpos = PosMap.Sample(Sampler, In.uv);
-	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w);// , ViewProjInv);
+	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w);
 	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
 
 	//ライティング無効

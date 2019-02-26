@@ -76,6 +76,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\MeshContentTask.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -268,6 +269,7 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="Graphic\Sky\CSkybox.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowHandler.h" />
     <ClInclude Include="Graphic\Model\Render\CInstancingModelRender.h" />
     <ClInclude Include="Render\ConvertLinearToSRGBRender.h" />
@@ -346,6 +348,7 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Graphic\Sky\CSkybox.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowHandler.cpp" />
     <ClCompile Include="Graphic\Model\Render\CInstancingModelRender.cpp" />
     <ClCompile Include="Render\ConvertLinearToSRGBRender.cpp" />
@@ -457,7 +460,20 @@
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <MeshContentTask Include="Preset\modelData\sky.fbx">
+      <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputDir)/Preset/modelData/%(Filename).cmo</ContentOutput>
+      <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputDir)/Preset/modelData/%(Filename).cmo</ContentOutput>
+      <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Preview|x64'">$(InputDir)/Preset/modelData/%(Filename).cmo</ContentOutput>
+    </MeshContentTask>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Preset\modelData\sky.cmo">
+      <FileType>Document</FileType>
+    </CustomBuild>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\MeshContentTask.targets" />
   </ImportGroup>
 </Project>
