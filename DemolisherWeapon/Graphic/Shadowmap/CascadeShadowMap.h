@@ -22,6 +22,13 @@ namespace GameObj {
 		void SetCascadeNear(float Near) { m_cascadeAreaNear = Near; m_shadowMap->SetCascadeNear(m_cascadeAreaNear); }
 		void SetCascadeFar(float Far) { m_cascadeAreaFar = Far; m_shadowMap->SetCascadeFar(m_cascadeAreaFar); }
 
+		//深度バイアスを設定
+		void SetDepthBias(float bias) {
+			m_shadowMap->SetDepthBias(bias);
+		}
+
+		void SetInterval(int interval) { m_shadowMap->SetRenderInterval(interval); }
+
 	private:
 		CVector4 CreateAABB(float Near, float Far);		
 

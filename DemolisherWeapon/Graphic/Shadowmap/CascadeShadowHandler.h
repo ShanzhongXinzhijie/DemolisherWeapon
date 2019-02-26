@@ -70,6 +70,16 @@ namespace DemolisherWeapon {
 			}
 		}
 
+		//深度バイアスを設定
+		void SetDepthBias(int index, float bias) {
+			m_cShadowMaps[index]->SetDepthBias(bias);
+		}
+
+		//シャドウマップの更新間隔を設定
+		void SetInterval(int index, int interval) {
+			m_cShadowMaps[index]->SetInterval(interval);
+		}
+
 		//シャドウマップの数を取得
 		size_t GetCascadeShadowMapNum()const { return m_cShadowMaps.size(); }
 

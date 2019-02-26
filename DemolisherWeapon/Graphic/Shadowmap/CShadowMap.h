@@ -51,6 +51,14 @@ public:
 	bool GetIsInit()const { return m_isInit; }
 	bool GetEnable()const { return m_isInit && m_enable; }
 	bool GetEnablePCSS()const {	return m_enablePCSS; }
+	
+	bool GetIsRenderAndUpdateInterval() {
+		m_isRenderCnt--; if (m_isRenderCnt < 0) { m_isRenderCnt = 0; }
+		bool Out = m_isRenderCnt ? false : true;
+		if (m_isRenderCnt == 0 || m_isRenderCnt > m_renderInterval) { m_isRenderCnt = m_renderInterval; }
+		return Out;
+	}
+
 	float GetSizeX()const { return m_viewport.Width; }
 	float GetSizeY()const { return m_viewport.Height; }
 
@@ -125,10 +133,16 @@ public:
 		m_cascadeAreaFar = Far;
 	}
 
+	//çXêVä‘äuÇê›íË
+	void SetRenderInterval(int interval) {
+		m_renderInterval = interval;
+	}
+
 private:
 	bool m_isInit = false;
 	bool m_enable = true;
 	bool m_enablePCSS = true;
+	int m_isRenderCnt = 0, m_renderInterval = 0;
 
 	static ShadowMapResource m_resource;
 	//static bool m_usedIndexs[ShadowMapResource::SHADOWMAP_NUM];

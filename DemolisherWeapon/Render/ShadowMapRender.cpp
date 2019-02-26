@@ -37,7 +37,7 @@ void ShadowMapRender::Render() {
 	
 	for (int i = 0; i < SHADOWMAP_NUM; i++) {		
 
-		if (!GetShadowMapEnable(i)) { continue; }
+		if (!GetShadowMapEnable(i) || !m_shadowMaps[i].GetIsRenderAndUpdateInterval()) { continue; }
 
 		//•`‰æ€”õ
 		m_shadowMaps[i].PreparePreDraw();

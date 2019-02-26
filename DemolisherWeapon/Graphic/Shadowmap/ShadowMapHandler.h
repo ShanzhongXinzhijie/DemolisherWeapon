@@ -45,6 +45,9 @@ namespace DemolisherWeapon {
 			m_shadowMap->SetDepthBias(bias);
 		}
 
+		//XVŠÔŠu‚ðÝ’è
+		void SetInterval(int interval) { m_shadowMap->SetRenderInterval(interval); }
+
 	private:
 		CShadowMap* m_shadowMap = nullptr;
 		CVector3 m_direction, m_target, m_area, m_dirY;
