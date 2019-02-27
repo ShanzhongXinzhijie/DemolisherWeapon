@@ -126,6 +126,10 @@ public:
 	AmbientOcclusionRender& GetAmbientOcclusionRender() {
 		return m_ambientOcclusionRender;
 	}
+	//ディファードレンダーの取得
+	DefferdRender& GetDefferdRender() {
+		return m_defferdRender;
+	}
 	//PhysicsDebugDrawRenderのモード設定	
 	void SetPhysicsDebugDrawMode(int debugMode) {
 #ifndef DW_MASTER	

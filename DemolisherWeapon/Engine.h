@@ -385,7 +385,15 @@ static inline std::vector<GameObj::ICamera*>& GetCameraList()
 
 //アンビエントライトを設定
 static inline void SetAmbientLight(const CVector3& color) {
+	GetEngine().GetGraphicsEngine().GetDefferdRender().SetIsAmbientCubeMap(false);
 	GetEngine().GetGraphicsEngine().GetLightManager().SetAmbientLight(color);
+}
+//アンビエントキューブマップを設定
+//※MipMapが必要です(少なくとも8がいる)
+static inline void SetAmbientCubeMap(const wchar_t* filePass, const CVector3& scale) {
+	GetEngine().GetGraphicsEngine().GetDefferdRender().SetIsAmbientCubeMap(true);
+	GetEngine().GetGraphicsEngine().GetDefferdRender().SetAmbientCubeMap(filePass);
+	GetEngine().GetGraphicsEngine().GetLightManager().SetAmbientLight(scale);
 }
 
 //シャドウマップをひとつ有効化

@@ -22,7 +22,8 @@ void DefferdRender::Init() {
 	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);	
+	desc.MaxLOD = FLT_MAX;
+	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
 	
 	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerStateNoFillter);
@@ -77,7 +78,7 @@ void DefferdRender::Render() {
 	rc->PSSetShaderResources(3, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferPosition));
 	rc->PSSetShaderResources(4, 1, &GetEngine().GetGraphicsEngine().GetAmbientOcclusionRender().GetAmbientOcclusionSRV());
 	rc->PSSetShaderResources(5, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferLightParam));
-
+	
 	//ライト関係をセット
 	rc->PSSetShaderResources(100, 1, &GetEngine().GetGraphicsEngine().GetLightManager().GetDirectionLightSRV());
 	rc->PSSetShaderResources(101, 1, &GetEngine().GetGraphicsEngine().GetLightManager().GetPointLightsSRV());
@@ -88,6 +89,13 @@ void DefferdRender::Render() {
 
 	//AOを有効にするか
 	sCb.boolAO = GetEngine().GetGraphicsEngine().GetAmbientOcclusionRender().GetEnable() ? 1 : 0;
+	//環境キューブマップ有効にするか
+	sCb.boolAmbientCube = m_isAmbCube ? 1 : 0;
+	if (sCb.boolAmbientCube) {
+		//環境キューブマップセット
+		rc->PSSetShaderResources(6, 1, &m_ambientCube);
+	}
+
 	//メインカメラの逆行列
 	sCb.mViewProjInv.Mul(GetMainCamera()->GetViewMatrix(), GetMainCamera()->GetProjMatrix());
 	sCb.mViewProjInv.Inverse(sCb.mViewProjInv);
@@ -155,6 +163,19 @@ void DefferdRender::Render() {
 
 	//レンダーターゲット解除
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+}
+
+void DefferdRender::SetAmbientCubeMap(const wchar_t* filePass) {
+
+	ID3D11ShaderResourceView* tex = nullptr;
+	HRESULT hr = DirectX::CreateDDSTextureFromFile(GetEngine().GetGraphicsEngine().GetD3DDevice(), filePass, nullptr, &tex);
+	if (FAILED(hr)) {
+		Error::Box("SetAmbientCubeMapのテクスチャ読み込みに失敗しました");
+		return;
+	}
+
+	if (m_ambientCube) { m_ambientCube->Release(); }
+	m_ambientCube = tex;
 }
 
 }

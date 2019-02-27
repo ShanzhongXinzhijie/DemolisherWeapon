@@ -376,7 +376,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord);	
 #else
 	//スカイボックス
-	Out.albedo = skyCubeMap.Sample(Sampler, In.cubemapPos);
+	Out.albedo = skyCubeMap.SampleLevel(Sampler, In.cubemapPos, 0);
 #endif
 	Out.albedo.xyz = pow(Out.albedo.xyz, 2.2f);
 	Out.albedo *= albedoScale;

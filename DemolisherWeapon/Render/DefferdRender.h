@@ -17,6 +17,13 @@ public:
 
 	void Render()override;
 
+	//環境キューブマップをセット
+	//※MipMapが必要です(少なくとも8がいる)
+	void SetAmbientCubeMap(const wchar_t* filePass);
+	void SetIsAmbientCubeMap(bool enable) {
+		m_isAmbCube = enable;
+	}
+
 private:
 	Shader m_vs;
 	Shader m_ps;
@@ -32,12 +39,15 @@ private:
 		CVector4 cascadeArea[ShadowMapRender::SHADOWMAP_NUM];
 
 		int boolAO;
+		int boolAmbientCube;
 		//定数バッファは float4(4*4=16)で区切られる
 	};
 
 	ID3D11Buffer* m_scb = nullptr;	
 	ID3D11SamplerState* m_samplerComparisonState = nullptr;
 
+	bool m_isAmbCube = false;
+	ID3D11ShaderResourceView* m_ambientCube = nullptr;
 };
 
 }

@@ -32,6 +32,7 @@ cbuffer ShadowCb : register(b1) {
 	float4 cascadeArea[SHADOWMAP_NUM];//x:カスケード距離(Near) y:カスケード距離(Far) z:4000.0f/Width(平行投影カメラ) w:4000.0f/Height(平行投影カメラ)
 
 	int boolAO;//AOを有効にするか
+	int boolAmbientCube;//環境キューブマップ有効か?
 };
 struct HideInShadow {
 	float flag[SHADOWMAP_NUM];
@@ -202,6 +203,8 @@ Texture2D<float > depthMap		: register(t2);
 Texture2D<float4> PosMap		: register(t3);
 Texture2D<float > AoMap			: register(t4);
 Texture2D<float4> lightParamTex	: register(t5);
+//環境キューブマップ
+TextureCube<float3> AmbientCubeMap: register(t6);
 
 struct VSDefferdInput {
 	float4 pos : SV_Position;
@@ -333,7 +336,12 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	}
 
 	//アンビエント
-	Out += albedo.xyz * ambientLight * ambientOcclusion;
+	if (boolAmbientCube) {
+		Out += albedo.xyz * AmbientCubeMap.SampleLevel(Sampler, normal, 8) * ambientLight * ambientOcclusion;
+	}
+	else {
+		Out += albedo.xyz * ambientLight * ambientOcclusion;
+	}
 
 	//エミッシブを加算
 	Out += lightParam.rgb;
