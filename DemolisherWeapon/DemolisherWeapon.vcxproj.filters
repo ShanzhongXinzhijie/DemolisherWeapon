@@ -174,7 +174,4 @@
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
     <CustomBuild Include="Preset\modelData\sky.cmo" />
   </ItemGroup>
-  <ItemGroup>
-    <MeshContentTask Include="Preset\modelData\sky.fbx" />
-  </ItemGroup>
 </Project>
