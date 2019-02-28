@@ -7,10 +7,10 @@ namespace GameObj {
 	{
 	public:
 		CSkybox() = default;
-		CSkybox(const wchar_t* filePass, float size = -1.0f);
+		CSkybox(const wchar_t* filePass, float size = -1.0f, bool isSetAmbientCube = true);
 		~CSkybox();
 
-		void Init(const wchar_t* filePass, float size = -1.0f);
+		void Init(const wchar_t* filePass, float size = -1.0f, bool isSetAmbientCube = true);
 
 		void Update()override;
 

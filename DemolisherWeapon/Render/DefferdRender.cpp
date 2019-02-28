@@ -55,6 +55,7 @@ void DefferdRender::Release() {
 	m_samplerStateNoFillter->Release();
 	m_scb->Release();
 	m_samplerComparisonState->Release();
+	if (m_ambientCube) { m_ambientCube->Release(); m_ambientCube = nullptr; }
 }
 
 void DefferdRender::Render() {

@@ -30,7 +30,7 @@ cbuffer PSCb : register(b0) {
 static const float VIGNETTE_POS_MIN = 0.01f;
 static const float VIGNETTE_POS_MAX = 1.0f - VIGNETTE_POS_MIN;
 //終わる位置
-static const float2 VIGNETTE_END_MIN = float2(-0.1f,-0.1f);
+static const float VIGNETTE_END_MIN = -0.006f;
 
 /// @brief レンズ歪みを適用したUVを取得
 float4 GetLensDistortion(float2 uv)
@@ -63,7 +63,6 @@ float4 GetLensDistortion(float2 uv)
 	//周辺減光
 	float4 output = Texture.Sample(Sampler, uv);
 	if (uv.x < VIGNETTE_POS_MIN || uv.y < VIGNETTE_POS_MIN || uv.x > VIGNETTE_POS_MAX || uv.y > VIGNETTE_POS_MAX) {
-	//if (uv.x < 0.0f || uv.y < 0.0f || uv.x > 1.0f || uv.y > 1.0f) {
 		float2 sub = uv; 
 		if (uv.x < VIGNETTE_POS_MIN) { sub.x = VIGNETTE_POS_MIN; }else if (uv.x > VIGNETTE_POS_MAX) { sub.x = VIGNETTE_POS_MAX; }
 		if (uv.y < VIGNETTE_POS_MIN) { sub.y = VIGNETTE_POS_MIN; }else if (uv.y > VIGNETTE_POS_MAX) { sub.y = VIGNETTE_POS_MAX; }
@@ -71,7 +70,7 @@ float4 GetLensDistortion(float2 uv)
 		uv  -= float2(0.5f, 0.5f); uv.x *= ASPECT_RATIO;
 		sub -= float2(0.5f, 0.5f); sub.x *= ASPECT_RATIO;
 
-		output = float4(lerp(output.xyz, float3(0.0f, 0.0f, 0.0f), distance(uv,sub) / distance(float2((VIGNETTE_END_MIN.x-0.5f)*ASPECT_RATIO, VIGNETTE_END_MIN.y-0.5f), float2((VIGNETTE_POS_MIN-0.5f)*ASPECT_RATIO, VIGNETTE_POS_MIN-0.5f))), output.w);
+		output = float4(lerp(output.xyz, float3(0.0f, 0.0f, 0.0f), distance(uv,sub) / distance(float2((VIGNETTE_END_MIN-0.5f)*ASPECT_RATIO, VIGNETTE_END_MIN-0.5f), float2((VIGNETTE_POS_MIN-0.5f)*ASPECT_RATIO, VIGNETTE_POS_MIN-0.5f))), output.w);
 		//return float4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	//else {

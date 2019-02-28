@@ -20,6 +20,11 @@ public:
 	//環境キューブマップをセット
 	//※MipMapが必要です(少なくとも8がいる)
 	void SetAmbientCubeMap(const wchar_t* filePass);
+	void SetAmbientCubeMap(ID3D11ShaderResourceView* srv) {
+		if (m_ambientCube) { m_ambientCube->Release(); }
+		m_ambientCube = srv;
+		m_ambientCube->AddRef();
+	}
 	void SetIsAmbientCubeMap(bool enable) {
 		m_isAmbCube = enable;
 	}

@@ -4,11 +4,11 @@
 namespace DemolisherWeapon {
 namespace GameObj {
 
-	CSkybox::CSkybox(const wchar_t* filePass, float size) {
-		Init(filePass, size);
+	CSkybox::CSkybox(const wchar_t* filePass, float size, bool isSetAmbientCube) {
+		Init(filePass, size, isSetAmbientCube);
 	}
 	
-	void CSkybox::Init(const wchar_t* filePass, float size)
+	void CSkybox::Init(const wchar_t* filePass, float size, bool isSetAmbientCube)
 	{
 		if (m_isInit) { return; }
 
@@ -35,6 +35,11 @@ namespace GameObj {
 				mat->SetLightingEnable(false);
 			}
 		);
+
+		//環境キューブマップを設定
+		if (isSetAmbientCube) {
+			SetAmbientCubeMap(tex, CVector3::One());
+		}
 
 		if (tex) { tex->Release(); }
 

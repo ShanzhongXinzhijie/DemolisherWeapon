@@ -395,6 +395,11 @@ static inline void SetAmbientCubeMap(const wchar_t* filePass, const CVector3& sc
 	GetEngine().GetGraphicsEngine().GetDefferdRender().SetAmbientCubeMap(filePass);
 	GetEngine().GetGraphicsEngine().GetLightManager().SetAmbientLight(scale);
 }
+static inline void SetAmbientCubeMap(ID3D11ShaderResourceView* srv, const CVector3& scale) {
+	GetEngine().GetGraphicsEngine().GetDefferdRender().SetIsAmbientCubeMap(true);
+	GetEngine().GetGraphicsEngine().GetDefferdRender().SetAmbientCubeMap(srv);
+	GetEngine().GetGraphicsEngine().GetLightManager().SetAmbientLight(scale);
+}
 
 //シャドウマップをひとつ有効化
 //UINT width, UINT height ...シャドウマップのサイズ
