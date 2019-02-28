@@ -5,8 +5,6 @@ namespace DemolisherWeapon {
 
 	CSprite::CSprite()
 	{
-		m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
-
 		m_screenSize.x = GetEngine().GetGraphicsEngine().GetFrameBuffer_W();
 		m_screenSize.y = GetEngine().GetGraphicsEngine().GetFrameBuffer_H();
 	}
@@ -15,14 +13,22 @@ namespace DemolisherWeapon {
 		Release();
 	}
 
-	void CSprite::Init(const wchar_t* fileName) {
+	void CSprite::Init(std::experimental::filesystem::path fileName) {
 		Release();
 
-		HRESULT hr = DirectX::CreateDDSTextureFromFile(GetEngine().GetGraphicsEngine().GetD3DDevice(), fileName, &m_tex, &m_srv);
+		HRESULT hr;
+		if (wcscmp(fileName.extension().c_str(), L".dds") == 0) {
+			hr = DirectX::CreateDDSTextureFromFile(GetEngine().GetGraphicsEngine().GetD3DDevice(), fileName.c_str(), &m_tex, &m_srv);
+			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
+		}
+		else {
+			hr = DirectX::CreateWICTextureFromFile(GetEngine().GetGraphicsEngine().GetD3DDevice(), fileName.c_str(), &m_tex, &m_srv);
+			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatchPMA();
+		}
 		if (FAILED(hr)) {
 #ifndef DW_MASTER
 			char message[256];
-			sprintf_s(message, "CSprite::Init()の画像読み込みに失敗。\nファイルパスあってますか？\n%ls\n", fileName);
+			sprintf_s(message, "CSprite::Init()の画像読み込みに失敗。\nファイルパスあってますか？\n%ls\n", fileName.c_str());
 			MessageBox(NULL, message, "Error", MB_OK);
 			std::abort();
 #endif
@@ -52,7 +58,7 @@ namespace DemolisherWeapon {
 		default:
 #ifndef DW_MASTER
 			char message[256];
-			sprintf_s(message, "CSprite::Init()「なんかちがう」\n%ls\n", fileName);
+			sprintf_s(message, "CSprite::Init()「なんかちがう」\n%ls\n", fileName.c_str());
 			MessageBox(NULL, message, "Error", MB_OK);
 			std::abort();
 #endif

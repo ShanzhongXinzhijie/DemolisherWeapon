@@ -195,6 +195,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	//Sprite初期化
 	m_spriteFont = std::make_unique<DirectX::SpriteFont>(m_pd3dDevice, L"Preset/Font/myfile.spritefont");
 	m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(m_pd3dDeviceContext);
+	m_spriteBatchPMA = std::make_unique<DirectX::SpriteBatch>(m_pd3dDeviceContext);
 
 	//フルスクリーン描画プリミティブ初期化
 	CPrimitive::SVertex vertex[4] = {

@@ -89,6 +89,11 @@ public:
 	{
 		return m_spriteBatch.get();
 	}
+	//乗算済みアルファ版
+	DirectX::SpriteBatch* GetSpriteBatchPMA() const
+	{
+		return m_spriteBatchPMA.get();
+	}
 	DirectX::SpriteFont* GetSpriteFont() const
 	{
 		return m_spriteFont.get();
@@ -200,6 +205,7 @@ private:
 	//Sprite
 	std::unique_ptr<DirectX::SpriteFont> m_spriteFont;
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
+	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatchPMA;
 	float m_layerDepthCnt = 0.0f;
 
 	//フルスクリーン描画プリミティブ

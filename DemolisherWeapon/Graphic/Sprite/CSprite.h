@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 namespace DemolisherWeapon {
 
 	class CSprite
@@ -11,7 +13,7 @@ namespace DemolisherWeapon {
 		void Release();
 
 		//初期化
-		void Init(const wchar_t* fileName);
+		void Init(std::experimental::filesystem::path fileName);
 
 		//描画する
 		//※layerDepthの第三小数点以下は使わないほうがいいと思う

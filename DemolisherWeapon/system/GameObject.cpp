@@ -30,6 +30,8 @@ namespace DemolisherWeapon {
 
 	void GameObjectManager::PostRender() {
 		GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin(DirectX::SpriteSortMode_BackToFront);
+		DirectX::CommonStates state(GetEngine().GetGraphicsEngine().GetD3DDevice());
+		GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->Begin(DirectX::SpriteSortMode_BackToFront, state.NonPremultiplied());
 
 		for (auto& go : m_gameObjectList) {
 			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
@@ -38,6 +40,7 @@ namespace DemolisherWeapon {
 		}
 
 		GetEngine().GetGraphicsEngine().GetSpriteBatch()->End();
+		GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->End();
 		GetEngine().GetGraphicsEngine().ResetLayerDepthCnt();
 	}
 }
