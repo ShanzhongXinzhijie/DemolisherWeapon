@@ -60,6 +60,11 @@ public:
 	//˜c‹Èû·‚ğ‚©‚¯‚½2DÀ•W‚ğæ“¾
 	static CVector2 CalcLensDistortion(const CVector2& pos, GameObj::ICamera* cam);
 
+	//˜c‹Èû·‚Ì—LŒøE–³Œø‚ğİ’è
+	static void SetIsLensDistortion(bool enable) {
+		m_isLensDistortion = enable;
+	}
+
 private:
 	//CFinalRenderTarget m_FRT;
 	Shader m_vs;
@@ -77,6 +82,8 @@ private:
 	CPrimitive m_drawSpace;
 
 	ID3D11ShaderResourceView* m_gridTex = nullptr;
+
+	static bool m_isLensDistortion;
 };
 
 }

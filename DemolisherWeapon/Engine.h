@@ -54,6 +54,7 @@ struct InitEngineParameter {
 	EnShadowMapMode shadowMapSetting = enPCSS;	//シャドウマップ有効・PCSS
 	bool isEnableSSAO = true;					//SSAO有効
 	bool isEnableMotionBlur = true;				//モーションブラー有効
+	bool isLensDistortion = true;				//歪曲収差
 
 	//低スペック用設定をセット
 	void SetLowSpecSetting() {
@@ -381,6 +382,12 @@ static inline void SetMainCamera(GameObj::ICamera* cam)
 static inline std::vector<GameObj::ICamera*>& GetCameraList()
 {
 	return GetEngine().GetGraphicsEngine().GetCameraManager().GetCameraList();
+}
+
+//歪曲収差の使用を設定
+static inline void SetIsLensDistortion(bool enable)
+{
+	FinalRender::SetIsLensDistortion(enable);
 }
 
 //アンビエントライトを設定

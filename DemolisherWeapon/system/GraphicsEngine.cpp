@@ -255,6 +255,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		m_finalRender[0] = std::make_unique<FinalRender>();
 		m_finalRender[0]->Init();
 	}
+	FinalRender::SetIsLensDistortion(initParam.isLensDistortion);
 
 	//レンダーをセット	
 	m_renderManager.AddRender(-1, &m_shadowMapRender);
