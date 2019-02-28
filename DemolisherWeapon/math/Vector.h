@@ -246,6 +246,13 @@ public:
 		vec = _v.vec;
 		return *this;
 	}
+	CVector3& operator=(const CVector2& _v)
+	{
+		vec.x = _v.vec.x;
+		vec.y = _v.vec.y;
+		return *this;
+	}
+
 	CVector3() { x = y = z = 0.0f; }
 	/*!
 	* @brief	コンストラクタ。
@@ -572,6 +579,13 @@ public:
 	CVector4& operator=(const CVector4& _v)
 	{
 		vec = _v.vec;
+		return *this;
+	}
+	CVector4& operator=(const CVector3& _v)
+	{
+		vec.x = _v.vec.x;
+		vec.y = _v.vec.y;
+		vec.z = _v.vec.z;
 		return *this;
 	}
 	/*!

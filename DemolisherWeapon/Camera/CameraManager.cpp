@@ -49,8 +49,7 @@ CVector3 ICamera::CalcWorldPosFromScreenPosScreenPos(CVector3 screenPos)
 	//é˚ç∑Ç™Ç»Ç¢èÛë‘Ç…Ç∑ÇÈ
 	screenPos.x /= GetGraphicsEngine().GetFrameBuffer_W();
 	screenPos.y /= GetGraphicsEngine().GetFrameBuffer_H();
-	auto[x, y] = FinalRender::CalcLensDistortion({ screenPos.x , screenPos.y }, this);
-	screenPos.x = x; screenPos.y = y;
+	screenPos = FinalRender::CalcLensDistortion({ screenPos.x , screenPos.y }, this);
 	screenPos.x *= GetGraphicsEngine().GetFrameBuffer_W();
 	screenPos.y *= GetGraphicsEngine().GetFrameBuffer_H();
 
