@@ -19,3 +19,4 @@ void CQuaternion::SetRotation(const CMatrix& m)
 }
 
 }
+

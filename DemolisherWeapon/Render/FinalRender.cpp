@@ -170,13 +170,7 @@ void FinalRender::Render() {
 		//透視
 
 		//歪曲収差
-		//psCb.k4 = -2.0f;//-0.0875f * (fov / (3.14f*0.5f)); 
-		if (fov > 3.14f*0.5f) {
-			psCb.k4 = CMath::Lerp(pow((fov - (3.14f*0.5f)) / (CMath::DegToRad(160.4f) - (3.14f*0.5f)),2.0f), -0.0875f, -2.0f);
-		}
-		else {
-			psCb.k4 = min(0.0f, CMath::Lerp((((3.14f*0.5f) - fov) / (3.14f*0.5f))*4.0f, -0.0875f, 0.0f));
-		}
+		psCb.k4 = Calc_k4(fov);
 
 		// Aspect比を考慮した空間上での,光軸中心からの距離ベクトル
 		CVector3 rVec = (CVector3(1.0f,0.0f,0.0f) - CVector3(0.5f, 0.5f, 0.0f));
@@ -225,5 +219,54 @@ void FinalRender::Render() {
 //void FinalRender::SetFinalRenderTarget() {
 //	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &m_FRT.GetRTV(), m_FRT.GetDSV());
 //}
+
+float FinalRender::Calc_k4(float fov) {
+	//psCb.k4 = -2.0f;//-0.0875f * (fov / (3.14f*0.5f)); 
+	if (fov > 3.14f*0.5f) {
+		return CMath::Lerp(pow((fov - (3.14f*0.5f)) / (CMath::DegToRad(160.4f) - (3.14f*0.5f)), 2.0f), -0.0875f, -2.0f);
+	}
+	else {
+		return min(0.0f, CMath::Lerp((((3.14f*0.5f) - fov) / (3.14f*0.5f))*4.0f, -0.0875f, 0.0f));
+	}
+}
+
+CVector2 FinalRender::CalcLensDistortion(const CVector2& pos, GameObj::ICamera* cam) {
+
+	float fov = cam->GetFOV();
+
+	if (fov < 0.0f) {
+		//平行
+		return pos;
+	}
+	if (GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD1)) {
+		return pos;
+	}
+
+	// Aspect比を考慮した空間上での,光軸中心からの距離ベクトル
+	CVector3 rVec = (CVector3(pos.x, pos.y, 0.0f) - CVector3(0.5f, 0.5f, 0.0f));
+	CVector3 rVecX = (CVector3(1.0f, 0.0f, 0.0f) - CVector3(0.5f, 0.5f, 0.0f));
+	rVec.x *= cam->GetAspect();
+	rVecX.x *= cam->GetAspect();
+	const float r2 = rVec.Dot(rVec);
+	const float r2X = rVecX.Dot(rVecX);
+	const float r4 = r2 * r2;
+	const float r4X = r2X * r2X;
+
+	// 半径方向歪みを考慮した距離ベクトル
+	CVector3 distortionR = rVec * ((1.0f) / (1.0f + Calc_k4(fov) * r4));
+	CVector3 distortionRX = rVecX * ((1.0f) / (1.0f + Calc_k4(fov) * r4X));
+
+	// アスペクト比補正
+	distortionR.x *= 1.0f / cam->GetAspect();
+	distortionRX.x *= 1.0f / cam->GetAspect();
+
+	// 画面中心基準の拡大,UV座標への変換
+	distortionRX += CVector3(0.5f, 0.5f, 0.0f);
+	float LENS_DISTORTION_UV_MAGNIFICATION = (1.0f / distortionRX.x);
+
+	rVec = (distortionR*LENS_DISTORTION_UV_MAGNIFICATION) + CVector3(0.5f, 0.5f, 0.0f);
+
+	return { rVec.x , rVec.y };
+}
 
 }

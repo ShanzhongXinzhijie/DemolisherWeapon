@@ -1,6 +1,6 @@
 #pragma once
 
-#include"../Graphic/CPrimitive.h"
+#include"Graphic/CPrimitive.h"
 
 namespace DemolisherWeapon {
 
@@ -54,6 +54,11 @@ public:
 	//void SetFinalRenderTarget();
 
 	//CFinalRenderTarget& GetFRT() { return m_FRT; }
+
+	//˜c‹Èû·‚ÌŒW”‚ğŒvZ
+	static float Calc_k4(float fov);
+	//˜c‹Èû·‚ğ‚©‚¯‚½2DÀ•W‚ğæ“¾
+	static CVector2 CalcLensDistortion(const CVector2& pos, GameObj::ICamera* cam);
 
 private:
 	//CFinalRenderTarget m_FRT;

@@ -32,14 +32,28 @@ CVector3 ICamera::CalcScreenPosFromWorldPos(const CVector3& worldPos)
 	screenPos.x = (_screenPos.x / _screenPos.w) * 0.5f + 0.5f;
 	screenPos.y = (_screenPos.y / _screenPos.w) *-0.5f + 0.5f;
 	screenPos.z = _screenPos.z / _screenPos.w;
+
+	//歪曲収差後の座標を取得
+	auto [x, y] = FinalRender::CalcLensDistortion({ screenPos.x , screenPos.y }, this);
+	screenPos.x *= screenPos.x/x; screenPos.y *= screenPos.y/y;
+
 	return screenPos;
 }
 //スクリーン座標からワールド座標を計算する
 CVector3 ICamera::CalcWorldPosFromScreenPos( const CVector3& screenPos)  {
 	return CalcWorldPosFromScreenPosScreenPos({ screenPos.x * GetGraphicsEngine().GetFrameBuffer_W(), screenPos.y*GetGraphicsEngine().GetFrameBuffer_H(), screenPos.z });
 }
-CVector3 ICamera::CalcWorldPosFromScreenPosScreenPos(const CVector3& screenPos)
+CVector3 ICamera::CalcWorldPosFromScreenPosScreenPos(CVector3 screenPos)
 {
+	//歪曲収差後の座標を取得
+	//収差がない状態にする
+	screenPos.x /= GetGraphicsEngine().GetFrameBuffer_W();
+	screenPos.y /= GetGraphicsEngine().GetFrameBuffer_H();
+	auto[x, y] = FinalRender::CalcLensDistortion({ screenPos.x , screenPos.y }, this);
+	screenPos.x = x; screenPos.y = y;
+	screenPos.x *= GetGraphicsEngine().GetFrameBuffer_W();
+	screenPos.y *= GetGraphicsEngine().GetFrameBuffer_H();
+
 	if (m_change) { UpdateMatrix(); }//必要あれば行列更新
 
 	CMatrix viewInv = m_viewMat; viewInv.Inverse();

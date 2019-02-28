@@ -105,7 +105,7 @@ public:
 	//const CVector2& screenPos は0.0f～1.0fの範囲。{0.0f,0.0f}で画面左上
 	CVector3 CalcWorldPosFromScreenPos(const CVector3& screenPos) ;
 	//const CVector2& screenPos をスクリーン座標で指定する版。右下の座標=画面解像度　
-	CVector3 CalcWorldPosFromScreenPosScreenPos(const CVector3& screenPos) ;
+	CVector3 CalcWorldPosFromScreenPosScreenPos(CVector3 screenPos) ;
 
 protected:
 	bool m_change = true;//変更点あるか

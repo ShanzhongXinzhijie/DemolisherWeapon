@@ -200,6 +200,15 @@ public:
 		static const CVector2 one = { 1.0f,  1.0f };
 		return one;
 	}
+
+	//構造化束縛のやつ
+	template <std::size_t N>
+	float get() const {
+		if constexpr (N == 0)
+			return x;
+		else
+			return y;
+	}
 };
 /*!
  * @brief	ベクトル。
@@ -987,4 +996,16 @@ static inline TVector operator-(const TVector& v0, const TVector& v1)
 	return result;
 }
 
+}
+
+
+//構造化束縛のやつ
+namespace std {
+	template <>
+	struct tuple_size<DemolisherWeapon::CVector2> : integral_constant<size_t, 2> {}; //CVector2は2要素
+
+	template <size_t N>
+	struct tuple_element<N, DemolisherWeapon::CVector2> {
+		using type = float; // 要素の型はすべて float
+	};
 }
