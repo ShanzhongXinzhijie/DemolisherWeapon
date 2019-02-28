@@ -146,7 +146,7 @@ void FinalRender::Render() {
 
 	//シェーダーを設定
 	rc->VSSetShader((ID3D11VertexShader*)m_vs.GetBody(), NULL, 0);
-	if (1){//GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD1)) {
+	if (GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD1)) {
 		rc->PSSetShader((ID3D11PixelShader*)m_psNormal.GetBody(), NULL, 0);
 	}
 	else {
@@ -168,6 +168,8 @@ void FinalRender::Render() {
 	}
 	else {
 		//透視
+
+		//歪曲収差
 		//psCb.k4 = -2.0f;//-0.0875f * (fov / (3.14f*0.5f)); 
 		if (fov > 3.14f*0.5f) {
 			psCb.k4 = CMath::Lerp(pow((fov - (3.14f*0.5f)) / (CMath::DegToRad(160.4f) - (3.14f*0.5f)),2.0f), -0.0875f, -2.0f);
@@ -193,6 +195,7 @@ void FinalRender::Render() {
 		psCb.LENS_DISTORTION_UV_MAGNIFICATION = (1.0f / uv2.x);
 	}
 
+	//アス比
 	psCb.ASPECT_RATIO = GetMainCamera()->GetAspect();
 	psCb.INV_ASPECT_RATIO = 1.0f / GetMainCamera()->GetAspect();
 
