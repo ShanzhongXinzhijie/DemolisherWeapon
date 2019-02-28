@@ -464,13 +464,6 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <MeshContentTask Include="Preset\modelData\sky.fbx">
-      <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputDir)/Preset/modelData/%(Filename).cmo</ContentOutput>
-      <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputDir)/Preset/modelData/%(Filename).cmo</ContentOutput>
-      <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Preview|x64'">$(InputDir)/Preset/modelData/%(Filename).cmo</ContentOutput>
-    </MeshContentTask>
-  </ItemGroup>
-  <ItemGroup>
     <CustomBuild Include="Preset\modelData\sky.cmo">
       <FileType>Document</FileType>
     </CustomBuild>
