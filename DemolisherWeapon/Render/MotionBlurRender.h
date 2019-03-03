@@ -44,6 +44,7 @@ private:
 	};
 	struct SPSConstantBuffer {
 		float DistantThreshold;
+		float distanceScale;
 	};
 
 	ID3D11SamplerState* m_samplerState = nullptr;

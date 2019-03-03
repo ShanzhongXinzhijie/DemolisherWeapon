@@ -45,6 +45,8 @@ CVector3 ICamera::CalcWorldPosFromScreenPos( const CVector3& screenPos)  {
 }
 CVector3 ICamera::CalcWorldPosFromScreenPosScreenPos(CVector3 screenPos)
 {
+	if (m_change) { UpdateMatrix(); }//必要あれば行列更新
+
 	//歪曲収差後の座標を取得
 	//収差がない状態にする
 	screenPos.x /= GetGraphicsEngine().GetFrameBuffer_W();
@@ -52,9 +54,7 @@ CVector3 ICamera::CalcWorldPosFromScreenPosScreenPos(CVector3 screenPos)
 	screenPos = FinalRender::CalcLensDistortion({ screenPos.x , screenPos.y }, this);
 	screenPos.x *= GetGraphicsEngine().GetFrameBuffer_W();
 	screenPos.y *= GetGraphicsEngine().GetFrameBuffer_H();
-
-	if (m_change) { UpdateMatrix(); }//必要あれば行列更新
-
+	
 	CMatrix viewInv = m_viewMat; viewInv.Inverse();
 	CMatrix ProjectionInv = m_projMat; ProjectionInv.Inverse();
 

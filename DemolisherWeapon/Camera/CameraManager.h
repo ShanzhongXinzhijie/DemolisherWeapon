@@ -54,7 +54,7 @@ public:
 	void PreLoopUpdate()override {
 		UpdateOldMatrix();
 	};
-	void Update()override {
+	void PostUpdate()override {
 		UpdateMatrix();
 	}
 	//void PostLoopUpdate()override {

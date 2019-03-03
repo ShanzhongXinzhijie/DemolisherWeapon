@@ -265,7 +265,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 	//ライティング無効
 	if (!lightParam.a) {
-		return float4(saturate(albedo.rgb + lightParam.rgb), albedo.w);//エミッシブ加算
+		return float4(albedo.rgb + lightParam.rgb, albedo.w);//float4(saturate(albedo.rgb + lightParam.rgb), albedo.w);//エミッシブ加算
 	}
 
 	//シャドウマップの範囲に入っているか判定
@@ -347,7 +347,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	Out += lightParam.rgb;
 
 	//0.0~1.0で出力
-	Out = saturate(Out);
+	//Out = saturate(Out);
 	return float4(Out, albedo.w);
 	
 }

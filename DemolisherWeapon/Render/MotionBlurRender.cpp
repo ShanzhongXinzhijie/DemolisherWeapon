@@ -111,6 +111,7 @@ void MotionBlurRender::PSBlur(ID3D11DeviceContext* rc){
 	//定数バッファ
 	SPSConstantBuffer psCb;
 	psCb.DistantThreshold = 500.0f*GetEngine().GetDistanceScale();
+	psCb.distanceScale = GetEngine().GetDistanceScale();
 	rc->UpdateSubresource(m_cbPS, 0, nullptr, &psCb, 0, 0);
 	rc->PSSetConstantBuffers(0, 1, &m_cbPS);
 
