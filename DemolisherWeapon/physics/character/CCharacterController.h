@@ -105,6 +105,7 @@ namespace DemolisherWeapon {
 		bool				m_isContactWall = false;		//壁に接触してる？
 		CVector3			m_contactWallNormal;			//接触している壁の法線(平均)
 		CapsuleCollider		m_collider;						//!<コライダー。
+		CapsuleCollider		m_colliderWall;
 		float				m_radius = 0.0f;				//!<カプセルコライダーの半径。
 		float				m_height = 0.0f;				//!<カプセルコライダーの高さ。
 		RigidBody			m_rigidBody;					//剛体。
