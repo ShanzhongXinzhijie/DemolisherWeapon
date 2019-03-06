@@ -113,6 +113,7 @@ namespace DemolisherWeapon {
 		m_radius = radius;
 		m_height = height;
 		m_collider.Create(radius, height);
+		m_colliderWall.Create(radius, height - (m_height * 0.5f + m_radius)*0.5f);
 
 		//剛体を初期化。
 		RigidBodyInfo rbInfo;
@@ -172,14 +173,14 @@ namespace DemolisherWeapon {
 					//とても小さい値のことです。
 					break;
 				}
-				//カプセルコライダーの中心座標 + 高さ*0.1の座標をposTmpに求める。
+				//カプセルコライダーの中心座標 + (高さ*0.5+半径)*0.25 の座標をposTmpに求める。
 				CVector3 posTmp = m_position;
-				posTmp.y += m_height * 0.5f + m_radius + m_height * 0.1f;
+				posTmp.y += (m_height * 0.5f + m_radius)*1.25f;
 				//レイを作成。
 				btTransform start, end;
 				start.setIdentity();
 				end.setIdentity();
-				//始点はカプセルコライダーの中心座標 + 0.2の座標をposTmpに求める。
+				//始点
 				start.setOrigin(btVector3(posTmp.x, posTmp.y, posTmp.z));
 				//終点は次の移動先。XZ平面での衝突を調べるので、yはposTmp.yを設定する。
 				end.setOrigin(btVector3(nextPosition.x, posTmp.y, nextPosition.z));
@@ -188,7 +189,7 @@ namespace DemolisherWeapon {
 				callback.me = m_rigidBody.GetBody();
 				callback.startPos = posTmp;
 				//衝突検出。
-				GetEngine().GetPhysicsWorld().ConvexSweepTest((const btConvexShape*)m_collider.GetBody(), start, end, callback);
+				GetEngine().GetPhysicsWorld().ConvexSweepTest((const btConvexShape*)m_colliderWall.GetBody(), start, end, callback);
 
 				if (callback.isHit) {
 					//当たった。
@@ -245,6 +246,7 @@ namespace DemolisherWeapon {
 
 		//下方向を調べる。
 		{
+			/*
 			CVector3 addPos;
 			addPos.Subtract(nextPosition, m_position);
 
@@ -277,17 +279,20 @@ namespace DemolisherWeapon {
 				endPos.y -= 1.0f + m_height * 0.5f;//+ 800.0f / 60.0f + 20.0f;
 			}
 			end.setOrigin(btVector3(endPos.x, endPos.y, endPos.z));
+			*/
 			
 			//衝突検出。
-			if (fabsf(endPos.y - start.getOrigin().y()) > FLT_EPSILON) {
+			//if (fabsf(endPos.y - start.getOrigin().y()) > FLT_EPSILON) {
 				//レイで判定
-				btVector3 rayStart = start.getOrigin(); rayStart.setY(rayStart.getY() + m_radius);
-				btVector3 rayEnd = end.getOrigin(); rayEnd.setY(rayEnd.getY() - m_radius);
+				btVector3 rayStart = btVector3(m_position.x, max(m_position.y, nextPosition.y), m_position.z);
+				btVector3 rayEnd = btVector3(m_position.x, min(m_position.y, nextPosition.y), nextPosition.z);
+				rayStart.setY(rayStart.y() + m_height + m_radius);
+				if (m_isOnGround && addPos.y <= 0.0f){
+					rayEnd.setY(rayEnd.y() - (1.0f + m_height * 0.5f));
+				}
 
-				//CVector3 move = moveSpeed; move.y = 0.0f; move.Normalize(); move *= m_radius;
-				//btVector3 offset(move.x, 0.0f, move.z);
-				//rayStart += offset;
-				//rayEnd += offset;
+				//地上フラグ切る
+				m_isOnGround = false;
 
 				btCollisionWorld::AllHitsRayResultCallback gnd_ray(rayStart, rayEnd);
 				GetEngine().GetPhysicsWorld().RayTest(rayStart, rayEnd, gnd_ray);
@@ -314,19 +319,23 @@ namespace DemolisherWeapon {
 							|| col->getUserIndex() == enCollisionAttr_Ground //もしくはコリジョン属性が地面と指定されている。
 						) {
 							//近ければ							
-							if (!RayHit || abs(rayStart.y() - nextPosition.y) > abs(rayStart.y() - gnd_ray.m_hitPointWorld[i].y())) {
-								//当たった。
-								moveSpeed.y = 0.0f;
-								m_isJump = false;
-								m_isOnGround = true;
-								nextPosition.y = gnd_ray.m_hitPointWorld[i].y();
-
-								RayHit = true;
+							if (!RayHit || nextPosition.y < gnd_ray.m_hitPointWorld[i].y()){//abs(rayStart.y() - nextPosition.y) > abs(rayStart.y() - gnd_ray.m_hitPointWorld[i].y())) {
+								if (addPos.y <= 0.0f || nextPosition.y < gnd_ray.m_hitPointWorld[i].y()) {
+									//当たった。
+									if (moveSpeed.y <= 0.0f) {
+										moveSpeed.y = 0.0f;
+										m_isJump = false;
+										m_isOnGround = true;
+									}
+									nextPosition.y = gnd_ray.m_hitPointWorld[i].y();
+									RayHit = true;
+								}
 							}
 						}
 					}
 				}
-				//if(!RayHit)
+				/*
+				if(!RayHit)
 				{
 
 					//座標更新してカプセルでも
@@ -353,7 +362,8 @@ namespace DemolisherWeapon {
 						m_isOnGround = false;
 					}
 				}
-			}
+				*/
+			//}
 		}
 		//移動確定。
 		m_position = nextPosition;
