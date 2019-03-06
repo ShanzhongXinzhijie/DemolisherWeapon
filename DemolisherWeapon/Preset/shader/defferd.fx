@@ -337,7 +337,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 	//アンビエント
 	if (boolAmbientCube) {
-		Out += albedo.xyz * AmbientCubeMap.SampleLevel(Sampler, normal, 8) * ambientLight * ambientOcclusion;
+		Out += albedo.xyz * AmbientCubeMap.SampleLevel(Sampler, normal, 9) * ambientLight * ambientOcclusion;
 	}
 	else {
 		Out += albedo.xyz * ambientLight * ambientOcclusion;

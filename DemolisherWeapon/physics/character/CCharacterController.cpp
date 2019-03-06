@@ -322,11 +322,11 @@ namespace DemolisherWeapon {
 							if (!RayHit || nextPosition.y < gnd_ray.m_hitPointWorld[i].y()){//abs(rayStart.y() - nextPosition.y) > abs(rayStart.y() - gnd_ray.m_hitPointWorld[i].y())) {
 								if (addPos.y <= 0.0f || nextPosition.y < gnd_ray.m_hitPointWorld[i].y()) {
 									//“–‚½‚Á‚½B
-									if (moveSpeed.y <= 0.0f) {
+									//if (moveSpeed.y <= 0.0f) {
 										moveSpeed.y = 0.0f;
 										m_isJump = false;
 										m_isOnGround = true;
-									}
+									//}
 									nextPosition.y = gnd_ray.m_hitPointWorld[i].y();
 									RayHit = true;
 								}
