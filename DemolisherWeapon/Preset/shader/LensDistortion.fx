@@ -27,7 +27,7 @@ cbuffer PSCb : register(b0) {
 };
 
 //ビネット(周辺減光)が始まる位置
-static const float VIGNETTE_POS_MIN = 0.01f;
+static const float VIGNETTE_POS_MIN = 0.02f;
 static const float VIGNETTE_POS_MAX = 1.0f - VIGNETTE_POS_MIN;
 //終わる位置
 static const float VIGNETTE_END_MIN = -0.006f;
