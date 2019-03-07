@@ -126,6 +126,11 @@ void DefferdRender::Render() {
 			//•½s“Š‰eƒJƒƒ‰ WidthEHeight
 			sCb.cascadeArea[i].z = 4000.0f / GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightCamera(i).GetWidth();
 			sCb.cascadeArea[i].w = 4000.0f / GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightCamera(i).GetHeight();
+		
+			//Near,Far
+			sCb.shadowNF[i].x = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightCamera(i).GetNear();
+			sCb.shadowNF[i].y = GetEngine().GetGraphicsEngine().GetShadowMapRender().GetLightCamera(i).GetFar();
+			sCb.shadowNF[i].z = sCb.shadowNF[i].y - sCb.shadowNF[i].x;
 		}
 	}
 	rc->UpdateSubresource(m_scb, 0, nullptr, &sCb, 0, 0);

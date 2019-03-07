@@ -42,6 +42,7 @@ private:
 		CVector4 shadowDir[ShadowMapRender::SHADOWMAP_NUM];
 		CVector4 enableShadowMap[ShadowMapRender::SHADOWMAP_NUM];
 		CVector4 cascadeArea[ShadowMapRender::SHADOWMAP_NUM];
+		CVector4 shadowNF[ShadowMapRender::SHADOWMAP_NUM];
 
 		int boolAO;
 		int boolAmbientCube;

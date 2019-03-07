@@ -30,6 +30,7 @@ cbuffer ShadowCb : register(b1) {
 	float4 shadowDir[SHADOWMAP_NUM];//xyz:方向 w:バイアス
 	float4 enableShadowMap[SHADOWMAP_NUM];//x:シャドウマップ有効か？ y:PCSS有効 z:解像度(横) w:解像度(縦)
 	float4 cascadeArea[SHADOWMAP_NUM];//x:カスケード距離(Near) y:カスケード距離(Far) z:4000.0f/Width(平行投影カメラ) w:4000.0f/Height(平行投影カメラ)
+	float4 shadowNF[SHADOWMAP_NUM];
 
 	int boolAO;//AOを有効にするか
 	int boolAmbientCube;//環境キューブマップ有効か?
@@ -129,6 +130,14 @@ static const float2 PCSSSampleMap[] = {
 	float2(0.00138f, 0.00138f),
 };
 
+//デプス値を線形に変換
+float LinearizeDepth(float depth, float near, float far)
+{
+	return (2.0 * near) / (far + near - depth * (far - near));
+}
+
+static const float DEFALT_NF = 20000.0f - 50.0f;
+
 //シャドウマップの判定
 inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 
@@ -165,7 +174,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 		blocker_z = shadowMaps.Sample(NoFillteringSampler, float3(lLViewPosition.xy + blockerSampleMap[i] * scale * float2(cascadeArea[usemapnum].z, cascadeArea[usemapnum].w), usemapnum));
 
 		if (blocker_z < lLViewPosition.z) {
-			avg_blocker_z += blocker_z;
+			avg_blocker_z += LinearizeDepth(blocker_z, shadowNF[usemapnum].x, shadowNF[usemapnum].y);
 			cnt++;
 		}
 	}
@@ -177,7 +186,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	}
 
 	//半影のサイズ計算
-	float maxCnt = 4.5f*(lLViewPosition.z - avg_blocker_z) / avg_blocker_z;// saturate();
+	float maxCnt = 4.5f * (LinearizeDepth(lLViewPosition.z, shadowNF[usemapnum].x, shadowNF[usemapnum].y) - avg_blocker_z) / (avg_blocker_z * (DEFALT_NF/shadowNF[usemapnum].z));
 	if (maxCnt <= 0.0f) {
 		return 0.0f;
 	}
@@ -274,6 +283,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	for (int i = 0; i < SHADOWMAP_NUM; i++) {
 		if (enableShadowMap[i].x && viewpos.z > cascadeArea[i].x && viewpos.z < cascadeArea[i].y){
 			hideInShadow.flag[i] = ShadowMapFunc(i, float4(worldpos, 1.0f));
+			//return float4(hideInShadow.flag[i], 0, 0, 1);
 		}
 		/*if (!enableShadowMap[i].y && viewpos.z > cascadeArea[i].x && viewpos.z < cascadeArea[i].y) {
 			if (i == 0) {
