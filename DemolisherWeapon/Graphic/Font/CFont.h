@@ -2,17 +2,47 @@
 
 namespace DemolisherWeapon {
 
+	class FontBank {
+	public:
+		DirectX::SpriteFont* Load(const wchar_t* path) {
+			int key = Util::MakeHash(path);
+			if (m_fontmap.count(key) == 0) {
+				m_fontmap.emplace(key, std::make_unique<DirectX::SpriteFont>(GetEngine().GetGraphicsEngine().GetD3DDevice(), path));
+			}
+			return m_fontmap[key].get();
+		}
+	private:
+		std::unordered_map<int, std::unique_ptr<DirectX::SpriteFont>> m_fontmap;
+	};
+
 	class CFont
 	{
 	public:
+		//デフォルトのフォントをロード
+		static void LoadDefaultFont(const wchar_t* path) {
+			m_s_defaultFont = m_s_fontBank.Load(path);
+		}		
+		//デフォルトのフォントを変更する
+		//nullで初期設定に戻る
+		static void ChangeDefaultFont(DirectX::SpriteFont* font) {
+			m_s_defaultFont = font;
+		}
+	public:
 		CFont();
+		CFont(const wchar_t* path);
 		~CFont();
 
 		//フォントをロードする
-
+		void LoadFont(const wchar_t* path) {
+			m_spriteFont = m_s_fontBank.Load(path);
+		}
 		//フォントを変更する
 		void ChangeFont(DirectX::SpriteFont* font) {
 			m_spriteFont = font;
+		}
+		//フォントを取得
+		DirectX::SpriteFont* GetFont()const {
+			return m_spriteFont;
 		}
 
 		//描画する
@@ -41,9 +71,14 @@ namespace DemolisherWeapon {
 		);
 
 	private:
+		void initialize();
+
 		DirectX::SpriteBatch* m_spriteBatch = nullptr;
 		DirectX::SpriteFont* m_spriteFont = nullptr;
 		CVector2 m_screenSize;
+
+		static FontBank m_s_fontBank;
+		static DirectX::SpriteFont* m_s_defaultFont;
 	};
 
 }

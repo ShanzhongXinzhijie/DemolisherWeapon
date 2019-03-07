@@ -3,13 +3,29 @@
 
 namespace DemolisherWeapon {
 
-	CFont::CFont()
-	{
+	FontBank CFont::m_s_fontBank;
+	DirectX::SpriteFont* CFont::m_s_defaultFont = nullptr;
+
+	void CFont::initialize() {
 		m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
-		m_spriteFont = GetEngine().GetGraphicsEngine().GetSpriteFont();
+		if (m_s_defaultFont) {
+			m_spriteFont = m_s_defaultFont;
+		}
+		else {
+			m_spriteFont = GetEngine().GetGraphicsEngine().GetSpriteFont();
+		}
 
 		m_screenSize.x = GetEngine().GetGraphicsEngine().GetFrameBuffer_W();
 		m_screenSize.y = GetEngine().GetGraphicsEngine().GetFrameBuffer_H();
+	}
+
+	CFont::CFont()
+	{
+		initialize();
+	}
+	CFont::CFont(const wchar_t* path)
+	{
+		initialize(); LoadFont(path);
 	}
 
 	CFont::~CFont()
