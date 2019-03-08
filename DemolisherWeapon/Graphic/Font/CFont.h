@@ -40,6 +40,10 @@ namespace DemolisherWeapon {
 		void ChangeFont(DirectX::SpriteFont* font) {
 			m_spriteFont = font;
 		}
+		//初期設定のシステムフォントを使用する
+		void UseSystemFont() {
+			m_spriteFont = GetEngine().GetGraphicsEngine().GetSpriteFont();
+		}
 		//フォントを取得
 		DirectX::SpriteFont* GetFont()const {
 			return m_spriteFont;
