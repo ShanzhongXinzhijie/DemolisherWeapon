@@ -15,24 +15,32 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 		deviceContext->PSSetShader((ID3D11PixelShader*)m_psZShader.GetBody(), NULL, 0);
 		break;
 	default:
-		//モーションブラーの有効で切り替える
-		if (m_pVSShader == &m_vsDefaultShader[enALL] && !m_enableMotionBlur) {
-			deviceContext->VSSetShader((ID3D11VertexShader*)m_vsDefaultShader[enNoMotionBlur].GetBody(), NULL, 0);
-		}
-		else {
+		int macroind = 0;
+		if (m_enableMotionBlur) { macroind |= enMotionBlur; }
+		if (m_pNormalTex)		{ macroind |= enNormalMap; }
+
+		if (m_pVSShader != &m_vsDefaultShader[enALL]) {
+			//カスタムシェーダー
 			deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSShader->GetBody(), NULL, 0);
 		}
-		if (m_pPSShader == &m_psDefaultShader[enALL] && !m_enableMotionBlur) {
-			deviceContext->PSSetShader((ID3D11PixelShader*)m_psDefaultShader[enNoMotionBlur].GetBody(), NULL, 0);
+		else {
+			//デフォルトシェーダー
+			deviceContext->VSSetShader((ID3D11VertexShader*)m_vsDefaultShader[macroind].GetBody(), NULL, 0);
+		}
+		if (m_pPSShader != &m_psDefaultShader[enALL]) {
+			//カスタムシェーダー
+			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader->GetBody(), NULL, 0);
 		}
 		else {
-			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader->GetBody(), NULL, 0);
+			//デフォルトシェーダー		
+			deviceContext->PSSetShader((ID3D11PixelShader*)m_psDefaultShader[macroind].GetBody(), NULL, 0);
 		}
 		break;
 	}
 
 	//テクスチャ
 	deviceContext->PSSetShaderResources(enSkinModelSRVReg_AlbedoTexture, 1, &m_pAlbedoTex);
+	deviceContext->PSSetShaderResources(enSkinModelSRVReg_NormalTexture, 1, &m_pNormalTex);
 
 	//定数バッファ
 	deviceContext->UpdateSubresource(m_materialParamCB, 0, NULL, &m_materialParam, 0, 0);

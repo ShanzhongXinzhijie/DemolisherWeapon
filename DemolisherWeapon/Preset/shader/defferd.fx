@@ -247,13 +247,21 @@ float3 CalcWorldPosFromUVZ(float2 uv, float zInScreen)//, float4x4 mViewProjInv)
 static const float PI = 3.14f;
 
 //スペキュラ
-float3 NormalizedPhong(float3 specular, float power, float3 viewDir, float3 normal, float3 lightDir)
+float3 NormalizedPhong(float3 specular, float power, float3 lightDir, float3 viewDir, float3 normal)
 {
 	float3 R = -viewDir + (2.0f * dot(normal, viewDir) * normal);
-	return specular * pow(max(dot(lightDir, R), 0.0f), power) * ((power + 1.0f) / (2.0f * PI));
+	return specular * pow(max(dot(lightDir, R), 0.0f), power) * ((power + 1.0f) / (2.0f * PI));	
+}
+float3 NormalizedBlinnPhong(float3 specular, float power, float3 lightDir, float3 viewDir, float3 normal)
+{
+	//float3 lightDir = normalize(lightPosition - P);
+	//float3 viewDir = normalize(eyePosition - P);
+	float3 halfVec = normalize(lightDir + viewDir);
+	float norm_factor = (power + 2.0f) / (2.0f * PI);
+	return specular * norm_factor * pow(max(0.0f, dot(normal, halfVec)), power);
 }
 //ディフューズ
-float3 Lambert(float3 diffuse, float3 lightDir, float3 normal)
+float3 NormalizedLambert(float3 diffuse, float3 lightDir, float3 normal)
 {
 	return max(diffuse * dot(normal, lightDir), 0.0f)* (1.0f / PI);
 }
@@ -317,7 +325,8 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 		}
 
-		Out += Lambert(albedo.xyz, directionLight[i].direction, normal) * directionLight[i].color * nothide;
+		Out += NormalizedLambert(albedo.xyz, directionLight[i].direction, normal) * directionLight[i].color * nothide;
+		Out += NormalizedBlinnPhong(float3(1.0f, 1.0f, 1.0f)*0.025f, 50.0f, directionLight[i].direction, normalize(eyePos - worldpos), normal)* directionLight[i].color * nothide;
 	}
 	//ポイントライト
 	[unroll]
@@ -335,7 +344,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			float	litRate = len / pointLightList[i].range;
 			float	attn = max(1.0 - litRate * litRate, 0.0);
 
-			Out += Lambert(albedo.xyz, dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
+			Out += NormalizedLambert(albedo.xyz, dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
 		//}
 	}	
 

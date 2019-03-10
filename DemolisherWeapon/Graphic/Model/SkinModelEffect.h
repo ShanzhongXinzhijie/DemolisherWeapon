@@ -31,21 +31,30 @@ protected:
 	Shader* m_pVSShader = nullptr, *m_pVSZShader = nullptr;
 	Shader* m_pPSShader = nullptr;
 
-	Shader m_vsDefaultShader[2], m_vsZShader;
+	enum ShaderTypeMask {
+		enOFF = 0b00,
+		enMotionBlur = 0b01,
+		enNormalMap = 0b10,
+		enALL = 0b11,
+		enNum,
+	};
+	D3D_SHADER_MACRO macros[enALL] = {
+			"MOTIONBLUR", "0",
+			"NORMAL_MAP", "0",
+			NULL, NULL
+	};
+
+	Shader m_vsDefaultShader[ShaderTypeMask::enNum], m_vsZShader;
 	//int m_clacOldPosOffset = 0;
 	//ID3D11ClassInstance* m_cCalcOldPos = nullptr, *m_cNoCalcOldPos = nullptr;
 
-	Shader m_psDefaultShader[2], m_psZShader;
+	Shader m_psDefaultShader[ShaderTypeMask::enNum], m_psZShader;
 	//int m_clacVelocityOffset = 0;
-	//ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;
-
-	enum {
-		enALL,
-		enNoMotionBlur,
-	};
+	//ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;	
 
 	bool isSkining;
 	ID3D11ShaderResourceView* m_albedoTex = nullptr, *m_pAlbedoTex = nullptr;
+	ID3D11ShaderResourceView* m_pNormalTex = nullptr;
 	
 	MaterialSetting m_defaultMaterialSetting;	//マテリアル設定
 	MaterialParam m_materialParam;				//マテリアルパラメータ
@@ -55,9 +64,17 @@ protected:
 public:
 	ModelEffect()
 	{
-		D3D_SHADER_MACRO macros[] = { "NO_MOTIONBLUR", "1", NULL, NULL };
-		m_psDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, "NO_MOTIONBLUR", macros);
-		m_psDefaultShader[enALL].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
+		char macroName[32];
+		for (int i = 0; i < ShaderTypeMask::enNum; i++) {
+			sprintf_s(macroName, "DefaultModelShader:%d", i);
+
+			for (int mask = ShaderTypeMask::enOFF+1; mask < ShaderTypeMask::enALL; mask++) {
+				if (i & mask) { macros[mask - 1].Definition = "1"; }else{ macros[mask - 1].Definition = "0"; }
+			}
+
+			m_psDefaultShader[i].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, macroName, macros);
+		}
+
 		m_psZShader.Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
 		
 		LoadClassInstancePS();
@@ -133,6 +150,11 @@ public:
 		return m_albedoTex;
 	}
 
+	//ノーマルマップを設定
+	void SetNormalTexture(ID3D11ShaderResourceView* tex) {
+		m_defaultMaterialSetting.SetNormalTexture(tex);
+	}
+
 	//シェーダを設定
 	void SetVS(Shader* vs) {
 		m_defaultMaterialSetting.SetVS(vs);
@@ -202,6 +224,7 @@ public:
 		m_pVSZShader = matset.GetVSZ(); 
 		m_pPSShader = matset.GetPS();
 		m_pAlbedoTex = matset.GetAlbedoTexture();
+		m_pNormalTex = matset.GetNormalTexture();
 		m_enableMotionBlur = matset.GetIsMotionBlur();
 
 		/*if (m_pVSShader == &m_vsDefaultShader) {
@@ -272,9 +295,17 @@ class NonSkinModelEffect : public ModelEffect {
 public:
 	NonSkinModelEffect()
 	{
-		D3D_SHADER_MACRO macros[] = { "NO_MOTIONBLUR", "1", NULL, NULL };
-		m_vsDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "NO_MOTIONBLUR", macros);
-		m_vsDefaultShader[enALL].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS);
+		char macroName[32];
+		for (int i = 0; i < ShaderTypeMask::enNum; i++) {
+			sprintf_s(macroName, "DefaultModelShader:%d", i);
+
+			for (int mask = ShaderTypeMask::enOFF + 1; mask < ShaderTypeMask::enALL; mask++) {
+				if (i & mask) { macros[mask - 1].Definition = "1"; }else { macros[mask - 1].Definition = "0"; }
+			}
+
+			m_vsDefaultShader[i].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, macroName, macros);
+		}
+		
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS);
 
 		LoadClassInstanceVS();
@@ -292,11 +323,17 @@ class SkinModelEffect : public ModelEffect {
 public:
 	SkinModelEffect()
 	{
-		wchar_t hoge[256];
-		GetCurrentDirectoryW(256, hoge);
-		D3D_SHADER_MACRO macros[] = { "NO_MOTIONBLUR", "1", NULL, NULL };
-		m_vsDefaultShader[enNoMotionBlur].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, "NO_MOTIONBLUR", macros);
-		m_vsDefaultShader[enALL].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS);
+		char macroName[32];		
+		for (int i = 0; i < ShaderTypeMask::enNum; i++) {
+			sprintf_s(macroName, "DefaultModelShader:%d", i);
+
+			for (int mask = ShaderTypeMask::enOFF + 1; mask < ShaderTypeMask::enALL; mask++) {
+				if (i & mask) { macros[mask - 1].Definition = "1"; }else { macros[mask - 1].Definition = "0"; }
+			}
+
+			m_vsDefaultShader[i].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, macroName, macros);
+		}
+		
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS);
 
 		LoadClassInstanceVS();

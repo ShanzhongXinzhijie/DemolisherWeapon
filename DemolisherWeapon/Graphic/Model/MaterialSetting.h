@@ -99,6 +99,22 @@ namespace DemolisherWeapon {
 		//アルベドテクスチャをデフォに戻す
 		void SetDefaultAlbedoTexture();
 
+		//ノーマルマップを取得
+		ID3D11ShaderResourceView* GetNormalTexture()const {
+			return m_pNormalTex;
+		}
+		//ノーマルマップを設定
+		void SetNormalTexture(ID3D11ShaderResourceView* tex) {
+
+			if (m_pNormalTex == tex) { return; }//既に
+
+			if (m_pNormalTex) {
+				m_pNormalTex->Release();
+			}
+			m_pNormalTex = tex;
+			m_pNormalTex->AddRef();
+		}
+
 		//モーションブラー有効かを設定
 		void SetIsMotionBlur(bool enable) {
 			m_enableMotionBlur = enable;
@@ -120,6 +136,7 @@ namespace DemolisherWeapon {
 		Shader *m_pVSShader = nullptr, *m_pVSZShader = nullptr; //頂点シェーダ
 		Shader *m_pPSShader = nullptr;							//ピクセルシェーダ
 		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;		//テクスチャ
+		ID3D11ShaderResourceView* m_pNormalTex = nullptr;
 
 		bool m_enableMotionBlur = true;
 	};

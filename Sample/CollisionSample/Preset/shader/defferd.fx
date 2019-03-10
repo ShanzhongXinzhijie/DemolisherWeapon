@@ -27,11 +27,13 @@ StructuredBuffer<SPointLight> pointLightList : register(t101);
 cbuffer ShadowCb : register(b1) {
 	float4x4 ViewProjInv;
 	float4x4 mLVP[SHADOWMAP_NUM];
-	float4 shadowDir[SHADOWMAP_NUM];//wはバイアス
-	float4 enableShadowMap[SHADOWMAP_NUM];//x:シャドウマップ有効か？ y:PCSS有効 z:widthサイズ w:heightサイズ
-	float4 cascadeArea[SHADOWMAP_NUM];
+	float4 shadowDir[SHADOWMAP_NUM];//xyz:方向 w:バイアス
+	float4 enableShadowMap[SHADOWMAP_NUM];//x:シャドウマップ有効か？ y:PCSS有効 z:解像度(横) w:解像度(縦)
+	float4 cascadeArea[SHADOWMAP_NUM];//x:カスケード距離(Near) y:カスケード距離(Far) z:4000.0f/Width(平行投影カメラ) w:4000.0f/Height(平行投影カメラ)
+	float4 shadowNF[SHADOWMAP_NUM];
 
 	int boolAO;//AOを有効にするか
+	int boolAmbientCube;//環境キューブマップ有効か?
 };
 struct HideInShadow {
 	float flag[SHADOWMAP_NUM];
@@ -128,11 +130,16 @@ static const float2 PCSSSampleMap[] = {
 	float2(0.00138f, 0.00138f),
 };
 
+//デプス値を線形に変換
+float LinearizeDepth(float depth, float near, float far)
+{
+	return (2.0 * near) / (far + near - depth * (far - near));
+}
+
+static const float DEFALT_NF = 20000.0f - 50.0f;
+
 //シャドウマップの判定
 inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
-
-	//Zからワールド座標を出す
-	//float4 worldpos = float4(CalcWorldPosFromUVZ(In.uv, viewpos.w, ViewProjInv), 1.0f);
 
 	//座標算出
 	float4 lLViewPosition = mul(mLVP[usemapnum], worldpos);
@@ -147,14 +154,8 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	float2 scale = float2( enableShadowMap[usemapnum].z / SHADOW_MAX_WIDTH, enableShadowMap[usemapnum].w / SHADOW_MAX_HEIGHT);
 	lLViewPosition.xy *= scale;
 	
-	// 最大深度傾斜を求める.
-	//float  maxDepthSlope = max(abs(ddx(lLViewPosition.z)), abs(ddy(lLViewPosition.z)));
-	
-	//float  shadowBias = shadowDir[usemapnum].w*0.1f + shadowDir[usemapnum].w*4.0f * maxDepthSlope;
-	//shadowBias = min(shadowBias, shadowDir[usemapnum].w*4.0f);
-	
 	//バイアス
-	lLViewPosition.z -= shadowDir[usemapnum].w;// shadowBias;
+	lLViewPosition.z -= shadowDir[usemapnum].w;
 
 	//PCSS無効
 	if (!enableShadowMap[usemapnum].y) {
@@ -169,17 +170,13 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	float avg_blocker_z = 0.0f;
 	[unroll]
 	for (uint i = 0; i < 25; i++) {
-	//for (float y = -0.00276f; y <= 0.00276f; y += 0.00138f) {
-	//[unroll]
-	//for (float x = -0.00276f; x <= 0.00276f; x += 0.00138f) {
 
-		blocker_z = shadowMaps.Sample(NoFillteringSampler, float3(lLViewPosition.xy + blockerSampleMap[i] * scale, usemapnum));
+		blocker_z = shadowMaps.Sample(NoFillteringSampler, float3(lLViewPosition.xy + blockerSampleMap[i] * scale * float2(cascadeArea[usemapnum].z, cascadeArea[usemapnum].w), usemapnum));
 
 		if (blocker_z < lLViewPosition.z) {
-			avg_blocker_z += blocker_z;
+			avg_blocker_z += LinearizeDepth(blocker_z, shadowNF[usemapnum].x, shadowNF[usemapnum].y);
 			cnt++;
 		}
-	//}
 	}
 	if (cnt == 0) {
 		return 0.0f;
@@ -189,7 +186,7 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	}
 
 	//半影のサイズ計算
-	float maxCnt = 4.5f*(lLViewPosition.z - avg_blocker_z) / avg_blocker_z;// saturate();
+	float maxCnt = 12.0f * (LinearizeDepth(lLViewPosition.z, shadowNF[usemapnum].x, shadowNF[usemapnum].y) - avg_blocker_z) / (avg_blocker_z * (DEFALT_NF/shadowNF[usemapnum].z));
 	if (maxCnt <= 0.0f) {
 		return 0.0f;
 	}
@@ -198,14 +195,10 @@ inline float ShadowMapFunc(uint usemapnum, float4 worldpos) {
 	cnt = 0;
 	[unroll]
 	for (uint i = 0; i < 49; i++) {
-	//for (float y = -0.00138f; y <= 0.00138f; y += 0.00046f){//1.0/720.0
-	//[unroll]
-	//for (float x = -0.00138f; x <= 0.00138f; x += 0.00046f){
-
-		kekka += 1.0f - shadowMaps.SampleCmpLevelZero(shadowSamplerComparisonState, float3(PCSSSampleMap[i] * maxCnt * scale + lLViewPosition.xy, usemapnum), lLViewPosition.z);
+	
+		kekka += 1.0f - shadowMaps.SampleCmpLevelZero(shadowSamplerComparisonState, float3(PCSSSampleMap[i] * maxCnt * scale * float2(cascadeArea[usemapnum].z, cascadeArea[usemapnum].w) + lLViewPosition.xy, usemapnum), lLViewPosition.z);
 
 		cnt++;
-	//}
 	}
 
 	kekka /= cnt;
@@ -219,6 +212,8 @@ Texture2D<float > depthMap		: register(t2);
 Texture2D<float4> PosMap		: register(t3);
 Texture2D<float > AoMap			: register(t4);
 Texture2D<float4> lightParamTex	: register(t5);
+//環境キューブマップ
+TextureCube<float3> AmbientCubeMap: register(t6);
 
 struct VSDefferdInput {
 	float4 pos : SV_Position;
@@ -252,13 +247,21 @@ float3 CalcWorldPosFromUVZ(float2 uv, float zInScreen)//, float4x4 mViewProjInv)
 static const float PI = 3.14f;
 
 //スペキュラ
-float3 NormalizedPhong(float3 specular, float power, float3 viewDir, float3 normal, float3 lightDir)
+float3 NormalizedPhong(float3 specular, float power, float3 lightDir, float3 viewDir, float3 normal)
 {
 	float3 R = -viewDir + (2.0f * dot(normal, viewDir) * normal);
-	return specular * pow(max(dot(lightDir, R), 0.0f), power) * ((power + 1.0f) / (2.0f * PI));
+	return specular * pow(max(dot(lightDir, R), 0.0f), power) * ((power + 1.0f) / (2.0f * PI));	
+}
+float3 NormalizedBlinnPhong(float3 specular, float power, float3 lightDir, float3 viewDir, float3 normal)
+{
+	//float3 lightDir = normalize(lightPosition - P);
+	//float3 viewDir = normalize(eyePosition - P);
+	float3 halfVec = normalize(lightDir + viewDir);
+	float norm_factor = (power + 2.0f) / (2.0f * PI);
+	return specular * norm_factor * pow(max(0.0f, dot(normal, halfVec)), power);
 }
 //ディフューズ
-float3 Lambert(float3 diffuse, float3 lightDir, float3 normal)
+float3 NormalizedLambert(float3 diffuse, float3 lightDir, float3 normal)
 {
 	return max(diffuse * dot(normal, lightDir), 0.0f)* (1.0f / PI);
 }
@@ -274,12 +277,12 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 	float3 normal = normalMap.Sample(Sampler, In.uv).xyz;
 	float4 viewpos = PosMap.Sample(Sampler, In.uv);
-	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w);// , ViewProjInv);
+	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w);
 	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
 
 	//ライティング無効
 	if (!lightParam.a) {
-		return float4(saturate(albedo.rgb + lightParam.rgb), albedo.w);//エミッシブ加算
+		return float4(albedo.rgb + lightParam.rgb, albedo.w);//float4(saturate(albedo.rgb + lightParam.rgb), albedo.w);//エミッシブ加算
 	}
 
 	//シャドウマップの範囲に入っているか判定
@@ -288,20 +291,22 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	for (int i = 0; i < SHADOWMAP_NUM; i++) {
 		if (enableShadowMap[i].x && viewpos.z > cascadeArea[i].x && viewpos.z < cascadeArea[i].y){
 			hideInShadow.flag[i] = ShadowMapFunc(i, float4(worldpos, 1.0f));
-
-			/*if (i == 0 && hideInShadow.flag[i] > 0.0f) {
-				albedo = float4(1, 0, 0, 1); 
-			}
-			if (i == 1 && hideInShadow.flag[i] > 0.0f) {
-				albedo = float4(0, 1, 0, 1); 
-			}
-			if (i == 2 && hideInShadow.flag[i] > 0.0f) {
-				albedo = float4(0, 0, 1, 1); 
-			}
-			if (i == 3 && hideInShadow.flag[i] > 0.0f) {
-				albedo = float4(0, 0, 0, 1);
-			}*/
+			//return float4(hideInShadow.flag[i], 0, 0, 1);
 		}
+		/*if (!enableShadowMap[i].y && viewpos.z > cascadeArea[i].x && viewpos.z < cascadeArea[i].y) {
+			if (i == 0) {
+				albedo = float4(1, 0, 0, 1);
+			}
+			if (i == 1) {
+				albedo = float4(0, 1, 0, 1);
+			}
+			if (i == 2) {
+				albedo = float4(0, 0, 1, 1);
+			}
+			if (i == 3) {
+				albedo = float4(0, 0, 0, 1);
+			}
+		}*/
 	}
 
 	//ライティング
@@ -320,7 +325,8 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 		}
 
-		Out += Lambert(albedo.xyz, directionLight[i].direction, normal) * directionLight[i].color * nothide;
+		Out += NormalizedLambert(albedo.xyz, directionLight[i].direction, normal) * directionLight[i].color * nothide;
+		Out += NormalizedBlinnPhong(float3(1.0f, 1.0f, 1.0f)*0.025f, 50.0f, directionLight[i].direction, normalize(eyePos - worldpos), normal)* directionLight[i].color * nothide;
 	}
 	//ポイントライト
 	[unroll]
@@ -338,7 +344,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			float	litRate = len / pointLightList[i].range;
 			float	attn = max(1.0 - litRate * litRate, 0.0);
 
-			Out += Lambert(albedo.xyz, dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
+			Out += NormalizedLambert(albedo.xyz, dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
 		//}
 	}	
 
@@ -349,13 +355,18 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	}
 
 	//アンビエント
-	Out += albedo.xyz * ambientLight * ambientOcclusion;
+	if (boolAmbientCube) {
+		Out += albedo.xyz * AmbientCubeMap.SampleLevel(Sampler, normal, 9) * ambientLight * ambientOcclusion;
+	}
+	else {
+		Out += albedo.xyz * ambientLight * ambientOcclusion;
+	}
 
 	//エミッシブを加算
 	Out += lightParam.rgb;
 
 	//0.0~1.0で出力
-	Out = saturate(Out);
+	//Out = saturate(Out);
 	return float4(Out, albedo.w);
 	
 }

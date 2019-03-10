@@ -99,7 +99,7 @@ void CSmain(uint3 run_xy : SV_DispatchThreadID)
 				//float fdot = dot(normal, normal2)*dot(normal, normal22);
 				//saturate(1.0f - fdot) * 
 
-				ao += saturate(1.0f - abs(acos(dot(normal2, normal22))) / 3.14f)*0.25f;// *saturate(viewpos.z - viewpos2.z)*saturate(viewpos.z - viewpos22.z);
+				ao += saturate(1.0f - abs(acos(dot(normal2, normal22))) / 3.14f)*0.25f*(1.0f- dis / rangeSqr)*(1.0f - dis2 / rangeSqr);// *saturate(viewpos.z - viewpos2.z)*saturate(viewpos.z - viewpos22.z);
 			}
 
 			}
