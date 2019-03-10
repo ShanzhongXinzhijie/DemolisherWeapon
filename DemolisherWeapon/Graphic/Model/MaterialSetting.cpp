@@ -17,6 +17,7 @@ namespace DemolisherWeapon {
 		SetVSZ(modeleffect->GetDefaultMaterialSetting().GetVSZ());
 		SetPS(modeleffect->GetDefaultMaterialSetting().GetPS());
 		SetAlbedoTexture(modeleffect->GetDefaultMaterialSetting().GetAlbedoTexture());
+		SetNormalTexture(modeleffect->GetDefaultMaterialSetting().GetNormalTexture());
 		SetIsMotionBlur(modeleffect->GetDefaultMaterialSetting().GetIsMotionBlur());
 	}
 
