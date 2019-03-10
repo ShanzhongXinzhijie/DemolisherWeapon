@@ -279,10 +279,16 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	float4 viewpos = PosMap.Sample(Sampler, In.uv);
 	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w);
 	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
+	float3 emissive;
+	//unpack
+	emissive.b = floor(lightParam.x / 65536.0f);
+	emissive.g = floor((lightParam.x - emissive.b * 65536.0f) / 256.0f);
+	emissive.r = floor(lightParam.x - emissive.b * 65536.0f - emissive.g * 256.0f);
+	emissive /= 256.0f;
 
 	//ライティング無効
-	if (!lightParam.a) {
-		return float4(albedo.rgb + lightParam.rgb, albedo.w);//float4(saturate(albedo.rgb + lightParam.rgb), albedo.w);//エミッシブ加算
+	if (!lightParam.y) {
+		return float4(albedo.rgb + emissive, albedo.w);
 	}
 
 	//シャドウマップの範囲に入っているか判定
@@ -311,6 +317,9 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 	//ライティング
 	float3 Out = 0; 
+
+	//視線ベクトル
+	float3 viewDir = normalize(eyePos - worldpos);
 	
 	//ディレクションライト
 	[unroll]
@@ -325,8 +334,8 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 		}
 
-		Out += NormalizedLambert(albedo.xyz, directionLight[i].direction, normal) * directionLight[i].color * nothide;
-		Out += NormalizedBlinnPhong(float3(1.0f, 1.0f, 1.0f)*0.025f, 50.0f, directionLight[i].direction, normalize(eyePos - worldpos), normal)* directionLight[i].color * nothide;
+		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), directionLight[i].direction, normal) * directionLight[i].color * nothide;
+		Out += NormalizedBlinnPhong(lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), pow(2.0f, 13.0f*lightParam.w), directionLight[i].direction, viewDir, normal)* directionLight[i].color * nothide;
 	}
 	//ポイントライト
 	[unroll]
@@ -344,7 +353,8 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			float	litRate = len / pointLightList[i].range;
 			float	attn = max(1.0 - litRate * litRate, 0.0);
 
-			Out += NormalizedLambert(albedo.xyz, dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
+			Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
+			Out += NormalizedBlinnPhong(lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), pow(2.0f, 13.0f*lightParam.w), dir, viewDir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
 		//}
 	}	
 
@@ -353,6 +363,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	if (boolAO) {
 		ambientOcclusion = AoMap.Sample(Sampler, In.uv);
 	}
+	ambientOcclusion *= (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
 
 	//アンビエント
 	if (boolAmbientCube) {
@@ -363,7 +374,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	}
 
 	//エミッシブを加算
-	Out += lightParam.rgb;
+	Out += emissive;
 
 	//0.0~1.0で出力
 	//Out = saturate(Out);

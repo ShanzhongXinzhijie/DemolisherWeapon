@@ -417,7 +417,12 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	Out.viewpos = float4(In.Viewpos.x, In.Viewpos.y, In.Viewpos.z + depthBias.y, In.curPos.z / In.curPos.w + depthBias.x);
 
 	//ライティング用パラメーター
-	Out.lightingParam = emissive;
+	//Out.lightingParam = emissive;
+	//pack
+	Out.lightingParam.x = dot(floor(emissive.xyz * 256.0f), float3(1.0f, 256.0f, 65536.0f));//エミッシブ
+	Out.lightingParam.y = emissive.w;//ライティングするか?
+	Out.lightingParam.z = 0.0f;//メタリック
+	Out.lightingParam.w = 0.125f;//シャイニネス
 
 	//速度
 #if MOTIONBLUR
