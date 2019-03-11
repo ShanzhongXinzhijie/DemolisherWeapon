@@ -24,7 +24,7 @@ namespace GameObj {
 		m_skyModel.Init(L"Preset/modelData/sky.cmo");
 		
 		//シェーダ
-		D3D_SHADER_MACRO macros[] = { "SKY_CUBE", "1", NULL, NULL };
+		D3D_SHADER_MACRO macros[] = { "SKY_CUBE", "1", "ALL", "1", NULL, NULL };
 		m_psShader.Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, "SKY_CUBE", macros);
 
 		//モデルにテクスチャとシェーダ設定
