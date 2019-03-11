@@ -66,7 +66,7 @@ namespace GameObj {
 		//ワールド行列を計算させない
 		m_model.GetSkinModel().SetIsCalcWorldMatrix(false);
 		//インスタンシング用頂点シェーダをロード
-		D3D_SHADER_MACRO macros[] = { "INSTANCING", "1", "MOTIONBLUR", "1", NULL, NULL };
+		D3D_SHADER_MACRO macros[] = { "INSTANCING", "1", "ALL", "1", NULL, NULL };
 		m_vsShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "INSTANCING", macros);
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS, "INSTANCING", macros);
 		m_vsSkinShader.Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, "INSTANCING", macros);
