@@ -252,14 +252,28 @@ float3 NormalizedPhong(float3 specular, float power, float3 lightDir, float3 vie
 	float3 R = -viewDir + (2.0f * dot(normal, viewDir) * normal);
 	return specular * pow(max(dot(lightDir, R), 0.0f), power) * ((power + 1.0f) / (2.0f * PI));	
 }
-float3 NormalizedBlinnPhong(float3 specular, float power, float3 lightDir, float3 viewDir, float3 normal)
+//マイクロファセットの分布関数
+//Blinn-Phong NDF
+float3 NormalizedBlinnPhong(float power, float3 lightDir, float3 viewDir, float3 normal)
 {
-	//float3 lightDir = normalize(lightPosition - P);
-	//float3 viewDir = normalize(eyePosition - P);
 	float3 halfVec = normalize(lightDir + viewDir);
-	float norm_factor = (power + 2.0f) / (2.0f * PI);
-	return specular * norm_factor * pow(max(0.0f, dot(normal, halfVec)), power);
+	return ((power + 2.0f) / (2.0f * PI)) * pow(max(0.0f, dot(normal, halfVec)), power);
 }
+//　幾何減衰率
+float G1(float v, float roughness, float3 viewDir, float3 normal) {
+	float k = (roughness + 1.0f)*(roughness + 1.0f) / 8.0f;
+	return dot(normal, viewDir) / (dot(normal, viewDir)*(1.0f - k) + k);
+}
+float G(float3 lightDir, float3 viewDir, float3 normal, float roughness){
+	return G1(lightDir, roughness, viewDir, normal)*G1(viewDir, roughness, viewDir, normal);
+	//return min(1, min(2 * NH*NV / VH, 2 * NH*NL / VH));
+}
+//フレネル項
+float3 Fresnel(in float3 specAlbedo, in float3 h, in float3 l) { 
+	float lDotH = saturate(dot(l, h));
+	return specAlbedo + (1.0f - specAlbedo) * pow((1.0f - lDotH), 5.0f);
+}
+
 //ディフューズ
 float3 NormalizedLambert(float3 diffuse, float3 lightDir, float3 normal)
 {
@@ -335,7 +349,17 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		}
 
 		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), directionLight[i].direction, normal) * directionLight[i].color * nothide;
-		Out += NormalizedBlinnPhong(lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), pow(2.0f, 13.0f*lightParam.w), directionLight[i].direction, viewDir, normal)* directionLight[i].color * nothide;
+		//if(dot(normal, directionLight[i].direction) > 0.003f){
+		//Cook-Torrance?
+		float3 halfVec = normalize(directionLight[i].direction + viewDir);
+		Out +=
+			Fresnel(lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), halfVec, directionLight[i].direction)
+			*NormalizedBlinnPhong(pow(2.0f, 11.0f*lightParam.w), directionLight[i].direction, viewDir, normal)
+			*G(directionLight[i].direction, viewDir, normal, 1.0f - lightParam.w)
+			// / dot(normal, viewDir)
+			// /(PI*dot(normal, viewDir)*dot(normal, directionLight[i].direction))
+			* directionLight[i].color * nothide * saturate(dot(normal, directionLight[i].direction)/0.2f);// saturate(dot(normal, directionLight[i].direction)*nothide);
+		//}
 	}
 	//ポイントライト
 	[unroll]
@@ -354,7 +378,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			float	attn = max(1.0 - litRate * litRate, 0.0);
 
 			Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
-			Out += NormalizedBlinnPhong(lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), pow(2.0f, 13.0f*lightParam.w), dir, viewDir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
+			//Out += NormalizedBlinnPhong(lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), pow(2.0f, 13.0f*lightParam.w), dir, viewDir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
 		//}
 	}	
 
