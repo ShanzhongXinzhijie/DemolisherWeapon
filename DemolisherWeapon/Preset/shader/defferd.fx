@@ -247,31 +247,37 @@ float3 CalcWorldPosFromUVZ(float2 uv, float zInScreen)//, float4x4 mViewProjInv)
 static const float PI = 3.14f;
 
 //スペキュラ
-float3 NormalizedPhong(float3 specular, float power, float3 lightDir, float3 viewDir, float3 normal)
+/*float3 NormalizedPhong(float3 specular, float power, float3 lightDir, float3 viewDir, float3 normal)
 {
 	float3 R = -viewDir + (2.0f * dot(normal, viewDir) * normal);
 	return specular * pow(max(dot(lightDir, R), 0.0f), power) * ((power + 1.0f) / (2.0f * PI));	
-}
+}*/
 //マイクロファセットの分布関数
 //Blinn-Phong NDF
-float3 NormalizedBlinnPhong(float power, float3 lightDir, float3 viewDir, float3 normal)
+float3 NormalizedBlinnPhong(float power, float3 halfVec, float3 normal)
 {
-	float3 halfVec = normalize(lightDir + viewDir);
 	return ((power + 2.0f) / (2.0f * PI)) * pow(max(0.0f, dot(normal, halfVec)), power);
 }
-//　幾何減衰率
-float G1(float v, float roughness, float3 viewDir, float3 normal) {
+//幾何減衰率
+float G1(float3 v, float roughness, float3 normal) {
 	float k = (roughness + 1.0f)*(roughness + 1.0f) / 8.0f;
-	return dot(normal, viewDir) / (dot(normal, viewDir)*(1.0f - k) + k);
+	return dot(normal, v) / (dot(normal, v)*(1.0f - k) + k);
 }
 float G(float3 lightDir, float3 viewDir, float3 normal, float roughness){
-	return G1(lightDir, roughness, viewDir, normal)*G1(viewDir, roughness, viewDir, normal);
-	//return min(1, min(2 * NH*NV / VH, 2 * NH*NL / VH));
+	return G1(lightDir, roughness, normal)*G1(viewDir, roughness, normal);
 }
 //フレネル項
 float3 Fresnel(in float3 specAlbedo, in float3 h, in float3 l) { 
-	float lDotH = saturate(dot(l, h));
-	return specAlbedo + (1.0f - specAlbedo) * pow((1.0f - lDotH), 5.0f);
+	return specAlbedo + (1.0f - specAlbedo) * pow((1.0f - saturate(dot(l, h))), 5.0f);
+}
+//Cook-Torrance?
+float3 CookTorrance(float3 lightDir, float3 viewDir, float3 normal, float3 baseColor, float shininess) {
+	float3 halfVec = normalize(lightDir + viewDir);
+	
+	return  Fresnel(baseColor, halfVec, lightDir)
+			*NormalizedBlinnPhong(pow(2.0f, 11.0f*shininess), halfVec, normal)
+			*G(lightDir, viewDir, normal, 1.0f - shininess)
+			/(PI*dot(normal, viewDir)*dot(normal, lightDir));
 }
 
 //ディフューズ
@@ -348,18 +354,11 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 		}
 
-		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), directionLight[i].direction, normal) * directionLight[i].color * nothide;
-		//if(dot(normal, directionLight[i].direction) > 0.003f){
-		//Cook-Torrance?
-		float3 halfVec = normalize(directionLight[i].direction + viewDir);
-		Out +=
-			Fresnel(lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), halfVec, directionLight[i].direction)
-			*NormalizedBlinnPhong(pow(2.0f, 11.0f*lightParam.w), directionLight[i].direction, viewDir, normal)
-			*G(directionLight[i].direction, viewDir, normal, 1.0f - lightParam.w)
-			// / dot(normal, viewDir)
-			// /(PI*dot(normal, viewDir)*dot(normal, directionLight[i].direction))
-			* directionLight[i].color * nothide * saturate(dot(normal, directionLight[i].direction)/0.2f);// saturate(dot(normal, directionLight[i].direction)*nothide);
-		//}
+		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), directionLight[i].direction, normal) * directionLight[i].color * nothide;		
+		Out += max(0.0f,
+			CookTorrance(directionLight[i].direction, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w)
+			* directionLight[i].color * saturate(dot(normal, directionLight[i].direction))*nothide
+			);	
 	}
 	//ポイントライト
 	[unroll]
@@ -369,17 +368,18 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 		float3 dir = pointLightList[i].position - worldpos;
 		float len = length(dir);
-		//if (len < pointLightList[i].range) {
 			
-			dir = normalize(dir);
+		dir = normalize(dir);
 
-			//減衰を計算する。
-			float	litRate = len / pointLightList[i].range;
-			float	attn = max(1.0 - litRate * litRate, 0.0);
+		//減衰を計算する。
+		float	litRate = len / pointLightList[i].range;
+		float	attn = max(1.0 - litRate * litRate, 0.0);
 
-			Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
-			//Out += NormalizedBlinnPhong(lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), pow(2.0f, 13.0f*lightParam.w), dir, viewDir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
-		//}
+		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
+		Out += max(0.0f,
+			CookTorrance(dir, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w)
+			* pointLightList[i].color * saturate(dot(normal, dir)) * pow(attn, pointLightList[i].attenuation)
+			);	
 	}	
 
 	//AO
