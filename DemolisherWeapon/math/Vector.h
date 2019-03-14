@@ -236,6 +236,10 @@ public:
 	{
 		return CVector2(x, y);
 	}
+	operator btVector3() const
+	{
+		return btVector3(x, y, z);
+	}
 	//operator D3DXVECTOR3(void) { return s_cast<D3DXVECTOR3>(*this); }
 
 	/*!
@@ -252,6 +256,13 @@ public:
 		vec.y = _v.vec.y;
 		return *this;
 	}
+	/*CVector3& operator=(const btVector3& _v) 
+	{
+		vec.x = _v.x();
+		vec.y = _v.y();
+		vec.z = _v.z();
+		return *this;
+	}*/
 
 	CVector3() { x = y = z = 0.0f; }
 	/*!
