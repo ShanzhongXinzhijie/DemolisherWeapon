@@ -818,6 +818,12 @@ public:
 	{
 	}
 	
+	//逆クォータニオンにする
+	void Inverse() {
+		DirectX::XMVECTOR xmv = DirectX::XMQuaternionInverse(DirectX::XMLoadFloat4(&vec));
+		DirectX::XMStoreFloat4(&vec, xmv);
+	}
+
 	/*!
 	 *@brief	任意の軸周りの回転クォータニオンを作成。
 	 */
