@@ -124,6 +124,14 @@ namespace DemolisherWeapon {
 			return m_enableMotionBlur;
 		}
 
+		//ZShaderでテクスチャ使うか
+		void SetIsUseTexZShader(bool is){
+			m_isUseTexZShader = is;
+		}
+		bool GetIsUseTexZShader()const{
+			return m_isUseTexZShader;
+		}
+
 		ModelEffect* GetModelEffect() {
 			return m_isInit;
 		}
@@ -139,6 +147,7 @@ namespace DemolisherWeapon {
 		ID3D11ShaderResourceView* m_pNormalTex = nullptr;
 
 		bool m_enableMotionBlur = true;
+		bool m_isUseTexZShader = false;
 	};
 
 }

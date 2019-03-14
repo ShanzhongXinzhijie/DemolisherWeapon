@@ -485,16 +485,18 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 //Z値出力
 float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 {
+#if defined(TEXTURE)
 	//アルベド
 	float alpha = albedoTexture.Sample(Sampler, In.TexCoord).a * albedoScale.a;
-
+#else
+	float alpha = albedoScale.a;
+#endif
 	//αテスト
 	if (alpha > 0.5f) {
 	}
 	else {
 		discard;
 	}
-
 	return In.posInProj.z / In.posInProj.w + depthBias.x ;// +1.0f*max(abs(ddx(In.posInProj.z / In.posInProj.w)), abs(ddy(In.posInProj.z / In.posInProj.w)));
 }
 #endif

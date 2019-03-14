@@ -12,7 +12,7 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 	switch (m_s_shadermode) {
 	case enZShader:
 		deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSZShader->GetBody(), NULL, 0);
-		deviceContext->PSSetShader((ID3D11PixelShader*)m_psZShader.GetBody(), NULL, 0);
+		deviceContext->PSSetShader((ID3D11PixelShader*)m_psZShader[m_isUseTexZShader ? 1 : 0].GetBody(), NULL, 0);
 		break;
 	default:
 		int macroind = 0;
@@ -40,7 +40,9 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 
 	//テクスチャ
 	deviceContext->PSSetShaderResources(enSkinModelSRVReg_AlbedoTexture, 1, &m_pAlbedoTex);
-	deviceContext->PSSetShaderResources(enSkinModelSRVReg_NormalTexture, 1, &m_pNormalTex);
+	if (m_pNormalTex) {
+		deviceContext->PSSetShaderResources(enSkinModelSRVReg_NormalTexture, 1, &m_pNormalTex);
+	}
 
 	//定数バッファ
 	deviceContext->UpdateSubresource(m_materialParamCB, 0, NULL, &m_materialParam, 0, 0);

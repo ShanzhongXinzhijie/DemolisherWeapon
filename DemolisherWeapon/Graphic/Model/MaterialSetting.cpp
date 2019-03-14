@@ -19,6 +19,7 @@ namespace DemolisherWeapon {
 		SetAlbedoTexture(modeleffect->GetDefaultMaterialSetting().GetAlbedoTexture());
 		SetNormalTexture(modeleffect->GetDefaultMaterialSetting().GetNormalTexture());
 		SetIsMotionBlur(modeleffect->GetDefaultMaterialSetting().GetIsMotionBlur());
+		SetIsUseTexZShader(modeleffect->GetDefaultMaterialSetting().GetIsUseTexZShader());
 	}
 
 	//シェーダをデフォに戻す

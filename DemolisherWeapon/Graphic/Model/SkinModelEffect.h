@@ -48,7 +48,8 @@ protected:
 	//int m_clacOldPosOffset = 0;
 	//ID3D11ClassInstance* m_cCalcOldPos = nullptr, *m_cNoCalcOldPos = nullptr;
 
-	Shader m_psDefaultShader[ShaderTypeMask::enNum], m_psZShader;
+	bool m_isUseTexZShader = false;
+	Shader m_psDefaultShader[ShaderTypeMask::enNum], m_psZShader[2];
 	//int m_clacVelocityOffset = 0;
 	//ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;	
 
@@ -75,7 +76,9 @@ public:
 			m_psDefaultShader[i].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, macroName, macros);
 		}
 
-		m_psZShader.Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
+		D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1", NULL, NULL };
+		m_psZShader[0].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
+		m_psZShader[1].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS, "TEXTURE", macrosZ);
 		
 		LoadClassInstancePS();
 
@@ -226,6 +229,7 @@ public:
 		m_pAlbedoTex = matset.GetAlbedoTexture();
 		m_pNormalTex = matset.GetNormalTexture();
 		m_enableMotionBlur = matset.GetIsMotionBlur();
+		m_isUseTexZShader = matset.GetIsUseTexZShader();
 
 		/*if (m_pVSShader == &m_vsDefaultShader) {
 			if (matset.GetIsMotionBlur()) {
