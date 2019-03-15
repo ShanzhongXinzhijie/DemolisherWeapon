@@ -5,6 +5,8 @@
 #pragma once
 #include <random>
 
+namespace DemolisherWeapon{
+
 class CMath{
 public:
 	static const float PI;
@@ -37,7 +39,7 @@ public:
 	template<typename Ttype>
 	static inline Ttype Clamp(Ttype in, Ttype low, Ttype high) {
 		return min(max(in, low), high);
-	}
+	}	
 
 	//—”
 	static std::random_device rd;
@@ -52,3 +54,5 @@ public:
 		return intRandom(mt);
 	}
 };
+
+}

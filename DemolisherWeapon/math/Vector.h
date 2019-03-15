@@ -141,6 +141,16 @@ public:
 		return re;
 	}
 
+	float Cross(const CVector2& _v)
+	{
+		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat2(&vec);
+		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat2(&_v.vec);
+		DirectX::XMVECTOR xmvr = DirectX::XMVector2Cross(xmv0, xmv1);
+		float re;
+		DirectX::XMStoreFloat(&re, xmvr);
+		return re;
+	}
+
 	/*!
 	 *@brief	‰ÁZ‘ã“ü‰‰ZqB
 	 */
@@ -445,6 +455,12 @@ public:
 		DirectX::XMStoreFloat3(&re.vec, xmv);
 
 		return re;
+	}
+
+	//‚Q‚Â‚Ì³‹K‰»ƒxƒNƒgƒ‹AB‚Ì‚È‚·Šp“xƒÆ‚ğ‹‚ß‚é
+	static inline float AngleOf2NormalizeVector(const CVector3& A, const CVector3& B)
+	{
+		return acos(A.Dot(B));
 	}
 
 	/*!
