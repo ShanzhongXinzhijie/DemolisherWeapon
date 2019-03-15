@@ -43,7 +43,7 @@ public:
 		const btGhostObject&  m_ghostObject;
 		IDW_Class* m_classPtr;		
 		const bool m_isA;
-		const btManifoldPoint& m_contactPoint;//接触点とか情報
+		//const btManifoldPoint& m_contactPoint;//接触点とか情報
 
 		//名前が一致するか判定
 		bool EqualName(const wchar_t* name) {
@@ -223,6 +223,7 @@ public:
 		//実行順がCollisionObjManagerより遅いからできる処理
 		m_isregistered = false;
 		m_register = nullptr;
+		m_btOldTrans = m_ghostObject.getWorldTransform();
 	}
 
 	void Update() override{
@@ -240,6 +241,7 @@ public:
 
 	//判定オブジェクトを取得
 	btGhostObject& GetCollisionObject() { return m_ghostObject; }
+	const btTransform& GetBtOldTrans() { return m_btOldTrans; }
 
 	int GetNameKey()const { return m_nameKey; };
 	void* GetPointer() { return m_void; };
@@ -307,6 +309,7 @@ private:
 	IDW_Class* m_classPtr = nullptr;
 
 	btGhostObject m_ghostObject;
+	btTransform m_btOldTrans;
 
 	std::function<void(SCallbackParam&)> m_callback = nullptr;
 };

@@ -23,6 +23,7 @@ namespace Suicider {
 		btTrans.setOrigin({ pos.x, pos.y, pos.z });
 		btTrans.setRotation({ rot.x, rot.y, rot.z, rot.w });
 		m_ghostObject.setWorldTransform(btTrans);
+		m_btOldTrans = m_ghostObject.getWorldTransform();
 
 		m_ghostObject.setUserPointer(this);
 
@@ -107,28 +108,81 @@ namespace Suicider {
 				ObjA->SetHanteing(true);
 				ObjB->SetHanteing(true);
 
-				//これもレジスターのほうがいいのでは
-				//RegColObj* RegA = ObjA->GetRegister();
-				//RegColObj* RegB = ObjB->GetRegister();
+				//各々処理実行
+				Suicider::CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false };
+				ObjA->RunCallback(paramB);
+				Suicider::CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true };
+				ObjB->RunCallback(paramA);
+				
+				ObjA->SetHanteing(old_hanteingA);
+				ObjB->SetHanteing(old_hanteingB);
 
-				//こうなるのはおかしい
-				/*if (!RegA || !RegB) { 
-#ifndef DW_MASTER
-					MessageBox(NULL, "おかしいやろ", "Error", MB_OK);
-					std::abort();
-#endif
-					return 0.0f;
-				}*/
+				return 0.0f;
+			};
+		};
+		struct ObjManagerConvexCallback : public btCollisionWorld::ConvexResultCallback
+		{
+			RegColObj* RegiObjA = nullptr;
+
+			ObjManagerConvexCallback(RegColObj* A) : RegiObjA(A) {
+				m_collisionFilterMask = CCollisionObjFilter;//CCollisionObjとのみ判定
+			};
+
+			//判定するかどうか判定する
+			bool needsCollision(btBroadphaseProxy* proxy0) const override
+			{
+				//削除されてないか?
+				if (proxy0 == nullptr || !RegiObjA->m_isEnable) {
+					return false;
+				}
+
+				//CCollisionObjとのみ判定
+				if (!(CCollisionObjFilter & proxy0->m_collisionFilterGroup)) {
+					return false;
+				}
+
+				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)((btCollisionObject*)proxy0->m_clientObject)->getUserPointer();
+
+				//自分でない
+				if (RegiObjA->m_CObj == ObjB) {
+					return false;
+				}
+
+				//登録無効化されてないか?
+				if (!ObjB->IsEnable() || !RegiObjA->m_CObj->IsEnable()) {
+					return false;
+				}
+
+				//このループで既に実行した組み合わせか?
+				if (ObjB->GetContactTestEnable() && RegiObjA->m_CObj->GetIndex() > ObjB->GetIndex()) {
+					return false;
+				}
+
+				//マスク判定
+				if (!(Masking(RegiObjA->m_CObj->GetGroup(), ObjB->GetMask()) && Masking(ObjB->GetGroup(), RegiObjA->m_CObj->GetMask()))) {
+					return false;
+				}
+
+				return true;
+			};
+
+			//接触の数だけ実行される
+			btScalar addSingleResult(btCollisionWorld::LocalConvexResult& convexResult, bool normalInWorldSpace)override
+			{				
+				Suicider::CCollisionObj* ObjA = RegiObjA->m_CObj;
+				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)(convexResult.m_hitCollisionObject->getUserPointer());
+
+				bool old_hanteingA = ObjA->GetHanteing();
+				bool old_hanteingB = ObjB->GetHanteing();
+
+				ObjA->SetHanteing(true);
+				ObjB->SetHanteing(true);
 
 				//各々処理実行
-				//if (RegA->m_isEnable && RegB->m_isEnable) {
-					Suicider::CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false, cp };
-					ObjA->RunCallback(paramB);
-				//}
-				//if (RegA->m_isEnable && RegB->m_isEnable) {
-					Suicider::CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true, cp };
-					ObjB->RunCallback(paramA);
-				//}
+				Suicider::CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false };
+				ObjA->RunCallback(paramB);
+				Suicider::CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true };
+				ObjB->RunCallback(paramA);
 
 				ObjA->SetHanteing(old_hanteingA);
 				ObjB->SetHanteing(old_hanteingB);
@@ -149,6 +203,8 @@ namespace Suicider {
 
 			ObjManagerCallback callback(&(*itr));
 			GetPhysicsWorld().ContactTest(&ObjA->GetCollisionObject(), callback);
+			//ObjManagerConvexCallback callback(&(*itr));
+			//GetPhysicsWorld().ConvexSweepTest((const btConvexShape*)ObjA->GetCollisionObject().getCollisionShape(), ObjA->GetBtOldTrans(), ObjA->GetCollisionObject().getWorldTransform(), callback);
 
 			ObjA->SetHanteing(false);//判定終わり
 		}
