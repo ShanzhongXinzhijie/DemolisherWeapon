@@ -209,7 +209,7 @@ public:
 		m_defaultMaterialSetting.SetLightingEnable(enable);
 	}
 	//自己発光色(エミッシブ)を設定
-	void SetEmissive(const CVector3& emissive) {
+	void SetEmissive(float emissive) {
 		m_defaultMaterialSetting.SetEmissive(emissive);
 	}
 	//アルベドにかけるスケールを設定

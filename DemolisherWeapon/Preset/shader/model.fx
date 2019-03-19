@@ -63,7 +63,9 @@ cbuffer VSPSCb : register(b0){
 //マテリアルパラメーター
 cbuffer MaterialCb : register(b1) {
 	float4 albedoScale;	//アルベドにかけるスケール
-	float4 emissive;	//エミッシブ(自己発光) wがライティングするか
+	float  emissive;	//自己発光
+	float  isLighting;	//ライティングするか
+	float2 uvOffset;
 }
 
 /////////////////////////////////////////////////////////////
@@ -394,7 +396,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	//アルベド
 #if !defined(SKY_CUBE)
 	//通常
-	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord);	
+	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset);	
 #else
 	//スカイボックス
 	Out.albedo = skyCubeMap.SampleLevel(Sampler, In.cubemapPos, 0);
@@ -412,7 +414,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 
 	//法線
 #if NORMAL_MAP
-	Out.normal = NormalTexture.Sample(Sampler, In.TexCoord);
+	Out.normal = NormalTexture.Sample(Sampler, In.TexCoord + uvOffset);
 	Out.normal = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
 #else
 	Out.normal = In.Normal;
@@ -422,10 +424,8 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	Out.viewpos = float4(In.Viewpos.x, In.Viewpos.y, In.Viewpos.z + depthBias.y, In.curPos.z / In.curPos.w + depthBias.x);
 
 	//ライティング用パラメーター
-	//Out.lightingParam = emissive;
-	//pack
-	Out.lightingParam.x = dot(floor(emissive.xyz * 256.0f), float3(1.0f, 256.0f, 65536.0f));//エミッシブ
-	Out.lightingParam.y = emissive.w;//ライティングするか?
+	Out.lightingParam.x = emissive;//エミッシブ
+	Out.lightingParam.y = isLighting;//ライティングするか?
 	Out.lightingParam.z = 0.0f;//メタリック
 	Out.lightingParam.w = 0.38f;//シャイニネス
 
@@ -487,7 +487,7 @@ float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 {
 #if defined(TEXTURE)
 	//アルベド
-	float alpha = albedoTexture.Sample(Sampler, In.TexCoord).a * albedoScale.a;
+	float alpha = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset).a * albedoScale.a;
 #else
 	float alpha = albedoScale.a;
 #endif

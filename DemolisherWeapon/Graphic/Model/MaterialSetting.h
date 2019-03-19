@@ -8,12 +8,19 @@ namespace DemolisherWeapon {
 	//マテリアルパラメーター
 	struct MaterialParam {
 		CVector4 albedoScale = CVector4::One();		//アルベドにかけるスケール
-		CVector4 emissive = {0.0f,0.0f,0.0f,1.0f};	//エミッシブ(自己発光) wがライティングするか
+		float emissive = 0.0f;	//自己発光
+		float isLighting = 1.0f;	//ライティングするか
+		float uvOffset[2] = { 0.0f,0.0f };
 	};
 
 	class MaterialSetting
 	{
 	public:
+
+		~MaterialSetting(){
+			if (m_pAlbedoTex) { m_pAlbedoTex->Release(); m_pAlbedoTex = nullptr; }
+			if (m_pNormalTex) { m_pNormalTex->Release(); m_pNormalTex = nullptr; }
+		}
 
 		void Init(ModelEffect* modeleffect);
 
@@ -34,17 +41,23 @@ namespace DemolisherWeapon {
 
 		//ライティングするかを設定
 		void SetLightingEnable(bool enable) {
-			m_materialParam.emissive.w = enable ? 1.0f : 0.0f;
+			m_materialParam.isLighting = enable ? 1.0f : 0.0f;
 		}
 
 		//自己発光色(エミッシブ)を設定
-		void SetEmissive(const CVector3& emissive) {
+		void SetEmissive(float emissive) {
 			m_materialParam.emissive = emissive;
 		}
 
 		//アルベドにかけるスケールを設定
 		void SetAlbedoScale(const CVector4& scale) {
 			m_materialParam.albedoScale = scale;
+		}
+
+		//UVオフセットを設定
+		void SetUVOffset(const CVector2& uv){
+			m_materialParam.uvOffset[0] = uv.x;
+			m_materialParam.uvOffset[1] = uv.y;
 		}
 
 		//マテリアルパラメータ取得

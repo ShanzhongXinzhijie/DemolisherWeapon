@@ -299,12 +299,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	float4 viewpos = PosMap.Sample(Sampler, In.uv);
 	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w);
 	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
-	float3 emissive;
-	//unpack
-	emissive.b = floor(lightParam.x / 65536.0f);
-	emissive.g = floor((lightParam.x - emissive.b * 65536.0f) / 256.0f);
-	emissive.r = floor(lightParam.x - emissive.b * 65536.0f - emissive.g * 256.0f);
-	emissive /= 256.0f;
+	float3 emissive = albedo.rgb*lightParam.x;
 
 	//ライティング無効
 	if (!lightParam.y) {
