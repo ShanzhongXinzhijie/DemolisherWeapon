@@ -48,7 +48,7 @@ void CEffekseer::Update()
 {
 	SetBaseMatrix();
 
-	if (IsPlay() == false) {
+	if (m_isSuicide && IsPlay() == false) {
 		delete this;
 	}
 }

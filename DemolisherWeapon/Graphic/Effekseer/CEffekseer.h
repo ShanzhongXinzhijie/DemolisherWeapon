@@ -95,6 +95,11 @@ public:
 	//ƒnƒ“ƒhƒ‹‚ğæ“¾
 	Effekseer::Handle GetHandle()const { return m_handle; }
 
+	//Ä¶Œã©E‚·‚é‚©‚Ç‚¤‚©İ’è
+	void SetIsSuicide(bool is) {
+		m_isSuicide = is;
+	}
+
 private:
 	void SetBaseMatrix();
 
@@ -103,6 +108,8 @@ private:
 	CVector3 m_pos;
 	CQuaternion m_rot;
 	CVector3 m_scale = CVector3::One();
+
+	bool m_isSuicide = true;
 };
 
 }
