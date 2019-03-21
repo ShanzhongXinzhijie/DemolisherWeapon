@@ -37,7 +37,7 @@ void MotionBlurRender::Init() {
 	}
 
 	//MaskUAV
-	{
+	/*{
 		D3D11_UNORDERED_ACCESS_VIEW_DESC	uavDesc;
 		ZeroMemory(&uavDesc, sizeof(uavDesc));
 
@@ -49,7 +49,7 @@ void MotionBlurRender::Init() {
 		uavDesc.Texture2D.MipSlice = 0;
 		HRESULT	hr;
 		hr = ge.GetD3DDevice()->CreateUnorderedAccessView(ge.GetGBufferRender().GetGBufferTex(GBufferRender::enGBufferVelocity), &uavDesc, &m_maskUAV);
-	}
+	}*/
 
 	//ƒTƒ“ƒvƒ‰[
 	D3D11_SAMPLER_DESC desc;
@@ -78,7 +78,7 @@ void MotionBlurRender::Init() {
 }
 void MotionBlurRender::Release() {
 	m_outputUAV->Release();
-	m_maskUAV->Release();
+	//m_maskUAV->Release();
 	m_cb->Release();
 	m_cbPS->Release();
 	m_samplerState->Release();
@@ -156,9 +156,10 @@ void MotionBlurRender::CSBlur(ID3D11DeviceContext* rc) {
 		rc->CSSetShader((ID3D11ComputeShader*)m_cs.GetBody(), NULL, 0);
 		//UAV
 		rc->CSSetUnorderedAccessViews(0, 1, &m_outputUAV, nullptr);// (UINT*)&m_outputUAV);
-		rc->CSSetUnorderedAccessViews(1, 1, &m_maskUAV, nullptr);
+		//rc->CSSetUnorderedAccessViews(1, 1, &m_maskUAV, nullptr);
 
 		//SRV‚ðÝ’è
+		rc->CSSetShaderResources(1, 1, &GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferVelocity));
 		GetEngine().GetGraphicsEngine().GetFRT().Copy();
 		GetEngine().GetGraphicsEngine().GetFRT().SetNow(0);
 		rc->CSSetShaderResources(2, 1, &GetEngine().GetGraphicsEngine().GetFRT().GetSRV(1));
@@ -173,11 +174,12 @@ void MotionBlurRender::CSBlur(ID3D11DeviceContext* rc) {
 		rc->CSSetConstantBuffers(0, 1, &pCB);
 
 		ID3D11ShaderResourceView*	pReses = NULL;
+		rc->CSSetShaderResources(1, 1, &pReses);
 		rc->CSSetShaderResources(2, 1, &pReses);
 		
 		ID3D11UnorderedAccessView*	pUAV = NULL;
 		rc->CSSetUnorderedAccessViews(0, 1, &pUAV, nullptr);// (UINT*)&pUAV);
-		rc->CSSetUnorderedAccessViews(1, 1, &pUAV, nullptr);
+		//rc->CSSetUnorderedAccessViews(1, 1, &pUAV, nullptr);
 	}
 }
 

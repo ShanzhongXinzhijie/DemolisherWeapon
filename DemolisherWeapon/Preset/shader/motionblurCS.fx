@@ -8,11 +8,12 @@ cbuffer CSCb : register(b0) {
 };
 
 // 入力テクスチャ
+Texture2D<float4> rwVelocityTex : register(t1);
 Texture2D<float4> albedoTexture : register(t2);
 
 // 出力テクスチャ
 RWTexture2D<float4> rwOutputTex		: register(u0);
-RWTexture2D<float4> rwVelocityTex	: register(u1);
+//RWTexture2D<float4> rwVelocityTex	: register(u1);
 
 #include"MotionBlurHeader.h"
 

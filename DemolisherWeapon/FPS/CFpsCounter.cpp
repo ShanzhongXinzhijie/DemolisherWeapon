@@ -52,7 +52,7 @@ void CFpsCounter::Draw() {
 	s_max = max(s_max, m_fps);
 	s_min = min(s_min, m_fps);
 	s_add += m_fps; s_avgcnt++;
-	if (s_avgcnt >= m_standardfps) {
+	if (s_avgcnt >= 60) {
 		s_avg = s_add / s_avgcnt;
 		s_add = 0.0f; s_avgcnt = 0;
 	}

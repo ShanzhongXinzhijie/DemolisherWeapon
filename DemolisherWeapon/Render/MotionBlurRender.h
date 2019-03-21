@@ -30,7 +30,7 @@ private:
 
 	Shader m_cs, m_vs, m_ps;
 	ID3D11UnorderedAccessView*	m_outputUAV = nullptr;
-	ID3D11UnorderedAccessView*	m_maskUAV = nullptr;
+	//ID3D11UnorderedAccessView*	m_maskUAV = nullptr;
 	ID3D11Buffer* m_cb = nullptr;
 	ID3D11Buffer* m_cbPS = nullptr;
 

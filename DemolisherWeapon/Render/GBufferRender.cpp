@@ -54,7 +54,7 @@ void GBufferRender::Init() {
 
 	//速度
 	texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;// | D3D11_BIND_UNORDERED_ACCESS;
 	ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_GBufferTex[enGBufferVelocity]);
 	ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferVelocity], nullptr, &m_GBufferView[enGBufferVelocity]);//レンダーターゲット
 	ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferVelocity], nullptr, &m_GBufferSRV[enGBufferVelocity]);//シェーダーリソースビュー
