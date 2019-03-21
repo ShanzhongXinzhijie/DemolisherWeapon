@@ -10,7 +10,10 @@ namespace DemolisherWeapon {
 
 	void PhysicsStaticObject::Release()
 	{
-		GetEngine().GetPhysicsWorld().RemoveRigidBody(m_rigidBody);
+		if (m_isAdd) {
+			GetEngine().GetPhysicsWorld().RemoveRigidBody(m_rigidBody);
+			m_isAdd = false;
+		}
 	}
 	void PhysicsStaticObject::CreateCommon(CVector3 pos, CQuaternion rot)
 	{
@@ -21,6 +24,8 @@ namespace DemolisherWeapon {
 		rbInfo.rot = rot;
 		m_rigidBody.Create(rbInfo);
 		GetEngine().GetPhysicsWorld().AddRigidBody(m_rigidBody);
+		
+		m_isAdd = true;
 	}
 
 }

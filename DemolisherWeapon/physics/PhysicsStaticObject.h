@@ -41,6 +41,7 @@ namespace DemolisherWeapon {
 		*/
 		void CreateCommon(CVector3 pos, CQuaternion rot) override final;
 	private:
+		bool m_isAdd = false;
 		RigidBody m_rigidBody;				//!<„‘ÌB
 	};
 
