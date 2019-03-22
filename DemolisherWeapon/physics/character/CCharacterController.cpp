@@ -297,9 +297,8 @@ namespace DemolisherWeapon {
 				btCollisionWorld::AllHitsRayResultCallback gnd_ray(rayStart, rayEnd);
 				GetEngine().GetPhysicsWorld().RayTest(rayStart, rayEnd, gnd_ray);
 
-				bool RayHit = false;
-
 				if(gnd_ray.hasHit()){
+					bool RayHit = false;
 					for (int i = 0; i < gnd_ray.m_collisionObjects.size(); ++i) {
 						const btCollisionObject* col = gnd_ray.m_collisionObjects[i];
 						
@@ -310,28 +309,39 @@ namespace DemolisherWeapon {
 							continue;
 						}
 
-						//衝突点の法線を引っ張ってくる。
-						CVector3 hitNormalTmp = *(CVector3*)&gnd_ray.m_hitNormalWorld[i];
-						//上方向と法線のなす角度を求める。
-						float angle = hitNormalTmp.Dot(CVector3::Up());
-						angle = fabsf(acosf(angle));
-						if (angle < CMath::PI * 0.3f		//地面の傾斜が54度より小さいので地面とみなす。
-							|| col->getUserIndex() == enCollisionAttr_Ground //もしくはコリジョン属性が地面と指定されている。
-						) {
-							//近ければ							
-							if (!RayHit || nextPosition.y < gnd_ray.m_hitPointWorld[i].y()){//abs(rayStart.y() - nextPosition.y) > abs(rayStart.y() - gnd_ray.m_hitPointWorld[i].y())) {
-								if (addPos.y <= 0.0f || nextPosition.y < gnd_ray.m_hitPointWorld[i].y()) {
-									//当たった。
+						////衝突点の法線を引っ張ってくる。
+						//CVector3 hitNormalTmp = *(CVector3*)&gnd_ray.m_hitNormalWorld[i];
+						////上方向と法線のなす角度を求める。
+						//float angle = hitNormalTmp.Dot(CVector3::Up());
+						//angle = fabsf(acosf(angle));
+						//if (angle < CMath::PI * 0.3f						//地面の傾斜が54度より小さいので地面とみなす。
+						// || col->getUserIndex() == enCollisionAttr_Ground	//もしくはコリジョン属性が地面と指定されている。
+						//) {
+							if (addPos.y > 0.0f) {
+								//天井判定
+								if (rayEnd.y() + m_height + m_radius < gnd_ray.m_hitPointWorld[i].y()){//頭より上でHIT
+								if (!RayHit || nextPosition.y > gnd_ray.m_hitPointWorld[i].y() - m_height - m_radius) {//近ければ
+									if (moveSpeed.y > 0.0f) {
+										moveSpeed.y *= -1.0f;
+									}
+									nextPosition.y = gnd_ray.m_hitPointWorld[i].y() - m_height - m_radius;
+									RayHit = true;
+								}
+								}
+							}
+							else {
+								//床判定															
+								if (!RayHit || nextPosition.y < gnd_ray.m_hitPointWorld[i].y()) {//近ければ
 									//if (moveSpeed.y <= 0.0f) {
-										moveSpeed.y = 0.0f;
-										m_isJump = false;
-										m_isOnGround = true;
+									moveSpeed.y = 0.0f;
+									m_isJump = false;
+									m_isOnGround = true;
 									//}
 									nextPosition.y = gnd_ray.m_hitPointWorld[i].y();
 									RayHit = true;
 								}
-							}
-						}
+							}							
+						//}
 					}
 				}
 				/*
