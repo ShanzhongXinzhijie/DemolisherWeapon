@@ -73,7 +73,7 @@ namespace DemolisherWeapon {
 			m_state = DISCONNECTING;
 		}
 
-		//ルームに入る
+		//ルームに入る(または立てる)
 		void JoinRoom(const ExitGames::Common::JString& roomName, nByte maxPlayers) {
 			if (GetJoinedRoom() || m_state == JOINING) { return; }
 			m_LoadBalancingClient.opJoinOrCreateRoom(roomName, ExitGames::LoadBalancing::RoomOptions().setMaxPlayers(maxPlayers));
@@ -84,6 +84,18 @@ namespace DemolisherWeapon {
 			if (!GetJoinedRoom() || m_state == LEAVING) { return; }
 			m_LoadBalancingClient.opLeaveRoom();
 			m_state = LEAVING;
+		}
+		//ルームに入る
+		void JoinRandomRoom() {
+			if (GetJoinedRoom() || m_state == JOINING) { return; }
+			m_LoadBalancingClient.opJoinRandomRoom();
+			m_state = JOINING;
+		}
+		//ルームを作る
+		void CreateRoom(const ExitGames::Common::JString& roomName, nByte maxPlayers) {
+			if (GetJoinedRoom() || m_state == JOINING) { return; }
+			m_LoadBalancingClient.opCreateRoom(roomName, ExitGames::LoadBalancing::RoomOptions().setMaxPlayers(maxPlayers));
+			m_state = JOINING;
 		}
 
 		//イベントを送信
