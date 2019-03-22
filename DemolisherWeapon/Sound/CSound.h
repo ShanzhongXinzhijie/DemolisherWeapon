@@ -168,7 +168,7 @@ namespace Suicider {
 		virtual ~CSE() {};
 
 		void PostUpdate()override {
-			if (!GetIsPlaying()) { 
+			if (m_isAutoDelete && !GetIsPlaying()) {
 				delete this;
 			}
 		}
@@ -186,7 +186,12 @@ namespace Suicider {
 			return m_SubmixVoice; 
 		}
 
+		void SetIsAutoDelete(bool isAutoDel){
+			m_isAutoDelete = isAutoDel;
+		}
+
 	private:
+		bool m_isAutoDelete = true;
 		static IXAudio2SubmixVoice* m_SubmixVoice;		 
 	}; 
 	
