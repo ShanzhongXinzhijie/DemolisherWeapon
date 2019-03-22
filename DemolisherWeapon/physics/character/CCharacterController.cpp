@@ -286,7 +286,7 @@ namespace DemolisherWeapon {
 				//レイで判定
 				btVector3 rayStart = btVector3(m_position.x, max(m_position.y, nextPosition.y), m_position.z);
 				btVector3 rayEnd = btVector3(m_position.x, min(m_position.y, nextPosition.y), nextPosition.z);
-				rayStart.setY(rayStart.y() + m_height + m_radius);
+				rayStart.setY(rayStart.y() + m_height + m_radius*2.0f);
 				if (m_isOnGround && addPos.y <= 0.0f){
 					rayEnd.setY(rayEnd.y() - (1.0f + m_height * 0.5f));
 				}
@@ -319,18 +319,19 @@ namespace DemolisherWeapon {
 						//) {
 							if (addPos.y > 0.0f) {
 								//天井判定
-								if (rayEnd.y() + m_height + m_radius < gnd_ray.m_hitPointWorld[i].y()){//頭より上でHIT
-								if (!RayHit || nextPosition.y > gnd_ray.m_hitPointWorld[i].y() - m_height - m_radius) {//近ければ
+								if (rayEnd.y() + m_height * 0.5f + m_radius < gnd_ray.m_hitPointWorld[i].y()){//中心より上でHIT
+								if (!RayHit || nextPosition.y > gnd_ray.m_hitPointWorld[i].y() - m_height - m_radius * 2.0f) {//近ければ
 									if (moveSpeed.y > 0.0f) {
 										moveSpeed.y *= -1.0f;
 									}
-									nextPosition.y = gnd_ray.m_hitPointWorld[i].y() - m_height - m_radius;
+									nextPosition.y = gnd_ray.m_hitPointWorld[i].y() - m_height - m_radius * 2.0f;
 									RayHit = true;
 								}
 								}
 							}
 							else {
-								//床判定															
+								//床判定		
+								if (rayStart.y() - m_height * 0.5f - m_radius > gnd_ray.m_hitPointWorld[i].y()) {//中心より下でHIT
 								if (!RayHit || nextPosition.y < gnd_ray.m_hitPointWorld[i].y()) {//近ければ
 									//if (moveSpeed.y <= 0.0f) {
 									moveSpeed.y = 0.0f;
@@ -339,6 +340,7 @@ namespace DemolisherWeapon {
 									//}
 									nextPosition.y = gnd_ray.m_hitPointWorld[i].y();
 									RayHit = true;
+								}
 								}
 							}							
 						//}
