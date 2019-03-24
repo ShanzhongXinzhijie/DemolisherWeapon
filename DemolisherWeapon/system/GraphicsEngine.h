@@ -119,6 +119,14 @@ public:
 		m_shadowMapRender.AddDrawModel(sm, priority);
 	}
 
+	//レンダーマネージャーの取得
+	RanderManager& GetRenderManager(){
+		return m_renderManager;
+	}
+	int GetFreeRenderPriority()const{
+		return m_freeRenderPriority;
+	}
+
 	//Gバッファレンダーの取得
 	GBufferRender& GetGBufferRender() {
 		return m_gbufferRender;
@@ -212,6 +220,7 @@ private:
 	CPrimitive m_fullscreen;
 
 	//レンダー
+	int m_freeRenderPriority = -1;
 	RanderManager m_renderManager;
 	GBufferRender m_gbufferRender;
 	ShadowMapRender m_shadowMapRender;

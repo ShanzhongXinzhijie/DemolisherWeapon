@@ -283,6 +283,8 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 
 		m_renderManager.AddRender(7 + offset, &m_effekseerRender);
 
+		m_freeRenderPriority = 8;
+
 #ifndef DW_MASTER
 		m_renderManager.AddRender(999 + offset, &m_physicsDebugDrawRender);
 #endif

@@ -117,6 +117,9 @@ public:
 	void SetIsDraw(bool flag) {
 		m_isDraw = flag;
 	}
+	bool GetIsDraw() const{
+		return m_isDraw;
+	}
 	//シャドウマップへの描画を行うか設定
 	void SetIsShadowCaster(bool flag){
 		m_isShadowCaster = flag;
