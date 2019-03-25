@@ -224,7 +224,8 @@ namespace DirectX
         // Setup states for drawing mesh
         void __cdecl PrepareForRendering( _In_ ID3D11DeviceContext* deviceContext, const CommonStates& states, bool alpha = false, bool wireframe = false, bool reverseCull = false,
 			ID3D11BlendState* pBlendState = nullptr,
-			ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr) const;
+			ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr,
+			ID3D11DepthStencilState* pDepthStencilState = nullptr) const;
 
         // Draw the mesh
         void XM_CALLCONV Draw( _In_ ID3D11DeviceContext* deviceContext, FXMMATRIX world, CXMMATRIX view, CXMMATRIX projection,
@@ -248,6 +249,7 @@ namespace DirectX
                                bool wireframe = false, bool reverseCull = false, 
 							   ID3D11BlendState* blendState = nullptr,
 							   ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr,
+							   ID3D11DepthStencilState* pDepthStencilState = nullptr,
 							   int instanceNum = 1) const;
 
         // Notify model that effects, parts list, or mesh list has changed

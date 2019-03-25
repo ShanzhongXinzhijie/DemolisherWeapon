@@ -64,7 +64,7 @@ public:
 	*@param[in]	reverseCull  面を反転するか
 	*@param[in]	instanceNum  インスタンス数
 	*/
-	void Draw(bool reverseCull = false, int instanceNum = 1, ID3D11BlendState* pBlendState = nullptr);
+	void Draw(bool reverseCull = false, int instanceNum = 1, ID3D11BlendState* pBlendState = nullptr, ID3D11DepthStencilState* pDepthStencilState = nullptr);
 
 	//モデルの名前を取得
 	const wchar_t* GetModelName()const
@@ -140,6 +140,10 @@ public:
 	void SetRasterizerState(ID3D11RasterizerState* RSCw, ID3D11RasterizerState* RSCCw) {
 		m_pRasterizerStateCw = RSCw;
 		m_pRasterizerStateCCw = RSCCw;
+	}
+	void GetRasterizerState(ID3D11RasterizerState*& RSCw, ID3D11RasterizerState*& RSCCw) const{
+		RSCw = m_pRasterizerStateCw;
+		RSCCw = m_pRasterizerStateCCw;
 	}
 	//深度バイアスをセット(シェーダ用)
 	void SetDepthBias(float bias) {

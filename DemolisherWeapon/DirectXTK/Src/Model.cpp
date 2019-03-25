@@ -161,7 +161,8 @@ void ModelMesh::PrepareForRendering(
     bool wireframe,
 	bool reverseCull,
 	ID3D11BlendState* pBlendState,
-	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw) const
+	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw,
+	ID3D11DepthStencilState* pDepthStencilState) const
 {
     assert(deviceContext != 0);
 
@@ -188,6 +189,7 @@ void ModelMesh::PrepareForRendering(
         depthStencilState = states.DepthDefault();
     }
 	if (pBlendState) { blendState = pBlendState; }
+	if (pDepthStencilState) { depthStencilState = pDepthStencilState; }
 
     deviceContext->OMSetBlendState(blendState, nullptr, 0xFFFFFFFF);
     deviceContext->OMSetDepthStencilState(depthStencilState, 0);
@@ -275,6 +277,7 @@ void XM_CALLCONV Model::Draw(
 	bool reverseCull,
 	ID3D11BlendState* blendState,
 	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw,
+	ID3D11DepthStencilState* pDepthStencilState,
 	int instanceNum) const
 {
     assert(deviceContext != 0);
@@ -285,7 +288,7 @@ void XM_CALLCONV Model::Draw(
         auto mesh = it->get();
         assert(mesh != 0);
 
-        mesh->PrepareForRendering(deviceContext, states, false, wireframe, reverseCull, blendState, pRasterizerStateCw, pRasterizerStateCCw);
+        mesh->PrepareForRendering(deviceContext, states, false, wireframe, reverseCull, blendState, pRasterizerStateCw, pRasterizerStateCCw, pDepthStencilState);
 
         mesh->Draw(deviceContext, world, view, projection, false, nullptr, instanceNum);
     }
@@ -296,7 +299,7 @@ void XM_CALLCONV Model::Draw(
         auto mesh = it->get();
         assert(mesh != 0);
 
-        mesh->PrepareForRendering(deviceContext, states, true, wireframe, reverseCull, blendState, pRasterizerStateCw, pRasterizerStateCCw);
+        mesh->PrepareForRendering(deviceContext, states, true, wireframe, reverseCull, blendState, pRasterizerStateCw, pRasterizerStateCCw, pDepthStencilState);
 
         mesh->Draw(deviceContext, world, view, projection, true, nullptr, instanceNum);
     }

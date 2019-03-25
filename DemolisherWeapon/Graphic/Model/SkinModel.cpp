@@ -149,7 +149,7 @@ void SkinModel::CalcWorldMatrix(const CVector3& position, const CQuaternion& rot
 
 static const float REFERENCE_FRUSTUM_SIZE = (1.0f / tan(3.14f*0.5f / 2.0f));
 
-void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlendState)
+void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlendState, ID3D11DepthStencilState* pDepthStencilState)
 {
 	if (m_instanceNum <= 0) { return; }
 
@@ -223,6 +223,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		(m_enFbxCoordinate == enFbxRightHanded) != reverseCull,
 		pBlendState,
 		m_pRasterizerStateCw, m_pRasterizerStateCCw,
+		pDepthStencilState,
 		instanceNum*m_instanceNum
 	);
 }
