@@ -275,6 +275,7 @@
     <ClInclude Include="Graphic\Sky\CSkybox.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowHandler.h" />
     <ClInclude Include="Graphic\Model\Render\CInstancingModelRender.h" />
+    <ClInclude Include="physics2\MeshData.h" />
     <ClInclude Include="Render\ConvertLinearToSRGBRender.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowMap.h" />
     <ClInclude Include="Sound\CSound.h" />
@@ -354,6 +355,7 @@
     <ClCompile Include="Graphic\Sky\CSkybox.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowHandler.cpp" />
     <ClCompile Include="Graphic\Model\Render\CInstancingModelRender.cpp" />
+    <ClCompile Include="physics2\MeshData.cpp" />
     <ClCompile Include="Render\ConvertLinearToSRGBRender.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowMap.cpp" />
     <ClCompile Include="Sound\CSound.cpp" />

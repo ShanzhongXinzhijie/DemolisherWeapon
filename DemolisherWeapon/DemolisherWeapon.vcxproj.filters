@@ -84,6 +84,7 @@
     <ClInclude Include="Graphic\Model\Render\CInstancingModelRender.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowHandler.h" />
     <ClInclude Include="Graphic\Sky\CSkybox.h" />
+    <ClInclude Include="physics2\MeshData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -158,6 +159,7 @@
     <ClCompile Include="Graphic\Model\Render\CInstancingModelRender.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowHandler.cpp" />
     <ClCompile Include="Graphic\Sky\CSkybox.cpp" />
+    <ClCompile Include="physics2\MeshData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
