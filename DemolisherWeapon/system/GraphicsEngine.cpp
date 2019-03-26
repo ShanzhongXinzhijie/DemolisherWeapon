@@ -232,6 +232,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	m_defferdRender.Init();
 	m_motionBlurRender.Init();		 m_motionBlurRender.SetEnable(initParam.isEnableMotionBlur);
 	m_ConvertLinearToSRGB.Init();
+	m_primitiveRender.Init();
 
 	if (initParam.isSplitScreen) {
 		m_finalRender[0] = std::make_unique<FinalRender>();
@@ -284,6 +285,9 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		m_renderManager.AddRender(7 + offset, &m_effekseerRender);
 
 		m_freeRenderPriority = 8;
+
+
+		m_renderManager.AddRender(998 + offset, &m_primitiveRender);
 
 #ifndef DW_MASTER
 		m_renderManager.AddRender(999 + offset, &m_physicsDebugDrawRender);

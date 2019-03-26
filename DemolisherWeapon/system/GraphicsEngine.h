@@ -11,6 +11,7 @@
 #include"Render/CameraSwitchRender.h"
 #include"Render/EffekseerRender.h"
 #include"Render/ConvertLinearToSRGBRender.h"
+#include"Render/PrimitiveRender.h"
 
 #include"Camera/CameraManager.h"
 #include"Graphic/Light/Lights.h"
@@ -143,6 +144,10 @@ public:
 	DefferdRender& GetDefferdRender() {
 		return m_defferdRender;
 	}
+	//プリミティブレンダーの取得
+	PrimitiveRender& GetPrimitiveRender() {
+		return m_primitiveRender;
+	}
 	//PhysicsDebugDrawRenderのモード設定	
 	void SetPhysicsDebugDrawMode(int debugMode) {
 #ifndef DW_MASTER	
@@ -228,6 +233,7 @@ private:
 	DefferdRender m_defferdRender;
 	MotionBlurRender m_motionBlurRender;
 	ConvertLinearToSRGBRender m_ConvertLinearToSRGB;
+	PrimitiveRender m_primitiveRender;
 #ifndef DW_MASTER
 	PhysicsDebugDrawRender m_physicsDebugDrawRender;
 #endif

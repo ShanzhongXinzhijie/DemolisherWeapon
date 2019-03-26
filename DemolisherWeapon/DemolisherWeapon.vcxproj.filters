@@ -85,6 +85,10 @@
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowHandler.h" />
     <ClInclude Include="Graphic\Sky\CSkybox.h" />
     <ClInclude Include="physics2\MeshData.h" />
+    <ClInclude Include="physics2\Physics2.h" />
+    <ClInclude Include="physics2\IPhysicsObject.h" />
+    <ClInclude Include="Graphic\CLine.h" />
+    <ClInclude Include="Render\PrimitiveRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -160,6 +164,10 @@
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowHandler.cpp" />
     <ClCompile Include="Graphic\Sky\CSkybox.cpp" />
     <ClCompile Include="physics2\MeshData.cpp" />
+    <ClCompile Include="physics2\Physics2.cpp" />
+    <ClCompile Include="physics2\IPhysicsObject.cpp" />
+    <ClCompile Include="Graphic\CLine.cpp" />
+    <ClCompile Include="Render\PrimitiveRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

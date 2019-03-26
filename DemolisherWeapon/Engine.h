@@ -538,6 +538,11 @@ static inline float GetMasterVolume() {
 	return vol;
 }
 
+//線分の描画
+static inline void DrawLine(const CVector3& start, const CVector3& end, const CVector4& color) {
+	GetGraphicsEngine().GetPrimitiveRender().AddLine(start, end, color);
+}
+
 //デバッグ情報を描画するか設定
 static inline void SetIsDebugDraw(bool enable) { GetEngine().SetIsDebugDraw(enable); }
 static inline bool GetIsDebugDraw() { return GetEngine().GetIsDebugDraw(); }
