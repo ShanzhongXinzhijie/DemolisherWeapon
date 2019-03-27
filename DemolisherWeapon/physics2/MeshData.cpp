@@ -65,9 +65,11 @@ namespace DemolisherWeapon {
 
 					//インデックス取得
 					unsigned short* pIndex = reinterpret_cast<unsigned short*>(subresource.pData);
+					Index index;
 					for (int i = 0; i < indexCount; i++) {
-						m_indexBuffer.push_back(pIndex[i]);
+						index.push_back(pIndex[i]);
 					}
+					m_indexBuffer.push_back(index);
 
 					//インデックスバッファのポインタを破棄(GPUアクセス可能に)
 					deviceContext->Unmap(mesh->indexBuffer.Get(), 0);
