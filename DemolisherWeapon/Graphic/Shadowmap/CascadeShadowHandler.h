@@ -8,6 +8,7 @@ namespace DemolisherWeapon {
 	class CascadeShadowHandler
 	{
 	public:
+		
 		CascadeShadowHandler() = default;
 		CascadeShadowHandler(int cascadeNum, const float splitCoefficient[], const CVector2 resolutions[]) { Init(cascadeNum, splitCoefficient, resolutions); }
 		CascadeShadowHandler(int cascadeNum, const float splitCoefficient[]) { Init(cascadeNum, splitCoefficient); }

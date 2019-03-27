@@ -22,6 +22,7 @@ namespace DemolisherWeapon {
 	}
 
 	void CascadeShadowHandler::Init(int cascadeNum, float farScale){
+		//unique_ptr<float[]> splitCoefficient = make_unique<float[]>(cascadeNum + 1);
 		float* splitCoefficient = new float[cascadeNum + 1];
 
 		farScale = min(1.0f, farScale);

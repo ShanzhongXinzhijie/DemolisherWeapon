@@ -395,4 +395,10 @@ namespace DemolisherWeapon {
 	{
 		GetEngine().GetPhysicsWorld().RemoveRigidBody(m_rigidBody);
 	}
+	/// <summary>
+	/// „‘Ì‚ğ•¨—ƒGƒ“ƒWƒ“‚É’Ç‰Á
+	/// </summary>
+	void CCharacterController::AddRigidBoby() {
+		GetEngine().GetPhysicsWorld().AddRigidBody(m_rigidBody);
+	}
 }

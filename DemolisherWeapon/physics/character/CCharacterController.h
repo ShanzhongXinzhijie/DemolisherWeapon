@@ -91,6 +91,10 @@ namespace DemolisherWeapon {
 		* @brief	剛体を物理エンジンから削除。。
 		*/
 		void RemoveRigidBoby();
+		/// <summary>
+		/// 剛体を物理エンジンに追加
+		/// </summary>
+		void AddRigidBoby();
 
 		//壁から余分に押し出す距離を設定
 		void SetOffset(float offset) {
