@@ -81,7 +81,8 @@ void ModelMeshPart::Draw(
 	}
 	else {
 		//インスタンシング
-		deviceContext->DrawIndexedInstanced(indexCount, instanceNum, startIndex, vertexOffset, 0 );
+		//deviceContext->DrawIndexedInstanced(indexCount, instanceNum, startIndex, vertexOffset, 0 );
+		deviceContext->DrawIndexedInstanced(indexCount, instanceNum, startIndex, 0, vertexOffset);
 	}
 }
 
