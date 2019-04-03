@@ -60,6 +60,9 @@ void AmbientOcclusionRender::Init(float texScale) {
 	bufferDesc.CPUAccessFlags = 0;
 
 	ge.GetD3DDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cb);
+
+	//ガウスブラー
+	m_gaussBlur.Init(m_ambientOcclusionSRV,0.25f);
 }
 void AmbientOcclusionRender::Release() {
 	m_ambientOcclusionTex->Release();
@@ -119,6 +122,15 @@ void AmbientOcclusionRender::Render() {
 		ID3D11UnorderedAccessView*	pUAV = NULL;
 		rc->CSSetUnorderedAccessViews(0, 1, &pUAV, nullptr);
 	}
+
+	m_gaussBlur.Blur();
+}
+
+ID3D11ShaderResourceView*& AmbientOcclusionRender::GetAmbientOcclusionSRV() {
+	return m_ambientOcclusionSRV;
+}
+ID3D11ShaderResourceView*& AmbientOcclusionRender::GetAmbientOcclusionBlurSRV(){
+	return m_gaussBlur.GetSRV();
 }
 
 }

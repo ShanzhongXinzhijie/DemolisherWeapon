@@ -11,7 +11,7 @@ namespace DemolisherWeapon {
 		Release();
 	}
 
-	void GaussianBlurRender::Init(ID3D11ShaderResourceView*& souce) {
+	void GaussianBlurRender::Init(ID3D11ShaderResourceView*& souce, float dispersion) {
 
 		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
 
@@ -27,19 +27,40 @@ namespace DemolisherWeapon {
 		D3D11_TEXTURE2D_DESC texDesc;
 		pTex->GetDesc(&texDesc);
 
+		ZeroMemory(&m_texDesc, sizeof(m_texDesc));
+		m_texDesc.Width = texDesc.Width;
+		m_texDesc.Height = texDesc.Height;
+		m_texDesc.MipLevels = 1;
+		m_texDesc.ArraySize = 1;
+		m_texDesc.Format = texDesc.Format;
+		m_texDesc.SampleDesc.Count = 1;
+		m_texDesc.SampleDesc.Quality = 0;
+		m_texDesc.Usage = D3D11_USAGE_DEFAULT;
+		m_texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		m_texDesc.CPUAccessFlags = 0;
+		m_texDesc.MiscFlags = 0;
+
 		//出力テクスチャの作成
-		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_outputX);
+		ge.GetD3DDevice()->CreateTexture2D(&m_texDesc, NULL, &m_outputX);
 		ge.GetD3DDevice()->CreateRenderTargetView(m_outputX, nullptr, &m_outputXRTV);//レンダーターゲット
 		ge.GetD3DDevice()->CreateShaderResourceView(m_outputX, nullptr, &m_outputXSRV);//シェーダーリソースビュー
 
-		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_outputY);
-		ge.GetD3DDevice()->CreateRenderTargetView(m_outputX, nullptr, &m_outputYRTV);//レンダーターゲット
-		ge.GetD3DDevice()->CreateShaderResourceView(m_outputX, nullptr, &m_outputYSRV);//シェーダーリソースビュー
+		ge.GetD3DDevice()->CreateTexture2D(&m_texDesc, NULL, &m_outputY);
+		ge.GetD3DDevice()->CreateRenderTargetView(m_outputY, nullptr, &m_outputYRTV);//レンダーターゲット
+		ge.GetD3DDevice()->CreateShaderResourceView(m_outputY, nullptr, &m_outputYSRV);//シェーダーリソースビュー
+
+		//ビューポート
+		m_viewport.Width = (float)texDesc.Width;
+		m_viewport.Height = (float)texDesc.Height;
+		m_viewport.TopLeftX = 0;
+		m_viewport.TopLeftY = 0;
+		m_viewport.MinDepth = 0.0f;
+		m_viewport.MaxDepth = 1.0f;
 
 		//シェーダーをロード。
-		m_vsx.Load("shader/gaussianblur.fx", "VSXBlur", Shader::EnType::VS);
-		m_vsy.Load("shader/gaussianblur.fx", "VSYBlur", Shader::EnType::VS);
-		m_ps.Load("shader/gaussianblur.fx", "PSBlur", Shader::EnType::PS);
+		m_vsx.Load("Preset/shader/gaussianblur.fx", "VSXBlur", Shader::EnType::VS);
+		m_vsy.Load("Preset/shader/gaussianblur.fx", "VSYBlur", Shader::EnType::VS);
+		m_ps.Load("Preset/shader/gaussianblur.fx", "PSBlur", Shader::EnType::PS);
 
 		//サンプラー
 		D3D11_SAMPLER_DESC samplerDesc;
@@ -54,12 +75,10 @@ namespace DemolisherWeapon {
 		ShaderUtil::CreateConstantBuffer(sizeof(SBlurParam), &m_cb);
 
 		//ガウスの重み
-		float dispersion = 5.0f;//ぼかしの強さ?
 		float total = 0;
 		for (int i = 0; i < NUM_WEIGHTS; i++) {
 			m_blurParam.weights[i] = expf(-0.5f*(float)(i*i) / dispersion);
 			total += 2.0f*m_blurParam.weights[i];
-
 		}
 		// 規格化
 		for (int i = 0; i < NUM_WEIGHTS; i++) {
@@ -85,18 +104,29 @@ namespace DemolisherWeapon {
 		//サンプラステートを設定。
 		rc->PSSetSamplers(0, 1, &m_samplerState);
 
-		//Clear
+		//ビューポート記録
+		D3D11_VIEWPORT oldviewport; UINT kaz = 1;
+		rc->RSGetViewports(&kaz, &oldviewport);
 
+		//ビューポート設定
+		rc->RSSetViewports(1, &m_viewport);
+
+		//Clear
+		float clearcolor[4] = {};
+		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearRenderTargetView(m_outputXRTV, clearcolor);
+		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearRenderTargetView(m_outputYRTV, clearcolor);
+		
 		//XBlur
 
 			//レンダーターゲットの設定
 			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &m_outputXRTV, nullptr);
 
 			//シェーダーリソース
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(0, 1, &m_souce);
 			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(0, 1, &m_souce);
 
 			//定数バッファ
-			//m_blurParam.offset.x = 16.0f / m_srcTextureWidth;
+			m_blurParam.offset.x = 16.0f / m_texDesc.Width;
 			m_blurParam.offset.y = 0.0f;
 			rc->UpdateSubresource(m_cb, 0, nullptr, &m_blurParam, 0, 0);
 			rc->PSSetConstantBuffers(0, 1, &m_cb);
@@ -113,14 +143,15 @@ namespace DemolisherWeapon {
 		//YBlur
 
 			//レンダーターゲットの設定
-			//GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &outputFin, nullptr);
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &m_outputYRTV, nullptr);
 
 			//シェーダーリソース
-			//GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(0, 1, &outputX);
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(0, 1, &m_outputXSRV);
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(0, 1, &m_outputXSRV);
 
 			//定数バッファ
 			m_blurParam.offset.x = 0.0f;
-		//	m_blurParam.offset.y = 16.0f / m_srcTextureHeight;
+			m_blurParam.offset.y = 16.0f / m_texDesc.Height;
 			rc->UpdateSubresource(m_cb, 0, nullptr, &m_blurParam, 0, 0);
 			rc->PSSetConstantBuffers(0, 1, &m_cb);
 
@@ -141,6 +172,9 @@ namespace DemolisherWeapon {
 
 		//レンダーターゲット解除
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+
+		//ビューポート戻す
+		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &oldviewport);
 	}
 
 }

@@ -212,6 +212,7 @@ Texture2D<float > depthMap		: register(t2);
 Texture2D<float4> PosMap		: register(t3);
 Texture2D<float > AoMap			: register(t4);
 Texture2D<float4> lightParamTex	: register(t5);
+Texture2D<float > AoMapBlur		: register(t7);
 //環境キューブマップ
 TextureCube<float3> AmbientCubeMap: register(t6);
 
@@ -380,7 +381,13 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	//AO
 	float ambientOcclusion = 1.0f;
 	if (boolAO) {
-		ambientOcclusion = AoMap.Sample(Sampler, In.uv);
+		ambientOcclusion = AoMapBlur.Sample(Sampler, In.uv);
+		//ambientOcclusion *= lerp(AoMap.Sample(Sampler, In.uv),1.0f,0.5f);
+		/*ambientOcclusion = AoMap.Sample(Sampler, In.uv + float2(-0.5f / 1280.0f, -0.5f / 720.0f));
+		ambientOcclusion += AoMap.Sample(Sampler, In.uv + float2(0.5f / 1280.0f, 0.5f / 720.0f));
+		ambientOcclusion += AoMap.Sample(Sampler, In.uv + float2(-0.5f / 1280.0f, 0.5f / 720.0f));
+		ambientOcclusion += AoMap.Sample(Sampler, In.uv + float2(0.5f / 1280.0f, -0.5f / 720.0f));
+		ambientOcclusion /= 4.0f;*/
 	}
 	ambientOcclusion *= (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
 

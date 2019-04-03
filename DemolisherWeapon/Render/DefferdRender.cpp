@@ -79,7 +79,8 @@ void DefferdRender::Render() {
 	rc->PSSetShaderResources(3, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferPosition));
 	rc->PSSetShaderResources(4, 1, &GetEngine().GetGraphicsEngine().GetAmbientOcclusionRender().GetAmbientOcclusionSRV());
 	rc->PSSetShaderResources(5, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferLightParam));
-	
+	rc->PSSetShaderResources(7, 1, &GetEngine().GetGraphicsEngine().GetAmbientOcclusionRender().GetAmbientOcclusionBlurSRV());
+
 	//ライト関係をセット
 	rc->PSSetShaderResources(100, 1, &GetEngine().GetGraphicsEngine().GetLightManager().GetDirectionLightSRV());
 	rc->PSSetShaderResources(101, 1, &GetEngine().GetGraphicsEngine().GetLightManager().GetPointLightsSRV());
@@ -159,6 +160,8 @@ void DefferdRender::Render() {
 	rc->PSSetShaderResources(3, 1, view);
 	rc->PSSetShaderResources(4, 1, view);
 	rc->PSSetShaderResources(5, 1, view);
+	rc->PSSetShaderResources(6, 1, view);
+	rc->PSSetShaderResources(7, 1, view);
 
 	rc->PSSetShaderResources(100, 1, view);
 	rc->PSSetShaderResources(101, 1, view);

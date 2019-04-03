@@ -16,10 +16,6 @@ struct VSInput {
 	float4 pos : SV_Position;
 	float2 uv  : TEXCOORD0;
 };
-struct PSInput {
-	float4 pos : SV_POSITION;
-	float2 uv  : TEXCOORD0;
-};
 sampler Sampler : register(s0);
 
 /*!
@@ -28,9 +24,8 @@ sampler Sampler : register(s0);
 static const int NUM_WEIGHTS = 8;
 cbuffer CBBlur : register(b0)
 {
-	float4 offset;		//!<オフセット。
-	float  weight[NUM_WEIGHTS];	//!<重み。
-
+	float4 offset;					//!<オフセット。
+	float4 weight[NUM_WEIGHTS/4];	//!<重み。
 };
 
 /*!
@@ -41,10 +36,13 @@ PS_BlurInput VSXBlur(VSInput In)
 	float2 texSize;
 	float level;
 	blurTexture.GetDimensions(0, texSize.x, texSize.y, level);
+
 	PS_BlurInput Out;
 	Out.pos = In.pos;
+
 	float2 tex = In.uv;
-	tex += float2(-0.5 / texSize.x, -0.5 / texSize.y);
+	tex += float2(-0.5f / texSize.x, 0.0f);
+
 	Out.tex0 = tex + float2(-1.0f / texSize.x, 0.0f);
 	Out.tex1 = tex + float2(-3.0f / texSize.x, 0.0f);
 	Out.tex2 = tex + float2(-5.0f / texSize.x, 0.0f);
@@ -64,10 +62,13 @@ PS_BlurInput VSYBlur(VSInput In)
 	float2 texSize;
 	float level;
 	blurTexture.GetDimensions(0, texSize.x, texSize.y, level);
+
 	PS_BlurInput Out;
 	Out.pos = In.pos;
+
 	float2 tex = In.uv;
-	tex += float2(-0.5 / texSize.x, -0.5 / texSize.y);
+	tex += float2(0.0f, -0.5f / texSize.y);
+
 	Out.tex0 = tex + float2(0.0f, -1.0f / texSize.y);
 	Out.tex1 = tex + float2(0.0f, -3.0f / texSize.y);
 	Out.tex2 = tex + float2(0.0f, -5.0f / texSize.y);
@@ -85,21 +86,21 @@ PS_BlurInput VSYBlur(VSInput In)
 float4 PSBlur(PS_BlurInput In) : SV_Target0
 {
 	float4 Color;
-	Color = weight[0].x * (blurTexture.Sample(Sampler, In.tex0)
-				   + blurTexture.Sample(Sampler, In.tex7 + offset));
+	Color =  weight[0].x * (blurTexture.Sample(Sampler, In.tex0)
+				   + blurTexture.Sample(Sampler, In.tex7 + offset.xy));
 	Color += weight[0].y * (blurTexture.Sample(Sampler, In.tex1)
-				   + blurTexture.Sample(Sampler, In.tex6 + offset));
+				   + blurTexture.Sample(Sampler, In.tex6 + offset.xy));
 	Color += weight[0].z * (blurTexture.Sample(Sampler, In.tex2)
-			  + blurTexture.Sample(Sampler, In.tex5 + offset));
+				   + blurTexture.Sample(Sampler, In.tex5 + offset.xy));
 	Color += weight[0].w * (blurTexture.Sample(Sampler, In.tex3)
-				   + blurTexture.Sample(Sampler, In.tex4 + offset));
+				   + blurTexture.Sample(Sampler, In.tex4 + offset.xy));
 	Color += weight[1].x * (blurTexture.Sample(Sampler, In.tex4)
-				   + blurTexture.Sample(Sampler, In.tex3 + offset));
+				   + blurTexture.Sample(Sampler, In.tex3 + offset.xy));
 	Color += weight[1].y * (blurTexture.Sample(Sampler, In.tex5)
-				   + blurTexture.Sample(Sampler, In.tex2 + offset));
+				   + blurTexture.Sample(Sampler, In.tex2 + offset.xy));
 	Color += weight[1].z * (blurTexture.Sample(Sampler, In.tex6)
-				   + blurTexture.Sample(Sampler, In.tex1 + offset));
+				   + blurTexture.Sample(Sampler, In.tex1 + offset.xy));
 	Color += weight[1].w * (blurTexture.Sample(Sampler, In.tex7)
-					 + blurTexture.Sample(Sampler, In.tex0 + offset));
+				   + blurTexture.Sample(Sampler, In.tex0 + offset.xy));
 	return Color;
 }

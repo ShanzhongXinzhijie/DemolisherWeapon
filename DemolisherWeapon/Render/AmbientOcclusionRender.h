@@ -1,5 +1,6 @@
 #pragma once
 #include "IRander.h"
+#include "GaussianBlurRender.h"
 
 namespace DemolisherWeapon {
 
@@ -14,9 +15,9 @@ public:
 
 	void Render()override;
 
-	ID3D11ShaderResourceView*& GetAmbientOcclusionSRV() {
-		return m_ambientOcclusionSRV;
-	}
+	//シェーダーリソースビューの取得
+	ID3D11ShaderResourceView*& GetAmbientOcclusionSRV();
+	ID3D11ShaderResourceView*& GetAmbientOcclusionBlurSRV();
 
 	//有効無効の設定
 	void SetEnable(bool enable) { m_enable = enable; }
@@ -49,6 +50,8 @@ private:
 		//距離スケール
 		float distanceScale;
 	};
+
+	GaussianBlurRender m_gaussBlur;
 };
 
 }
