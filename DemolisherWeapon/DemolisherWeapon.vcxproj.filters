@@ -89,6 +89,7 @@
     <ClInclude Include="physics2\IPhysicsObject.h" />
     <ClInclude Include="Graphic\CLine.h" />
     <ClInclude Include="Render\PrimitiveRender.h" />
+    <ClInclude Include="DWsetting.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
