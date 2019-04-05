@@ -272,7 +272,6 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
-    <ClInclude Include="DWsetting.h" />
     <ClInclude Include="Graphic\CLine.h" />
     <ClInclude Include="Graphic\Sky\CSkybox.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowHandler.h" />
