@@ -382,6 +382,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	float ambientOcclusion = 1.0f;
 	if (boolAO) {
 		ambientOcclusion = AoMapBlur.Sample(Sampler, In.uv);
+		ambientOcclusion *= saturate(ambientOcclusion*1.5f);
 		//ambientOcclusion *= lerp(AoMap.Sample(Sampler, In.uv),1.0f,0.5f);
 		/*ambientOcclusion = AoMap.Sample(Sampler, In.uv + float2(-0.5f / 1280.0f, -0.5f / 720.0f));
 		ambientOcclusion += AoMap.Sample(Sampler, In.uv + float2(0.5f / 1280.0f, 0.5f / 720.0f));
