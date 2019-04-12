@@ -267,6 +267,15 @@ float G1(float3 v, float roughness, float3 normal) {
 float G(float3 lightDir, float3 viewDir, float3 normal, float roughness){
 	return G1(lightDir, roughness, normal)*G1(viewDir, roughness, normal);
 }
+//幾何減衰率(IBL)
+float G1_IBL(float3 v, float roughness, float3 normal) {
+	float a = (0.5f + roughness) / 2.0f;
+	float k = a*a / 2.0f;
+	return dot(normal, v) / (dot(normal, v)*(1.0f - k) + k);
+}
+float G_IBL(float3 lightDir, float3 viewDir, float3 normal, float roughness) {
+	return G1_IBL(lightDir, roughness, normal)*G1_IBL(viewDir, roughness, normal);
+}
 //フレネル項
 float3 Fresnel(in float3 specAlbedo, in float3 h, in float3 l) { 
 	return specAlbedo + (1.0f - specAlbedo) * pow((1.0f - saturate(dot(l, h))), 5.0f);
@@ -279,6 +288,17 @@ float3 CookTorrance(float3 lightDir, float3 viewDir, float3 normal, float3 baseC
 			*NormalizedBlinnPhong(pow(2.0f, 11.0f*shininess), halfVec, normal)
 			*G(lightDir, viewDir, normal, 1.0f - shininess)
 			/(PI*dot(normal, viewDir)*dot(normal, lightDir));
+}
+//IBLを用いたスペキュラ
+float3 IBL_Specular(float3 lightDir, float3 viewDir, float3 normal, float3 baseColor, float shininess, float3 ibl) {
+	float3 halfVec = normalize(lightDir + viewDir);
+
+	return  min(ibl,
+			Fresnel(baseColor, halfVec, lightDir)
+		*NormalizedBlinnPhong(pow(2.0f, 11.0f*shininess), halfVec, normal)*ibl
+			*saturate(G_IBL(lightDir, viewDir, normal, 1.0f - shininess))
+			/ (PI*dot(normal, viewDir)*dot(normal, lightDir))
+	);
 }
 
 //ディフューズ
@@ -340,7 +360,6 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	//ディレクションライト
 	[unroll]
 	for (int i = 0; i < 4; i++) {
-
 		if (numDirectionLight == i) { break; }
 
 		//シャドウマップの遮蔽適応
@@ -350,7 +369,9 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 		}
 
+		//ディフューズ
 		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), directionLight[i].direction, normal) * directionLight[i].color * nothide;		
+		//スペキュラ
 		Out += max(0.0f,
 			CookTorrance(directionLight[i].direction, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w)
 			* directionLight[i].color * saturate(dot(normal, directionLight[i].direction))*nothide
@@ -359,19 +380,20 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	//ポイントライト
 	[unroll]
 	for (int i = 0; i < 12; i++) {
-
 		if (numPointLight == i) { break; }
 
+		//方向と距離求める
 		float3 dir = pointLightList[i].position - worldpos;
-		float len = length(dir);
-			
+		float len = length(dir);			
 		dir = normalize(dir);
 
-		//減衰を計算する。
+		//減衰を計算する
 		float	litRate = len / pointLightList[i].range;
 		float	attn = max(1.0 - litRate * litRate, 0.0);
 
+		//ディフューズ
 		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
+		//スペキュラ
 		Out += max(0.0f,
 			CookTorrance(dir, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w)
 			* pointLightList[i].color * saturate(dot(normal, dir)) * pow(attn, pointLightList[i].attenuation)
@@ -382,22 +404,26 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	float ambientOcclusion = 1.0f;
 	if (boolAO) {
 		ambientOcclusion = AoMapBlur.Sample(Sampler, In.uv);
-		ambientOcclusion *= saturate(ambientOcclusion*1.5f);
-		//ambientOcclusion *= lerp(AoMap.Sample(Sampler, In.uv),1.0f,0.5f);
-		/*ambientOcclusion = AoMap.Sample(Sampler, In.uv + float2(-0.5f / 1280.0f, -0.5f / 720.0f));
-		ambientOcclusion += AoMap.Sample(Sampler, In.uv + float2(0.5f / 1280.0f, 0.5f / 720.0f));
-		ambientOcclusion += AoMap.Sample(Sampler, In.uv + float2(-0.5f / 1280.0f, 0.5f / 720.0f));
-		ambientOcclusion += AoMap.Sample(Sampler, In.uv + float2(0.5f / 1280.0f, -0.5f / 720.0f));
-		ambientOcclusion /= 4.0f;*/
+		ambientOcclusion *= saturate(ambientOcclusion*1.5f);//ガウスブラーで薄くなってるので濃くする
 	}
 	ambientOcclusion *= (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
 
 	//アンビエント
 	if (boolAmbientCube) {
+		//ディフューズ
 		Out += albedo.xyz * AmbientCubeMap.SampleLevel(Sampler, normal, 9) * ambientLight * ambientOcclusion;
+		//スペキュラ
+		Out += max(0.0f,
+			IBL_Specular(reflect(viewDir*-1.0f, normal), viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, AmbientCubeMap.SampleLevel(Sampler, reflect(viewDir*-1.0f, normal), 9.0f * (1.0f - lightParam.w)) * ambientLight)
+		);
 	}
 	else {
+		//ディフューズ
 		Out += albedo.xyz * ambientLight * ambientOcclusion;
+		//スペキュラ
+		Out += max(0.0f,
+			IBL_Specular(reflect(viewDir*-1.0f, normal), viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, ambientLight)
+		);
 	}
 
 	//エミッシブを加算
