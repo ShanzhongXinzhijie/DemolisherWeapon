@@ -278,7 +278,7 @@ float G_IBL(float3 lightDir, float3 viewDir, float3 normal, float roughness) {
 }
 //フレネル項
 float3 Fresnel(in float3 specAlbedo, in float3 h, in float3 l) { 
-	return specAlbedo + (1.0f - specAlbedo) * pow((1.0f - saturate(dot(l, h))), 5.0f);
+	return specAlbedo + (1.0f - specAlbedo) * pow((1.0f - dot(l, h)), 5.0f);
 }
 //Cook-Torrance?
 float3 CookTorrance(float3 lightDir, float3 viewDir, float3 normal, float3 baseColor, float shininess) {
@@ -293,12 +293,14 @@ float3 CookTorrance(float3 lightDir, float3 viewDir, float3 normal, float3 baseC
 float3 IBL_Specular(float3 lightDir, float3 viewDir, float3 normal, float3 baseColor, float shininess, float3 ibl) {
 	float3 halfVec = normalize(lightDir + viewDir);
 
-	return  min(ibl,
+	return  //min(ibl,
 			Fresnel(baseColor, halfVec, lightDir)
-		*NormalizedBlinnPhong(pow(2.0f, 11.0f*shininess), halfVec, normal)*ibl
-			*saturate(G_IBL(lightDir, viewDir, normal, 1.0f - shininess))
-			/ (PI*dot(normal, viewDir)*dot(normal, lightDir))
-	);
+			*ibl//*0.125f
+			// * min(1, min(2 * dot(normal, halfVec)*dot(normal, viewDir) / dot(viewDir, halfVec), 2 * dot(normal, halfVec)*dot(normal, lightDir) / dot(viewDir, halfVec)))
+			// *G_IBL(lightDir, viewDir, normal, 1.0f - shininess)
+			// / dot(normal, viewDir)
+			// / (PI*dot(normal, viewDir)*dot(normal, lightDir))
+		;//);
 }
 
 //ディフューズ
@@ -422,7 +424,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		Out += albedo.xyz * ambientLight * ambientOcclusion;
 		//スペキュラ
 		Out += max(0.0f,
-			IBL_Specular(reflect(viewDir*-1.0f, normal), viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, ambientLight)
+			IBL_Specular(reflect(viewDir*-1.0f, normal), viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, ambientLight)//*(normal.y / 2.0f + 0.5f))
 		);
 	}
 

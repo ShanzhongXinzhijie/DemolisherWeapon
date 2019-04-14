@@ -426,7 +426,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	//ライティング用パラメーター
 	Out.lightingParam.x = emissive;//エミッシブ
 	Out.lightingParam.y = isLighting;//ライティングするか?
-	Out.lightingParam.z = 0.0f;//メタリック
+	Out.lightingParam.z = 1.0f;//メタリック
 	Out.lightingParam.w = 0.38f;//シャイニネス
 
 	//速度
