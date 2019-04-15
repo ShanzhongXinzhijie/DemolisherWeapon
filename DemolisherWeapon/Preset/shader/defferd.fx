@@ -268,14 +268,14 @@ float G(float3 lightDir, float3 viewDir, float3 normal, float roughness){
 	return G1(lightDir, roughness, normal)*G1(viewDir, roughness, normal);
 }
 //幾何減衰率(IBL)
-float G1_IBL(float3 v, float roughness, float3 normal) {
-	float a = (0.5f + roughness) / 2.0f;
-	float k = a*a / 2.0f;
-	return dot(normal, v) / (dot(normal, v)*(1.0f - k) + k);
-}
-float G_IBL(float3 lightDir, float3 viewDir, float3 normal, float roughness) {
-	return G1_IBL(lightDir, roughness, normal)*G1_IBL(viewDir, roughness, normal);
-}
+//float G1_IBL(float3 v, float roughness, float3 normal) {
+//	float a = (0.5f + roughness) / 2.0f;
+//	float k = a*a / 2.0f;
+//	return dot(normal, v) / (dot(normal, v)*(1.0f - k) + k);
+//}
+//float G_IBL(float3 lightDir, float3 viewDir, float3 normal, float roughness) {
+//	return G1_IBL(lightDir, roughness, normal)*G1_IBL(viewDir, roughness, normal);
+//}
 //フレネル項
 float3 Fresnel(in float3 specAlbedo, in float3 h, in float3 l) { 
 	return specAlbedo + (1.0f - specAlbedo) * pow((1.0f - dot(l, h)), 5.0f);
@@ -293,14 +293,14 @@ float3 CookTorrance(float3 lightDir, float3 viewDir, float3 normal, float3 baseC
 float3 IBL_Specular(float3 lightDir, float3 viewDir, float3 normal, float3 baseColor, float shininess, float3 ibl) {
 	float3 halfVec = normalize(lightDir + viewDir);
 
-	return  //min(ibl,
-			Fresnel(baseColor, halfVec, lightDir)
-			*ibl//*0.125f
+	return  lerp(baseColor, float3(1.0f, 1.0f, 1.0f), shininess*shininess)
+			* Fresnel(baseColor, halfVec, lightDir)
+			* ibl
 			// * min(1, min(2 * dot(normal, halfVec)*dot(normal, viewDir) / dot(viewDir, halfVec), 2 * dot(normal, halfVec)*dot(normal, lightDir) / dot(viewDir, halfVec)))
 			// *G_IBL(lightDir, viewDir, normal, 1.0f - shininess)
 			// / dot(normal, viewDir)
 			// / (PI*dot(normal, viewDir)*dot(normal, lightDir))
-		;//);
+		;
 }
 
 //ディフューズ
@@ -408,24 +408,25 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		ambientOcclusion = AoMapBlur.Sample(Sampler, In.uv);
 		ambientOcclusion *= saturate(ambientOcclusion*1.5f);//ガウスブラーで薄くなってるので濃くする
 	}
-	ambientOcclusion *= (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
-
+	
 	//アンビエント
 	if (boolAmbientCube) {
 		//ディフューズ
-		Out += albedo.xyz * AmbientCubeMap.SampleLevel(Sampler, normal, 9) * ambientLight * ambientOcclusion;
+		Out += albedo.xyz * AmbientCubeMap.SampleLevel(Sampler, normal, 9) * ambientLight * ambientOcclusion * (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
 		//スペキュラ
+		float3 refvec = reflect(viewDir*-1.0f, normal);
 		Out += max(0.0f,
-			IBL_Specular(reflect(viewDir*-1.0f, normal), viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, AmbientCubeMap.SampleLevel(Sampler, reflect(viewDir*-1.0f, normal), 9.0f * (1.0f - lightParam.w)) * ambientLight)
-		);
+			IBL_Specular(refvec, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, AmbientCubeMap.SampleLevel(Sampler, refvec, 9.0f * (1.0f - lightParam.w)) * ambientLight)
+		)* ambientOcclusion;
 	}
 	else {
 		//ディフューズ
-		Out += albedo.xyz * ambientLight * ambientOcclusion;
+		Out += albedo.xyz * ambientLight * ambientOcclusion * (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
 		//スペキュラ
+		float3 refvec = reflect(viewDir*-1.0f, normal);
 		Out += max(0.0f,
-			IBL_Specular(reflect(viewDir*-1.0f, normal), viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, ambientLight)//*(normal.y / 2.0f + 0.5f))
-		);
+			IBL_Specular(refvec, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, ambientLight)//*(normal.y / 2.0f + 0.5f))
+		)* ambientOcclusion;
 	}
 
 	//エミッシブを加算
