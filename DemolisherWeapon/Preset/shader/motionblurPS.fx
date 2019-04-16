@@ -52,7 +52,8 @@ float4 PSMain(PSInput In) : SV_Target0
 		float t = (i + 1) / loopmax;
 		float4 sampz = VelocityMap.Sample(Sampler, In.uv + t * velocity.xy);
 
-		if (sampz.w > 0.0f || sampz.z > DistantThreshold){// && sampz.z  > DistantThreshold || velocity.z < sampz.z + Z_OFFSET * distanceScale) {//手前のピクセルからはサンプルしない
+		//(マスクされてない & 手前のピクセルからはサンプルしない) or カメラからの距離が遠い
+		if (sampz.w > 0.0f && velocity.z < sampz.z + Z_OFFSET_PS * distanceScale || sampz.z > DistantThreshold){
 			Out += sceneTexture.Sample(Sampler, In.uv + t * velocity.xy);
 			samplecnt += 1.0f;
 		}

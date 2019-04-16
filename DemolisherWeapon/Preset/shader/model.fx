@@ -434,6 +434,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 		float2	current = In.curPos.xy / In.curPos.w;
 		float2	last = In.lastPos.xy / In.lastPos.w;		
 
+		//無効
 		if (In.lastPos.z < 0.0f) {
 		//if (last.z < 0.0f || last.z > 1.0f) {
 			Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
@@ -450,11 +451,12 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 		Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 		Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
 
+		//オブジェクトが動いている or カメラに近い
 		if (In.isWorldMove || In.curPos.z + depthBias.y < depthBias.z) {
 			Out.velocity.xy = current.xy - last.xy;
 
 			Out.velocityPS.z = max(In.curPos.z, In.lastPos.z) + depthBias.y;
-			Out.velocityPS.w = -1.0f;
+			Out.velocityPS.w = -1.0f;//PSブラーしない
 
 			//Out.albedo.r = 1.0f; Out.albedo.b = 0.0f; Out.albedo.g = 0.0f;
 		}
@@ -464,9 +466,10 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 			Out.velocityPS.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 			Out.velocityPS.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
 
+			//動きが小さい
 			if (abs(Out.velocityPS.x) < BUNBO*0.5f && abs(Out.velocityPS.y) < BUNBO*0.5f) {
 				Out.velocityPS.z = Out.velocityPS.w;
-				Out.velocityPS.w = -1.0f;
+				Out.velocityPS.w = -1.0f;//PSブラーしない
 			}
 
 			//Out.albedo.r *= 0.1f; Out.albedo.b = 1.0f; Out.albedo.g *= 0.1f;
