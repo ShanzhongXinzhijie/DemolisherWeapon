@@ -146,9 +146,13 @@ public:
 		return m_defaultMaterialSetting;
 	}
 
-	//アルベドテクスチャを設定
-	void SetAlbedoTexture(ID3D11ShaderResourceView* tex){
-		if (!m_albedoTex) {
+	/// <summary>
+	/// アルベドテクスチャを設定
+	/// </summary>
+	/// <param name="tex">設定するテクスチャ</param>
+	/// <param name="defaultTex">デフォルトテクスチャとして設定するか?</param>
+	void SetAlbedoTexture(ID3D11ShaderResourceView* tex, bool defaultTex = false){
+		if (!m_albedoTex && defaultTex) {
 			//デフォルトテクスチャ
 			m_albedoTex = tex;
 			m_pAlbedoTex = m_albedoTex;
@@ -404,7 +408,7 @@ public:
 			//テクスチャで設定
 			ID3D11ShaderResourceView* texSRV;
 			DirectX::EffectFactory::CreateTexture(info.diffuseTexture, deviceContext, &texSRV);
-			effect->SetAlbedoTexture(texSRV);
+			effect->SetAlbedoTexture(texSRV,true);
 		}
 		else {
 			//ディフューズカラー(数値)で設定

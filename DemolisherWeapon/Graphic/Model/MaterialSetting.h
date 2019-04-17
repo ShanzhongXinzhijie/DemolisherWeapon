@@ -123,6 +123,9 @@ namespace DemolisherWeapon {
 			if (m_pAlbedoTex) { 
 				m_pAlbedoTex->Release();
 			}
+			else {
+				SetAlbedoScale(CVector4::One());//アルベドスケールを初期化
+			}
 			m_pAlbedoTex = tex;
 			if (m_pAlbedoTex) {
 				m_pAlbedoTex->AddRef();
@@ -160,6 +163,12 @@ namespace DemolisherWeapon {
 
 			if (m_pLightingTex) {
 				m_pLightingTex->Release();
+			}
+			else {
+				//初期化(これらのパラメータはテクスチャにかけるスケールとして使う)
+				SetEmissive(1.0f);
+				SetMetallic(1.0f);
+				SetShininess(1.0f);
 			}
 			m_pLightingTex = tex;
 			if (m_pLightingTex) {

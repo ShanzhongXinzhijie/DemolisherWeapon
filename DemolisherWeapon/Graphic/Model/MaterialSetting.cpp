@@ -13,11 +13,15 @@ namespace DemolisherWeapon {
 		//設定のコピー
 		SetMatrialName(modeleffect->GetDefaultMaterialSetting().GetMatrialName());
 		SetMaterialParam(modeleffect->GetDefaultMaterialSetting().GetMaterialParam());
+
 		SetVS(modeleffect->GetDefaultMaterialSetting().GetVS());
 		SetVSZ(modeleffect->GetDefaultMaterialSetting().GetVSZ());
 		SetPS(modeleffect->GetDefaultMaterialSetting().GetPS());
+
 		SetAlbedoTexture(modeleffect->GetDefaultMaterialSetting().GetAlbedoTexture());
 		SetNormalTexture(modeleffect->GetDefaultMaterialSetting().GetNormalTexture());
+		SetLightingTexture(modeleffect->GetDefaultMaterialSetting().GetLightingTexture());
+
 		SetIsMotionBlur(modeleffect->GetDefaultMaterialSetting().GetIsMotionBlur());
 		SetIsUseTexZShader(modeleffect->GetDefaultMaterialSetting().GetIsUseTexZShader());
 	}
@@ -41,6 +45,9 @@ namespace DemolisherWeapon {
 
 		if (m_pAlbedoTex) { 
 			m_pAlbedoTex->Release();
+		}
+		else {
+			SetAlbedoScale(CVector4::One());//アルベドスケールを初期化
 		}
 		m_pAlbedoTex = DT;
 		if (m_pAlbedoTex) {
