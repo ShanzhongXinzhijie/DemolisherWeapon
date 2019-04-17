@@ -43,7 +43,9 @@ namespace DemolisherWeapon {
 			m_pAlbedoTex->Release();
 		}
 		m_pAlbedoTex = DT;
-		m_pAlbedoTex->AddRef();
+		if (m_pAlbedoTex) {
+			m_pAlbedoTex->AddRef();
+		}
 	}
 
 }

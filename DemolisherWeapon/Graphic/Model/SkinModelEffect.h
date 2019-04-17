@@ -6,6 +6,8 @@
 
 #include "MaterialSetting.h"
 
+#define BIT(x) (1<<(x))
+
 namespace DemolisherWeapon {
 
 #include "Preset/Shader/ShadowMapHeader.h"
@@ -32,15 +34,20 @@ protected:
 	Shader* m_pPSShader = nullptr;
 
 	enum ShaderTypeMask {
-		enOFF = 0b00,
-		enMotionBlur = 0b01,
-		enNormalMap = 0b10,
-		enALL = 0b11,
+		enOFF			= 0b0000,
+		enMotionBlur	= 0b0001,
+		enNormalMap		= 0b0010,
+		enAlbedoMap		= 0b0100,
+		enLightingMap	= 0b1000,
+		enALL			= 0b1111,
 		enNum,
 	};
-	D3D_SHADER_MACRO macros[enALL] = {
+	static constexpr int MACRO_NUM = 4;
+	D3D_SHADER_MACRO macros[MACRO_NUM+1] = {
 			"MOTIONBLUR", "0",
 			"NORMAL_MAP", "0",
+			"ALBEDO_MAP", "0",
+			"LIGHTING_MAP", "0",
 			NULL, NULL
 	};
 
@@ -56,6 +63,7 @@ protected:
 	bool isSkining;
 	ID3D11ShaderResourceView* m_albedoTex = nullptr, *m_pAlbedoTex = nullptr;
 	ID3D11ShaderResourceView* m_pNormalTex = nullptr;
+	ID3D11ShaderResourceView* m_pLightingTex = nullptr;
 	
 	MaterialSetting m_defaultMaterialSetting;	//マテリアル設定
 	MaterialParam m_materialParam;				//マテリアルパラメータ
@@ -65,25 +73,29 @@ protected:
 public:
 	ModelEffect()
 	{
+		//マクロごとにピクセルシェーダを作成
 		char macroName[32];
 		for (int i = 0; i < ShaderTypeMask::enNum; i++) {
 			sprintf_s(macroName, "DefaultModelShader:%d", i);
 
-			for (int mask = ShaderTypeMask::enOFF+1; mask < ShaderTypeMask::enALL; mask++) {
-				if (i & mask) { macros[mask - 1].Definition = "1"; }else{ macros[mask - 1].Definition = "0"; }
+			for (int mask = 0; mask < MACRO_NUM; mask++) {
+				if (i & BIT(mask)) { macros[mask].Definition = "1"; }else{ macros[mask].Definition = "0"; }
 			}
 
 			m_psDefaultShader[i].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, macroName, macros);
 		}
 
+		//マクロごとにZ値描画ピクセルシェーダを作成
 		D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1", NULL, NULL };
 		m_psZShader[0].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
 		m_psZShader[1].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS, "TEXTURE", macrosZ);
 		
 		LoadClassInstancePS();
 
+		//デフォルトのシェーダを設定
 		m_pPSShader = &m_psDefaultShader[enALL];
 
+		//マテリアル設定(m_defaultMaterialSetting)を初期化してやる
 		MaterialSettingInit(m_defaultMaterialSetting);
 
 		//マテリアルパラメーターの定数バッファ
@@ -223,11 +235,15 @@ public:
 	//使うマテリアル設定を適応
 	void SetUseMaterialSetting(MaterialSetting& matset) {
 		m_materialParam = matset.GetMaterialParam();
+		
 		m_pVSShader = matset.GetVS();
 		m_pVSZShader = matset.GetVSZ(); 
 		m_pPSShader = matset.GetPS();
+
 		m_pAlbedoTex = matset.GetAlbedoTexture();
 		m_pNormalTex = matset.GetNormalTexture();
+		m_pLightingTex = matset.GetLightingTexture();
+
 		m_enableMotionBlur = matset.GetIsMotionBlur();
 		m_isUseTexZShader = matset.GetIsUseTexZShader();
 
@@ -299,23 +315,28 @@ class NonSkinModelEffect : public ModelEffect {
 public:
 	NonSkinModelEffect()
 	{
+		//マクロごとに頂点シェーダを作成
 		char macroName[32];
 		for (int i = 0; i < ShaderTypeMask::enNum; i++) {
 			sprintf_s(macroName, "DefaultModelShader:%d", i);
 
-			for (int mask = ShaderTypeMask::enOFF + 1; mask < ShaderTypeMask::enALL; mask++) {
-				if (i & mask) { macros[mask - 1].Definition = "1"; }else { macros[mask - 1].Definition = "0"; }
+			for (int mask = 0; mask < MACRO_NUM; mask++) {
+				if (i & BIT(mask)) { macros[mask].Definition = "1"; }else{ macros[mask].Definition = "0"; }
 			}
 
 			m_vsDefaultShader[i].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, macroName, macros);
 		}
 		
+		//Z値描画シェーダを作成
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS);
 
 		LoadClassInstanceVS();
 		
+		//デフォルトのシェーダを設定
 		m_pVSShader = &m_vsDefaultShader[enALL];
 		m_pVSZShader = &m_vsZShader;
+
+		//スキンモデルじゃない
 		isSkining = false;
 	}
 };
@@ -327,23 +348,28 @@ class SkinModelEffect : public ModelEffect {
 public:
 	SkinModelEffect()
 	{
-		char macroName[32];		
+		//マクロごとに頂点シェーダを作成
+		char macroName[32];
 		for (int i = 0; i < ShaderTypeMask::enNum; i++) {
 			sprintf_s(macroName, "DefaultModelShader:%d", i);
 
-			for (int mask = ShaderTypeMask::enOFF + 1; mask < ShaderTypeMask::enALL; mask++) {
-				if (i & mask) { macros[mask - 1].Definition = "1"; }else { macros[mask - 1].Definition = "0"; }
+			for (int mask = 0; mask < MACRO_NUM; mask++) {
+				if (i & BIT(mask)) { macros[mask].Definition = "1"; }else{ macros[mask].Definition = "0"; }
 			}
 
 			m_vsDefaultShader[i].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, macroName, macros);
 		}
 		
+		//Z値描画シェーダを作成
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS);
 
 		LoadClassInstanceVS();
 
+		//デフォルトのシェーダを設定
 		m_pVSShader = &m_vsDefaultShader[enALL];
 		m_pVSZShader = &m_vsZShader;
+
+		//スキンモデルである
 		isSkining = true;
 	}
 };
@@ -372,12 +398,17 @@ public:
 		//名前設定
 		effect->GetDefaultMaterialSetting().SetMatrialName(info.name);
 
-		//テクスチャ設定
+		//アルベド
 		if (info.diffuseTexture && *info.diffuseTexture)
 		{
+			//テクスチャで設定
 			ID3D11ShaderResourceView* texSRV;
 			DirectX::EffectFactory::CreateTexture(info.diffuseTexture, deviceContext, &texSRV);
 			effect->SetAlbedoTexture(texSRV);
+		}
+		else {
+			//ディフューズカラー(数値)で設定
+			effect->SetAlbedoScale({ info.diffuseColor.x,info.diffuseColor.y,info.diffuseColor.z,1.0f });
 		}
 
 		return effect;

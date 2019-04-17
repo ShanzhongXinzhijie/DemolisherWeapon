@@ -7,10 +7,12 @@ namespace DemolisherWeapon {
 	//定数バッファ　[model.fx:MaterialCb]
 	//マテリアルパラメーター
 	struct MaterialParam {
-		CVector4 albedoScale = CVector4::One();		//アルベドにかけるスケール
-		float emissive = 0.0f;	//自己発光
-		float isLighting = 1.0f;	//ライティングするか
-		float uvOffset[2] = { 0.0f,0.0f };
+		CVector4 albedoScale = CVector4::One();	//アルベドにかけるスケール
+		float emissive = 0.0f;					//自己発光
+		float isLighting = 1.0f;				//ライティングするか
+		float metallic = 0.0f;					//メタリック
+		float shininess = 0.38f;				//シャイネス(ラフネスの逆)
+		float uvOffset[2] = { 0.0f,0.0f };		//UV座標オフセット
 	};
 
 	class MaterialSetting
@@ -20,6 +22,7 @@ namespace DemolisherWeapon {
 		~MaterialSetting(){
 			if (m_pAlbedoTex) { m_pAlbedoTex->Release(); m_pAlbedoTex = nullptr; }
 			if (m_pNormalTex) { m_pNormalTex->Release(); m_pNormalTex = nullptr; }
+			if (m_pLightingTex) { m_pLightingTex->Release(); m_pLightingTex = nullptr; }
 		}
 
 		void Init(ModelEffect* modeleffect);
@@ -48,11 +51,25 @@ namespace DemolisherWeapon {
 		void SetEmissive(float emissive) {
 			m_materialParam.emissive = emissive;
 		}
+		/// <summary>
+		/// メタリックを設定
+		/// </summary>
+		/// <param name="metallic">基本的に1か0のどっちかに設定する</param>
+		void SetMetallic(float metallic) {
+			m_materialParam.metallic = metallic;
+		}
+		/// <summary>
+		/// シャイネス(ラフネスの逆)を設定
+		/// </summary>
+		/// <param name="shininess">値が高いほど材質がつるつる(0.0～1.0)</param>
+		void SetShininess(float shininess) {
+			m_materialParam.shininess = shininess;
+		}
 
 		//アルベドにかけるスケールを設定
 		void SetAlbedoScale(const CVector4& scale) {
 			m_materialParam.albedoScale = scale;
-		}
+		}		
 
 		//UVオフセットを設定
 		void SetUVOffset(const CVector2& uv){
@@ -107,7 +124,9 @@ namespace DemolisherWeapon {
 				m_pAlbedoTex->Release();
 			}
 			m_pAlbedoTex = tex;
-			m_pAlbedoTex->AddRef();
+			if (m_pAlbedoTex) {
+				m_pAlbedoTex->AddRef();
+			}
 		}
 		//アルベドテクスチャをデフォに戻す
 		void SetDefaultAlbedoTexture();
@@ -125,7 +144,27 @@ namespace DemolisherWeapon {
 				m_pNormalTex->Release();
 			}
 			m_pNormalTex = tex;
-			m_pNormalTex->AddRef();
+			if (m_pNormalTex) {
+				m_pNormalTex->AddRef();
+			}
+		}
+
+		//ライティングパラメータマップを取得
+		ID3D11ShaderResourceView* GetLightingTexture()const {
+			return m_pLightingTex;
+		}
+		//ライティングパラメータマップを設定
+		void SetLightingTexture(ID3D11ShaderResourceView* tex) {
+
+			if (m_pLightingTex == tex) { return; }//既に
+
+			if (m_pLightingTex) {
+				m_pLightingTex->Release();
+			}
+			m_pLightingTex = tex;
+			if (m_pLightingTex) {
+				m_pLightingTex->AddRef();
+			}
 		}
 
 		//モーションブラー有効かを設定
@@ -158,6 +197,7 @@ namespace DemolisherWeapon {
 		Shader *m_pPSShader = nullptr;							//ピクセルシェーダ
 		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;		//テクスチャ
 		ID3D11ShaderResourceView* m_pNormalTex = nullptr;
+		ID3D11ShaderResourceView* m_pLightingTex = nullptr;
 
 		bool m_enableMotionBlur = true;
 		bool m_isUseTexZShader = false;
