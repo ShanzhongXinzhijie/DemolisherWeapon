@@ -151,6 +151,8 @@ namespace DemolisherWeapon {
 				m_pNormalTex->AddRef();
 			}
 		}
+		//ノーマルマップをデフォに戻す
+		void SetDefaultNormalTexture();
 
 		//ライティングパラメータマップを取得
 		ID3D11ShaderResourceView* GetLightingTexture()const {
@@ -175,6 +177,8 @@ namespace DemolisherWeapon {
 				m_pLightingTex->AddRef();
 			}
 		}
+		//ライティングパラメータマップをデフォに戻す
+		void SetDefaultLightingTexture();
 
 		//モーションブラー有効かを設定
 		void SetIsMotionBlur(bool enable) {

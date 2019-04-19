@@ -61,9 +61,9 @@ protected:
 	//ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;	
 
 	bool isSkining;
-	ID3D11ShaderResourceView* m_albedoTex = nullptr, *m_pAlbedoTex = nullptr;
-	ID3D11ShaderResourceView* m_pNormalTex = nullptr;
-	ID3D11ShaderResourceView* m_pLightingTex = nullptr;
+	ID3D11ShaderResourceView* m_defaultAlbedoTex = nullptr, *m_pAlbedoTex = nullptr;
+	ID3D11ShaderResourceView* m_defaultNormalTex = nullptr, *m_pNormalTex = nullptr;
+	ID3D11ShaderResourceView* m_defaultLightingTex = nullptr, *m_pLightingTex = nullptr;
 	
 	MaterialSetting m_defaultMaterialSetting;	//マテリアル設定
 	MaterialParam m_materialParam;				//マテリアルパラメータ
@@ -103,8 +103,14 @@ public:
 	}
 	virtual ~ModelEffect()
 	{
-		if (m_albedoTex) {
-			m_albedoTex->Release();
+		if (m_defaultAlbedoTex) {
+			m_defaultAlbedoTex->Release();
+		}
+		if (m_defaultNormalTex) {
+			m_defaultNormalTex->Release();
+		}
+		if (m_defaultLightingTex) {
+			m_defaultLightingTex->Release();
 		}
 		if (m_materialParamCB) {
 			m_materialParamCB->Release();
@@ -152,10 +158,10 @@ public:
 	/// <param name="tex">設定するテクスチャ</param>
 	/// <param name="defaultTex">デフォルトテクスチャとして設定するか?</param>
 	void SetAlbedoTexture(ID3D11ShaderResourceView* tex, bool defaultTex = false){
-		if (!m_albedoTex && defaultTex) {
+		if (!m_defaultAlbedoTex && defaultTex) {
 			//デフォルトテクスチャ
-			m_albedoTex = tex;
-			m_pAlbedoTex = m_albedoTex;
+			m_defaultAlbedoTex = tex;
+			m_pAlbedoTex = m_defaultAlbedoTex;
 		}
 		//テクスチャ変更
 		m_defaultMaterialSetting.SetAlbedoTexture(tex);		
@@ -166,12 +172,53 @@ public:
 	}
 	//デフォルトのアルベドテクスチャを取得
 	ID3D11ShaderResourceView* GetDefaultAlbedoTexture() const{
-		return m_albedoTex;
+		return m_defaultAlbedoTex;
 	}
 
-	//ノーマルマップを設定
-	void SetNormalTexture(ID3D11ShaderResourceView* tex) {
+	/// <summary>
+	/// ノーマルマップを設定
+	/// </summary>
+	/// <param name="tex">設定するテクスチャ</param>
+	/// <param name="defaultTex">デフォルトテクスチャとして設定するか?</param>
+	void SetNormalTexture(ID3D11ShaderResourceView* tex, bool defaultTex = false) {
+		if (!m_defaultNormalTex && defaultTex) {
+			//デフォルトテクスチャ
+			m_defaultNormalTex = tex;
+			m_pNormalTex = m_defaultNormalTex;
+		}
+		//テクスチャ変更
 		m_defaultMaterialSetting.SetNormalTexture(tex);
+	}
+	//ノーマルマップをデフォに戻す
+	void SetDefaultNormalTexture() {
+		m_defaultMaterialSetting.SetDefaultNormalTexture();
+	}
+	//デフォルトのノーマルマップを取得
+	ID3D11ShaderResourceView* GetDefaultNormalTexture() const {
+		return m_defaultNormalTex;
+	}
+
+	/// <summary>
+	/// ライティングパラメータマップを設定
+	/// </summary>
+	/// <param name="tex">設定するテクスチャ</param>
+	/// <param name="defaultTex">デフォルトテクスチャとして設定するか?</param>
+	void SetLightingTexture(ID3D11ShaderResourceView* tex, bool defaultTex = false) {
+		if (!m_defaultLightingTex && defaultTex) {
+			//デフォルトテクスチャ
+			m_defaultLightingTex = tex;
+			m_pLightingTex = m_defaultLightingTex;
+		}
+		//テクスチャ変更
+		m_defaultMaterialSetting.SetLightingTexture(tex);
+	}
+	//ライティングパラメータマップをデフォに戻す
+	void SetDefaultLightingTexture() {
+		m_defaultMaterialSetting.SetDefaultLightingTexture();
+	}
+	//デフォルトのライティングパラメータマップを取得
+	ID3D11ShaderResourceView* GetDefaultLightingTexture() const {
+		return m_defaultLightingTex;
 	}
 
 	//シェーダを設定
@@ -413,6 +460,24 @@ public:
 		else {
 			//ディフューズカラー(数値)で設定
 			effect->SetAlbedoScale({ info.diffuseColor.x,info.diffuseColor.y,info.diffuseColor.z,1.0f });
+		}
+
+		//ノーマル
+		if (info.normalTexture && *info.normalTexture)
+		{
+			//テクスチャで設定
+			ID3D11ShaderResourceView* texSRV;
+			DirectX::EffectFactory::CreateTexture(info.normalTexture, deviceContext, &texSRV);
+			effect->SetNormalTexture(texSRV, true);
+		}
+
+		//ライティングパラメータ
+		if (info.specularTexture && *info.specularTexture)
+		{
+			//テクスチャで設定
+			ID3D11ShaderResourceView* texSRV;
+			DirectX::EffectFactory::CreateTexture(info.specularTexture, deviceContext, &texSRV);
+			effect->SetLightingTexture(texSRV, true);
 		}
 
 		return effect;

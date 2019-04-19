@@ -9,6 +9,8 @@ namespace DemolisherWeapon {
 		SetDefaultVSZ();
 		SetDefaultPS();
 		SetDefaultAlbedoTexture();
+		SetDefaultNormalTexture();
+		SetDefaultLightingTexture();
 
 		//設定のコピー
 		SetMatrialName(modeleffect->GetDefaultMaterialSetting().GetMatrialName());
@@ -54,5 +56,38 @@ namespace DemolisherWeapon {
 			m_pAlbedoTex->AddRef();
 		}
 	}
+	//ノーマルマップをデフォに戻す
+	void MaterialSetting::SetDefaultNormalTexture() {
+		ID3D11ShaderResourceView* DT = m_isInit->GetDefaultNormalTexture();
 
+		if (m_pNormalTex == DT) { return; }//既にデフォルトテクスチャ
+
+		if (m_pNormalTex) {
+			m_pNormalTex->Release();
+		}
+		m_pNormalTex = DT;
+		if (m_pNormalTex) {
+			m_pNormalTex->AddRef();
+		}
+	}
+	//ライティングパラメータマップをデフォに戻す
+	void MaterialSetting::SetDefaultLightingTexture() {
+		ID3D11ShaderResourceView* DT = m_isInit->GetDefaultLightingTexture();
+
+		if (m_pLightingTex == DT) { return; }//既にデフォルトテクスチャ
+
+		if (m_pLightingTex) {
+			m_pLightingTex->Release();
+		}
+		else {
+			//初期化(これらのパラメータはテクスチャにかけるスケールとして使う)
+			SetEmissive(1.0f);
+			SetMetallic(1.0f);
+			SetShininess(1.0f);
+		}
+		m_pLightingTex = DT;
+		if (m_pLightingTex) {
+			m_pLightingTex->AddRef();
+		}
+	}
 }
