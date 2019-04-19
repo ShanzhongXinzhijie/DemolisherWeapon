@@ -36,6 +36,7 @@ void GBufferRender::Init() {
 	ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferAlbedo], nullptr, &m_GBufferSRV[enGBufferAlbedo]);//シェーダーリソースビュー
 
 	//ライトパラメーター
+	texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_GBufferTex[enGBufferLightParam]);
 	ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferLightParam], nullptr, &m_GBufferView[enGBufferLightParam]);//レンダーターゲット
 	ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferLightParam], nullptr, &m_GBufferSRV[enGBufferLightParam]);//シェーダーリソースビュー
