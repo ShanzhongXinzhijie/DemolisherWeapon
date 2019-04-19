@@ -272,6 +272,7 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="Render\BloomRender.h" />
     <ClInclude Include="Graphic\CLine.h" />
     <ClInclude Include="Graphic\Sky\CSkybox.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowHandler.h" />
@@ -356,6 +357,7 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Render\BloomRender.cpp" />
     <ClCompile Include="Graphic\CLine.cpp" />
     <ClCompile Include="Graphic\Sky\CSkybox.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowHandler.cpp" />
@@ -475,6 +477,11 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\modelData\sky.cmo">
+      <FileType>Document</FileType>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Preset\shader\Bloom.fx">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>

@@ -89,6 +89,7 @@
     <ClInclude Include="physics2\IPhysicsObject.h" />
     <ClInclude Include="Graphic\CLine.h" />
     <ClInclude Include="Render\PrimitiveRender.h" />
+    <ClInclude Include="Render\BloomRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -168,6 +169,7 @@
     <ClCompile Include="physics2\IPhysicsObject.cpp" />
     <ClCompile Include="Graphic\CLine.cpp" />
     <ClCompile Include="Render\PrimitiveRender.cpp" />
+    <ClCompile Include="Render\BloomRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
@@ -183,5 +185,6 @@
     <CustomBuild Include="Preset\shader\model.fx" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
     <CustomBuild Include="Preset\modelData\sky.cmo" />
+    <CustomBuild Include="Preset\shader\Bloom.fx" />
   </ItemGroup>
 </Project>

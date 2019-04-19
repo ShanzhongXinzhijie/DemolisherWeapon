@@ -68,18 +68,18 @@ void CSmain(uint3 run_xy : SV_DispatchThreadID)
 }
 
 //
-[numthreads(32, 32, 1)]
-void CSresolve(uint3 run_xy : SV_DispatchThreadID)
-{
-	uint2 uv = run_xy.xy;
-
-	//テクスチャサイズ超えてたら出る
-	if (uv.x > win_x || uv.y > win_y) {
-		return;
-	}
-
-	float sampcnt = rwVelocityTex[uv].w;
-	if (sampcnt > 0.0f) {
-		rwOutputTex[uv] /= (sampcnt + 1.0f);
-	}
-}
+//[numthreads(32, 32, 1)]
+//void CSresolve(uint3 run_xy : SV_DispatchThreadID)
+//{
+//	uint2 uv = run_xy.xy;
+//
+//	//テクスチャサイズ超えてたら出る
+//	if (uv.x > win_x || uv.y > win_y) {
+//		return;
+//	}
+//
+//	float sampcnt = rwVelocityTex[uv].w;
+//	if (sampcnt > 0.0f) {
+//		rwOutputTex[uv] /= (sampcnt + 1.0f);
+//	}
+//}

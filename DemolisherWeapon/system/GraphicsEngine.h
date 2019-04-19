@@ -6,6 +6,7 @@
 #include"Render/AmbientOcclusionRender.h"
 #include"Render/DefferdRender.h"
 #include"Render/FinalRender.h"
+#include"Render/BloomRender.h"
 #include"Render/MotionBlurRender.h"
 #include"Render/PhysicsDebugDrawRender.h"
 #include"Render/CameraSwitchRender.h"
@@ -231,6 +232,7 @@ private:
 	ShadowMapRender m_shadowMapRender;
 	AmbientOcclusionRender m_ambientOcclusionRender;
 	DefferdRender m_defferdRender;
+	BloomRender m_bloomRender;
 	MotionBlurRender m_motionBlurRender;
 	ConvertLinearToSRGBRender m_ConvertLinearToSRGB;
 	PrimitiveRender m_primitiveRender;
