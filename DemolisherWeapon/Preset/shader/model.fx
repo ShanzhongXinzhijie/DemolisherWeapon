@@ -434,7 +434,7 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	Out.normal = NormalTexture.Sample(Sampler, In.TexCoord + uvOffset);
 	Out.normal = Out.normal * 2.0f - 1.0f;
 	Out.normal = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
-	//Out.normal = normalize(Out.normal);
+	Out.normal = normalize(Out.normal);
 #else
 	Out.normal = In.Normal;
 #endif
