@@ -23,6 +23,10 @@ namespace DemolisherWeapon {
 		void SetEnable(bool enable) { m_enable = enable; }
 		bool GetEnable()const { return m_enable; }
 
+		//輝度しきい値の設定
+		void SetLuminanceThreshold(float f) { m_luminanceThreshold = f; }
+		float GetLuminanceThreshold()const { return m_luminanceThreshold; }
+
 	private:
 		bool m_enable = true;
 
@@ -42,8 +46,15 @@ namespace DemolisherWeapon {
 			//輝度しきい値
 			float luminanceThreshold;
 		};
-		ID3D11Buffer* m_cb = nullptr;
+		ID3D11Buffer* m_cb = nullptr;//輝度しきい値
 
+		//設定
+		float m_luminanceThreshold = 1.0f;
+
+		//干渉縞テクスチャ
+		ID3D11ShaderResourceView* m_interferenceFringesSRV = nullptr;
+
+		//ガウスブラーレンダー
 		GaussianBlurRender m_gaussBlur;
 
 		//合成用

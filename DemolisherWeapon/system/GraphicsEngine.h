@@ -145,6 +145,10 @@ public:
 	DefferdRender& GetDefferdRender() {
 		return m_defferdRender;
 	}
+	//ブルームレンダーの取得
+	BloomRender& GetBloomRender() {
+		return m_bloomRender;
+	}
 	//プリミティブレンダーの取得
 	PrimitiveRender& GetPrimitiveRender() {
 		return m_primitiveRender;

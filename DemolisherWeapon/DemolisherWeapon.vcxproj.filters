@@ -186,5 +186,6 @@
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
     <CustomBuild Include="Preset\modelData\sky.cmo" />
     <CustomBuild Include="Preset\shader\Bloom.fx" />
+    <CustomBuild Include="Preset\sprite\Blackbody_Enumerated_6500K.dds" />
   </ItemGroup>
 </Project>

@@ -17,7 +17,7 @@ namespace DemolisherWeapon {
 		//コンピュートシェーダ
 		m_cs.Load("Preset/shader/Bloom.fx", "CSmain", Shader::EnType::CS);
 
-		//テクスチャ作成
+		//出力テクスチャ作成
 		D3D11_TEXTURE2D_DESC texDesc;
 		ZeroMemory(&texDesc, sizeof(texDesc));
 		texDesc.Width = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W();////C
@@ -57,8 +57,11 @@ namespace DemolisherWeapon {
 		bufferDesc.CPUAccessFlags = 0;
 		ge.GetD3DDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cb);
 
+		//干渉縞テクスチャ
+		HRESULT hr = DirectX::CreateDDSTextureFromFile(ge.GetD3DDevice(), L"Preset/sprite/Blackbody_Enumerated_6500K.dds", nullptr, &m_interferenceFringesSRV);
+		
 		//ガウスブラー
-		m_gaussBlur.Init(m_SRV, 250.0f);
+		m_gaussBlur.Init(m_SRV, 1.5f);
 
 		//加算ブレンドステート
 		D3D11_BLEND_DESC blendDesc;
@@ -85,8 +88,6 @@ namespace DemolisherWeapon {
 		desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 		desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
-
-		m_enable = false;////C
 	}
 
 	void BloomRender::Release() {
@@ -94,6 +95,7 @@ namespace DemolisherWeapon {
 		if (m_SRV) { m_SRV->Release(); m_SRV = nullptr; }
 		if (m_outputUAV) { m_outputUAV->Release(); m_outputUAV = nullptr; }
 		if (m_cb) { m_cb->Release(); m_cb = nullptr; }
+		if (m_interferenceFringesSRV) { m_interferenceFringesSRV->Release(); m_interferenceFringesSRV = nullptr; }
 		if (m_blendState) { m_blendState->Release(); m_blendState = nullptr; }
 		if (m_samplerState) { m_samplerState->Release(); m_samplerState = nullptr; }
 	}
@@ -116,7 +118,7 @@ namespace DemolisherWeapon {
 			SCSConstantBuffer csCb;
 			csCb.win_x = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W();
 			csCb.win_y = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H();
-			csCb.luminanceThreshold = 1.0f;////C
+			csCb.luminanceThreshold = m_luminanceThreshold;
 			rc->UpdateSubresource(m_cb, 0, nullptr, &csCb, 0, 0);
 			rc->CSSetConstantBuffers(0, 1, &m_cb);
 
@@ -127,6 +129,10 @@ namespace DemolisherWeapon {
 
 			//SRVを設定
 			rc->CSSetShaderResources(1, 1, &GetEngine().GetGraphicsEngine().GetFRT().GetSRV());
+			rc->CSSetShaderResources(2, 1, &m_interferenceFringesSRV);
+
+			//サンプラステートを設定。
+			rc->CSSetSamplers(0, 1, &m_samplerState);
 		}
 
 		// ディスパッチ
@@ -139,6 +145,7 @@ namespace DemolisherWeapon {
 
 			ID3D11ShaderResourceView*	pReses = NULL;
 			rc->CSSetShaderResources(1, 1, &pReses);
+			rc->CSSetShaderResources(2, 1, &pReses);
 
 			ID3D11UnorderedAccessView*	pUAV = NULL;
 			rc->CSSetUnorderedAccessViews(0, 1, &pUAV, nullptr);
@@ -156,7 +163,7 @@ namespace DemolisherWeapon {
 		GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(m_blendState, nullptr, 0xFFFFFFFF);
 
 		//SRVをセット	
-		rc->PSSetShaderResources(0, 1, &m_SRV);
+		rc->PSSetShaderResources(0, 1, &m_gaussBlur.GetSRV());
 		
 		//描画先を最終レンダーターゲットにする
 		GetEngine().GetGraphicsEngine().SetFinalRenderTarget();		
@@ -182,7 +189,9 @@ namespace DemolisherWeapon {
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
 
 		//ブレンドステート戻す
-		GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(oldBlendState, oldf, olduint);
-		oldBlendState->Release();
+		if (oldBlendState) {
+			GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(oldBlendState, oldf, olduint);
+			oldBlendState->Release();
+		}
 	}
 }
