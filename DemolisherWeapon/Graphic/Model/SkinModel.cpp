@@ -56,6 +56,15 @@ void SkinModel::InitSkeleton(const wchar_t* filePath)
 	std::wstring skeletonFilePath = filePath;
 	//文字列から.cmoファイル始まる場所を検索。
 	int pos = (int)skeletonFilePath.find(L".cmo");
+	if (pos == std::wstring::npos) {
+#ifndef DW_MASTER
+		char message[256];
+		sprintf_s(message, "SkinModel::InitSkeleton\nCMOファイルじゃない!\n%ls\n", filePath);
+		MessageBox(NULL, message, "Error", MB_OK);
+		std::abort();
+#endif
+		return;
+	}
 	//.cmoファイルを.tksに置き換える。
 	skeletonFilePath.replace(pos, 4, L".tks");
 	//tksファイルをロードする。
