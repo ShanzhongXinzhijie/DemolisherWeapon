@@ -26,6 +26,8 @@ static const float2 dirs[4] = {
 	float2(-2.5f, 4.0f),
 };
 
+static const float lightScale[12] = { 2.0f, 1.0f, 0.0f, 4.0f, 2.0f, 0.0f, 3.0f, 1.0f, 2.0f, 0.0f, 4.0f, 1.0f };
+
 [numthreads(32, 32, 1)]
 void CSmain(uint3 run_xy : SV_DispatchThreadID)
 {
@@ -57,6 +59,8 @@ void CSmain(uint3 run_xy : SV_DispatchThreadID)
 	color.xyz -= color.xyz * (luminanceThreshold / luminance);
 	color.w = 1.0f;
 	rwOutputTex[uv] = lerp(color, rwOutputTex[uv], 0.5f);
+
+	luminance *= lightScale[(uv.x + uv.y) % 12];
 
 	//‹P“x‚ª‚‚¢‚Ù‚Çƒ‹[ƒv‰ñ”‘‚¦‚é
 	float loopmax = min(6.0f, luminance / luminanceThreshold);
