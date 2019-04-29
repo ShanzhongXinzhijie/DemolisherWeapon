@@ -18,7 +18,7 @@ namespace DemolisherWeapon {
 		m_cs.Load("Preset/shader/Bloom.fx", "CSmain", Shader::EnType::CS);
 
 		//テクスチャサイズ算出
-		m_textureSizeX = (UINT)ge.Get3DFrameBuffer_W() * texScale, m_textureSizeY = (UINT)ge.Get3DFrameBuffer_H() * texScale;
+		m_textureSizeX = (UINT)(ge.Get3DFrameBuffer_W() * texScale), m_textureSizeY = (UINT)(ge.Get3DFrameBuffer_H() * texScale);
 
 		//出力テクスチャ作成
 		D3D11_TEXTURE2D_DESC texDesc;

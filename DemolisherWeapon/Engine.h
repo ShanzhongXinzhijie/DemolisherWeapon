@@ -53,8 +53,11 @@ struct InitEngineParameter {
 	//グラフィック設定
 	EnShadowMapMode shadowMapSetting = enPCSS;	//シャドウマップ有効・PCSS
 	bool isEnableSSAO = true;					//SSAO有効
+	float SSAOBufferScale = 0.5f;				//SSAO解像度(3D描画の解像度に対する倍率)
 	bool isEnableMotionBlur = true;				//モーションブラー有効
 	bool isLensDistortion = true;				//歪曲収差
+	bool isEnableBloom = true;					//ブルーム有効
+	float bloomBufferScale = 0.75f;				//ブルーム解像度(3D描画の解像度に対する倍率)
 
 	//低スペック用設定をセット
 	void SetLowSpecSetting() {

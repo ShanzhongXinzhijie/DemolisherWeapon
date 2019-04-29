@@ -227,11 +227,11 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 
 	//ÉåÉìÉ_Å[èâä˙âª
 	m_gbufferRender.Init();
-	m_shadowMapRender.Init();		 m_shadowMapRender.SetSetting(initParam.shadowMapSetting);
-	m_ambientOcclusionRender.Init(); m_ambientOcclusionRender.SetEnable(initParam.isEnableSSAO);
+	m_shadowMapRender.Init();									 m_shadowMapRender.SetSetting(initParam.shadowMapSetting);
+	m_ambientOcclusionRender.Init(initParam.SSAOBufferScale);	 m_ambientOcclusionRender.SetEnable(initParam.isEnableSSAO);
 	m_defferdRender.Init();
-	m_bloomRender.Init();
-	m_motionBlurRender.Init();		 m_motionBlurRender.SetEnable(initParam.isEnableMotionBlur);
+	m_bloomRender.Init(initParam.bloomBufferScale);				 m_bloomRender.SetEnable(initParam.isEnableBloom);
+	m_motionBlurRender.Init();									 m_motionBlurRender.SetEnable(initParam.isEnableMotionBlur);
 	m_ConvertLinearToSRGB.Init();
 	m_primitiveRender.Init();
 
@@ -279,8 +279,8 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		m_renderManager.AddRender(3 + offset, &m_ambientOcclusionRender);
 
 		m_renderManager.AddRender(4 + offset, &m_defferdRender);
-		m_renderManager.AddRender(5 + offset, &m_bloomRender);
-		m_renderManager.AddRender(6 + offset, &m_motionBlurRender);
+		m_renderManager.AddRender(5 + offset, &m_motionBlurRender);
+		m_renderManager.AddRender(6 + offset, &m_bloomRender);
 
 		m_renderManager.AddRender(7 + offset, &m_ConvertLinearToSRGB);
 
