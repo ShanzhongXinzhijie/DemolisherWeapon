@@ -10,18 +10,21 @@ namespace DemolisherWeapon {
 		Release();
 	}
 
-	void BloomRender::Init() 
+	void BloomRender::Init(float texScale)
 	{
 		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
 
 		//コンピュートシェーダ
 		m_cs.Load("Preset/shader/Bloom.fx", "CSmain", Shader::EnType::CS);
 
+		//テクスチャサイズ算出
+		m_textureSizeX = (UINT)ge.Get3DFrameBuffer_W() * texScale, m_textureSizeY = (UINT)ge.Get3DFrameBuffer_H() * texScale;
+
 		//出力テクスチャ作成
 		D3D11_TEXTURE2D_DESC texDesc;
 		ZeroMemory(&texDesc, sizeof(texDesc));
-		texDesc.Width = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W();////C
-		texDesc.Height = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H();
+		texDesc.Width = m_textureSizeX;
+		texDesc.Height = m_textureSizeY;
 		texDesc.MipLevels = 1;
 		texDesc.ArraySize = 1;
 		texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -118,6 +121,8 @@ namespace DemolisherWeapon {
 			SCSConstantBuffer csCb;
 			csCb.win_x = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W();
 			csCb.win_y = (UINT)GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H();
+			csCb.out_x = m_textureSizeX;
+			csCb.out_y = m_textureSizeY;
 			csCb.luminanceThreshold = m_luminanceThreshold;
 			rc->UpdateSubresource(m_cb, 0, nullptr, &csCb, 0, 0);
 			rc->CSSetConstantBuffers(0, 1, &m_cb);
@@ -136,7 +141,7 @@ namespace DemolisherWeapon {
 		}
 
 		// ディスパッチ
-		rc->Dispatch((UINT)std::ceil(GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W() / 32.0f), (UINT)std::ceil(GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H() / 32.0f), 1);
+		rc->Dispatch((UINT)std::ceil(m_textureSizeX / 32.0f), (UINT)std::ceil(m_textureSizeY / 32.0f), 1);
 
 		//設定解除
 		{

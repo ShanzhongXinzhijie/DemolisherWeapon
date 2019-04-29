@@ -9,7 +9,11 @@ namespace DemolisherWeapon {
 		BloomRender();
 		~BloomRender();
 
-		void Init();
+		/// <summary>
+		/// 初期化
+		/// </summary>
+		/// <param name="texScale">texScale*3Dフレームバッファサイズ = テクスチャサイズ</param>
+		void Init(float texScale = 0.5f);
 		void Release();
 
 		void Render() override;
@@ -35,6 +39,7 @@ namespace DemolisherWeapon {
 		ID3D11ShaderResourceView* m_SRV = nullptr;
 		ID3D11UnorderedAccessView*	m_outputUAV = nullptr;
 		ID3D11RenderTargetView* m_RTV = nullptr;
+		UINT m_textureSizeX = 0, m_textureSizeY = 0;
 
 		//定数バッファ
 		//[Bloom.fx:CSCb]
@@ -42,6 +47,9 @@ namespace DemolisherWeapon {
 			//フレームバッファ解像度
 			unsigned int win_x;
 			unsigned int win_y;
+			//出力テクスチャ解像度
+			unsigned int out_x;
+			unsigned int out_y;
 
 			//輝度しきい値
 			float luminanceThreshold;
