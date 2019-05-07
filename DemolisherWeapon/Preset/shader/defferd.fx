@@ -432,8 +432,5 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	//エミッシブを加算
 	Out += emissive;
 
-	//0.0~1.0で出力
-	//Out = saturate(Out);
-	return float4(Out, albedo.w);
-	
+	return float4(Out, albedo.w);	
 }

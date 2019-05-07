@@ -23,7 +23,7 @@
 
 namespace DemolisherWeapon {
 
-static constexpr wchar_t DW_VER[] = L"グレア";//エンジンのバージョン
+static constexpr wchar_t DW_VER[] = L"DOF";//エンジンのバージョン
 
 enum EnSplitScreenMode {
 	enNoSplit=0,
@@ -58,6 +58,8 @@ struct InitEngineParameter {
 	bool isLensDistortion = true;				//歪曲収差
 	bool isEnableBloom = true;					//ブルーム有効
 	float bloomBufferScale = 0.75f;				//ブルーム解像度(3D描画の解像度に対する倍率)
+	bool isEnableDOF = false;					//被写界深度有効
+	float DOFBufferScale = 0.5f;				//被写界深度解像度(3D描画の解像度に対する倍率)
 
 	//低スペック用設定をセット
 	void SetLowSpecSetting() {
@@ -70,6 +72,10 @@ struct InitEngineParameter {
 		isEnableSSAO = false;
 		//モーションブラー無効
 		isEnableMotionBlur = false;
+		//ブルーム無効
+		isEnableBloom = false;
+		//被写界深度無効
+		isEnableDOF = false;
 	}
 	//中スペック用設定をセット
 	void SetMiddleSpecSetting() {

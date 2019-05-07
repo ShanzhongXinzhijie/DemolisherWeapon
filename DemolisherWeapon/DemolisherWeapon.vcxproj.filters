@@ -90,6 +90,7 @@
     <ClInclude Include="Graphic\CLine.h" />
     <ClInclude Include="Render\PrimitiveRender.h" />
     <ClInclude Include="Render\BloomRender.h" />
+    <ClInclude Include="Render\DepthOfFieldRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -170,6 +171,7 @@
     <ClCompile Include="Graphic\CLine.cpp" />
     <ClCompile Include="Render\PrimitiveRender.cpp" />
     <ClCompile Include="Render\BloomRender.cpp" />
+    <ClCompile Include="Render\DepthOfFieldRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
@@ -187,5 +189,6 @@
     <CustomBuild Include="Preset\modelData\sky.cmo" />
     <CustomBuild Include="Preset\shader\Bloom.fx" />
     <CustomBuild Include="Preset\sprite\Blackbody_Enumerated_6500K.dds" />
+    <CustomBuild Include="Preset\shader\DOF.fx" />
   </ItemGroup>
 </Project>

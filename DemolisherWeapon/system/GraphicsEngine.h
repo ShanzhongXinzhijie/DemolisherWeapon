@@ -7,6 +7,7 @@
 #include"Render/DefferdRender.h"
 #include"Render/FinalRender.h"
 #include"Render/BloomRender.h"
+#include"Render/DepthOfFieldRender.h"
 #include"Render/MotionBlurRender.h"
 #include"Render/PhysicsDebugDrawRender.h"
 #include"Render/CameraSwitchRender.h"
@@ -149,6 +150,10 @@ public:
 	BloomRender& GetBloomRender() {
 		return m_bloomRender;
 	}
+	//被写界深度レンダーの取得
+	DepthOfFieldRender& GetDOFRender() {
+		return m_DOFRender;
+	}
 	//プリミティブレンダーの取得
 	PrimitiveRender& GetPrimitiveRender() {
 		return m_primitiveRender;
@@ -237,6 +242,7 @@ private:
 	AmbientOcclusionRender m_ambientOcclusionRender;
 	DefferdRender m_defferdRender;
 	BloomRender m_bloomRender;
+	DepthOfFieldRender m_DOFRender;
 	MotionBlurRender m_motionBlurRender;
 	ConvertLinearToSRGBRender m_ConvertLinearToSRGB;
 	PrimitiveRender m_primitiveRender;

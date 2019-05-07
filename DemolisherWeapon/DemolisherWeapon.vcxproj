@@ -270,6 +270,7 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="Render\DepthOfFieldRender.h" />
     <ClInclude Include="Render\BloomRender.h" />
     <ClInclude Include="Graphic\CLine.h" />
     <ClInclude Include="Graphic\Sky\CSkybox.h" />
@@ -355,6 +356,7 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Render\DepthOfFieldRender.cpp" />
     <ClCompile Include="Render\BloomRender.cpp" />
     <ClCompile Include="Graphic\CLine.cpp" />
     <ClCompile Include="Graphic\Sky\CSkybox.cpp" />
@@ -485,6 +487,11 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\sprite\Blackbody_Enumerated_6500K.dds" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Preset\shader\DOF.fx">
+      <FileType>Document</FileType>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
