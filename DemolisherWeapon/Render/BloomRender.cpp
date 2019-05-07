@@ -96,6 +96,7 @@ namespace DemolisherWeapon {
 	void BloomRender::Release() {
 		if (m_tex) { m_tex->Release(); m_tex = nullptr; }
 		if (m_SRV) { m_SRV->Release(); m_SRV = nullptr; }
+		if (m_RTV) { m_RTV->Release(); m_RTV = nullptr; }
 		if (m_outputUAV) { m_outputUAV->Release(); m_outputUAV = nullptr; }
 		if (m_cb) { m_cb->Release(); m_cb = nullptr; }
 		if (m_interferenceFringesSRV) { m_interferenceFringesSRV->Release(); m_interferenceFringesSRV = nullptr; }
