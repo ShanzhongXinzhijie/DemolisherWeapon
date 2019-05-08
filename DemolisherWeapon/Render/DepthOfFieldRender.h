@@ -10,9 +10,14 @@ namespace DemolisherWeapon {
 		//定数バッファ
 		//[DOF.fx:PSCb]
 		struct SPSConstantBuffer {
-			float focus=0.995f;
-			float Near=0.99f;
-			float Far=1.0f;
+			float focus = 0.125f;
+			float focusArea = 0.1f;
+			float Near = 0.0f;
+			float Far = 0.5f;
+			
+			//カメラ設定
+			float camNear = 1.0f;
+			float camFar = 100.0f;
 		};
 
 	public:
@@ -34,6 +39,7 @@ namespace DemolisherWeapon {
 
 		//焦点距離の設定
 		void SetFocus(float focus) { m_cbSetting.focus = focus; }
+		void SetFocusArea(float area) { m_cbSetting.focusArea = area; }//焦点の合う範囲
 		void SetNear(float Near) { m_cbSetting.Near = Near; }
 		void SetFar(float Far) { m_cbSetting.Far = Far; }
 
