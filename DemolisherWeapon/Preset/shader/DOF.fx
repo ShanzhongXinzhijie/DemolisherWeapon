@@ -19,10 +19,6 @@ cbuffer PSCb : register(b0) {
 	float focusArea;
 	float Near;
 	float Far;
-
-	//カメラ設定
-	float camNear;
-	float camFar;
 };
 
 PSInput VSMain(VSInput In)
@@ -33,17 +29,11 @@ PSInput VSMain(VSInput In)
 	return psIn;
 }
 
-//デプス値を線形に変換
-float LinearizeDepth(float depth)
-{
-	return (2.0 * camNear) / (camFar + camNear - depth * (camFar - camNear));
-}
-
 float4 PSMain(PSInput In) : SV_Target0
 {
 	float4 Resize = ResizeBuffer.Sample(Sampler, In.uv);
 	float4 Normal = FRT.Sample(Sampler, In.uv);
-	float depth = LinearizeDepth(PosMap.Sample(Sampler, In.uv).w);
+	float depth = PosMap.Sample(Sampler, In.uv).z;
 	
 	float fade = 0.0f;
 	if (depth > focus + focusArea) {

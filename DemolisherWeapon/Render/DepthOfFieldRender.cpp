@@ -148,8 +148,6 @@ namespace DemolisherWeapon {
 			rc->PSSetSamplers(0, 1, &m_samplerState);
 
 			//定数バッファ
-			m_cbSetting.camNear = GetMainCamera()->GetNear();
-			m_cbSetting.camFar = GetMainCamera()->GetFar();
 			rc->UpdateSubresource(m_cb, 0, nullptr, &m_cbSetting, 0, 0);
 			rc->PSSetConstantBuffers(0, 1, &m_cb);
 

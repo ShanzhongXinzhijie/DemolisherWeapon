@@ -10,14 +10,10 @@ namespace DemolisherWeapon {
 		//定数バッファ
 		//[DOF.fx:PSCb]
 		struct SPSConstantBuffer {
-			float focus = 0.125f;
-			float focusArea = 0.1f;
+			float focus = 8000.0f * 0.125f;
+			float focusArea = 8000.0f * 0.1f;
 			float Near = 0.0f;
-			float Far = 0.5f;
-			
-			//カメラ設定
-			float camNear = 1.0f;
-			float camFar = 100.0f;
+			float Far = 8000.0f * 0.5f;
 		};
 
 	public:
