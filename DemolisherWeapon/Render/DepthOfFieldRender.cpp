@@ -58,7 +58,7 @@ namespace DemolisherWeapon {
 		m_psResize.Load("Preset/shader/primitive.fx", "PSMain", Shader::EnType::PS);
 
 		//ガウスブラー
-		m_gaussBlur.Init(m_SRV, 0.5f);
+		//m_gaussBlur.Init(m_SRV, 0.5f);
 
 		//合成シェーダ
 		m_vsCompo.Load("Preset/shader/DOF.fx", "VSMain", Shader::EnType::VS);
@@ -124,7 +124,7 @@ namespace DemolisherWeapon {
 		}
 
 		//ぼかし
-		m_gaussBlur.Blur();
+		//m_gaussBlur.Blur();
 
 		//合成
 		{

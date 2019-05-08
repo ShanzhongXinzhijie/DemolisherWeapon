@@ -54,7 +54,7 @@ namespace DemolisherWeapon {
 		D3D11_VIEWPORT m_viewport;//ビューポート
 
 		//ガウスブラーレンダー
-		GaussianBlurRender m_gaussBlur;
+		//GaussianBlurRender m_gaussBlur;
 
 		//合成シェーダ
 		Shader m_vsCompo, m_psCompo;
