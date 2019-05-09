@@ -203,6 +203,30 @@ public:
 		m_pd3dDeviceContext->RSSetViewports(1, &m_viewport);
 	}
 
+	/// <summary>
+	/// GPUイベントの開始
+	/// </summary>
+	/// <param name="eventName">イベント名</param>
+	void BeginGPUEvent(const wchar_t* eventName)
+	{
+#ifndef DW_MASTER
+		if (m_pUserAnotation) {
+			m_pUserAnotation->BeginEvent(eventName);
+		}
+#endif
+	}
+	/// <summary>
+	/// GPUイベントの終了
+	/// </summary>
+	void EndGPUEvent()
+	{
+#ifndef DW_MASTER
+		if (m_pUserAnotation) {
+			m_pUserAnotation->EndEvent();
+		}
+#endif
+	}
+
 private:
 
 	float FRAME_BUFFER_W = 1280.0f;				//フレームバッファの幅。
@@ -262,6 +286,10 @@ private:
 	//ライトマネージャー
 	LightManager m_lightManager;
 
+	//GPUイベント用
+#ifndef DW_MASTER
+	ID3DUserDefinedAnnotation* m_pUserAnotation = nullptr;
+#endif
 };
 
 }

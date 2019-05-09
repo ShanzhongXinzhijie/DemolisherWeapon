@@ -77,6 +77,9 @@ namespace DemolisherWeapon {
 	void DepthOfFieldRender::Render() {
 		if (!m_enable) { return; }
 
+		//GPUイベントの開始
+		GetGraphicsEngine().BeginGPUEvent(L"Depth of field");
+
 		ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 		//縮小
@@ -165,6 +168,9 @@ namespace DemolisherWeapon {
 			//レンダーターゲット解除
 			rc->OMSetRenderTargets(0, NULL, NULL);
 		}
+
+		//GPUイベントの終了
+		GetGraphicsEngine().EndGPUEvent();
 	}
 
 }

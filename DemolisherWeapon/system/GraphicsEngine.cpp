@@ -299,6 +299,11 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		
 		m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());		
 	}
+
+	//GPUイベント用
+#ifndef DW_MASTER
+	m_pd3dDeviceContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&m_pUserAnotation);
+#endif
 }
 
 //描画先を最終レンダーターゲットにする
