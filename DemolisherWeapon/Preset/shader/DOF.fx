@@ -44,6 +44,12 @@ float4 PSMain(PSInput In) : SV_Target0
 	}
 	fade = saturate(fade);
 
+	//ノイズテスト
+	//Interleaved gradient noise
+	/*float3 magic = float3(0.06711056, 0.00583715, 52.9829189);
+	float noise = frac(magic.z * frac(dot(In.pos, magic.xy)));
+	return float4(noise, noise, noise, 1.0f);*/
+
 	//return float4(fade, 0.0f, 1.0f, 1.0f);
 	return lerp(Normal, Resize, fade);
 }
