@@ -282,6 +282,7 @@
     <ClInclude Include="Render\PrimitiveRender.h" />
     <ClInclude Include="Render\ConvertLinearToSRGBRender.h" />
     <ClInclude Include="Graphic\Shadowmap\CascadeShadowMap.h" />
+    <ClInclude Include="Graphic\Model\SkeletonIK.h" />
     <ClInclude Include="Sound\CSound.h" />
     <ClInclude Include="Graphic\Shadowmap\CShadowMap.h" />
     <ClInclude Include="Error\Error.h" />
@@ -368,6 +369,7 @@
     <ClCompile Include="Render\PrimitiveRender.cpp" />
     <ClCompile Include="Render\ConvertLinearToSRGBRender.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CascadeShadowMap.cpp" />
+    <ClCompile Include="Graphic\Model\SkeletonIK.cpp" />
     <ClCompile Include="Sound\CSound.cpp" />
     <ClCompile Include="Graphic\Shadowmap\CShadowMap.cpp" />
     <ClCompile Include="Graphic\Model\MaterialSetting.cpp" />

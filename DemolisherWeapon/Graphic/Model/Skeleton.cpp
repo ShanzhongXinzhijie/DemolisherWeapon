@@ -176,6 +176,8 @@ bool Skeleton::Load(const wchar_t* filePath)
 		if (bone->GetParentId() != -1) {
 			//親がいる。
 			m_bones.at(bone->GetParentId())->AddChild(bone);
+			//親ボーンのポインタを登録
+			bone->SetParentBone(m_bones.at(bone->GetParentId()));
 			//親の逆行列を取得する。h
 			const CMatrix& parentMatrix = m_bones.at(bone->GetParentId())->GetInvBindPoseMatrix();
 			//骨のバインドポーズの行列に、親の逆行列を乗算して、親の座標系での行列を求める。
@@ -245,6 +247,9 @@ void Skeleton::Update(const CMatrix& mWorld)
 		//ルートが見つかったので、ボーンのワールド行列を計算していく。
 		UpdateBoneWorldMatrix(*bone, mWorld);
 	}
+
+	//IKを実行
+	m_ik.Update();
 
 	//ボーン行列を計算
 	for (int boneNo = 0; boneNo < m_bones.size(); boneNo++) {

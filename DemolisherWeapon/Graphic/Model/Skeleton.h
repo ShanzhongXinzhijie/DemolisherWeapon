@@ -3,7 +3,8 @@
  */
 #pragma once
 
-#include"CoordinateSystemBias.h"
+#include "CoordinateSystemBias.h"
+#include "SkeletonIK.h"
 
 namespace DemolisherWeapon {
 
@@ -108,6 +109,21 @@ public:
 	{
 		return m_children;
 	}
+
+	/// <summary>
+	/// 親ボーンのポインタを設定
+	/// </summary>
+	/// <param name="bone">親ボーンのポインタ</param>
+	void SetParentBone(Bone* bone) {
+		m_parent = bone;
+	}
+	/// <summary>
+	/// 親ボーンのポインタを取得
+	/// </summary>
+	/// <returns></returns>
+	Bone* GetParentBone() {
+		return m_parent;
+	}
 	
 	/*!
 	 *@brief	名前の取得。
@@ -169,6 +185,7 @@ private:
 	CVector3		m_scale = CVector3::One();				//!<このボーンの拡大率。最後にCalcWorldTRSを実行したときの結果が格納されている。
 	CQuaternion		m_rotation = CQuaternion::Identity();	//!<このボーンの回転。最後にCalcWorldTRSを実行したときの結果が格納されている。
 	std::vector<Bone*>	m_children;		//!<子供。
+	Bone* m_parent = nullptr;			//親
 
 	bool m_isCalced = false;//CalcWorldTRS済みか?
 	bool m_isUseBias = false;
@@ -233,6 +250,15 @@ public:
 	*@brief	ボーン行列の配列をGPUに転送。
 	*/
 	void SendBoneMatrixArrayToGPU();
+
+	/// <summary>
+	/// IK実行クラスの取得
+	/// </summary>
+	/// <returns>IK実行クラスのインスタンス</returns>
+	SkeletonIK& GetSkeletonIK() {
+		return m_ik;
+	}
+
 public:
 	/*!
 	*@brief	ボーン行列のストラクチャードバッファを初期化。
@@ -259,7 +285,6 @@ public:
 	static const int MAX_BONE = 512;	//!<ボーンの最大数。
 
 private:
-
 	std::vector<Bone*>			m_bones;					//!<ボーンの配列。
 
 	std::vector<CMatrix>		m_boneMatrixs;				//!<ボーン行列。
@@ -270,6 +295,8 @@ private:
 	std::vector<CMatrix>		m_boneMatrixs_Old;				//!<ボーン行列。
 	ID3D11Buffer*				m_boneMatrixSB_Old = nullptr;	//!<ボーン行列のストラクチャーバッファ。
 	ID3D11ShaderResourceView*	m_boneMatrixSRV_Old = nullptr;	//!<ボーン行列のSRV。
+
+	SkeletonIK m_ik;//IK実行クラス
 };
 
 }
