@@ -20,8 +20,11 @@ namespace DemolisherWeapon {
 			if (!IK.isEnable) { continue; }//実行しない
 
 			//FootIKなら足の接触点求める
-			if (IK.isFootIK) {
-				CalcFootIKTarget(IK);
+			if (IK.GetIsFootIK()) {
+				if (!CalcFootIKTarget(IK)) {
+					//接触してなかったら実行しない
+					return;
+				}
 			}
 
 			//CCD法でIK実行
@@ -103,8 +106,63 @@ namespace DemolisherWeapon {
 		}
 	}
 
-	void SkeletonIK::CalcFootIKTarget(const IKSetting& ik) {
+	bool SkeletonIK::CalcFootIKTarget(IKSetting& ik) {
+		//根本からつま先までレイで判定
+		//Bone* preBone = nullptr;
+		//for(auto bone = ik.GetIsFootIKBoneList().rbegin(), end = ik.GetIsFootIKBoneList().rend(); bone != end; ++bone){
+		//	if (preBone) {
+		//		btVector3 rayStart = preBone->GetPosition();
+		//		btVector3 rayEnd = (*bone)->GetPosition();
+		//		btCollisionWorld::ClosestRayResultCallback gnd_ray(rayStart, rayEnd);
+		//		GetEngine().GetPhysicsWorld().RayTest(rayStart, rayEnd, gnd_ray);
+		//		if (gnd_ray.hasHit()) {
+		//			//接触点を目標座標にする
+		//			ik.targetPos.Set(gnd_ray.m_hitPointWorld);
+		//			return true;
+		//		}
+		//	}
+		//	preBone = *bone;
+		//}
 
+		btVector3 rayStart = ik.rootBone->GetPosition(); 
+		btVector3 rayEnd = ik.tipBone->GetPosition() + ik.footIKRayEndOffset;
+		btCollisionWorld::ClosestRayResultCallback gnd_ray(rayStart, rayEnd);
+		GetEngine().GetPhysicsWorld().RayTest(rayStart, rayEnd, gnd_ray);
+		if (gnd_ray.hasHit()) {
+			//接触点を目標座標にする
+			ik.targetPos.Set(gnd_ray.m_hitPointWorld);
+			ik.targetPos -= ik.footIKRayEndOffset;
+			return true;
+		}
+
+		//接触点なし
+		return false;
 	}
 
+	void SkeletonIK::IKSetting::InitFootIK() {
+		ReleaseFootIK();
+
+		//つま先からリストに登録していく
+		//Bone* joint = tipBone;
+		//while (1) {
+		//	if (joint == nullptr) { 
+		//		//nullが出たらエラー
+		//		DW_ERRORBOX(true, "SkeletonIK::IKSetting::InitFootIK() :nullptrの出現\nボーンの設定に問題がある");
+		//		return;
+		//	}
+		//	//登録
+		//	footIKBoneList.emplace_back(joint);
+		//	//根本まで登録したら終わり
+		//	if (joint == rootBone) { break; }
+		//	//親ボーンへ
+		//	joint = joint->GetParentBone();
+		//}
+
+		isFootIK = true;
+	}
+	void SkeletonIK::IKSetting::ReleaseFootIK() {
+		if (!isFootIK) { return; }
+		//footIKBoneList.clear();
+		isFootIK = false;
+	}
 }

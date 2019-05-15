@@ -9,11 +9,29 @@ namespace DemolisherWeapon {
 		struct IKSetting {
 			Bone* tipBone = nullptr; //先端ボーン
 			Bone* rootBone = nullptr;//根本ボーン
-			bool isFootIK = false;
 			bool isEnable = true;
 			CVector3 targetPos;//IKの目標地点
 			float targetSize = 1.0f;//目標位置球の大きさ(誤差許容値)
 			int iteration = 5;//反復回数
+
+			/// <summary>
+			/// FootIKを初期化
+			/// ※tipBoneとrootBoneを設定してください
+			/// </summary>
+			void InitFootIK();
+			/// <summary>
+			/// FootIKを解除
+			/// </summary>
+			void ReleaseFootIK();
+			
+			bool GetIsFootIK() const { return isFootIK; }
+			const std::list<Bone*>& GetIsFootIKBoneList() const { return footIKBoneList; }
+
+		private:
+			bool isFootIK = false;
+			std::list<Bone*> footIKBoneList;//FootIKに使うボーンのリスト(つま先から始まる)
+		public:
+			CVector3 footIKRayEndOffset;//FootIK:地面との判定レイ終点(tipBoneの位置)に対するオフセット
 		};
 
 	public:
@@ -28,10 +46,9 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// 実行するIKの初期化
 		/// </summary>
-		/// <param name="setting">IKの設定</param>
-		/// <returns>実行するIKの設定構造体へのポインタ</returns>
-		IKSetting* CreateIK(const IKSetting& setting) {
-			m_ikList.emplace_back(setting);
+		/// <returns>IKの設定へのポインタ</returns>
+		IKSetting* CreateIK() {
+			m_ikList.emplace_back();
 			return &m_ikList.back();
 		}
 
@@ -52,7 +69,8 @@ namespace DemolisherWeapon {
 		/// FootIKの接触点の計算
 		/// </summary>
 		/// <param name="ik">実行するIK</param>
-		void CalcFootIKTarget(const IKSetting& ik);
+		/// <returns>接触しているか?</returns>
+		bool CalcFootIKTarget(IKSetting& ik);
 
 	private:
 		bool m_isEnable = true;
