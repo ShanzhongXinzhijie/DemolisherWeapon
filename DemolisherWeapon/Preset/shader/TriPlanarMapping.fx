@@ -1,22 +1,21 @@
 #define ALBEDO_MAP 1
-#define NORMAL_MAP 1
+//#define NORMAL_MAP 1
 //#define MOTIONBLUR 1
 
 #include"model.fx"
 
 PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 {
-	//通常レンダリング
-	PSOutput_RenderGBuffer Out = PSMain_RenderGBuffer(In);
+	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
 
-	float3 uv = In.Worldpos * 0.001f;
+	float3 uv = In.Worldpos * 0.005f;//設定できるようにする
 
 	//アルベド
 	float4 X = albedoTexture.Sample(Sampler, uv.zy);
 	float4 Y = albedoTexture.Sample(Sampler, uv.zx);
 	float4 Z = albedoTexture.Sample(Sampler, uv.xy);
 
-	float3 blendNormal = saturate(pow(In.Normal*1.4,4));
+	float3 blendNormal = saturate(pow(In.Normal*1.4f,4));
 	Out.albedo = Z;
 	Out.albedo = lerp(Out.albedo, X, blendNormal.x);
 	Out.albedo = lerp(Out.albedo, Y, blendNormal.y);
@@ -32,8 +31,8 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	//法線
 	//多分だめ
 	//https://www.patreon.com/posts/16714688
-	//https://medium.com/@bgolus/normal-mapping-for-a-triplanar-shader-10bf39dca05a
-	
+	//https://medium.com/@bgolus/normal-mapping-for-a-triplanar-shader-10bf39dca05a	
+#if NORMAL_MAP
 	float3 nX = NormalTexture.Sample(Sampler, uv.zy);
 	float3 nY = NormalTexture.Sample(Sampler, uv.zx);
 	float3 nZ = NormalTexture.Sample(Sampler, uv.xy);
@@ -45,6 +44,14 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	Out.normal = Out.normal * 2.0f - 1.0f;
 	Out.normal = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
 	Out.normal = normalize(Out.normal);
+#else
+	Out.normal = In.Normal;
+#endif
+
+	//その他出力
+	PosRender(In, Out);
+	ParamRender(In, Out);
+	MotionRender(In, Out);
 
 	return Out;
 }
