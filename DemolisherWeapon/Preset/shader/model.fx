@@ -117,10 +117,12 @@ struct PSInput{
 	float3 Tangent		: TANGENT;
 	float3 Binormal		: BINORMAL;
 	float2 TexCoord 	: TEXCOORD0;
-	float3 Viewpos		: TEXCOORD1;
 
-	float4	curPos		: CUR_POSITION;//現在座標
-	float4	lastPos		: LAST_POSITION;//過去座標
+	float3 Viewpos		: TEXCOORD1;
+	float3 Worldpos		: TEXCOORD2;
+
+	float4 curPos		: CUR_POSITION;//現在座標
+	float4 lastPos		: LAST_POSITION;//過去座標
 	bool isWorldMove	: IS_WORLD_BLUR;//ワールド空間で移動しているか?
 
 	uint instanceID		: InstanceID;
@@ -153,7 +155,7 @@ PSInput VSMain( VSInputNmTxVcTangent In
 	float4 pos = mul(mWorld, In.Position);
 #endif
 
-	float3 posW = pos.xyz; psInput.cubemapPos = normalize(posW - camWorldPos);
+	float3 posW = pos.xyz; psInput.cubemapPos = normalize(posW - camWorldPos); psInput.Worldpos = posW;
 	pos = mul(mView, pos); psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
 	psInput.Position = pos;
@@ -292,7 +294,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In
 	psInput.Binormal = normalize( mul(skinning, In.Binormal) );
 #endif
 
-	float3 posW = pos.xyz; psInput.cubemapPos = normalize(posW - camWorldPos);
+	float3 posW = pos.xyz; psInput.cubemapPos = normalize(posW - camWorldPos); psInput.Worldpos = posW;
 
 	pos = mul(mView, pos);  psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
@@ -401,15 +403,13 @@ struct PSOutput_RenderGBuffer {
 	float4 velocityPS	: SV_Target4;		//速度(ピクセルシェーダ)
 	float4 lightingParam: SV_Target5;		//ライティング用パラメーター
 };
-PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
-{
-	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
 
+void AlbedoRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 	//アルベド
 #if ALBEDO_MAP || defined(SKY_CUBE)
 #if !defined(SKY_CUBE)
 	//通常
-	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset);	
+	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset);
 #else
 	//スカイボックス
 	Out.albedo = skyCubeMap.SampleLevel(Sampler, In.cubemapPos, 0);
@@ -420,15 +420,8 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	//アルベドテクスチャがない場合はスケールをそのまま使う
 	Out.albedo = albedoScale;
 #endif
-
-	//αテスト
-	if (Out.albedo.a > 0.5f) { 
-		Out.albedo.a = 1.0f;//半透明無効
-	}
-	else {
-		discard;//描画しない
-	}
-
+}
+void NormalRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 	//法線
 #if NORMAL_MAP
 	Out.normal = NormalTexture.Sample(Sampler, In.TexCoord + uvOffset);
@@ -438,10 +431,12 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 #else
 	Out.normal = In.Normal;
 #endif
-
+}
+void PosRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 	//ビュー座標
 	Out.viewpos = float4(In.Viewpos.x, In.Viewpos.y, In.Viewpos.z + depthBias.y, In.curPos.z / In.curPos.w + depthBias.x);
-
+}
+void ParamRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 	//ライティング用パラメーター
 #if LIGHTING_MAP
 	//x:エミッシブ y:メタリック z:シャイニネス w:ライティングするか?
@@ -456,58 +451,82 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	Out.lightingParam.z = metallic;		//メタリック
 	Out.lightingParam.w = shininess;	//シャイニネス
 #endif
-
+}
+void MotionRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 	//速度
 #if MOTIONBLUR
-		float2	current = In.curPos.xy / In.curPos.w;
-		float2	last = In.lastPos.xy / In.lastPos.w;		
+	float2	current = In.curPos.xy / In.curPos.w;
+	float2	last = In.lastPos.xy / In.lastPos.w;
 
-		//無効
-		if (In.lastPos.z < 0.0f) {
+	//無効
+	if (In.lastPos.z < 0.0f) {
 		//if (last.z < 0.0f || last.z > 1.0f) {
-			Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
-			Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y; 
-			Out.velocityPS.z = -1.0f;
-			Out.velocityPS.w = -1.0f;
-			return Out;
-			//discard; 
-		}
-
-		current.xy *= float2(0.5f, -0.5f); current.xy += 0.5f;
-		last.xy *= float2(0.5f, -0.5f); last.xy += 0.5f;
-
 		Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
 		Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+		Out.velocityPS.z = -1.0f;
+		Out.velocityPS.w = -1.0f;
+		return;//return Out;
+		//discard; 
+	}
 
-		//オブジェクトが動いている or カメラに近い
-		if (In.isWorldMove || In.curPos.z + depthBias.y < depthBias.z) {
-			Out.velocity.xy = current.xy - last.xy;
+	current.xy *= float2(0.5f, -0.5f); current.xy += 0.5f;
+	last.xy *= float2(0.5f, -0.5f); last.xy += 0.5f;
 
-			Out.velocityPS.z = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+	Out.velocity.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
+	Out.velocity.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+
+	//オブジェクトが動いている or カメラに近い
+	if (In.isWorldMove || In.curPos.z + depthBias.y < depthBias.z) {
+		Out.velocity.xy = current.xy - last.xy;
+
+		Out.velocityPS.z = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+		Out.velocityPS.w = -1.0f;//PSブラーしない
+
+		//Out.albedo.r = 1.0f; Out.albedo.b = 0.0f; Out.albedo.g = 0.0f;
+	}
+	else {
+		Out.velocityPS.xy = current.xy - last.xy;
+
+		Out.velocityPS.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
+		Out.velocityPS.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
+
+		//動きが小さい
+		if (abs(Out.velocityPS.x) < BUNBO*0.5f && abs(Out.velocityPS.y) < BUNBO*0.5f) {
+			Out.velocityPS.z = Out.velocityPS.w;
 			Out.velocityPS.w = -1.0f;//PSブラーしない
-
-			//Out.albedo.r = 1.0f; Out.albedo.b = 0.0f; Out.albedo.g = 0.0f;
 		}
-		else {
-			Out.velocityPS.xy = current.xy - last.xy;
-			
-			Out.velocityPS.z = min(In.curPos.z, In.lastPos.z) + depthBias.y;
-			Out.velocityPS.w = max(In.curPos.z, In.lastPos.z) + depthBias.y;
 
-			//動きが小さい
-			if (abs(Out.velocityPS.x) < BUNBO*0.5f && abs(Out.velocityPS.y) < BUNBO*0.5f) {
-				Out.velocityPS.z = Out.velocityPS.w;
-				Out.velocityPS.w = -1.0f;//PSブラーしない
-			}
-
-			//Out.albedo.r *= 0.1f; Out.albedo.b = 1.0f; Out.albedo.g *= 0.1f;
-		}
+		//Out.albedo.r *= 0.1f; Out.albedo.b = 1.0f; Out.albedo.g *= 0.1f;
+	}
 #else
-		Out.velocity.z = In.curPos.z + depthBias.y;
-		Out.velocity.w = In.curPos.z + depthBias.y;
-		Out.velocityPS.z = -1.0f;// In.curPos.z + depthBias.y;
-		Out.velocityPS.w = -1.0f;// In.curPos.z + depthBias.y;
+	Out.velocity.z = In.curPos.z + depthBias.y;
+	Out.velocity.w = In.curPos.z + depthBias.y;
+	Out.velocityPS.z = -1.0f;// In.curPos.z + depthBias.y;
+	Out.velocityPS.w = -1.0f;// In.curPos.z + depthBias.y;
 #endif
+}
+
+PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
+{
+	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
+
+	AlbedoRender(In,Out);
+
+	//αテスト
+	if (Out.albedo.a > 0.5f) { 
+		Out.albedo.a = 1.0f;//半透明無効
+	}
+	else {
+		discard;//描画しない
+	}
+
+	NormalRender(In, Out);
+
+	PosRender(In, Out);
+
+	ParamRender(In, Out);
+
+	MotionRender(In, Out);
 
 	return Out;
 }
