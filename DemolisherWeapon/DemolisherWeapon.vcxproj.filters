@@ -192,5 +192,6 @@
     <CustomBuild Include="Preset\shader\Bloom.fx" />
     <CustomBuild Include="Preset\sprite\Blackbody_Enumerated_6500K.dds" />
     <CustomBuild Include="Preset\shader\DOF.fx" />
+    <CustomBuild Include="Preset\shader\TriPlanarMapping.fx" />
   </ItemGroup>
 </Project>
