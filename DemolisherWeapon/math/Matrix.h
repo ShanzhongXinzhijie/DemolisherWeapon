@@ -244,6 +244,19 @@ public:
 		);
 	}
 	/*!
+	 * @brief	カメラ方向、上方向、カメラ位置からカメラ行列を作成。
+	 *@param[in]	position	カメラ位置。
+	 *@param[in]	direction	カメラ方向。
+	 *@param[in]	up			カメラの上方向。
+	 */
+	void MakeLookTo(const CVector3& position, const CVector3& direction, const CVector3& up)
+	{
+		DirectX::XMStoreFloat4x4(
+			&mat,
+			DirectX::XMMatrixLookToLH(position, direction, up)
+		);
+	}
+	/*!
 	 *@brief	行列と行列の乗算
 	 *@details
 	 * *this = m0 * m1

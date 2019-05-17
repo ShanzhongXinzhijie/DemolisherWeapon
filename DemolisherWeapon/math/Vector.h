@@ -260,19 +260,27 @@ public:
 		vec = _v.vec;
 		return *this;
 	}
+	template<class TVector>
+	CVector3& operator=(const TVector& _v)
+	{
+		vec = _v.vec;
+		return *this;
+	}
+	template<>
 	CVector3& operator=(const CVector2& _v)
 	{
 		vec.x = _v.vec.x;
 		vec.y = _v.vec.y;
 		return *this;
 	}
-	/*CVector3& operator=(const btVector3& _v) 
+	template<>
+	CVector3& operator=(const btVector3& _v) 
 	{
 		vec.x = _v.x();
 		vec.y = _v.y();
 		vec.z = _v.z();
 		return *this;
-	}*/
+	}
 
 	CVector3() { x = y = z = 0.0f; }
 	/*!
@@ -282,6 +290,12 @@ public:
 	{
 		Set(x, y, z);
 	}
+
+	//コピーコンストラクタ
+	CVector3(const btVector3& _v) {
+		Set(_v);
+	}
+
 	/*!
 	* @brief	線形補間。
 	*@details
@@ -319,12 +333,12 @@ public:
 		vec.z = _z;
 	}
 	template<class TVector>
-	void Set(TVector& _v)
+	void Set(const TVector& _v)
 	{
 		Set(_v.x, _v.y, _v.z);
 	}
 	template<>
-	void Set(btVector3& _v)
+	void Set(const btVector3& _v)
 	{
 		Set(_v.x(), _v.y(), _v.z());
 	}
@@ -844,6 +858,10 @@ public:
 		CVector4(x, y, z, w)
 	{
 	}
+	CQuaternion(const CVector3& axis, float angle)
+	{
+		SetRotation(axis, angle);
+	}
 	
 	//逆クォータニオンにする
 	void Inverse() {
@@ -904,6 +922,10 @@ public:
 	*@brief	行列からクォータニオンを作成。
 	*/
 	void SetRotation(const CMatrix& m);
+
+	//方向と上方向からZ軸を指定の方向へ向けるクォータニオンを作成	
+	void MakeLookTo(const CVector3& direction, const CVector3& up = CVector3::Up());
+
 	/*!
 	 *@brief	球面線形補完。
 	 */
@@ -976,6 +998,13 @@ public:
 	{
 		DirectX::XMVECTOR xmv = DirectX::XMVector3InverseRotate(_v, *this);
 		DirectX::XMStoreFloat3(&_v.vec, xmv);
+	}
+
+	//乗算代入演算子
+	const CQuaternion& operator*=(const CQuaternion& _v)
+	{
+		Multiply(_v);
+		return *this;
 	}
 
 	static CQuaternion Identity()
