@@ -42,11 +42,12 @@ public:
 	}	
 
 	//—”
+private:
 	static std::random_device rd;
 	static std::mt19937 mt;
 	static std::uniform_real_distribution<float> zeroToOne;
 	static std::uniform_int_distribution<> intRandom;
-
+public:
 	static float RandomZeroToOne() {
 		return zeroToOne(mt);
 	}
