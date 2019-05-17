@@ -192,6 +192,16 @@ namespace GameObj {
 			SetRot(rot);
 			SetScale(scale);
 		}
+		//座標とか取得
+		const CVector3& GetPos()const {
+			return m_pos;
+		}
+		const CQuaternion& GetRot()const {
+			return m_rot;
+		}
+		const CVector3& GetScale()const {
+			return m_scale;
+		}
 
 		//再生アニメーションの変更
 		void ChangeAnim(int animNum) {
