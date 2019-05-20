@@ -30,9 +30,11 @@ public:
 private:
 	static enShaderMode m_s_shadermode ;
 protected:
+	//使用中のシェーダーのポインタ
 	Shader* m_pVSShader = nullptr, *m_pVSZShader = nullptr;
 	Shader* m_pPSShader = nullptr;
 
+	//シェーダーマクロ
 	enum ShaderTypeMask {
 		enOFF			= 0b0000,
 		enMotionBlur	= 0b0001,
@@ -51,16 +53,21 @@ protected:
 			NULL, NULL
 	};
 
+	//デフォルトバーテックスシェーダ
 	Shader m_vsDefaultShader[ShaderTypeMask::enNum], m_vsZShader;
 	//int m_clacOldPosOffset = 0;
 	//ID3D11ClassInstance* m_cCalcOldPos = nullptr, *m_cNoCalcOldPos = nullptr;
 
+	//デフォルトピクセルシェーダ
 	bool m_isUseTexZShader = false;
 	Shader m_psDefaultShader[ShaderTypeMask::enNum], m_psZShader[2];
+	Shader m_psTriPlanarMapShader[ShaderTypeMask::enNum];//TriPlanarMapping用のシェーダ
 	//int m_clacVelocityOffset = 0;
 	//ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;	
 
-	bool isSkining;
+	bool isSkining;//スキンモデルか？
+
+	//テクスチャ
 	ID3D11ShaderResourceView* m_defaultAlbedoTex = nullptr, *m_pAlbedoTex = nullptr;
 	ID3D11ShaderResourceView* m_defaultNormalTex = nullptr, *m_pNormalTex = nullptr;
 	ID3D11ShaderResourceView* m_defaultLightingTex = nullptr, *m_pLightingTex = nullptr;
@@ -83,6 +90,7 @@ public:
 			}
 
 			m_psDefaultShader[i].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, macroName, macros);
+			m_psTriPlanarMapShader[i].Load("Preset/shader/TriPlanarMapping.fx", "PS_TriPlanarMapping", Shader::EnType::PS, macroName, macros);
 		}
 
 		//マクロごとにZ値描画ピクセルシェーダを作成
@@ -250,6 +258,10 @@ public:
 	}
 	Shader* GetDefaultPS() {
 		return &m_psDefaultShader[enALL];
+	}
+	//TriPlanarMapping用のシェーダを取得
+	Shader* GetTriPlanarMappingPS() {
+		return &m_psTriPlanarMapShader[enALL];
 	}
 
 	//名前を設定

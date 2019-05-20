@@ -38,6 +38,10 @@ namespace DemolisherWeapon {
 	void MaterialSetting::SetDefaultPS() {
 		m_pPSShader = m_isInit->GetDefaultPS();
 	}
+	//TriPlanarMapping用のシェーダを設定
+	void MaterialSetting::SetTriPlanarMappingPS() {
+		m_pPSShader = m_isInit->GetTriPlanarMappingPS();
+	}
 
 	//アルベドテクスチャをデフォに戻す
 	void MaterialSetting::SetDefaultAlbedoTexture() {

@@ -25,6 +25,7 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 		if (m_pAlbedoTex)		{ macroind |= enAlbedoMap; }
 		if (m_pLightingTex)		{ macroind |= enLightingMap; }
 
+		//頂点シェーダ
 		if (m_pVSShader != &m_vsDefaultShader[enALL]) {
 			//カスタムシェーダー
 			deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSShader->GetBody(), NULL, 0);
@@ -33,13 +34,19 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 			//デフォルトシェーダー
 			deviceContext->VSSetShader((ID3D11VertexShader*)m_vsDefaultShader[macroind].GetBody(), NULL, 0);
 		}
-		if (m_pPSShader != &m_psDefaultShader[enALL]) {
-			//カスタムシェーダー
-			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader->GetBody(), NULL, 0);
-		}
-		else {
+
+		//ピクセルシェーダ
+		if (m_pPSShader == &m_psDefaultShader[enALL]) {
 			//デフォルトシェーダー		
 			deviceContext->PSSetShader((ID3D11PixelShader*)m_psDefaultShader[macroind].GetBody(), NULL, 0);
+		}
+		else if(m_pPSShader == &m_psTriPlanarMapShader[enALL]) {
+			//TriPlanarMapping用のシェーダー
+			deviceContext->PSSetShader((ID3D11PixelShader*)m_psTriPlanarMapShader[macroind].GetBody(), NULL, 0);
+		}
+		else {
+			//カスタムシェーダー
+			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader->GetBody(), NULL, 0);
 		}
 		break;
 	}

@@ -1,24 +1,24 @@
-#define ALBEDO_MAP 1
-//#define NORMAL_MAP 1
-//#define MOTIONBLUR 1
-
 #include"model.fx"
 
 PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 {
 	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
 
-	float3 uv = In.Worldpos * 0.005f;//設定できるようにする
+	float3 uv = In.Worldpos * triPlanarMapUVScale;
+	float3 blendNormal = saturate(pow(In.Normal*1.4f, 4));
 
 	//アルベド
+#if ALBEDO_MAP
 	float4 X = albedoTexture.Sample(Sampler, uv.zy);
 	float4 Y = albedoTexture.Sample(Sampler, uv.zx);
 	float4 Z = albedoTexture.Sample(Sampler, uv.xy);
 
-	float3 blendNormal = saturate(pow(In.Normal*1.4f,4));
 	Out.albedo = Z;
 	Out.albedo = lerp(Out.albedo, X, blendNormal.x);
-	Out.albedo = lerp(Out.albedo, Y, blendNormal.y);
+	Out.albedo = lerp(Out.albedo, Y, blendNormal.y);	
+#else
+	AlbedoRender(In, Out);
+#endif
 
 	//αテスト
 	if (Out.albedo.a > 0.5f) {

@@ -13,6 +13,7 @@ namespace DemolisherWeapon {
 		float metallic = 0.0f;					//メタリック
 		float shininess = 0.38f;				//シャイネス(ラフネスの逆)
 		float uvOffset[2] = { 0.0f,0.0f };		//UV座標オフセット
+		float triPlanarMapUVScale = 0.005f;		//TriPlanarMapping時のUV座標へのスケール
 	};
 
 	class MaterialSetting
@@ -110,6 +111,13 @@ namespace DemolisherWeapon {
 		void SetDefaultVS();
 		void SetDefaultVSZ();
 		void SetDefaultPS();
+
+		//TriPlanarMapping用のシェーダを設定
+		void SetTriPlanarMappingPS();
+		//TriPlanarMapping時のUV座標へのスケールを設定
+		void SetTriPlanarMappingUVScale(float texScale) {
+			m_materialParam.triPlanarMapUVScale = texScale;
+		}		
 
 		//アルベドテクスチャを取得
 		ID3D11ShaderResourceView* GetAlbedoTexture()const {

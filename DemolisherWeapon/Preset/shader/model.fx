@@ -63,6 +63,7 @@ cbuffer VSPSCb : register(b0){
 	//カメラの移動量
 	float4 camMoveVec;//w:しきい値≒距離スケール
 
+	//深度値のバイアス
 	float4 depthBias;//x:max=(1.0f) y:max=(far-near) z:ブラーの近距離しきい値
 
 	//カメラのワールド座標
@@ -78,6 +79,7 @@ cbuffer MaterialCb : register(b1) {
 	float  metallic;	//メタリック
 	float  shininess;	//シャイネス(ラフネスの逆)
 	float2 uvOffset;	//UV座標オフセット
+	float  triPlanarMapUVScale;//TriPlanarMapping時のUV座標へのスケール
 }
 
 /////////////////////////////////////////////////////////////
