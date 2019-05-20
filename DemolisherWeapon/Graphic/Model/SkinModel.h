@@ -177,7 +177,7 @@ private:
 	/*!
 	*@brief	サンプラステートの初期化。
 	*/
-	void InitSamplerState();
+	//void InitSamplerState();
 	/*!
 	*@brief	定数バッファの作成。
 	*/
@@ -223,7 +223,7 @@ private:
 	Skeleton			m_skeleton;						//!<スケルトン。
 	DirectX::Model*		m_modelDx;						//!<DirectXTKが提供するモデルクラス。
 	std::wstring		m_modelName;					//!<モデルの名前。
-	ID3D11SamplerState* m_samplerState = nullptr;		//!<サンプラステート。
+	//ID3D11SamplerState* m_samplerState = nullptr;		//!<サンプラステート。
 	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
 	float m_depthBias = 0.0f;
