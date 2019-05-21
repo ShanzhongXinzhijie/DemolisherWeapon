@@ -2,6 +2,7 @@
 #include "CBillboard.h"
 
 namespace DemolisherWeapon {
+namespace GameObj {
 	CBillboard::CBillboard()
 	{
 	}
@@ -84,4 +85,5 @@ namespace DemolisherWeapon {
 		m.Inverse();
 		return m;
 	}
+}
 }

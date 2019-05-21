@@ -1,6 +1,7 @@
 #pragma once
 
 namespace DemolisherWeapon {
+namespace GameObj{
 	class CBillboard : public IGameObject
 	{
 	public:
@@ -90,4 +91,5 @@ namespace DemolisherWeapon {
 		GameObj::CInstancingModelRender m_insModel;
 		CQuaternion m_rot;
 	};
+}
 }
