@@ -157,9 +157,13 @@ namespace GameObj {
 				}
 			}
 			m_playingAnimNum = 0;
+
+			m_isInit = true;
 		}
 		
 		void PostLoopUpdate()override final {
+			if (!m_isInit) { return; }
+
 			//ワールド行列を求める(バイアス含む)
 			m_model[m_playingAnimNum]->GetModelRender().GetSkinModel().CalcWorldMatrix( m_pos, m_rot, m_scale, m_worldMatrix);
 
@@ -225,6 +229,7 @@ namespace GameObj {
 		InstancingModel* GetInstancingModel() { return GetInstancingModel(m_playingAnimNum); }
 
 	private:
+		bool m_isInit = false;
 		bool m_isDraw = true;
 
 		std::vector<GameObj::InstancingModel*> m_model;

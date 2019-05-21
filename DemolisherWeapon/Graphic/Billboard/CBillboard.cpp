@@ -9,9 +9,9 @@ namespace DemolisherWeapon {
 	{
 	}
 
-	void CBillboard::Init(std::experimental::filesystem::path fileName) {
-		//ビルボードモデル読み込み
-		m_model.Init(L"Preset/modelData/billboard.cmo");
+	void CBillboard::Init(std::experimental::filesystem::path fileName, int instancingNum) {
+		//インスタンシング描画か?
+		m_isIns = instancingNum > 1 ? true : false;
 
 		//テクスチャ読み込み
 		ID3D11ShaderResourceView* tex = nullptr;
@@ -31,8 +31,21 @@ namespace DemolisherWeapon {
 			return;
 		}
 
+		//ビルボードモデル読み込み
+		if (m_isIns) {
+			const wchar_t* identifiers = fileName.c_str();
+			m_insModel.Init(instancingNum, L"Preset/modelData/billboard.cmo", nullptr, 0, enFbxUpAxisZ, enFbxRightHanded, &identifiers);
+		}
+		else {
+			m_model.Init(L"Preset/modelData/billboard.cmo");
+		}
+
 		//テクスチャ適応
-		m_model.GetSkinModel().FindMaterialSetting(
+		GameObj::CSkinModelRender* modelPtr = &m_model;
+		if (m_isIns) {
+			modelPtr = &m_insModel.GetInstancingModel()->GetModelRender();
+		}
+		modelPtr->GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
 				mat->SetAlbedoTexture(tex);
 			}
@@ -52,7 +65,12 @@ namespace DemolisherWeapon {
 		//位置等更新
 		CQuaternion q = GetBillboardQuaternion();
 		q.Multiply(m_rot);
-		m_model.SetRot(q);
+		if (m_isIns) {
+			m_insModel.SetRot(q);
+		}
+		else {
+			m_model.SetRot(q);
+		}
 	}
 
 	CQuaternion CBillboard::GetBillboardQuaternion() {
