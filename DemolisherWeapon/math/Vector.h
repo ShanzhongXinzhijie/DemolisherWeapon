@@ -977,6 +977,23 @@ public:
 		y = pw * qy - px * qz + py * qw + pz * qx;
 		z = pw * qz + px * qy - py * qx + pz * qw;
 	}
+
+	/// <summary>
+	/// クォータニオンを連結する
+	/// このクォータニオンの回転の後にrotの回転をするクォータニオンを作成
+	/// </summary>
+	void Concatenate(const CQuaternion& rot) {
+		Multiply(rot, *this);
+	}
+	/// <summary>
+	/// クォータニオンを連結する
+	/// rot0の回転の後にrot1の回転をするクォータニオンを作成
+	/// this = rot1 * rot0;
+	/// </summary>
+	void Concatenate(const CQuaternion& rot0, const CQuaternion& rot1) {
+		Multiply(rot1,rot0);
+	}
+
 	/*!
 	*@brief	ベクトルにクォータニオンを適用する。
 	*@param[in,out] v	ベクトル。
