@@ -92,6 +92,7 @@
     <ClInclude Include="Render\BloomRender.h" />
     <ClInclude Include="Render\DepthOfFieldRender.h" />
     <ClInclude Include="Graphic\Model\SkeletonIK.h" />
+    <ClInclude Include="Graphic\Billboard\CBillboard.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -174,6 +175,7 @@
     <ClCompile Include="Render\BloomRender.cpp" />
     <ClCompile Include="Render\DepthOfFieldRender.cpp" />
     <ClCompile Include="Graphic\Model\SkeletonIK.cpp" />
+    <ClCompile Include="Graphic\Billboard\CBillboard.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
@@ -193,5 +195,6 @@
     <CustomBuild Include="Preset\sprite\Blackbody_Enumerated_6500K.dds" />
     <CustomBuild Include="Preset\shader\DOF.fx" />
     <CustomBuild Include="Preset\shader\TriPlanarMapping.fx" />
+    <CustomBuild Include="Preset\modelData\billboard.cmo" />
   </ItemGroup>
 </Project>

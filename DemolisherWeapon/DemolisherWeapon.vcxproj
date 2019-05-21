@@ -270,6 +270,7 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="Graphic\Billboard\CBillboard.h" />
     <ClInclude Include="Render\DepthOfFieldRender.h" />
     <ClInclude Include="Render\BloomRender.h" />
     <ClInclude Include="Graphic\CLine.h" />
@@ -357,6 +358,7 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Graphic\Billboard\CBillboard.cpp" />
     <ClCompile Include="Render\DepthOfFieldRender.cpp" />
     <ClCompile Include="Render\BloomRender.cpp" />
     <ClCompile Include="Graphic\CLine.cpp" />
@@ -497,6 +499,11 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\shader\TriPlanarMapping.fx">
+      <FileType>Document</FileType>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Preset\modelData\billboard.cmo">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>

@@ -139,13 +139,13 @@ namespace GameObj {
 	{
 	public:
 		//初期化
-		void Init(int instanceMax,									
-			const wchar_t* filePath,
-			const AnimationClip* animationClips = nullptr,
-			int numAnimationClips = 0,
-			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,					//新規読み込み時のみ使用
-			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//新規読み込み時のみ使用
-			const wchar_t** identifiers = nullptr					//numAnimationClipsと同数必要
+		void Init(int instanceMax,									//最大描画数
+			const wchar_t* filePath,								//モデルのファイルパス
+			const AnimationClip* animationClips = nullptr,			//アニメーションクリップの配列
+			int numAnimationClips = 0,								//アニメーションクリップの数
+			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,					//モデルの上方向	//新規読み込み時のみ使用
+			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//座標系			//新規読み込み時のみ使用
+			const wchar_t** identifiers = nullptr					//識別子、これが違うと別モデルとして扱われる //numAnimationClipsと同数必要
 		) {
 			//アニメーションの数だけモデルロード
 			m_model.clear();

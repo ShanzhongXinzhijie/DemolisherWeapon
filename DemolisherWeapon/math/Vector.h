@@ -290,6 +290,10 @@ public:
 	{
 		Set(x, y, z);
 	}
+	CVector3(float s)
+	{
+		Set(s, s, s);
+	}
 
 	//コピーコンストラクタ
 	CVector3(const btVector3& _v) {
