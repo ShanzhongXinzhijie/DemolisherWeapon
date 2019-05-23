@@ -281,6 +281,14 @@ public:
 		vec.z = _v.z();
 		return *this;
 	}
+	template<>
+	CVector3& operator=(const DirectX::XMFLOAT3& _v)
+	{
+		vec.x = _v.x;
+		vec.y = _v.y;
+		vec.z = _v.z;
+		return *this;
+	}
 
 	CVector3() { x = y = z = 0.0f; }
 	/*!
@@ -313,6 +321,16 @@ public:
 			t);
 		DirectX::XMStoreFloat3(&vec, _v);
 	}
+
+	/// <summary>
+	/// ベクトルの各要素を絶対値にする。
+	/// </summary>
+	void Abs() {
+		x = abs(x);
+		y = abs(y);
+		z = abs(z);
+	}
+
 	template<class TVector>
 	void CopyTo(TVector& dst) const
 	{

@@ -225,6 +225,7 @@ private:
 
 	float m_left = -640.0f, m_right = 640.0f, m_bottom = -360.0f, m_top = 360.0f;
 };
+//ゲームオブジェクトマネージャーに登録しないタイプの平行カメラ
 class NoRegisterOrthoCamera : public OrthoCamera {
 public:
 	NoRegisterOrthoCamera() : OrthoCamera(false) {};
