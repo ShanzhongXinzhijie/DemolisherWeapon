@@ -88,23 +88,23 @@ namespace DemolisherWeapon {
 		}
 
 		//シェーダを取得
-		Shader* GetVS() const {
+		const SKEShaderPtr& GetVS() const {
 			return m_pVSShader;
 		}
 		Shader* GetVSZ() const {
 			return m_pVSZShader;
 		}
-		Shader* GetPS() const{
+		const SKEShaderPtr& GetPS() const{
 			return m_pPSShader;
 		}
 		//シェーダを設定
-		void SetVS(Shader* ps) {
+		void SetVS(const SKEShaderPtr& ps) {
 			m_pVSShader = ps;
 		}
 		void SetVSZ(Shader* ps) {
 			m_pVSZShader = ps;
 		}
-		void SetPS(Shader* ps) {
+		void SetPS(const SKEShaderPtr& ps) {
 			m_pPSShader = ps;
 		}
 		//シェーダをデフォに戻す
@@ -212,14 +212,21 @@ namespace DemolisherWeapon {
 	private:
 		ModelEffect *m_isInit = nullptr;
 
-		std::wstring m_materialName;							//マテリアル名
-		MaterialParam m_materialParam;							//マテリアルパラメータ
-		Shader *m_pVSShader = nullptr, *m_pVSZShader = nullptr; //頂点シェーダ
-		Shader *m_pPSShader = nullptr;							//ピクセルシェーダ
-		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;		//テクスチャ
+		std::wstring m_materialName;  //マテリアル名
+		MaterialParam m_materialParam;//マテリアルパラメータ
+
+		//頂点シェーダ
+		SKEShaderPtr m_pVSShader;								
+		Shader *m_pVSZShader = nullptr; 
+		//ピクセルシェーダ
+		SKEShaderPtr m_pPSShader;		
+
+		//テクスチャ
+		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;		
 		ID3D11ShaderResourceView* m_pNormalTex = nullptr;
 		ID3D11ShaderResourceView* m_pLightingTex = nullptr;
 
+		//設定
 		bool m_enableMotionBlur = true;
 		bool m_isUseTexZShader = false;
 	};

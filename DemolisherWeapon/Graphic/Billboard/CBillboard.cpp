@@ -11,9 +11,6 @@ namespace GameObj {
 	}
 
 	void CBillboard::Init(std::experimental::filesystem::path fileName, int instancingNum) {
-		//インスタンシング描画か?
-		m_isIns = instancingNum > 1 ? true : false;
-
 		//テクスチャ読み込み
 		ID3D11ShaderResourceView* tex = nullptr;
 		HRESULT hr;
@@ -32,9 +29,20 @@ namespace GameObj {
 			return;
 		}
 
+		//初期化
+		Init(tex, instancingNum, fileName.c_str());
+
+		//テクスチャ、リリース
+		if (tex) {
+			tex->Release();
+		}
+	}
+	void CBillboard::Init(ID3D11ShaderResourceView* srv, int instancingNum, const wchar_t* identifiers) {
+		//インスタンシング描画か?
+		m_isIns = instancingNum > 1 && identifiers ? true : false;
+
 		//ビルボードモデル読み込み
 		if (m_isIns) {
-			const wchar_t* identifiers = fileName.c_str();
 			m_insModel.Init(instancingNum, L"Preset/modelData/billboard.cmo", nullptr, 0, enFbxUpAxisZ, enFbxRightHanded, &identifiers);
 		}
 		else {
@@ -48,15 +56,11 @@ namespace GameObj {
 		}
 		modelPtr->GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
-				mat->SetAlbedoTexture(tex);
+				mat->SetAlbedoTexture(srv);
 			}
 		);
 
-		//テクスチャ、リリース
-		if (tex) {
-			tex->Release();
-		}
-
+		//初期化完了
 		m_isInit = true;
 	}
 

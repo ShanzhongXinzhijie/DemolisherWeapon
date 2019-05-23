@@ -4,6 +4,8 @@
 #include "Graphic/Shader/ShaderUtil.h"
 #include "Graphic/Shader/ShaderResources.h"
 
+#include "SkinModelEffectShader.h"
+
 #include "MaterialSetting.h"
 
 #define BIT(x) (1<<(x))
@@ -31,37 +33,20 @@ private:
 	static enShaderMode m_s_shadermode ;
 protected:
 	//使用中のシェーダーのポインタ
-	Shader* m_pVSShader = nullptr, *m_pVSZShader = nullptr;
-	Shader* m_pPSShader = nullptr;
-
-	//シェーダーマクロ
-	enum ShaderTypeMask {
-		enOFF			= 0b0000,
-		enMotionBlur	= 0b0001,
-		enNormalMap		= 0b0010,
-		enAlbedoMap		= 0b0100,
-		enLightingMap	= 0b1000,
-		enALL			= 0b1111,
-		enNum,
-	};
-	static constexpr int MACRO_NUM = 4;
-	D3D_SHADER_MACRO macros[MACRO_NUM+1] = {
-			"MOTIONBLUR", "0",
-			"NORMAL_MAP", "0",
-			"ALBEDO_MAP", "0",
-			"LIGHTING_MAP", "0",
-			NULL, NULL
-	};
+	SKEShaderPtr m_pVSShader; Shader* m_pVSZShader = nullptr;
+	SKEShaderPtr m_pPSShader;
 
 	//デフォルトバーテックスシェーダ
-	Shader m_vsDefaultShader[ShaderTypeMask::enNum], m_vsZShader;
+	SkinModelEffectShader m_vsDefaultShader;
+	Shader m_vsZShader;//Z値出力用
 	//int m_clacOldPosOffset = 0;
 	//ID3D11ClassInstance* m_cCalcOldPos = nullptr, *m_cNoCalcOldPos = nullptr;
 
 	//デフォルトピクセルシェーダ
 	bool m_isUseTexZShader = false;
-	Shader m_psDefaultShader[ShaderTypeMask::enNum], m_psZShader[2];
-	Shader m_psTriPlanarMapShader[ShaderTypeMask::enNum];//TriPlanarMapping用のシェーダ
+	SkinModelEffectShader m_psDefaultShader;
+	Shader m_psZShader[2];//Z値出力用
+	SkinModelEffectShader m_psTriPlanarMapShader;//TriPlanarMapping用のシェーダ
 	//int m_clacVelocityOffset = 0;
 	//ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;	
 
@@ -81,18 +66,9 @@ public:
 	ModelEffect()
 	{
 		//マクロごとにピクセルシェーダを作成
-		char macroName[32];
-		for (int i = 0; i < ShaderTypeMask::enNum; i++) {
-			sprintf_s(macroName, "DefaultModelShader:%d", i);
-
-			for (int mask = 0; mask < MACRO_NUM; mask++) {
-				if (i & BIT(mask)) { macros[mask].Definition = "1"; }else{ macros[mask].Definition = "0"; }
-			}
-
-			m_psDefaultShader[i].Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, macroName, macros);
-			m_psTriPlanarMapShader[i].Load("Preset/shader/TriPlanarMapping.fx", "PS_TriPlanarMapping", Shader::EnType::PS, macroName, macros);
-		}
-
+		m_psDefaultShader.Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
+		m_psTriPlanarMapShader.Load("Preset/shader/TriPlanarMapping.fx", "PS_TriPlanarMapping", Shader::EnType::PS);
+		
 		//マクロごとにZ値描画ピクセルシェーダを作成
 		D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1", NULL, NULL };
 		m_psZShader[0].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
@@ -101,7 +77,7 @@ public:
 		LoadClassInstancePS();
 
 		//デフォルトのシェーダを設定
-		m_pPSShader = &m_psDefaultShader[enALL];
+		m_pPSShader = &m_psDefaultShader;
 
 		//マテリアル設定(m_defaultMaterialSetting)を初期化してやる
 		MaterialSettingInit(m_defaultMaterialSetting);
@@ -141,8 +117,8 @@ public:
 
 	void __cdecl GetVertexShaderBytecode(void const** pShaderByteCode, size_t* pByteCodeLength) override
 	{
-		*pShaderByteCode = m_vsDefaultShader[enALL].GetByteCode();
-		*pByteCodeLength = m_vsDefaultShader[enALL].GetByteCodeSize();
+		*pShaderByteCode = m_vsDefaultShader.GetShader(SkinModelEffectShader::enALL).GetByteCode();
+		*pByteCodeLength = m_vsDefaultShader.GetShader(SkinModelEffectShader::enALL).GetByteCodeSize();
 	}
 
 	//スキンモデルかどうか取得
@@ -250,18 +226,18 @@ public:
 		m_defaultMaterialSetting.SetDefaultPS();
 	}
 	//デフォルトのシェーダを取得
-	Shader* GetDefaultVS() {
-		return &m_vsDefaultShader[enALL];
+	SkinModelEffectShader* GetDefaultVS() {
+		return &m_vsDefaultShader;
 	}
 	Shader* GetDefaultVSZ() {
 		return &m_vsZShader;
 	}
-	Shader* GetDefaultPS() {
-		return &m_psDefaultShader[enALL];
+	SkinModelEffectShader* GetDefaultPS() {
+		return &m_psDefaultShader;
 	}
 	//TriPlanarMapping用のシェーダを取得
-	Shader* GetTriPlanarMappingPS() {
-		return &m_psTriPlanarMapShader[enALL];
+	SkinModelEffectShader* GetTriPlanarMappingPS() {
+		return &m_psTriPlanarMapShader;
 	}
 
 	//名前を設定
@@ -379,16 +355,7 @@ public:
 	NonSkinModelEffect()
 	{
 		//マクロごとに頂点シェーダを作成
-		char macroName[32];
-		for (int i = 0; i < ShaderTypeMask::enNum; i++) {
-			sprintf_s(macroName, "DefaultModelShader:%d", i);
-
-			for (int mask = 0; mask < MACRO_NUM; mask++) {
-				if (i & BIT(mask)) { macros[mask].Definition = "1"; }else{ macros[mask].Definition = "0"; }
-			}
-
-			m_vsDefaultShader[i].Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, macroName, macros);
-		}
+		m_vsDefaultShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS);
 		
 		//Z値描画シェーダを作成
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS);
@@ -396,7 +363,7 @@ public:
 		LoadClassInstanceVS();
 		
 		//デフォルトのシェーダを設定
-		m_pVSShader = &m_vsDefaultShader[enALL];
+		m_pVSShader = &m_vsDefaultShader;
 		m_pVSZShader = &m_vsZShader;
 
 		//スキンモデルじゃない
@@ -412,16 +379,7 @@ public:
 	SkinModelEffect()
 	{
 		//マクロごとに頂点シェーダを作成
-		char macroName[32];
-		for (int i = 0; i < ShaderTypeMask::enNum; i++) {
-			sprintf_s(macroName, "DefaultModelShader:%d", i);
-
-			for (int mask = 0; mask < MACRO_NUM; mask++) {
-				if (i & BIT(mask)) { macros[mask].Definition = "1"; }else{ macros[mask].Definition = "0"; }
-			}
-
-			m_vsDefaultShader[i].Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, macroName, macros);
-		}
+		m_vsDefaultShader.Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS);
 		
 		//Z値描画シェーダを作成
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS);
@@ -429,7 +387,7 @@ public:
 		LoadClassInstanceVS();
 
 		//デフォルトのシェーダを設定
-		m_pVSShader = &m_vsDefaultShader[enALL];
+		m_pVSShader = &m_vsDefaultShader;
 		m_pVSZShader = &m_vsZShader;
 
 		//スキンモデルである

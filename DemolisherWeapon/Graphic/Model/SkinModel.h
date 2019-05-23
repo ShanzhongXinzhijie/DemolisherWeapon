@@ -97,6 +97,15 @@ public:
 			}
 		}
 	}
+	/// <summary>
+	/// メッシュの集合を検索する。
+	/// </summary>
+	/// <param name="onFindMeshes">メッシュの集合が見つかったときのコールバック関数</param>
+	void FindMeshes(std::function<void(const std::shared_ptr<DirectX::ModelMesh>&)> onFindMeshes)const {
+		for (auto& modelMeshs : m_modelDx->meshes) {
+			onFindMeshes(modelMeshs);
+		}
+	}
 	/*!
 	*@brief	マテリアルを検索する。
 	*@param[in] onFindMaterial	マテリアルが見つかったときのコールバック関数

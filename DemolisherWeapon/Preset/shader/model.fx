@@ -93,7 +93,7 @@ struct VSInputNmTxVcTangent
     float4 Position : SV_Position;			//頂点座標。
     float3 Normal   : NORMAL;				//法線。
     float3 Tangent  : TANGENT;				//接ベクトル。
-	float3 Binormal : BINORMAL;				//従法線。
+	//float3 Binormal : BINORMAL;				//従法線。
     float2 TexCoord : TEXCOORD0;			//UV座標。
 };
 /*!
@@ -105,7 +105,7 @@ struct VSInputNmTxWeights
     float3 Normal   : NORMAL;				//法線。
     float2 TexCoord	: TEXCOORD0;			//UV座標。
     float3 Tangent	: TANGENT;				//接ベクトル。
-	float3 Binormal : BINORMAL;				//従法線。
+	//float3 Binormal : BINORMAL;				//従法線。
 	uint4  Indices  : BLENDINDICES0;		//この頂点に関連付けされているボーン番号。x,y,z,wの要素に入っている。4ボーンスキニング。
     float4 Weights  : BLENDWEIGHT0;			//この頂点に関連付けされているボーンへのスキンウェイト。x,y,z,wの要素に入っている。4ボーンスキニング。
 };
@@ -167,13 +167,13 @@ PSInput VSMain( VSInputNmTxVcTangent In
 	psInput.Normal = normalize(mul(InstancingWorldMatrix[instanceID], In.Normal));
 #if NORMAL_MAP
 	psInput.Tangent = normalize(mul(InstancingWorldMatrix[instanceID], In.Tangent));
-	psInput.Binormal = normalize(mul(InstancingWorldMatrix[instanceID], In.Binormal));
+	psInput.Binormal = cross(psInput.Normal, psInput.Tangent);//normalize(mul(InstancingWorldMatrix[instanceID], In.Binormal));
 #endif
 #else
 	psInput.Normal = normalize(mul(mWorld, In.Normal));
 #if NORMAL_MAP
 	psInput.Tangent = normalize(mul(mWorld, In.Tangent));
-	psInput.Binormal = normalize(mul(mWorld, In.Binormal));
+	psInput.Binormal = cross(psInput.Normal, psInput.Tangent);// normalize(mul(mWorld, In.Binormal));
 #endif
 #endif
 
@@ -293,7 +293,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In
 	psInput.Normal = normalize( mul(skinning, In.Normal) );
 #if NORMAL_MAP
 	psInput.Tangent = normalize( mul(skinning, In.Tangent) );
-	psInput.Binormal = normalize( mul(skinning, In.Binormal) );
+	psInput.Binormal = cross(psInput.Normal, psInput.Tangent);//normalize( mul(skinning, In.Binormal) );
 #endif
 
 	float3 posW = pos.xyz; psInput.cubemapPos = normalize(posW - camWorldPos); psInput.Worldpos = posW;

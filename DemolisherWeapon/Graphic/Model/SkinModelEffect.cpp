@@ -20,34 +20,17 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 
 		//デフォルトシェーダのマクロを切り替える
 		int macroind = 0;
-		if (m_enableMotionBlur) { macroind |= enMotionBlur; }
-		if (m_pNormalTex)		{ macroind |= enNormalMap; }
-		if (m_pAlbedoTex)		{ macroind |= enAlbedoMap; }
-		if (m_pLightingTex)		{ macroind |= enLightingMap; }
+		if (m_enableMotionBlur) { macroind |= SkinModelEffectShader::enMotionBlur; }
+		if (m_pNormalTex)		{ macroind |= SkinModelEffectShader::enNormalMap; }
+		if (m_pAlbedoTex)		{ macroind |= SkinModelEffectShader::enAlbedoMap; }
+		if (m_pLightingTex)		{ macroind |= SkinModelEffectShader::enLightingMap; }
 
 		//頂点シェーダ
-		if (m_pVSShader != &m_vsDefaultShader[enALL]) {
-			//カスタムシェーダー
-			deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSShader->GetBody(), NULL, 0);
-		}
-		else {
-			//デフォルトシェーダー
-			deviceContext->VSSetShader((ID3D11VertexShader*)m_vsDefaultShader[macroind].GetBody(), NULL, 0);
-		}
+		deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSShader.Get(macroind)->GetBody(), NULL, 0);
 
 		//ピクセルシェーダ
-		if (m_pPSShader == &m_psDefaultShader[enALL]) {
-			//デフォルトシェーダー		
-			deviceContext->PSSetShader((ID3D11PixelShader*)m_psDefaultShader[macroind].GetBody(), NULL, 0);
-		}
-		else if(m_pPSShader == &m_psTriPlanarMapShader[enALL]) {
-			//TriPlanarMapping用のシェーダー
-			deviceContext->PSSetShader((ID3D11PixelShader*)m_psTriPlanarMapShader[macroind].GetBody(), NULL, 0);
-		}
-		else {
-			//カスタムシェーダー
-			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader->GetBody(), NULL, 0);
-		}
+		deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSShader.Get(macroind)->GetBody(), NULL, 0);
+		
 		break;
 	}
 
