@@ -1,8 +1,13 @@
 #pragma once
 
 namespace DemolisherWeapon {
-	class CImposter
+namespace GameObj {
+
+	class CImposter : public IGameObject
 	{
+	public:
+		void Update()override;
+
 	public:
 		//èâä˙âª
 		void Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum);
@@ -71,4 +76,5 @@ namespace DemolisherWeapon {
 		SkinModelEffectShader m_billboardPS;
 		CVector3 m_scale;
 	};
+}
 }

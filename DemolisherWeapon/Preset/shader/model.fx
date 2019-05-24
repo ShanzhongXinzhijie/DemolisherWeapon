@@ -49,6 +49,7 @@ sampler Sampler : register(s0);
 /////////////////////////////////////////////////////////////
 /*!
  * @brief	頂点シェーダーとピクセルシェーダー用の定数バッファ。
+ * [SkinModel.h:SVSConstantBuffer]
  */
 cbuffer VSPSCb : register(b0){
 	float4x4 mWorld;
@@ -68,6 +69,11 @@ cbuffer VSPSCb : register(b0){
 
 	//カメラのワールド座標
 	float3 camWorldPos;
+
+	//4 bytes auto padding.
+
+	//インポスター用インデックス
+	int2 imposterIndex;
 };
 
 //定数バッファ　[MaterialSetting.h:MaterialParam]

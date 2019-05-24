@@ -159,6 +159,16 @@ public:
 		m_depthBias = bias;
 	}
 
+	/// <summary>
+	/// インポスター用インデックスを設定
+	/// </summary>
+	/// <param name="x">横インデックス</param>
+	/// <param name="y">縦インデックス</param>
+	void SetImposterIndex(int x, int y) {
+		m_imposterIndex[0] = x;
+		m_imposterIndex[1] = y;
+	}
+
 	//インスタンス数を設定
 	void SetInstanceNum(int num) {
 		m_instanceNum = num;
@@ -199,6 +209,7 @@ private:
 	
 private:
 	//定数バッファ。
+	//[model.fx:VSPSCb]
 	struct SVSConstantBuffer {
 		CMatrix mWorld;
 		CMatrix mView;
@@ -216,6 +227,11 @@ private:
 
 		//カメラのワールド座標
 		CVector3 camWorldPos;
+
+		float padding = 0.0f;
+
+		//インポスター用インデックス
+		int imposterIndex[2];
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
@@ -233,9 +249,12 @@ private:
 	DirectX::Model*		m_modelDx;						//!<DirectXTKが提供するモデルクラス。
 	std::wstring		m_modelName;					//!<モデルの名前。
 	//ID3D11SamplerState* m_samplerState = nullptr;		//!<サンプラステート。
-	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;
+
+	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;//ラスタライザステート
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
-	float m_depthBias = 0.0f;
+	float m_depthBias = 0.0f;//深度値バイアス
+	
+	int m_imposterIndex[2] = {};//インポスター用インデックス
 
 	int m_instanceNum = 1;//インスタンス数
 

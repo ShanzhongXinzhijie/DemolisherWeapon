@@ -2,6 +2,7 @@
 #include "CImposter.h"
 
 namespace DemolisherWeapon {
+namespace GameObj {
 
 	void CImposter::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
 		SkinModel model;
@@ -163,21 +164,39 @@ namespace DemolisherWeapon {
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSGetViewports(&kaz, &beforeViewport);
 
 		//モデル描画
-		{
-			//モデルの回転	
+		CQuaternion rot;
+		viewport.Width = (float)m_gbufferSizeX / m_partNumX;
+		viewport.Height = (float)m_gbufferSizeY / m_partNumY;
+		viewport.TopLeftY = 0;
+		for (int i = 0; i < (int)(m_partNumX*m_partNumY); i++) {
+			//横端まで行った
+			if (i%m_partNumX == 0) {
+				//ビューポート縦にずらす
+				viewport.TopLeftX = 0;
+				if (i != 0) { viewport.TopLeftY += viewport.Height; }
+				//縦回転進める
+				rot = CQuaternion::Identity();
+				rot.GetRotation(CVector3::AxisY(), CMath::PI*-1.0f);// *-0.5f);
+				float angle = CMath::PI / (m_partNumY - 1) * ((i + m_partNumX * 0) / m_partNumX);				
+				rot.Multiply(CQuaternion(CVector3::AxisX(), CMath::PI*-0.5f + angle));
+				//if (angle > CMath::PI*0.5f) {
+				//	rot.Multiply(CQuaternion(CVector3::AxisZ(), CMath::PI));
+				//}
+			}
 
+			//モデルの回転	
+			model.UpdateWorldMatrix(0.0f, rot, 1.0f);
+		
 			//ビューポート設定
-			viewport.TopLeftX = 0;
-			viewport.TopLeftY = 0;
-			viewport.Width = (float)m_gbufferSizeX;
-			viewport.Height = (float)m_gbufferSizeY;
-			//ビューポート設定
-			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &viewport);
-			
-			//インスタンシング
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &viewport);			
 
 			//モデル描画
 			model.Draw();
+
+			//ビューポート横にずらす
+			viewport.TopLeftX += viewport.Width;				
+			//横回転進める
+			rot.Concatenate(CQuaternion(CVector3::AxisY(), CMath::PI2 / (m_partNumX - 1)));
 		}
 
 		//ビューポート戻す
@@ -203,4 +222,65 @@ namespace DemolisherWeapon {
 		GetGraphicsEngine().EndGPUEvent();
 	}
 
+	void CImposter::Update() {
+		//インポスター用インデックス計算
+		int x = 0, y = 0;
+		float z = 0.0f;
+
+		CVector3 polyDir = { 0.0f,0.0f,1.0f };
+		GameObj::CBillboard::GetBillboardQuaternion().Multiply(polyDir);
+		polyDir = m_billboard.GetPos() - GetMainCamera()->GetPos();
+		polyDir.Normalize();
+
+		CVector3 axisDir;
+
+		CVector3 impFront = CVector3::AxisZ(), impUp = CVector3::AxisY();//インポスタの前方向と上方向
+		//↑の空間に投影したポリゴン方向(2D
+		CVector3 toueiV;
+		toueiV.x = impFront.Dot(polyDir);
+		toueiV.y = impUp.Dot(polyDir);
+
+		CVector3 toueiV3D;
+		toueiV3D += impFront * toueiV.x;
+		toueiV3D += impUp * toueiV.y;
+		toueiV3D.Normalize();
+
+		//X軸回転
+		float XRot = acos(toueiV3D.Dot(impFront));
+		if (CVector2(toueiV.x, toueiV.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はimpFront
+			x = CMath::PI / CMath::PI2 * m_partNumX;
+			y = -(int)m_partNumY + (XRot) / CMath::PI * m_partNumY;
+			z = CMath::PI;
+		}
+		else {
+			y = -(XRot) / CMath::PI * m_partNumY;
+		}
+
+		//Y軸回転		
+		axisDir = CVector3(0.0f, 0.0f, 1.0f);
+		polyDir.y = 0.0f; polyDir.Normalize();
+		float YRot = acos(polyDir.Dot(axisDir));
+		if (CVector2(polyDir.x, polyDir.z).Cross(CVector2(axisDir.x, axisDir.z)) > 0.0f) {
+			if (z > 0.0f) {
+				x += ((YRot) / CMath::PI2 * m_partNumX);
+			}
+			else {
+				x += (m_partNumX - (YRot) / CMath::PI2 * m_partNumX);
+			}
+		}
+		else {
+			if (z > 0.0f) {
+				x += (m_partNumX - (YRot) / CMath::PI2 * m_partNumX);
+			}
+			else {
+				x += ((YRot) / CMath::PI2 * m_partNumX);
+			}
+		}		
+
+		//モデルに設定
+		m_billboard.GetModel().GetSkinModel().SetImposterIndex(x,y);
+		CQuaternion zRot; zRot.SetRotation(CVector3::AxisZ(), z);
+		SetRot(zRot);
+	}
+}
 }
