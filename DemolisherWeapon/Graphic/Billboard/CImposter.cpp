@@ -16,6 +16,14 @@ namespace GameObj {
 		m_gbufferSizeX = (UINT)resolution.x; m_gbufferSizeY = (UINT)resolution.y;
 		m_partNumX = (UINT)partNum.x; m_partNumY = (UINT)partNum.y;
 
+		//配列確保
+		m_fronts.clear();
+		m_ups.clear();
+		m_fronts.resize(m_partNumY);
+		m_ups.resize(m_partNumY);
+		m_fronts.shrink_to_fit();
+		m_ups.shrink_to_fit();
+
 		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
 
 		//テクスチャ作成
@@ -164,7 +172,8 @@ namespace GameObj {
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSGetViewports(&kaz, &beforeViewport);
 
 		//モデル描画
-		CQuaternion rot;
+		int indY = 0;
+		CQuaternion rotY, rotX, rotM;
 		viewport.Width = (float)m_gbufferSizeX / m_partNumX;
 		viewport.Height = (float)m_gbufferSizeY / m_partNumY;
 		viewport.TopLeftY = 0;
@@ -174,18 +183,22 @@ namespace GameObj {
 				//ビューポート縦にずらす
 				viewport.TopLeftX = 0;
 				if (i != 0) { viewport.TopLeftY += viewport.Height; }
+				
+				//横回転リセット
+				rotY = CQuaternion::Identity();
+				rotY.SetRotation(CVector3::AxisY(), CMath::PI*-1.0f);
+
 				//縦回転進める
-				rot = CQuaternion::Identity();
-				rot.GetRotation(CVector3::AxisY(), CMath::PI*-1.0f);// *-0.5f);
-				float angle = CMath::PI / (m_partNumY - 1) * ((i + m_partNumX * 0) / m_partNumX);				
-				rot.Multiply(CQuaternion(CVector3::AxisX(), CMath::PI*-0.5f + angle));
-				//if (angle > CMath::PI*0.5f) {
-				//	rot.Multiply(CQuaternion(CVector3::AxisZ(), CMath::PI));
-				//}
+				float angle = CMath::PI / (m_partNumY - 1) * (i / m_partNumX);				
+				rotX.SetRotation(CVector3::AxisX(), CMath::PI*-0.5f + angle);
+
+				//インデックス進める
+				if (i != 0) { indY++; }
 			}
 
 			//モデルの回転	
-			model.UpdateWorldMatrix(0.0f, rot, 1.0f);
+			rotM.Concatenate(rotY, rotX);
+			model.UpdateWorldMatrix(0.0f, rotM, 1.0f);
 		
 			//ビューポート設定
 			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &viewport);			
@@ -193,10 +206,20 @@ namespace GameObj {
 			//モデル描画
 			model.Draw();
 
+			//上方向と前方向保存
+			CVector3 impFront = CVector3::AxisZ(), impUp = CVector3::AxisY();//インポスタの前方向と上方向
+			rotM.Multiply(impFront);
+			rotM.Multiply(impUp);
+			//impFront.x *= -1.0f;
+			//impUp.x *= -1.0f;
+			m_fronts[indY].emplace_back(impFront);
+			m_ups[indY].emplace_back(impUp);
+
 			//ビューポート横にずらす
 			viewport.TopLeftX += viewport.Width;				
+			
 			//横回転進める
-			rot.Concatenate(CQuaternion(CVector3::AxisY(), CMath::PI2 / (m_partNumX - 1)));
+			rotY.Concatenate(CQuaternion(CVector3::AxisY(), CMath::PI2 / (m_partNumX - 1)));
 		}
 
 		//ビューポート戻す
@@ -227,9 +250,9 @@ namespace GameObj {
 		int x = 0, y = 0;
 		float z = 0.0f;
 
-		CVector3 polyDir = { 0.0f,0.0f,1.0f };
+		CVector3 polyDir = { 0.0f,0.0f,-1.0f };
 		GameObj::CBillboard::GetBillboardQuaternion().Multiply(polyDir);
-		polyDir = m_billboard.GetPos() - GetMainCamera()->GetPos();
+		//polyDir = GetMainCamera()->GetPos() - m_billboard.GetPos();
 		polyDir.Normalize();
 
 		CVector3 axisDir;
@@ -245,15 +268,19 @@ namespace GameObj {
 		toueiV3D += impUp * toueiV.y;
 		toueiV3D.Normalize();
 
+
+		toueiV3D = polyDir;
+		impFront = polyDir; impFront.y = 0; impFront.Normalize();
+
+		toueiV.x = impFront.Length(); toueiV.y = polyDir.y; toueiV.Normalize();
+
 		//X軸回転
 		float XRot = acos(toueiV3D.Dot(impFront));
 		if (CVector2(toueiV.x, toueiV.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はimpFront
-			x = CMath::PI / CMath::PI2 * m_partNumX;
-			y = -(int)m_partNumY + (XRot) / CMath::PI * m_partNumY;
-			z = CMath::PI;
+			y = -XRot / CMath::PI * m_partNumY - (int)(m_partNumY / 2.0f + 0.5f);
 		}
 		else {
-			y = -(XRot) / CMath::PI * m_partNumY;
+			y = XRot / CMath::PI * m_partNumY - (int)(m_partNumY / 2.0f + 0.5f);
 		}
 
 		//Y軸回転		
@@ -261,21 +288,21 @@ namespace GameObj {
 		polyDir.y = 0.0f; polyDir.Normalize();
 		float YRot = acos(polyDir.Dot(axisDir));
 		if (CVector2(polyDir.x, polyDir.z).Cross(CVector2(axisDir.x, axisDir.z)) > 0.0f) {
-			if (z > 0.0f) {
-				x += ((YRot) / CMath::PI2 * m_partNumX);
-			}
-			else {
-				x += (m_partNumX - (YRot) / CMath::PI2 * m_partNumX);
-			}
+			x += -YRot / CMath::PI2 * m_partNumX + (int)(m_partNumX / 2.0f + 0.5f);
 		}
 		else {
-			if (z > 0.0f) {
-				x += (m_partNumX - (YRot) / CMath::PI2 * m_partNumX);
+			x += YRot / CMath::PI2 * m_partNumX + (int)(m_partNumX / 2.0f + 0.5f);
+		}
+
+		/*float distance = -1.0f;
+		for (int indy = 0; indy < m_partNumY; indy++) {
+			for (int indx = 0; indx < m_partNumX; indx++) {
+				if (distance < 0.0f || distance >(polyDir - m_fronts[indy][indx]).Length() + ( - m_ups[indy][indx]).Length()) {
+					distance = (polyDir - m_fronts[indy][indx]).Length() + ( - m_ups[indy][indx]).Length();
+					x = indx, y = indy;
+				}
 			}
-			else {
-				x += ((YRot) / CMath::PI2 * m_partNumX);
-			}
-		}		
+		}*/
 
 		//モデルに設定
 		m_billboard.GetModel().GetSkinModel().SetImposterIndex(x,y);

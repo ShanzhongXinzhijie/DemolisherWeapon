@@ -59,6 +59,7 @@ namespace GameObj {
 		};
 		UINT m_gbufferSizeX = 0, m_gbufferSizeY = 0;
 		UINT m_partNumX = 0, m_partNumY = 0;
+		std::vector<std::vector<CVector3>> m_fronts, m_ups;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D>				m_GBufferTex[enGBufferNum];	//GBufferテクスチャ
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView>		m_GBufferView[enGBufferNum];//GBufferビュー
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_GBufferSRV[enGBufferNum];	//GBufferSRV
