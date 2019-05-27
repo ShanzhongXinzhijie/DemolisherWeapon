@@ -73,6 +73,7 @@ cbuffer VSPSCb : register(b0){
 	//4 bytes auto padding.
 
 	//インポスター用インデックス
+	int2 imposterPartNum;
 	int2 imposterIndex;
 };
 

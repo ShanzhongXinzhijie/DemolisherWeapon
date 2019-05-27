@@ -81,10 +81,10 @@ private:
 		int numInterfaces = 0;
 		ID3D11ClassInstance** dynamicLinkageArray = nullptr;
 	};
-	typedef std::unique_ptr<SShaderResource>	SShaderResourcePtr;
+	typedef std::unique_ptr<SShaderResource> SShaderResourcePtr;
 	typedef std::unique_ptr<SShaderProgram>	SShaderProgramPtr;
-	std::map<int, SShaderProgramPtr>		m_shaderProgramMap;		//!<読み込み済みのシェーダープログラムのマップ。
-	std::map<int, SShaderResourcePtr>	m_shaderResourceMap;	//!<シェーダーリソースのマップ。
+	std::unordered_map<int, SShaderProgramPtr>	m_shaderProgramMap;		//!<読み込み済みのシェーダープログラムのマップ。
+	std::unordered_map<int, SShaderResourcePtr>	m_shaderResourceMap;	//!<シェーダーリソースのマップ。
 
 	ID3D11ClassLinkage* pClassLinkage = nullptr;//クラス リンク オブジェクト
 };

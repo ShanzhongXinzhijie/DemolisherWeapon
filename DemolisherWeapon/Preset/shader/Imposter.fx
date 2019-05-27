@@ -38,24 +38,22 @@ PSOutput_RenderImposter PSMain_RenderImposter(PSInput In)
 PSOutput_RenderGBuffer PSMain_ImposterRenderGBuffer(PSInput In)
 {
 	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
+
+	/*
 #if ALBEDO_MAP && NORMAL_MAP
 	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset);
 #endif
-
 	if (In.TexCoord.x < 0.01f || In.TexCoord.x > 1.0f - 0.01f || -In.TexCoord.y < 0.01f || -In.TexCoord.y > 1.0f - 0.01f) {
 		Out.albedo = float4(-In.TexCoord.y, 0, 0, 1);
 		return Out;
 	}
-
-	const uint m_partNumX = 15;//íËêîÇ…Ç∑ÇÈ
-	const uint m_partNumY = 15;
+	*/
 	
-	In.TexCoord.x /= m_partNumX;
-	In.TexCoord.y /= m_partNumY;
+	In.TexCoord.x /= imposterPartNum.x;
+	In.TexCoord.y /= imposterPartNum.y;
 
-	In.TexCoord.x += (1.0f / m_partNumX) * imposterIndex.x;
-	In.TexCoord.y += (1.0f / m_partNumY) * imposterIndex.y;
-
+	In.TexCoord.x += (1.0f / imposterPartNum.x) * imposterIndex.x;
+	In.TexCoord.y += (1.0f / imposterPartNum.y) * imposterIndex.y;
 
 #if ALBEDO_MAP && NORMAL_MAP
 	if(Out.albedo.a < 0.1f)

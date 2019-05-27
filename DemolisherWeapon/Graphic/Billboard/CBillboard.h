@@ -8,7 +8,7 @@ namespace GameObj{
 		CBillboard();
 		~CBillboard();
 
-		void Update()override;
+		void PostLoopUpdate()override;
 
 	public:
 		/// <summary>

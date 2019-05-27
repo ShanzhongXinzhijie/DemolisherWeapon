@@ -2,27 +2,19 @@
 #include "CImposter.h"
 
 namespace DemolisherWeapon {
-namespace GameObj {
+	ImposterTexBank* ImposterTexBank::instance = nullptr;
 
-	void CImposter::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
-		SkinModel model;
-		model.Init(filepath);
-		model.UpdateWorldMatrix(0.0f,CQuaternion::Identity(),1.0f);
-		Init(model, resolution, partNum);
-	}
-
-	void CImposter::Init(SkinModel& model, const CVector2& resolution, const CVector2& partNum) {
-
+	void ImposterTexRender::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
 		m_gbufferSizeX = (UINT)resolution.x; m_gbufferSizeY = (UINT)resolution.y;
 		m_partNumX = (UINT)partNum.x; m_partNumY = (UINT)partNum.y;
 
 		//配列確保
-		m_fronts.clear();
+		/*m_fronts.clear();
 		m_ups.clear();
 		m_fronts.resize(m_partNumY);
 		m_ups.resize(m_partNumY);
 		m_fronts.shrink_to_fit();
-		m_ups.shrink_to_fit();
+		m_ups.shrink_to_fit();*/
 
 		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
 
@@ -68,21 +60,15 @@ namespace GameObj {
 		dsv_desc.Format = DXGI_FORMAT_D32_FLOAT;
 		dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 		ge.GetD3DDevice()->CreateDepthStencilView(m_depthStencilTex.Get(), &dsv_desc, m_depthStencilView.ReleaseAndGetAddressOf());
-	
+
 		//Gバッファ出力ピクセルシェーダ
 		m_imposterPS.Load("Preset/shader/Imposter.fx", "PSMain_RenderImposter", Shader::EnType::PS);
 
-		//ビルボード
-		m_billboard.Init(m_GBufferSRV[enGBufferAlbedo].Get());
-		m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
-		m_billboard.GetModel().GetSkinModel().FindMaterialSetting(
-			[&](MaterialSetting* mat) {
-				mat->SetNormalTexture(m_GBufferSRV[enGBufferNormal].Get());
-				mat->SetLightingTexture(m_GBufferSRV[enGBufferLightParam].Get());
-				mat->SetPS(&m_billboardPS);
-			}
-		);
-
+		//モデル読み込み
+		SkinModel model;
+		model.Init(filepath);
+		model.UpdateWorldMatrix(0.0f, CQuaternion::Identity(), 1.0f);
+		
 		//バウンディングボックスからモデルのサイズを求める
 		m_imposterMaxSize = 0.0f;
 		model.FindMeshes(
@@ -93,12 +79,12 @@ namespace GameObj {
 				size = meshes->boundingBox.Center;
 				size += extents;
 				size.Abs();
-				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y,max(size.x, size.z)));
+				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y, max(size.x, size.z)));
 
 				size = meshes->boundingBox.Center;
 				size -= extents;
 				size.Abs();
-				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y,max(size.x, size.z)));
+				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y, max(size.x, size.z)));
 			}
 		);
 
@@ -118,16 +104,17 @@ namespace GameObj {
 		SetMainCamera(&imposterCam);
 
 		//インポスタの作成
-		RenderImposter(model);
+		Render(model);
 
 		//カメラ戻す
 		SetMainCamera(beforeCam);
 
-		//スケール初期化
-		SetScale(1.0f);
+		//デプスステンシルの削除
+		m_depthStencilView.Reset();
+		m_depthStencilTex.Reset();
 	}
 
-	void CImposter::RenderImposter(SkinModel& model) {
+	void ImposterTexRender::Render(SkinModel& model) {
 		//GPUイベントの開始
 		GetGraphicsEngine().BeginGPUEvent(L"RenderImposter");
 
@@ -161,7 +148,7 @@ namespace GameObj {
 				mat->SetPS(&m_imposterPS);
 			}
 		);
-		
+
 		//ビューポート
 		D3D11_VIEWPORT viewport;
 		viewport.MinDepth = 0.0f;
@@ -183,13 +170,13 @@ namespace GameObj {
 				//ビューポート縦にずらす
 				viewport.TopLeftX = 0;
 				if (i != 0) { viewport.TopLeftY += viewport.Height; }
-				
+
 				//横回転リセット
 				rotY = CQuaternion::Identity();
 				rotY.SetRotation(CVector3::AxisY(), CMath::PI*-1.0f);
 
 				//縦回転進める
-				float angle = CMath::PI / (m_partNumY - 1) * (i / m_partNumX);				
+				float angle = CMath::PI / (m_partNumY - 1) * (i / m_partNumX);
 				rotX.SetRotation(CVector3::AxisX(), CMath::PI*-0.5f + angle);
 
 				//インデックス進める
@@ -199,25 +186,25 @@ namespace GameObj {
 			//モデルの回転	
 			rotM.Concatenate(rotY, rotX);
 			model.UpdateWorldMatrix(0.0f, rotM, 1.0f);
-		
+
 			//ビューポート設定
-			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &viewport);			
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &viewport);
 
 			//モデル描画
 			model.Draw();
 
 			//上方向と前方向保存
-			CVector3 impFront = CVector3::AxisZ(), impUp = CVector3::AxisY();//インポスタの前方向と上方向
-			rotM.Multiply(impFront);
-			rotM.Multiply(impUp);
-			//impFront.x *= -1.0f;
-			//impUp.x *= -1.0f;
-			m_fronts[indY].emplace_back(impFront);
-			m_ups[indY].emplace_back(impUp);
+			//CVector3 impFront = CVector3::AxisZ(), impUp = CVector3::AxisY();//インポスタの前方向と上方向
+			//rotM.Multiply(impFront);
+			//rotM.Multiply(impUp);
+			////impFront.x *= -1.0f;
+			////impUp.x *= -1.0f;
+			//m_fronts[indY].emplace_back(impFront);
+			//m_ups[indY].emplace_back(impUp);
 
 			//ビューポート横にずらす
-			viewport.TopLeftX += viewport.Width;				
-			
+			viewport.TopLeftX += viewport.Width;
+
 			//横回転進める
 			rotY.Concatenate(CQuaternion(CVector3::AxisY(), CMath::PI2 / (m_partNumX - 1)));
 		}
@@ -245,42 +232,77 @@ namespace GameObj {
 		GetGraphicsEngine().EndGPUEvent();
 	}
 
-	void CImposter::Update() {
+	ImposterTexRender* ImposterTexBank::Load(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
+		int index = Util::MakeHash(filepath);
+		if (m_impTexMap.count(index) > 0) {
+			//もうある
+			return m_impTexMap[index];
+		}
+		else {
+			//つくる
+			ImposterTexRender* ptr = new ImposterTexRender;
+			ptr->Init(filepath, resolution, partNum);
+			m_impTexMap.emplace(index, ptr);
+			return ptr;
+		}
+	}
+
+	void ImposterTexBank::Release() {
+		for (auto& T : m_impTexMap) {
+			delete T.second;
+		}
+		m_impTexMap.clear();
+	}
+
+namespace GameObj {
+
+	void CImposter::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
+		//テクスチャ生成
+		m_texture = ImposterTexBank::GetInstance().Load(filepath, resolution, partNum);
+
+		//ビルボード
+		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo));
+		m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
+		m_billboard.GetModel().GetSkinModel().FindMaterialSetting(
+			[&](MaterialSetting* mat) {
+				mat->SetNormalTexture(m_texture->GetSRV(ImposterTexRender::enGBufferNormal));
+				mat->SetLightingTexture(m_texture->GetSRV(ImposterTexRender::enGBufferLightParam));
+				mat->SetPS(&m_billboardPS);
+			}
+		);
+		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
+
+		//スケール初期化
+		SetScale(1.0f);
+
+		m_isInit = true;
+	}
+
+	void CImposter::PostLoopUpdate() {
+		if (!m_isInit) { return; }
+
 		//インポスター用インデックス計算
 		int x = 0, y = 0;
-		float z = 0.0f;
+		//float z = 0.0f;
 
-		CVector3 polyDir = { 0.0f,0.0f,-1.0f };
+		CVector3 polyDir;
+		polyDir += { 0.0f,0.0f,-1.0f };
 		GameObj::CBillboard::GetBillboardQuaternion().Multiply(polyDir);
-		//polyDir = GetMainCamera()->GetPos() - m_billboard.GetPos();
 		polyDir.Normalize();
+		/*polyDir += (GetMainCamera()->GetPos() - m_billboard.GetPos()).GetNorm();
+		polyDir.Normalize();*/
 
 		CVector3 axisDir;
 
-		CVector3 impFront = CVector3::AxisZ(), impUp = CVector3::AxisY();//インポスタの前方向と上方向
-		//↑の空間に投影したポリゴン方向(2D
-		CVector3 toueiV;
-		toueiV.x = impFront.Dot(polyDir);
-		toueiV.y = impUp.Dot(polyDir);
-
-		CVector3 toueiV3D;
-		toueiV3D += impFront * toueiV.x;
-		toueiV3D += impUp * toueiV.y;
-		toueiV3D.Normalize();
-
-
-		toueiV3D = polyDir;
-		impFront = polyDir; impFront.y = 0; impFront.Normalize();
-
-		toueiV.x = impFront.Length(); toueiV.y = polyDir.y; toueiV.Normalize();
-
 		//X軸回転
-		float XRot = acos(toueiV3D.Dot(impFront));
-		if (CVector2(toueiV.x, toueiV.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はimpFront
-			y = -XRot / CMath::PI * m_partNumY - (int)(m_partNumY / 2.0f + 0.5f);
+		axisDir = polyDir;
+		axisDir.y = 0; axisDir.Normalize();
+		float XRot = acos(polyDir.Dot(axisDir));
+		if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はaxisDir
+			y = (int)std::round(-XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
 		}
 		else {
-			y = XRot / CMath::PI * m_partNumY - (int)(m_partNumY / 2.0f + 0.5f);
+			y = (int)std::round(XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
 		}
 
 		//Y軸回転		
@@ -288,10 +310,10 @@ namespace GameObj {
 		polyDir.y = 0.0f; polyDir.Normalize();
 		float YRot = acos(polyDir.Dot(axisDir));
 		if (CVector2(polyDir.x, polyDir.z).Cross(CVector2(axisDir.x, axisDir.z)) > 0.0f) {
-			x += -YRot / CMath::PI2 * m_partNumX + (int)(m_partNumX / 2.0f + 0.5f);
+			x += (int)std::round(-YRot / CMath::PI2 * m_texture->GetPartNumX()) + (int)(m_texture->GetPartNumX() / 2.0f - 0.5f);
 		}
 		else {
-			x += YRot / CMath::PI2 * m_partNumX + (int)(m_partNumX / 2.0f + 0.5f);
+			x += (int)std::round(YRot / CMath::PI2 * m_texture->GetPartNumX()) + (int)(m_texture->GetPartNumX() / 2.0f - 0.5f);
 		}
 
 		/*float distance = -1.0f;
@@ -306,8 +328,8 @@ namespace GameObj {
 
 		//モデルに設定
 		m_billboard.GetModel().GetSkinModel().SetImposterIndex(x,y);
-		CQuaternion zRot; zRot.SetRotation(CVector3::AxisZ(), z);
-		SetRot(zRot);
+		//CQuaternion zRot; zRot.SetRotation(CVector3::AxisZ(), z);
+		//SetRot(zRot);
 	}
 }
 }

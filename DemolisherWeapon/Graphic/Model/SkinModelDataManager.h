@@ -1,5 +1,4 @@
 #pragma once
-#include <map>
 
 namespace DemolisherWeapon {
 
@@ -24,7 +23,7 @@ public:
 private:
 	//ファイルパスをキー、DirectXModelのインスタンスを値とするマップ。
 	//辞書みたいなものです。
-	std::map< 
+	std::unordered_map<
 		std::wstring,					//wstringがキー。 
 		std::unique_ptr<DirectX::Model>	//これが値。
 	> m_directXModelMap;

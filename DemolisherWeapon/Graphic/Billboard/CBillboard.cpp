@@ -64,7 +64,7 @@ namespace GameObj {
 		m_isInit = true;
 	}
 
-	void CBillboard::Update() {
+	void CBillboard::PostLoopUpdate() {
 		if (!m_isInit) { return; }
 
 		//ˆÊ’u“™XV

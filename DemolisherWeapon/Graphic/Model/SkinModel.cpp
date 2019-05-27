@@ -194,6 +194,8 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	
 	vsCb.imposterIndex[0] = m_imposterIndex[0];
 	vsCb.imposterIndex[1] = m_imposterIndex[1];
+	vsCb.imposterPartNum[0] = m_imposterPartNum[0];
+	vsCb.imposterPartNum[1] = m_imposterPartNum[1];
 
 	//定数バッファ更新
 	d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);

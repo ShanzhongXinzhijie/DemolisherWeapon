@@ -168,6 +168,15 @@ public:
 		m_imposterIndex[0] = x;
 		m_imposterIndex[1] = y;
 	}
+	/// <summary>
+	/// インポスターの枚数を設定
+	/// </summary>
+	/// <param name="x">横の枚数</param>
+	/// <param name="y">縦の枚数</param>
+	void SetImposterPartNum(int x, int y) {
+		m_imposterPartNum[0] = x;
+		m_imposterPartNum[1] = y;
+	}
 
 	//インスタンス数を設定
 	void SetInstanceNum(int num) {
@@ -231,6 +240,7 @@ private:
 		float padding = 0.0f;
 
 		//インポスター用インデックス
+		int imposterPartNum[2];
 		int imposterIndex[2];
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
@@ -254,7 +264,9 @@ private:
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
 	float m_depthBias = 0.0f;//深度値バイアス
 	
-	int m_imposterIndex[2] = {};//インポスター用インデックス
+	//インポスター用インデックス
+	int m_imposterPartNum[2] = {};
+	int m_imposterIndex[2] = {};
 
 	int m_instanceNum = 1;//インスタンス数
 
