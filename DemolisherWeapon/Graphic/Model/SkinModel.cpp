@@ -146,7 +146,13 @@ void SkinModel::CalcWorldMatrix(const CVector3& position, const CQuaternion& rot
 	//‡”Ô‚ğŠÔˆá‚¦‚½‚çŒ‹‰Ê‚ª•Ï‚í‚é‚æB
 	CMatrix mat;
 	returnWorldMatrix.MakeScaling(scale);//Šg‘å
-	mat.MakeRotationFromQuaternion(rotation);//‰ñ“]
+	if (m_isBillboard) {
+		//ƒrƒ‹ƒ{[ƒh—p‚Ì‰ñ“]
+		mat.MakeRotationFromQuaternion(CBillboard::GetBillboardQuaternion()*rotation);
+	}
+	else {
+		mat.MakeRotationFromQuaternion(rotation);//‰ñ“]
+	}
 	returnWorldMatrix.Mul(returnWorldMatrix, mat);//Šg‘å~‰ñ“]
 	mat.MakeTranslation(position);//•½sˆÚ“®
 	returnWorldMatrix.Mul(returnWorldMatrix, mat);//(Šg‘å~‰ñ“])~•½sˆÚ“®

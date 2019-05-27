@@ -179,7 +179,7 @@ namespace GameObj {
 		//テクスチャ
 		ImposterTexRender* m_texture = nullptr;
 		//ビルボード
-		GameObj::CBillboard m_billboard;
+		CBillboard m_billboard;
 		SkinModelEffectShader m_billboardPS;
 		CVector3 m_scale;
 	};

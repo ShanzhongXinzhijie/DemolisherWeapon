@@ -160,6 +160,14 @@ public:
 	}
 
 	/// <summary>
+	/// ビルボードであるか設定
+	/// </summary>
+	/// <param name="enable">ビルボードか？</param>
+	void SetIsBillboard(bool enable) {
+		m_isBillboard = enable;
+	}
+
+	/// <summary>
 	/// インポスター用インデックスを設定
 	/// </summary>
 	/// <param name="x">横インデックス</param>
@@ -264,6 +272,8 @@ private:
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
 	float m_depthBias = 0.0f;//深度値バイアス
 	
+	bool m_isBillboard = false;//ビルボードか？
+
 	//インポスター用インデックス
 	int m_imposterPartNum[2] = {};
 	int m_imposterIndex[2] = {};

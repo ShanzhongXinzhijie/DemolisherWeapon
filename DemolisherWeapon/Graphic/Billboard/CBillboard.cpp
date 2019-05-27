@@ -2,7 +2,7 @@
 #include "CBillboard.h"
 
 namespace DemolisherWeapon {
-namespace GameObj {
+//namespace GameObj {
 	CBillboard::CBillboard()
 	{
 	}
@@ -60,23 +60,26 @@ namespace GameObj {
 			}
 		);
 
+		//ビルボードであると設定
+		modelPtr->GetSkinModel().SetIsBillboard(true);
+
 		//初期化完了
 		m_isInit = true;
 	}
 
-	void CBillboard::PostLoopUpdate() {
-		if (!m_isInit) { return; }
+	//void CBillboard::PostLoopUpdate() {
+	//	if (!m_isInit) { return; }
 
-		//位置等更新
-		CQuaternion q = GetBillboardQuaternion();
-		q.Multiply(m_rot);
-		if (m_isIns) {
-			m_insModel.SetRot(q);
-		}
-		else {
-			m_model.SetRot(q);
-		}
-	}
+	//	//位置等更新
+	//	CQuaternion q = GetBillboardQuaternion();
+	//	q.Multiply(m_rot);
+	//	if (m_isIns) {
+	//		m_insModel.SetRot(q);
+	//	}
+	//	else {
+	//		m_model.SetRot(q);
+	//	}
+	//}
 
 	CQuaternion CBillboard::GetBillboardQuaternion() {
 		CQuaternion q;
@@ -89,5 +92,5 @@ namespace GameObj {
 		m.Inverse();
 		return m;
 	}
-}
+//}
 }

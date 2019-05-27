@@ -1,14 +1,14 @@
 #pragma once
 
 namespace DemolisherWeapon {
-namespace GameObj{
-	class CBillboard : public IGameObject
+//namespace GameObj{
+	class CBillboard //: public IGameObject
 	{
 	public:
 		CBillboard();
 		~CBillboard();
 
-		void PostLoopUpdate()override;
+		//void PostLoopUpdate()override;
 
 	public:
 		/// <summary>
@@ -93,5 +93,5 @@ namespace GameObj{
 		GameObj::CInstancingModelRender m_insModel;
 		CQuaternion m_rot;
 	};
-}
+//}
 }

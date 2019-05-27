@@ -287,7 +287,7 @@ namespace GameObj {
 
 		CVector3 polyDir;
 		polyDir += { 0.0f,0.0f,-1.0f };
-		GameObj::CBillboard::GetBillboardQuaternion().Multiply(polyDir);
+		CBillboard::GetBillboardQuaternion().Multiply(polyDir);
 		polyDir.Normalize();
 		/*polyDir += (GetMainCamera()->GetPos() - m_billboard.GetPos()).GetNorm();
 		polyDir.Normalize();*/
