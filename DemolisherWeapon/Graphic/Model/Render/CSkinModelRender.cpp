@@ -1,8 +1,6 @@
 #include "DWstdafx.h"
 #include "CSkinModelRender.h"
 
-#define DEPTH_BIAS_D32_FLOAT(d) (d/(1/pow(2,23))) 
-
 namespace DemolisherWeapon {
 namespace GameObj {
 

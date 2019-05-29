@@ -174,6 +174,10 @@ namespace GameObj {
 		bool m_isInit = false;
 		//テクスチャ
 		ImposterTexRender* m_texture = nullptr;
+		//ラスタライザーステート
+		//デプスバイアス用...
+		//Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_depthRSCw;
+		//Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_depthRSCCw;
 		//ビルボード
 		CBillboard m_billboard;
 		SkinModelEffectShader m_billboardPS;

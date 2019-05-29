@@ -92,6 +92,7 @@ namespace DemolisherWeapon {
 		imposterCam.SetPos({ 0.0f,0.0f,CVector3(m_imposterMaxSize).Length() + 100.0f });
 		imposterCam.SetTarget(CVector3::Zero());
 		imposterCam.SetUp(CVector3::Up());
+		imposterCam.SetFar((CVector3(m_imposterMaxSize).Length() + 100.0f)*2.0f);
 		//※このカメラは手動で更新する...
 		imposterCam.UpdateMatrix();
 
@@ -265,7 +266,22 @@ namespace GameObj {
 				mat->SetPS(&m_billboardPS);
 			}
 		);
+		//分割数設定
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
+		//ラスタライザーステート
+		/*
+		D3D11_RASTERIZER_DESC desc = {};
+		desc.CullMode = D3D11_CULL_FRONT;
+		desc.FillMode = D3D11_FILL_SOLID;
+		desc.DepthClipEnable = true;
+		desc.MultisampleEnable = true;
+		desc.DepthBias = -(INT)DEPTH_BIAS_D32_FLOAT(m_texture->GetModelSize() / GetMainCamera()->GetFar());
+		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, m_depthRSCw.ReleaseAndGetAddressOf());
+		desc.CullMode = D3D11_CULL_BACK;
+		desc.FillMode = D3D11_FILL_SOLID;
+		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, m_depthRSCCw.ReleaseAndGetAddressOf());
+		m_billboard.GetModel().GetSkinModel().SetRasterizerState(m_depthRSCw.Get(), m_depthRSCCw.Get());
+		*/
 
 		//スケール初期化
 		SetScale(1.0f);
@@ -283,15 +299,8 @@ namespace GameObj {
 
 		CVector3 polyDir;
 		polyDir += { 0.0f,0.0f,-1.0f };
-		GetMainCamera()->GetBillboardQuaternion().Multiply(polyDir);
+		GetMainCamera()->GetBillboardQuaternion(m_pos).Multiply(polyDir);
 		polyDir.Normalize();
-		
-		/*CVector3 prePolyDir;
-		prePolyDir += (GetMainCamera()->GetPos() - m_billboard.GetPos()).GetNorm();
-		prePolyDir.Normalize();*/
-
-		//polyDir += prePolyDir; polyDir.Normalize();
-		//polyDir = prePolyDir;
 
 		CVector3 axisDir;
 
@@ -330,12 +339,13 @@ namespace GameObj {
 
 		//モデルに設定
 		m_billboard.GetModel().GetSkinModel().SetImposterIndex(x,y);
-		
+		/*
 		CVector3 bias = GetMainCamera()->GetPos() - m_pos;// GetMainCamera()->GetTarget();
 		bias.Normalize();
-		bias *= m_texture->GetModelSize();
+		bias *= m_scale*m_texture->GetModelSize();
 		m_billboard.SetPos(m_pos + bias);
-		//m_billboard.SetPos(m_pos);
+		*/
+		m_billboard.SetPos(m_pos);
 
 		//CQuaternion zRot; zRot.SetRotation(CVector3::AxisZ(), z);
 		//SetRot(zRot);

@@ -3,7 +3,6 @@
  */
 #pragma once
 
-
 class Util{
 public:
 	/*!
@@ -39,3 +38,6 @@ public:
 	}
 };
 
+//ラスタライザーのDepthBias用
+//0.0～1.0の深度値をD32_FLOATの深度値に変換
+#define DEPTH_BIAS_D32_FLOAT(d) (d/(1/pow(2,23))) 
