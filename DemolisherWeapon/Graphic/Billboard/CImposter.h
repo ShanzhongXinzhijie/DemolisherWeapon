@@ -137,33 +137,33 @@ namespace GameObj {
 		void SetPos(const CVector3& pos) {
 			m_pos = pos;
 		}
-		void SetRot(const CQuaternion& rot) {
+		/*void SetRot(const CQuaternion& rot) {
 			m_billboard.SetRot(rot);
-		}
-		void SetScale(const CVector3& scale) {
+		}*/
+		void SetScale(float scale) {
 			m_billboard.SetScale(scale*(m_texture->GetModelSize()*2.0f));
 			m_scale = scale;
 		}
-		void SetPRS(const CVector3& pos, const CQuaternion& rot, const CVector3& scale) {
+		/*void SetPRS(const CVector3& pos, const CQuaternion& rot, float scale) {
 			SetPos(pos);
 			SetRot(rot);
 			SetScale(scale);
-		}
+		}*/
 		//座標・回転・拡大の取得
 		const CVector3& GetPos() const {
 			return m_pos;
 		}
-		const CQuaternion& GetRot() const {
+		/*const CQuaternion& GetRot() const {
 			return m_billboard.GetRot();
-		}
-		const CVector3& GetScale() const {
+		}*/
+		float GetScale() const {
 			return m_scale;
 		}
-		void GetPRS(CVector3* pos, CQuaternion* rot, CVector3* scale) const {
+		/*void GetPRS(CVector3* pos, CQuaternion* rot, CVector3* scale) const {
 			*pos = GetPos();
 			*rot = GetRot();
 			*scale = GetScale();
-		}
+		}*/
 
 		//描画するか設定
 		void SetIsDraw(bool flag) {
@@ -181,7 +181,8 @@ namespace GameObj {
 		//ビルボード
 		CBillboard m_billboard;
 		SkinModelEffectShader m_billboardPS;
-		CVector3 m_pos, m_scale;
+		CVector3 m_pos;
+		float m_scale = 1.0f;
 	};
 }
 }

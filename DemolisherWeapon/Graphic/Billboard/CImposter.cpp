@@ -275,7 +275,7 @@ namespace GameObj {
 		desc.FillMode = D3D11_FILL_SOLID;
 		desc.DepthClipEnable = true;
 		desc.MultisampleEnable = true;
-		desc.DepthBias = -(INT)DEPTH_BIAS_D32_FLOAT(m_texture->GetModelSize() / GetMainCamera()->GetFar());
+		desc.DepthBias = -(INT)DEPTH_BIAS_D32_FLOAT(m_texture->GetModelSize() / (GetMainCamera()->GetFar()-GetMainCamera()->GetNear()));
 		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, m_depthRSCw.ReleaseAndGetAddressOf());
 		desc.CullMode = D3D11_CULL_BACK;
 		desc.FillMode = D3D11_FILL_SOLID;
@@ -339,13 +339,15 @@ namespace GameObj {
 
 		//モデルに設定
 		m_billboard.GetModel().GetSkinModel().SetImposterIndex(x,y);
-		/*
-		CVector3 bias = GetMainCamera()->GetPos() - m_pos;// GetMainCamera()->GetTarget();
+		
+		//カメラ方向にモデルサイズ分座標ずらす
+		//※埋まり防止
+		CVector3 bias = GetMainCamera()->GetPos() - m_pos;
 		bias.Normalize();
 		bias *= m_scale*m_texture->GetModelSize();
 		m_billboard.SetPos(m_pos + bias);
-		*/
-		m_billboard.SetPos(m_pos);
+		
+		//m_billboard.SetPos(m_pos);
 
 		//CQuaternion zRot; zRot.SetRotation(CVector3::AxisZ(), z);
 		//SetRot(zRot);
