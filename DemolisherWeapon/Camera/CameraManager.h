@@ -11,6 +11,16 @@ public:
 	using IQSGameObject::IQSGameObject;
 	virtual ~ICamera();
 
+	void PreLoopUpdate()override {
+		UpdateOldMatrix();
+	};
+	void PostUpdate()override {
+		UpdateMatrix();
+	}
+	//void PostLoopUpdate()override {
+		//CalcMBlurParameter();
+	//}
+
 	//メインカメラに設定されているか設定
 	//ユーザーは使わないでください
 	void SetIsMainCamera(bool isMainCamera) {
@@ -20,8 +30,10 @@ private:
 	bool m_isMainCamera = false;//メインカメラに設定されているか?
 
 private:
+	//行列の更新
 	void UpdateViewMatrix() {
 		m_viewMat.MakeLookAt(m_pos, m_target, m_up);
+		m_needUpdateBillboard = true;//ビルボード行列を更新する必要があるフラグ
 	}
 	virtual void UpdateProjMatrix() = 0;
 
@@ -50,17 +62,10 @@ private:
 	}
 	virtual void CalcMBlurProjMatrix(CMatrix& projMOld, float rate) = 0;
 
-public:
-	void PreLoopUpdate()override {
-		UpdateOldMatrix();
-	};
-	void PostUpdate()override {
-		UpdateMatrix();
-	}
-	//void PostLoopUpdate()override {
-		//CalcMBlurParameter();
-	//}
+	//ビルボード行列・クォータニオンの更新
+	void UpdateBillboard();
 
+public:
 	//カメラ(行列)を更新
 	void UpdateMatrix() {
 		m_change = false;
@@ -71,11 +76,13 @@ public:
 		}
 	};
 
+	//行列の取得
 	const CMatrix& GetProjMatrix() const { return m_projMat; };
 	const CMatrix& GetViewMatrix() const { return m_viewMat; };
 	const CMatrix& GetProjMatrixOld() const { return m_projMatOld; };
 	const CMatrix& GetViewMatrixOld() const { return m_viewMatOld; };
 
+	//パラメータの取得
 	const CVector3& GetPos() const { return m_pos; }
 	const CVector3& GetPosOld() const { return m_posOld; }
 	const CVector3& GetTarget() const { return m_target; }
@@ -107,6 +114,18 @@ public:
 	//const CVector2& screenPos をスクリーン座標で指定する版。右下の座標=画面解像度　
 	CVector3 CalcWorldPosFromScreenPosScreenPos(CVector3 screenPos) ;
 
+	/// <summary>
+	/// ビルボードクォータニオンを取得
+	/// </summary>
+	/// <returns></returns>
+	CQuaternion GetBillboardQuaternion();
+
+	/// <summary>
+	/// ビルボード行列を取得
+	/// </summary>
+	/// <returns></returns>
+	CMatrix GetBillboardMatrix();
+
 protected:
 	bool m_change = true;//変更点あるか
 
@@ -118,6 +137,11 @@ protected:
 	CMatrix m_projMat, m_viewMat;
 	CMatrix m_projMatOld, m_viewMatOld;
 	bool isFirstMatrixUpdate = true;
+
+	//ビルボード行列・クォータニオン
+	CMatrix m_billboardMat;
+	CQuaternion m_billboardQua;
+	bool m_needUpdateBillboard = true;//更新の必要あるか?
 };
 
 //遠近カメラ
@@ -132,9 +156,11 @@ public:
 	//アス比設定
 	void SetAspect(const float v) { m_aspect = v; m_change = true;}
 
+	//視野角の取得
 	float GetFOV()const override {
 		return m_viewAngle;
 	}
+	//アスペクト比の取得
 	float GetAspect() const override {
 		return m_aspect;
 	}
@@ -164,14 +190,19 @@ public:
 	using ICamera::ICamera;
 	virtual ~OrthoCamera() {};
 
+	//視野角の取得
 	float GetFOV()const override {
 		return -1.0f;
 	}
+	//アスペクト比の取得
 	float GetAspect() const override {
 		return m_width / m_height;
 	}
 
-	//プロジェクション行列を求めるために使うパラメータを選択
+	/// <summary>
+	/// プロジェクション行列を求めるために使うパラメータを選択
+	/// </summary>
+	/// <param name="iswidthHeight">幅と高さを使うならtrue, 四隅を設定するならfalse</param>
 	void SetProjMatMode(bool iswidthHeight){
 		m_isWidthHeight = iswidthHeight;
 	}
@@ -183,7 +214,8 @@ public:
 	void SetWidth(const float v) { m_width = v; m_change = true; }
 	void SetHeight(const float v) { m_height = v; m_change = true; }
 
-	float GetWidth()const { 
+	//幅・高さの取得
+	float GetWidth()const {
 		if (m_isWidthHeight) {
 			return m_width;
 		}

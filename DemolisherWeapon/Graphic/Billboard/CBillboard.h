@@ -65,26 +65,42 @@ namespace DemolisherWeapon {
 			*scale = GetScale();
 		}
 
+		//描画するか設定
+		void SetIsDraw(bool isdraw) {
+			if (m_isIns) {
+				m_insModel.SetIsDraw(isdraw);
+			}
+			else {
+				m_model.SetIsDraw(isdraw);
+			}
+		}
+
+		/// <summary>
+		/// インスタンシングモデルか取得
+		/// </summary>
+		/// <returns>インスタンシングモデルか?</returns>
+		bool GetIsInstancing()const {
+			return m_isIns;
+		}
+
 		//モデルの取得
 		GameObj::CSkinModelRender& GetModel() {
-			return m_model;
+			if (m_isIns) {
+				return m_insModel.GetInstancingModel()->GetModelRender();
+			}
+			else {
+				return m_model;
+			}
 		}
-		//インスタンシング版
+		//インスタンシングモデルの取得
 		GameObj::CInstancingModelRender& GetInstancingModel() {
+#ifndef DW_MASTER
+			if (!m_isIns) {
+				OutputDebugStringA("【警告】CBillBoard::GetInstancingModel() ※このビルボードはインスタンシング描画じゃないよ?");
+			}
+#endif
 			return m_insModel;
 		}
-
-		/// <summary>
-		/// ビルボードクォータニオンを取得
-		/// </summary>
-		/// <returns></returns>
-		static CQuaternion GetBillboardQuaternion();
-
-		/// <summary>
-		/// ビルボード行列を取得
-		/// </summary>
-		/// <returns></returns>
-		static CMatrix GetBillboardMatrix();
 
 	private:
 		bool m_isInit = false;

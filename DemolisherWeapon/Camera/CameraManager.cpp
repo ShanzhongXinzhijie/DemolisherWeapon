@@ -101,6 +101,34 @@ CVector3 ICamera::CalcWorldPosFromScreenPosScreenPos(CVector3 screenPos)
 	return worldPos;
 }
 
+void ICamera::UpdateBillboard() {
+	if (!m_needUpdateBillboard) { return; }//更新の必要なし
+
+	m_needUpdateBillboard = false;
+
+	m_billboardMat = GetViewMatrix();
+	m_billboardMat.Inverse();
+
+	//m_billboardQua = CQuaternion::Identity();
+	m_billboardQua.SetRotation(m_billboardMat);
+}
+
+CQuaternion ICamera::GetBillboardQuaternion() {
+	//必要あれば行列更新
+	if (m_change) { UpdateMatrix(); }
+	UpdateBillboard();
+
+	return m_billboardQua;
+}
+
+CMatrix ICamera::GetBillboardMatrix() {
+	//必要あれば行列更新
+	if (m_change) { UpdateMatrix(); }
+	UpdateBillboard();
+
+	return m_billboardMat;
+}
+
 PerspectiveCamera::PerspectiveCamera(bool isRegister) : ICamera(isRegister) {
 	m_aspect = GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W() / GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H();
 }

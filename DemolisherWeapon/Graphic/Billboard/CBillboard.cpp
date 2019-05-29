@@ -81,16 +81,5 @@ namespace DemolisherWeapon {
 	//	}
 	//}
 
-	CQuaternion CBillboard::GetBillboardQuaternion() {
-		CQuaternion q;
-		q.SetRotation(GetBillboardMatrix());
-		return q;
-	}
-
-	CMatrix CBillboard::GetBillboardMatrix() {
-		CMatrix m = GetMainCamera()->GetViewMatrix();
-		m.Inverse();
-		return m;
-	}
 //}
 }
