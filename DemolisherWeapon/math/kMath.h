@@ -36,6 +36,11 @@ public:
 		return t0 + (t1 - t0)*rate;
 	}
 
+	//ˆø”f‚Ì“ñæ‚ğæ“¾
+	static inline float Square(float f) {
+		return f * f;
+	}
+
 	template<typename Ttype>
 	static inline Ttype Clamp(Ttype in, Ttype low, Ttype high) {
 		return min(max(in, low), high);
