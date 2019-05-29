@@ -95,6 +95,7 @@
     <ClInclude Include="Graphic\Billboard\CBillboard.h" />
     <ClInclude Include="Graphic\Billboard\CImposter.h" />
     <ClInclude Include="Graphic\Model\SkinModelEffectShader.h" />
+    <ClInclude Include="Preset\shader\ImposterAtlas.fx" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />

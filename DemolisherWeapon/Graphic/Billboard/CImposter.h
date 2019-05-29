@@ -62,12 +62,7 @@ namespace DemolisherWeapon {
 		UINT m_gbufferSizeX = 0, m_gbufferSizeY = 0;//テクスチャサイズ
 		UINT m_partNumX = 0, m_partNumY = 0;		//テクスチャ分割数
 		//std::vector<std::vector<CVector3>> m_fronts, m_ups;//分割された各テクスチャの前方向と上方向
-
-		//テクスチャ生成用
-		SkinModelEffectShader m_imposterPS;
 		float m_imposterMaxSize;//モデルの大きさ
-		Microsoft::WRL::ComPtr<ID3D11Texture2D>				m_depthStencilTex;			//デプスステンシルテクスチャ
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilView>		m_depthStencilView;			//デプスステンシルビュー
 	};
 
 	/// <summary>
@@ -135,11 +130,12 @@ namespace GameObj {
 		/// <param name="filepath">3Dモデルのファイルパス</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
 		/// <param name="partNum">インポスターテクスチャの分割数 ※奇数を推奨?</param>
-		void Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum);
+		/// <param name="instancingNum">インスタンシング描画数</param>
+		void Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum, int instancingNum = 1);
 		
 		//座標・回転・拡大の設定
 		void SetPos(const CVector3& pos) {
-			m_billboard.SetPos(pos);
+			m_pos = pos;
 		}
 		void SetRot(const CQuaternion& rot) {
 			m_billboard.SetRot(rot);
@@ -155,7 +151,7 @@ namespace GameObj {
 		}
 		//座標・回転・拡大の取得
 		const CVector3& GetPos() const {
-			return m_billboard.GetPos();
+			return m_pos;
 		}
 		const CQuaternion& GetRot() const {
 			return m_billboard.GetRot();
@@ -171,7 +167,7 @@ namespace GameObj {
 
 		//描画するか設定
 		void SetIsDraw(bool flag) {
-			m_billboard.GetModel().SetIsDraw(flag);
+			m_billboard.SetIsDraw(flag);
 		}
 		
 	private:
@@ -181,7 +177,7 @@ namespace GameObj {
 		//ビルボード
 		CBillboard m_billboard;
 		SkinModelEffectShader m_billboardPS;
-		CVector3 m_scale;
+		CVector3 m_pos, m_scale;
 	};
 }
 }

@@ -5,6 +5,7 @@ namespace DemolisherWeapon {
 	ImposterTexBank* ImposterTexBank::instance = nullptr;
 
 	void ImposterTexRender::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
+		//解像度・分割数設定
 		m_gbufferSizeX = (UINT)resolution.x; m_gbufferSizeY = (UINT)resolution.y;
 		m_partNumX = (UINT)partNum.x; m_partNumY = (UINT)partNum.y;
 
@@ -50,20 +51,6 @@ namespace DemolisherWeapon {
 		ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferNormal].Get(), nullptr, m_GBufferView[enGBufferNormal].ReleaseAndGetAddressOf());//レンダーターゲット
 		ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferNormal].Get(), nullptr, m_GBufferSRV[enGBufferNormal].ReleaseAndGetAddressOf());//シェーダーリソースビュー
 
-		//デプス
-		texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		texDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, m_depthStencilTex.ReleaseAndGetAddressOf());
-		//デプスステンシル
-		D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc;
-		ZeroMemory(&dsv_desc, sizeof(dsv_desc));
-		dsv_desc.Format = DXGI_FORMAT_D32_FLOAT;
-		dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		ge.GetD3DDevice()->CreateDepthStencilView(m_depthStencilTex.Get(), &dsv_desc, m_depthStencilView.ReleaseAndGetAddressOf());
-
-		//Gバッファ出力ピクセルシェーダ
-		m_imposterPS.Load("Preset/shader/Imposter.fx", "PSMain_RenderImposter", Shader::EnType::PS);
-
 		//モデル読み込み
 		SkinModel model;
 		model.Init(filepath);
@@ -88,6 +75,16 @@ namespace DemolisherWeapon {
 			}
 		);
 
+		//インポスタテクスチャの作成
+		Render(model);
+	}
+
+	void ImposterTexRender::Render(SkinModel& model) {
+		//GPUイベントの開始
+		GetGraphicsEngine().BeginGPUEvent(L"RenderImposter");
+
+		ID3D11DeviceContext* DC = GetGraphicsEngine().GetD3DDeviceContext();
+
 		//カメラのセットアップ		
 		GameObj::NoRegisterOrthoCamera imposterCam;
 		imposterCam.SetWidth(m_imposterMaxSize*2.0f);
@@ -103,20 +100,85 @@ namespace DemolisherWeapon {
 		//カメラ変更
 		SetMainCamera(&imposterCam);
 
-		//インポスタの作成
-		Render(model);
+		//ビューポート記録
+		D3D11_VIEWPORT beforeViewport; UINT kaz = 1;
+		DC->RSGetViewports(&kaz, &beforeViewport);
 
-		//カメラ戻す
-		SetMainCamera(beforeCam);
 
-		//デプスステンシルの削除
-		m_depthStencilView.Reset();
-		m_depthStencilTex.Reset();
-	}
+		//レンダリング
+		const UINT resolution = 2048;
 
-	void ImposterTexRender::Render(SkinModel& model) {
-		//GPUイベントの開始
-		GetGraphicsEngine().BeginGPUEvent(L"RenderImposter");
+		//テクスチャ作成
+		D3D11_TEXTURE2D_DESC texDesc;
+		ZeroMemory(&texDesc, sizeof(texDesc));
+		texDesc.Width = resolution;
+		texDesc.Height = resolution;
+		texDesc.MipLevels = 1;
+		texDesc.ArraySize = 1;
+		texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		texDesc.SampleDesc.Count = 1;
+		texDesc.SampleDesc.Quality = 0;
+		texDesc.Usage = D3D11_USAGE_DEFAULT;
+		texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		texDesc.CPUAccessFlags = 0;
+		texDesc.MiscFlags = 0;
+
+		//各テクスチャ		
+		Microsoft::WRL::ComPtr<ID3D11Texture2D>				bigGBufferTex[enGBufferNum]; //GBufferテクスチャ
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView>		bigGBufferView[enGBufferNum];//GBufferビュー
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	bigGBufferSRV[enGBufferNum]; //GBufferSRV
+
+		//アルベド
+		GetGraphicsEngine().GetD3DDevice()->CreateTexture2D(&texDesc, NULL, bigGBufferTex[enGBufferAlbedo].ReleaseAndGetAddressOf());
+		GetGraphicsEngine().GetD3DDevice()->CreateRenderTargetView(bigGBufferTex[enGBufferAlbedo].Get(), nullptr, bigGBufferView[enGBufferAlbedo].ReleaseAndGetAddressOf());//レンダーターゲット
+		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(bigGBufferTex[enGBufferAlbedo].Get(), nullptr, bigGBufferSRV[enGBufferAlbedo].ReleaseAndGetAddressOf());//シェーダーリソースビュー
+
+		//ライトパラメーター
+		texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		GetGraphicsEngine().GetD3DDevice()->CreateTexture2D(&texDesc, NULL, bigGBufferTex[enGBufferLightParam].ReleaseAndGetAddressOf());
+		GetGraphicsEngine().GetD3DDevice()->CreateRenderTargetView(bigGBufferTex[enGBufferLightParam].Get(), nullptr, bigGBufferView[enGBufferLightParam].ReleaseAndGetAddressOf());//レンダーターゲット
+		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(bigGBufferTex[enGBufferLightParam].Get(), nullptr, bigGBufferSRV[enGBufferLightParam].ReleaseAndGetAddressOf());//シェーダーリソースビュー
+
+		//法線
+		texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		GetGraphicsEngine().GetD3DDevice()->CreateTexture2D(&texDesc, NULL, bigGBufferTex[enGBufferNormal].ReleaseAndGetAddressOf());
+		GetGraphicsEngine().GetD3DDevice()->CreateRenderTargetView(bigGBufferTex[enGBufferNormal].Get(), nullptr, bigGBufferView[enGBufferNormal].ReleaseAndGetAddressOf());//レンダーターゲット
+		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(bigGBufferTex[enGBufferNormal].Get(), nullptr, bigGBufferSRV[enGBufferNormal].ReleaseAndGetAddressOf());//シェーダーリソースビュー
+
+		//デプス
+		Microsoft::WRL::ComPtr<ID3D11Texture2D>			depthStencilTex; //デプスステンシルテクスチャ
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView>	depthStencilView;//デプスステンシルビュー
+
+		//デプス
+		texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		texDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+		GetGraphicsEngine().GetD3DDevice()->CreateTexture2D(&texDesc, NULL, depthStencilTex.ReleaseAndGetAddressOf());
+		
+		//デプスステンシル
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc;
+		ZeroMemory(&dsv_desc, sizeof(dsv_desc));
+		dsv_desc.Format = DXGI_FORMAT_D32_FLOAT;
+		dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		GetGraphicsEngine().GetD3DDevice()->CreateDepthStencilView(depthStencilTex.Get(), &dsv_desc, depthStencilView.ReleaseAndGetAddressOf());
+		
+		//Gバッファ出力ピクセルシェーダ
+		SkinModelEffectShader imposterPS;
+		imposterPS.Load("Preset/shader/Imposter.fx", "PSMain_RenderImposter", Shader::EnType::PS);
+
+		//縮小用シェーダ
+		Shader vs, ps;
+		vs.Load("Preset/shader/ImposterAtlas.fx", "VSMain", Shader::EnType::VS);
+		ps.Load("Preset/shader/ImposterAtlas.fx", "PSMain", Shader::EnType::PS);
+
+		//サンプラー
+		Microsoft::WRL::ComPtr <ID3D11SamplerState> samplerState;
+		D3D11_SAMPLER_DESC desc;
+		ZeroMemory(&desc, sizeof(desc));
+		desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+		desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+		desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+		desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, samplerState.ReleaseAndGetAddressOf());
 
 		//Gバッファをクリア
 		float clearColor[enGBufferNum][4] = {
@@ -125,18 +187,8 @@ namespace DemolisherWeapon {
 			{ 0.0f, 0.0f, 0.0f, 1.0f }, //enGBufferLightParam
 		};
 		for (int i = 0; i < enGBufferNum; i++) {
-			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearRenderTargetView(m_GBufferView[i].Get(), clearColor[i]);
+			DC->ClearRenderTargetView(m_GBufferView[i].Get(), clearColor[i]);
 		}
-		//デプスステンシルをクリア
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-		//D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL
-
-		// RenderTarget設定
-		ID3D11RenderTargetView* renderTargetViews[enGBufferNum] = { nullptr };
-		for (unsigned int i = 0; i < enGBufferNum; i++) {
-			renderTargetViews[i] = m_GBufferView[i].Get();
-		}
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(enGBufferNum, renderTargetViews, m_depthStencilView.Get());
 
 		//シェーダー
 		std::list<SKEShaderPtr> beforeShaders;
@@ -145,25 +197,28 @@ namespace DemolisherWeapon {
 				//シェーダ保存
 				beforeShaders.emplace_back(mat->GetPS());
 				//シェーダ変更
-				mat->SetPS(&m_imposterPS);
+				mat->SetPS(&imposterPS);
 			}
 		);
 
 		//ビューポート
 		D3D11_VIEWPORT viewport;
+		viewport.Width = (float)m_gbufferSizeX / m_partNumX;
+		viewport.Height = (float)m_gbufferSizeY / m_partNumY;
+		viewport.TopLeftY = 0.0f;
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
-
-		//ビューポート記録
-		D3D11_VIEWPORT beforeViewport; UINT kaz = 1;
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSGetViewports(&kaz, &beforeViewport);
+		D3D11_VIEWPORT viewportBig;
+		viewportBig.Width = (float)resolution;
+		viewportBig.Height = (float)resolution;
+		viewportBig.TopLeftY = 0.0f;
+		viewportBig.TopLeftX = 0.0f;
+		viewportBig.MinDepth = 0.0f;
+		viewportBig.MaxDepth = 1.0f;
 
 		//モデル描画
 		int indY = 0;
 		CQuaternion rotY, rotX, rotM;
-		viewport.Width = (float)m_gbufferSizeX / m_partNumX;
-		viewport.Height = (float)m_gbufferSizeY / m_partNumY;
-		viewport.TopLeftY = 0;
 		for (int i = 0; i < (int)(m_partNumX*m_partNumY); i++) {
 			//横端まで行った
 			if (i%m_partNumX == 0) {
@@ -187,20 +242,71 @@ namespace DemolisherWeapon {
 			rotM.Concatenate(rotY, rotX);
 			model.UpdateWorldMatrix(0.0f, rotM, 1.0f);
 
-			//ビューポート設定
-			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &viewport);
 
-			//モデル描画
-			model.Draw();
+			// でかい画像つくる
+			{
+				//Gバッファをクリア
+				float clearColor[enGBufferNum][4] = {
+					{ 0.5f, 0.5f, 0.5f, 0.0f }, //enGBufferAlbedo
+					{ 0.0f, 1.0f, 0.0f, 1.0f }, //enGBufferNormal
+					{ 0.0f, 0.0f, 0.0f, 1.0f }, //enGBufferLightParam
+				};
+				for (int i = 0; i < enGBufferNum; i++) {
+					DC->ClearRenderTargetView(bigGBufferView[i].Get(), clearColor[i]);
+				}
+				//デプスステンシルをクリア
+				DC->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-			//上方向と前方向保存
-			//CVector3 impFront = CVector3::AxisZ(), impUp = CVector3::AxisY();//インポスタの前方向と上方向
-			//rotM.Multiply(impFront);
-			//rotM.Multiply(impUp);
-			////impFront.x *= -1.0f;
-			////impUp.x *= -1.0f;
-			//m_fronts[indY].emplace_back(impFront);
-			//m_ups[indY].emplace_back(impUp);
+				// RenderTarget設定
+				ID3D11RenderTargetView* renderTargetViews[enGBufferNum] = { nullptr };
+				for (unsigned int i = 0; i < enGBufferNum; i++) {
+					renderTargetViews[i] = bigGBufferView[i].Get();
+				}
+				DC->OMSetRenderTargets(enGBufferNum, renderTargetViews, depthStencilView.Get());
+				
+				//ビューポート設定
+				DC->RSSetViewports(1, &viewportBig);
+				//モデル描画
+				model.Draw();
+				
+				//ラスタライザーステート戻す
+				GetEngine().GetGraphicsEngine().ResetRasterizerState();
+			}
+
+			//縮小してアトラス化
+			{
+				//レンダーターゲット
+				ID3D11RenderTargetView* renderTargetViews[enGBufferNum] = { nullptr };
+				for (unsigned int i = 0; i < enGBufferNum; i++) {
+					renderTargetViews[i] = m_GBufferView[i].Get();
+				}
+				DC->OMSetRenderTargets(enGBufferNum, renderTargetViews, nullptr);
+
+				//SRVをセット	
+				ID3D11ShaderResourceView* srv[enGBufferNum] = { nullptr };
+				for (unsigned int i = 0; i < enGBufferNum; i++) {
+					srv[i] = bigGBufferSRV[i].Get();
+				}
+				DC->PSSetShaderResources(0, enGBufferNum, srv);
+
+				//シェーダーを設定
+				DC->VSSetShader((ID3D11VertexShader*)vs.GetBody(), NULL, 0);
+				DC->PSSetShader((ID3D11PixelShader*)ps.GetBody(), NULL, 0);
+				//入力レイアウトを設定。
+				DC->IASetInputLayout(vs.GetInputLayout());
+				//サンプラステートを設定。
+				ID3D11SamplerState* samp = samplerState.Get();
+				DC->PSSetSamplers(0, 1, &samp);
+				//ビューポート設定
+				DC->RSSetViewports(1, &viewport);
+
+				//描画
+				GetEngine().GetGraphicsEngine().DrawFullScreen();
+
+				//SRVを解除
+				ID3D11ShaderResourceView* view[enGBufferNum] = {};
+				DC->PSSetShaderResources(0, enGBufferNum, view);
+			}
 
 			//ビューポート横にずらす
 			viewport.TopLeftX += viewport.Width;
@@ -208,9 +314,6 @@ namespace DemolisherWeapon {
 			//横回転進める
 			rotY.Concatenate(CQuaternion(CVector3::AxisY(), CMath::PI2 / (m_partNumX - 1)));
 		}
-
-		//ビューポート戻す
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &beforeViewport);
 
 		//シェーダー戻す
 		model.FindMaterialSetting(
@@ -223,10 +326,16 @@ namespace DemolisherWeapon {
 		);
 
 		//ラスタライザーステート戻す
-		GetEngine().GetGraphicsEngine().ResetRasterizerState();
+		GetGraphicsEngine().ResetRasterizerState();
 
 		//レンダーターゲット解除
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+		GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+
+		//ビューポート戻す
+		DC->RSSetViewports(1, &beforeViewport);
+
+		//カメラ戻す
+		SetMainCamera(beforeCam);
 
 		//GPUイベントの終了
 		GetGraphicsEngine().EndGPUEvent();
@@ -256,12 +365,12 @@ namespace DemolisherWeapon {
 
 namespace GameObj {
 
-	void CImposter::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
+	void CImposter::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum, int instancingNum) {
 		//テクスチャ生成
 		m_texture = ImposterTexBank::GetInstance().Load(filepath, resolution, partNum);
 
 		//ビルボード
-		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo));
+		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo), instancingNum, filepath);
 		m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
 		m_billboard.GetModel().GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
@@ -280,6 +389,7 @@ namespace GameObj {
 
 	void CImposter::PostLoopUpdate() {
 		if (!m_isInit) { return; }
+		if (!m_billboard.GetModel().GetIsDraw()) { return; }
 
 		//インポスター用インデックス計算
 		int x = 0, y = 0;
@@ -287,10 +397,15 @@ namespace GameObj {
 
 		CVector3 polyDir;
 		polyDir += { 0.0f,0.0f,-1.0f };
-		CBillboard::GetBillboardQuaternion().Multiply(polyDir);
+		GetMainCamera()->GetBillboardQuaternion().Multiply(polyDir);
 		polyDir.Normalize();
-		/*polyDir += (GetMainCamera()->GetPos() - m_billboard.GetPos()).GetNorm();
-		polyDir.Normalize();*/
+		
+		/*CVector3 prePolyDir;
+		prePolyDir += (GetMainCamera()->GetPos() - m_billboard.GetPos()).GetNorm();
+		prePolyDir.Normalize();*/
+
+		//polyDir += prePolyDir; polyDir.Normalize();
+		//polyDir = prePolyDir;
 
 		CVector3 axisDir;
 
@@ -298,6 +413,7 @@ namespace GameObj {
 		axisDir = polyDir;
 		axisDir.y = 0; axisDir.Normalize();
 		float XRot = acos(polyDir.Dot(axisDir));
+		//XRot = min(XRot, CMath::PI / 2.0f);//90°以上は無理
 		if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はaxisDir
 			y = (int)std::round(-XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
 		}
@@ -328,6 +444,13 @@ namespace GameObj {
 
 		//モデルに設定
 		m_billboard.GetModel().GetSkinModel().SetImposterIndex(x,y);
+		
+		CVector3 bias = GetMainCamera()->GetPos() - m_pos;// GetMainCamera()->GetTarget();
+		bias.Normalize();
+		bias *= m_texture->GetModelSize();
+		m_billboard.SetPos(m_pos + bias);
+		//m_billboard.SetPos(m_pos);
+
 		//CQuaternion zRot; zRot.SetRotation(CVector3::AxisZ(), z);
 		//SetRot(zRot);
 	}

@@ -272,6 +272,9 @@
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
     <ClInclude Include="Graphic\Billboard\CImposter.h" />
     <ClInclude Include="Graphic\Billboard\CBillboard.h" />
+    <CustomBuild Include="Preset\shader\ImposterAtlas.fx">
+      <FileType>Document</FileType>
+    </CustomBuild>
     <ClInclude Include="Render\DepthOfFieldRender.h" />
     <ClInclude Include="Render\BloomRender.h" />
     <ClInclude Include="Graphic\CLine.h" />
