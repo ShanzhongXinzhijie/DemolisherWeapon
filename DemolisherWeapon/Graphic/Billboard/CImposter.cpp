@@ -105,55 +105,15 @@ namespace DemolisherWeapon {
 		DC->RSGetViewports(&kaz, &beforeViewport);
 
 
-		//レンダリング
-		const UINT resolution = 2048;
-
-		//テクスチャ作成
-		D3D11_TEXTURE2D_DESC texDesc;
-		ZeroMemory(&texDesc, sizeof(texDesc));
-		texDesc.Width = resolution;
-		texDesc.Height = resolution;
-		texDesc.MipLevels = 1;
-		texDesc.ArraySize = 1;
-		texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		texDesc.SampleDesc.Count = 1;
-		texDesc.SampleDesc.Quality = 0;
-		texDesc.Usage = D3D11_USAGE_DEFAULT;
-		texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-		texDesc.CPUAccessFlags = 0;
-		texDesc.MiscFlags = 0;
-
-		//各テクスチャ		
-		Microsoft::WRL::ComPtr<ID3D11Texture2D>				bigGBufferTex[enGBufferNum]; //GBufferテクスチャ
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView>		bigGBufferView[enGBufferNum];//GBufferビュー
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	bigGBufferSRV[enGBufferNum]; //GBufferSRV
-
-		//アルベド
-		GetGraphicsEngine().GetD3DDevice()->CreateTexture2D(&texDesc, NULL, bigGBufferTex[enGBufferAlbedo].ReleaseAndGetAddressOf());
-		GetGraphicsEngine().GetD3DDevice()->CreateRenderTargetView(bigGBufferTex[enGBufferAlbedo].Get(), nullptr, bigGBufferView[enGBufferAlbedo].ReleaseAndGetAddressOf());//レンダーターゲット
-		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(bigGBufferTex[enGBufferAlbedo].Get(), nullptr, bigGBufferSRV[enGBufferAlbedo].ReleaseAndGetAddressOf());//シェーダーリソースビュー
-
-		//ライトパラメーター
-		texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		GetGraphicsEngine().GetD3DDevice()->CreateTexture2D(&texDesc, NULL, bigGBufferTex[enGBufferLightParam].ReleaseAndGetAddressOf());
-		GetGraphicsEngine().GetD3DDevice()->CreateRenderTargetView(bigGBufferTex[enGBufferLightParam].Get(), nullptr, bigGBufferView[enGBufferLightParam].ReleaseAndGetAddressOf());//レンダーターゲット
-		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(bigGBufferTex[enGBufferLightParam].Get(), nullptr, bigGBufferSRV[enGBufferLightParam].ReleaseAndGetAddressOf());//シェーダーリソースビュー
-
-		//法線
-		texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		GetGraphicsEngine().GetD3DDevice()->CreateTexture2D(&texDesc, NULL, bigGBufferTex[enGBufferNormal].ReleaseAndGetAddressOf());
-		GetGraphicsEngine().GetD3DDevice()->CreateRenderTargetView(bigGBufferTex[enGBufferNormal].Get(), nullptr, bigGBufferView[enGBufferNormal].ReleaseAndGetAddressOf());//レンダーターゲット
-		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(bigGBufferTex[enGBufferNormal].Get(), nullptr, bigGBufferSRV[enGBufferNormal].ReleaseAndGetAddressOf());//シェーダーリソースビュー
-
 		//デプス
 		Microsoft::WRL::ComPtr<ID3D11Texture2D>			depthStencilTex; //デプスステンシルテクスチャ
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView>	depthStencilView;//デプスステンシルビュー
-
-		//デプス
+		//デプステクスチャ
+		D3D11_TEXTURE2D_DESC texDesc;
+		m_GBufferTex[0]->GetDesc(&texDesc);
 		texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 		texDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-		GetGraphicsEngine().GetD3DDevice()->CreateTexture2D(&texDesc, NULL, depthStencilTex.ReleaseAndGetAddressOf());
-		
+		GetGraphicsEngine().GetD3DDevice()->CreateTexture2D(&texDesc, NULL, depthStencilTex.ReleaseAndGetAddressOf());		
 		//デプスステンシル
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc;
 		ZeroMemory(&dsv_desc, sizeof(dsv_desc));
@@ -165,21 +125,6 @@ namespace DemolisherWeapon {
 		SkinModelEffectShader imposterPS;
 		imposterPS.Load("Preset/shader/Imposter.fx", "PSMain_RenderImposter", Shader::EnType::PS);
 
-		//縮小用シェーダ
-		Shader vs, ps;
-		vs.Load("Preset/shader/ImposterAtlas.fx", "VSMain", Shader::EnType::VS);
-		ps.Load("Preset/shader/ImposterAtlas.fx", "PSMain", Shader::EnType::PS);
-
-		//サンプラー
-		Microsoft::WRL::ComPtr <ID3D11SamplerState> samplerState;
-		D3D11_SAMPLER_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-		desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-		desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-		desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-		desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, samplerState.ReleaseAndGetAddressOf());
-
 		//Gバッファをクリア
 		float clearColor[enGBufferNum][4] = {
 			{ 0.5f, 0.5f, 0.5f, 0.0f }, //enGBufferAlbedo
@@ -189,6 +134,15 @@ namespace DemolisherWeapon {
 		for (int i = 0; i < enGBufferNum; i++) {
 			DC->ClearRenderTargetView(m_GBufferView[i].Get(), clearColor[i]);
 		}
+		//デプスステンシルをクリア
+		DC->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+		// RenderTarget設定
+		ID3D11RenderTargetView* renderTargetViews[enGBufferNum] = { nullptr };
+		for (unsigned int i = 0; i < enGBufferNum; i++) {
+			renderTargetViews[i] = m_GBufferView[i].Get();
+		}
+		DC->OMSetRenderTargets(enGBufferNum, renderTargetViews, depthStencilView.Get());
 
 		//シェーダー
 		std::list<SKEShaderPtr> beforeShaders;
@@ -208,13 +162,6 @@ namespace DemolisherWeapon {
 		viewport.TopLeftY = 0.0f;
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
-		D3D11_VIEWPORT viewportBig;
-		viewportBig.Width = (float)resolution;
-		viewportBig.Height = (float)resolution;
-		viewportBig.TopLeftY = 0.0f;
-		viewportBig.TopLeftX = 0.0f;
-		viewportBig.MinDepth = 0.0f;
-		viewportBig.MaxDepth = 1.0f;
 
 		//モデル描画
 		int indY = 0;
@@ -241,72 +188,11 @@ namespace DemolisherWeapon {
 			//モデルの回転	
 			rotM.Concatenate(rotY, rotX);
 			model.UpdateWorldMatrix(0.0f, rotM, 1.0f);
-
-
-			// でかい画像つくる
-			{
-				//Gバッファをクリア
-				float clearColor[enGBufferNum][4] = {
-					{ 0.5f, 0.5f, 0.5f, 0.0f }, //enGBufferAlbedo
-					{ 0.0f, 1.0f, 0.0f, 1.0f }, //enGBufferNormal
-					{ 0.0f, 0.0f, 0.0f, 1.0f }, //enGBufferLightParam
-				};
-				for (int i = 0; i < enGBufferNum; i++) {
-					DC->ClearRenderTargetView(bigGBufferView[i].Get(), clearColor[i]);
-				}
-				//デプスステンシルをクリア
-				DC->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-				// RenderTarget設定
-				ID3D11RenderTargetView* renderTargetViews[enGBufferNum] = { nullptr };
-				for (unsigned int i = 0; i < enGBufferNum; i++) {
-					renderTargetViews[i] = bigGBufferView[i].Get();
-				}
-				DC->OMSetRenderTargets(enGBufferNum, renderTargetViews, depthStencilView.Get());
 				
-				//ビューポート設定
-				DC->RSSetViewports(1, &viewportBig);
-				//モデル描画
-				model.Draw();
-				
-				//ラスタライザーステート戻す
-				GetEngine().GetGraphicsEngine().ResetRasterizerState();
-			}
-
-			//縮小してアトラス化
-			{
-				//レンダーターゲット
-				ID3D11RenderTargetView* renderTargetViews[enGBufferNum] = { nullptr };
-				for (unsigned int i = 0; i < enGBufferNum; i++) {
-					renderTargetViews[i] = m_GBufferView[i].Get();
-				}
-				DC->OMSetRenderTargets(enGBufferNum, renderTargetViews, nullptr);
-
-				//SRVをセット	
-				ID3D11ShaderResourceView* srv[enGBufferNum] = { nullptr };
-				for (unsigned int i = 0; i < enGBufferNum; i++) {
-					srv[i] = bigGBufferSRV[i].Get();
-				}
-				DC->PSSetShaderResources(0, enGBufferNum, srv);
-
-				//シェーダーを設定
-				DC->VSSetShader((ID3D11VertexShader*)vs.GetBody(), NULL, 0);
-				DC->PSSetShader((ID3D11PixelShader*)ps.GetBody(), NULL, 0);
-				//入力レイアウトを設定。
-				DC->IASetInputLayout(vs.GetInputLayout());
-				//サンプラステートを設定。
-				ID3D11SamplerState* samp = samplerState.Get();
-				DC->PSSetSamplers(0, 1, &samp);
-				//ビューポート設定
-				DC->RSSetViewports(1, &viewport);
-
-				//描画
-				GetEngine().GetGraphicsEngine().DrawFullScreen();
-
-				//SRVを解除
-				ID3D11ShaderResourceView* view[enGBufferNum] = {};
-				DC->PSSetShaderResources(0, enGBufferNum, view);
-			}
+			//ビューポート設定
+			DC->RSSetViewports(1, &viewport);
+			//モデル描画
+			model.Draw();
 
 			//ビューポート横にずらす
 			viewport.TopLeftX += viewport.Width;
