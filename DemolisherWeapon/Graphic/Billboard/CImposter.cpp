@@ -40,13 +40,13 @@ namespace DemolisherWeapon {
 		ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferAlbedo].Get(), nullptr, m_GBufferSRV[enGBufferAlbedo].ReleaseAndGetAddressOf());//シェーダーリソースビュー
 
 		//ライトパラメーター
-		texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, m_GBufferTex[enGBufferLightParam].ReleaseAndGetAddressOf());
 		ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferLightParam].Get(), nullptr, m_GBufferView[enGBufferLightParam].ReleaseAndGetAddressOf());//レンダーターゲット
 		ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferLightParam].Get(), nullptr, m_GBufferSRV[enGBufferLightParam].ReleaseAndGetAddressOf());//シェーダーリソースビュー
 
 		//法線
-		texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		texDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
 		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, m_GBufferTex[enGBufferNormal].ReleaseAndGetAddressOf());
 		ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferNormal].Get(), nullptr, m_GBufferView[enGBufferNormal].ReleaseAndGetAddressOf());//レンダーターゲット
 		ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferNormal].Get(), nullptr, m_GBufferSRV[enGBufferNormal].ReleaseAndGetAddressOf());//シェーダーリソースビュー
@@ -128,8 +128,8 @@ namespace DemolisherWeapon {
 
 		//Gバッファをクリア
 		float clearColor[enGBufferNum][4] = {
-			{ 0.5f, 0.5f, 0.5f, 0.0f }, //enGBufferAlbedo
-			{ 0.0f, 1.0f, 0.0f, 1.0f }, //enGBufferNormal
+			{ 0.0f, 0.0f, 0.0f, 0.0f }, //enGBufferAlbedo
+			{ 0.5f, 0.5f, 1.0f, 1.0f }, //enGBufferNormal
 			{ 0.0f, 0.0f, 0.0f, 1.0f }, //enGBufferLightParam
 		};
 		for (int i = 0; i < enGBufferNum; i++) {

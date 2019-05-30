@@ -11,16 +11,7 @@ PSOutput_RenderImposter PSMain_RenderImposter(PSInput In)
 	PSOutput_RenderImposter finalOut = (PSOutput_RenderImposter)0;
 	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
 
-	//アルベド
-	//リニア空間への変換はしない
-#if ALBEDO_MAP
-	//通常
-	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset);
-	Out.albedo *= albedoScale;//スケールをかける
-#else
-	//アルベドテクスチャがない場合はスケールをそのまま使う
-	Out.albedo = albedoScale;
-#endif
+	AlbedoRender(In, Out);
 
 	//αテスト
 	if (Out.albedo.a > 0.5f) {
@@ -35,8 +26,8 @@ PSOutput_RenderImposter PSMain_RenderImposter(PSInput In)
 	ParamRender(In, Out);
 
 	finalOut.albedo = Out.albedo;
-	finalOut.normal = Out.normal; finalOut.normal.xy *= -1.0f;
-	finalOut.lightingParam.x = Out.lightingParam.x;	//エミッシブ
+	finalOut.normal = Out.normal; finalOut.normal.xy *= -1.0f; finalOut.normal *= 0.5f; finalOut.normal += 0.5f;
+	finalOut.lightingParam.x = Out.lightingParam.x*0.05f;	//エミッシブ
 	finalOut.lightingParam.w = Out.lightingParam.y;	//ライティングするか?
 	finalOut.lightingParam.y = Out.lightingParam.z;	//メタリック
 	finalOut.lightingParam.z = Out.lightingParam.w;	//シャイニネス
@@ -58,16 +49,17 @@ PSOutput_RenderGBuffer PSMain_ImposterRenderGBuffer(PSInput In)
 	}
 	*/
 	
+	//インデックスからuv座標を算出
 	In.TexCoord.x /= imposterPartNum.x;
 	In.TexCoord.y /= imposterPartNum.y;
-
 	In.TexCoord.x += (1.0f / imposterPartNum.x) * imposterIndex.x;
 	In.TexCoord.y += (1.0f / imposterPartNum.y) * imposterIndex.y;
 
-#if ALBEDO_MAP && NORMAL_MAP
+	//アルベド
+#if ALBEDO_MAP
 	//if(Out.albedo.a < 0.1f)
 	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord);
-	Out.albedo.xyz = pow(Out.albedo.xyz, 2.2f);//リニア空間に変換
+	Out.albedo *= albedoScale;//スケールをかける
 #else
 	discard;
 #endif
@@ -80,16 +72,18 @@ PSOutput_RenderGBuffer PSMain_ImposterRenderGBuffer(PSInput In)
 		discard;//描画しない
 	}
 
-#if ALBEDO_MAP && NORMAL_MAP
-	Out.normal = NormalTexture.Sample(Sampler, In.TexCoord);
-	//Out.normal = Out.normal * 2.0f - 1.0f;
-	Out.normal = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
-	Out.normal = normalize(Out.normal);
+	NormalRender(In, Out);
+
+	PosRender(In, Out);
+
+	//ライティング用パラメーター
+#if LIGHTING_MAP
+	float4 lightMap = LightingTexture.Sample(Sampler, In.TexCoord);
+	Out.lightingParam.x = lightMap.x / 0.05f * emissive;	//エミッシブ
+	Out.lightingParam.y = lightMap.w * isLighting;			//ライティングするか?
+	Out.lightingParam.z = lightMap.y * metallic;			//メタリック
+	Out.lightingParam.w = lightMap.z * shininess;			//シャイニネス
 #endif
-
-	PosRender(In, Out);//これでいいのか
-
-	ParamRender(In, Out);
 
 	MotionRender(In, Out);
 
