@@ -57,6 +57,7 @@ namespace DemolisherWeapon {
 		modelPtr->GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
 				mat->SetAlbedoTexture(srv);
+				mat->SetIsUseTexZShader(true);//Z値出力シェーダでテクスチャを使用
 			}
 		);
 
