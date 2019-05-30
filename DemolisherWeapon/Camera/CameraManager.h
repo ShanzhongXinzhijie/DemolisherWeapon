@@ -33,7 +33,7 @@ private:
 	//行列の更新
 	void UpdateViewMatrix() {
 		m_viewMat.MakeLookAt(m_pos, m_target, m_up);
-		//m_needUpdateBillboard = true;//ビルボード行列を更新する必要があるフラグ
+		m_needUpdateBillboard = true;//ビルボード行列を更新する必要があるフラグ
 	}
 	virtual void UpdateProjMatrix() = 0;
 
@@ -63,7 +63,7 @@ private:
 	virtual void CalcMBlurProjMatrix(CMatrix& projMOld, float rate) = 0;
 
 	//ビルボード行列・クォータニオンの更新
-	//void UpdateBillboard(const CVector3& pos);
+	void UpdateBillboard(const CVector3& pos);
 
 public:
 	//カメラ(行列)を更新
@@ -115,6 +115,18 @@ public:
 	CVector3 CalcWorldPosFromScreenPosScreenPos(CVector3 screenPos) ;
 
 	/// <summary>
+	/// インポスタークォータニオンを取得
+	/// </summary>
+	/// <returns></returns>
+	CQuaternion GetImposterQuaternion(const CVector3& pos);
+
+	/// <summary>
+	/// インポスター行列を取得
+	/// </summary>
+	/// <returns></returns>
+	CMatrix GetImposterMatrix(const CVector3& pos);
+
+	/// <summary>
 	/// ビルボードクォータニオンを取得
 	/// </summary>
 	/// <returns></returns>
@@ -139,9 +151,9 @@ protected:
 	bool isFirstMatrixUpdate = true;
 
 	//ビルボード行列・クォータニオン
-	//CMatrix m_billboardMat;
-	//CQuaternion m_billboardQua;
-	//bool m_needUpdateBillboard = true;//更新の必要あるか?
+	CMatrix m_billboardMat;
+	CQuaternion m_billboardQua;
+	bool m_needUpdateBillboard = true;//更新の必要あるか?
 };
 
 //遠近カメラ

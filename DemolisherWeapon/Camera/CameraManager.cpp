@@ -100,7 +100,7 @@ CVector3 ICamera::CalcWorldPosFromScreenPosScreenPos(CVector3 screenPos)
 
 	return worldPos;
 }
-/*
+
 void ICamera::UpdateBillboard(const CVector3& pos) {	
 	if (!m_needUpdateBillboard) { return; }//更新の必要なし
 
@@ -112,32 +112,30 @@ void ICamera::UpdateBillboard(const CVector3& pos) {
 	//m_billboardQua = CQuaternion::Identity();
 	m_billboardQua.SetRotation(m_billboardMat);	
 }
-*/
-CQuaternion ICamera::GetBillboardQuaternion(const CVector3& pos) {
-
+CQuaternion ICamera::GetImposterQuaternion(const CVector3& pos) {
 	CQuaternion q;
-	q.SetRotation(GetBillboardMatrix(pos));
+	q.SetRotation(GetImposterMatrix(pos));
 	return q;
-
-	//必要あれば行列更新
-	//if (m_change) { UpdateMatrix(); }
-	//UpdateBillboard(pos);
-
-	//return m_billboardQua;
 }
-
-CMatrix ICamera::GetBillboardMatrix(const CVector3& pos) {
-
+CMatrix ICamera::GetImposterMatrix(const CVector3& pos) {
 	CMatrix mat;
 	mat.MakeLookAt(GetPos(), pos, CVector3::Up());
 	mat.Inverse();
 	return mat;
-
+}
+CQuaternion ICamera::GetBillboardQuaternion(const CVector3& pos) {
 	//必要あれば行列更新
-	//if (m_change) { UpdateMatrix(); }
-	//UpdateBillboard(pos);
+	if (m_change) { UpdateMatrix(); }
 
-	//return m_billboardMat;
+	UpdateBillboard(pos);
+	return m_billboardQua;
+}
+CMatrix ICamera::GetBillboardMatrix(const CVector3& pos) {
+	//必要あれば行列更新
+	if (m_change) { UpdateMatrix(); }
+
+	UpdateBillboard(pos);
+	return m_billboardMat;
 }
 
 PerspectiveCamera::PerspectiveCamera(bool isRegister) : ICamera(isRegister) {

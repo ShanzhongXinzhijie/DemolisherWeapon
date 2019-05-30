@@ -146,6 +146,10 @@ void SkinModel::CalcWorldMatrix(const CVector3& position, const CQuaternion& rot
 	//順番を間違えたら結果が変わるよ。
 	CMatrix mat;
 	returnWorldMatrix.MakeScaling(scale);//拡大
+	if (m_isImposter) {
+		//インポスター用の回転
+		mat.MakeRotationFromQuaternion(GetMainCamera()->GetImposterQuaternion(position)*rotation);
+	}else
 	if (m_isBillboard) {
 		//ビルボード用の回転
 		mat.MakeRotationFromQuaternion(GetMainCamera()->GetBillboardQuaternion(position)*rotation);

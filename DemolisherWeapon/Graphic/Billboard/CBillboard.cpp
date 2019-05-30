@@ -67,19 +67,5 @@ namespace DemolisherWeapon {
 		m_isInit = true;
 	}
 
-	//void CBillboard::PostLoopUpdate() {
-	//	if (!m_isInit) { return; }
-
-	//	//à íuìôçXêV
-	//	CQuaternion q = GetBillboardQuaternion();
-	//	q.Multiply(m_rot);
-	//	if (m_isIns) {
-	//		m_insModel.SetRot(q);
-	//	}
-	//	else {
-	//		m_model.SetRot(q);
-	//	}
-	//}
-
 //}
 }

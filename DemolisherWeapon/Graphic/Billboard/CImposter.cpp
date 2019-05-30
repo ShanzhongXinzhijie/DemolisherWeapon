@@ -266,6 +266,8 @@ namespace GameObj {
 				mat->SetPS(&m_billboardPS);
 			}
 		);
+		//インポスターとして設定
+		m_billboard.GetModel().GetSkinModel().SetIsImposter(true);
 		//分割数設定
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
 		//ラスタライザーステート
@@ -299,7 +301,7 @@ namespace GameObj {
 
 		CVector3 polyDir;
 		polyDir += { 0.0f,0.0f,-1.0f };
-		GetMainCamera()->GetBillboardQuaternion(m_pos).Multiply(polyDir);
+		GetMainCamera()->GetImposterQuaternion(m_pos).Multiply(polyDir);
 		polyDir.Normalize();
 
 		CVector3 axisDir;

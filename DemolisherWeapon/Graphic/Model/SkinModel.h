@@ -165,6 +165,15 @@ public:
 	/// <param name="enable">ビルボードか？</param>
 	void SetIsBillboard(bool enable) {
 		m_isBillboard = enable;
+		m_isImposter = false;
+	}
+	/// <summary>
+	/// インポスターであるか設定
+	/// </summary>
+	/// <param name="enable">インポスターか？</param>
+	void SetIsImposter(bool enable) {
+		m_isImposter = enable;
+		m_isBillboard = false;
 	}
 
 	/// <summary>
@@ -273,6 +282,7 @@ private:
 	float m_depthBias = 0.0f;//深度値バイアス
 	
 	bool m_isBillboard = false;//ビルボードか？
+	bool m_isImposter = false;//インポスターか？
 
 	//インポスター用インデックス
 	int m_imposterPartNum[2] = {};
