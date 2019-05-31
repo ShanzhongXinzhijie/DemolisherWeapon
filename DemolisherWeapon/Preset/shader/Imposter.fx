@@ -42,12 +42,12 @@ PSOutput_RenderGBuffer PSMain_ImposterRenderGBuffer(PSInput In)
 	/*
 #if ALBEDO_MAP && NORMAL_MAP
 	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset);
-#endif
+#endif*/
 	if (In.TexCoord.x < 0.01f || In.TexCoord.x > 1.0f - 0.01f || -In.TexCoord.y < 0.01f || -In.TexCoord.y > 1.0f - 0.01f) {
 		Out.albedo = float4(-In.TexCoord.y, 0, 0, 1);
 		return Out;
 	}
-	*/
+	
 	
 	//インデックスからuv座標を算出
 	In.TexCoord.x /= imposterPartNum.x;

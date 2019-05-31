@@ -29,7 +29,11 @@ namespace DemolisherWeapon {
 			m_model.SetPos(pos);
 		}
 		void SetRot(const CQuaternion& rot) {
-			m_rot = rot;
+			if (m_isIns) {
+				m_insModel.SetRot(rot);
+				return;
+			}
+			m_model.SetRot(rot);
 		}
 		void SetScale(const CVector3& scale) {
 			if (m_isIns) {
@@ -51,7 +55,10 @@ namespace DemolisherWeapon {
 			return m_model.GetPos();
 		}
 		const CQuaternion& GetRot() const {
-			return m_rot;
+			if (m_isIns) {
+				return m_insModel.GetRot();
+			}
+			return m_model.GetRot();
 		}
 		const CVector3& GetScale() const {
 			if (m_isIns) {
@@ -96,7 +103,7 @@ namespace DemolisherWeapon {
 		GameObj::CInstancingModelRender& GetInstancingModel() {
 #ifndef DW_MASTER
 			if (!m_isIns) {
-				OutputDebugStringA("【警告】CBillBoard::GetInstancingModel() ※このビルボードはインスタンシング描画じゃないよ?");
+				OutputDebugStringA("【警告】CBillBoard::GetInstancingModel() ※このビルボードはインスタンシング描画じゃないよ?\n");
 			}
 #endif
 			return m_insModel;
@@ -107,7 +114,6 @@ namespace DemolisherWeapon {
 		bool m_isIns = false;
 		GameObj::CSkinModelRender m_model;
 		GameObj::CInstancingModelRender m_insModel;
-		CQuaternion m_rot;
 	};
 //}
 }

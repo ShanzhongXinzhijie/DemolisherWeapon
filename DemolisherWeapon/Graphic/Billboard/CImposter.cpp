@@ -266,8 +266,11 @@ namespace GameObj {
 				mat->SetPS(&m_billboardPS);
 			}
 		);
+		//ビルボード設定解除
+		//(こちら側で回転させる)
+		m_billboard.GetModel().GetSkinModel().SetIsBillboard(false);
 		//インポスターとして設定
-		m_billboard.GetModel().GetSkinModel().SetIsImposter(true);
+		//m_billboard.GetModel().GetSkinModel().SetIsImposter(true);
 		//分割数設定
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
 		//ラスタライザーステート
@@ -294,30 +297,35 @@ namespace GameObj {
 	void CImposter::PostLoopUpdate() {
 		if (!m_isInit) { return; }
 		if (!m_billboard.GetModel().GetIsDraw()) { return; }
+		if (!GetMainCamera()) {
+#ifndef DW_MASTER
+			OutputDebugStringA("CImposter::PostLoopUpdate() カメラが設定されていません。\n");
+#endif
+			return;
+		}
 
 		//インポスター用インデックス計算
 		int x = 0, y = 0;
-		//float z = 0.0f;
-
+		
 		CVector3 polyDir;
 		polyDir += { 0.0f,0.0f,-1.0f };
 		GetMainCamera()->GetImposterQuaternion(m_pos).Multiply(polyDir);
 		polyDir.Normalize();
 
 		CVector3 axisDir;
-
+		
 		//X軸回転
-		axisDir = polyDir;
-		axisDir.y = 0; axisDir.Normalize();
-		float XRot = acos(polyDir.Dot(axisDir));
-		//XRot = min(XRot, CMath::PI / 2.0f);//90°以上は無理
-		if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はaxisDir
-			y = (int)std::round(-XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
-		}
-		else {
-			y = (int)std::round(XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
-		}
-
+		//y = (int)(m_texture->GetPartNumY() / 2.0f + 0.5f);
+		//axisDir = polyDir;
+		//axisDir.y = 0; axisDir.Normalize();
+		//float XRot = acos(polyDir.Dot(axisDir));
+		//if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はaxisDir
+		//	y = (int)std::round(-XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
+		//}
+		//else {
+		//	y = (int)std::round(XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
+		//}
+		
 		//Y軸回転		
 		axisDir = CVector3(0.0f, 0.0f, 1.0f);
 		polyDir.y = 0.0f; polyDir.Normalize();
@@ -347,12 +355,26 @@ namespace GameObj {
 		CVector3 bias = GetMainCamera()->GetPos() - m_pos;
 		bias.Normalize();
 		bias *= m_scale*m_texture->GetModelSize();
-		m_billboard.SetPos(m_pos + bias);
-		
+		m_billboard.SetPos(m_pos + bias);		
 		//m_billboard.SetPos(m_pos);
 
-		//CQuaternion zRot; zRot.SetRotation(CVector3::AxisZ(), z);
-		//SetRot(zRot);
+		//回転
+		CQuaternion rot;
+		rot = CQuaternion::Identity();
+		rot.SetRotation(CVector3::AxisY(), x * -(CMath::PI2 / m_texture->GetPartNumX()) + CMath::PI + CMath::PI);
+		rot.Multiply(CQuaternion(CVector3::AxisX(), CMath::PI*0.5f));
+		//rot.Concatenate(CQuaternion(CVector3::GetCross((GetMainCamera()->GetTarget()- GetMainCamera()->GetPos()).GetNorm(), GetMainCamera()->GetUp()), -y * (CMath::PI / m_texture->GetPartNumY()) - CMath::PI*0.5f));
+		m_billboard.SetRot(rot);
+
+		m_billboard.GetModel().GetSkinModel().UpdateWorldMatrix(m_billboard.GetModel().GetPos(), m_billboard.GetModel().GetRot(), m_billboard.GetModel().GetScale());
+
+		m_x = x; m_camv = GetMainCamera()->GetPos();
+	}
+	void CImposter::PostRender() {
+		wchar_t txt[128];
+		CVector3 ca= GetMainCamera()->GetPos()- m_camv;
+		swprintf_s(txt, L"%d B(%.1f,%.1f,%.1f)", m_x, ca.x, ca.y, ca.z);
+		m_font.Draw(txt, { 0.5f,0.5f });
 	}
 }
 }

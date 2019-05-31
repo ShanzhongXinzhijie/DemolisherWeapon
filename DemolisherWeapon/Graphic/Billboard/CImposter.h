@@ -122,7 +122,7 @@ namespace GameObj {
 	{
 	public:
 		void PostLoopUpdate()override;
-
+		void PostRender()override;
 	public:
 		/// <summary>
 		/// èâä˙âª
@@ -183,6 +183,10 @@ namespace GameObj {
 		SkinModelEffectShader m_billboardPS;
 		CVector3 m_pos;
 		float m_scale = 1.0f;
+
+		int m_x=0;
+		CVector3 m_camv;
+		CFont m_font;
 	};
 }
 }
