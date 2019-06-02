@@ -8,6 +8,19 @@ namespace GameObj {
 	class InstancingModel : public IQSGameObject {
 	public:
 		InstancingModel() {};
+		~InstancingModel() { Release(); };
+
+		void PostLoopPostUpdate()override;
+
+	public:
+		/// <summary>
+		/// コンストラクタ
+		/// </summary>
+		/// <param name="instanceMax">最大インスタンス数</param>
+		/// <param name="filePath">モデルのファイルパス</param>
+		/// <param name="animationClip">アニメーションクリップ</param>
+		/// <param name="fbxUpAxis">上方向軸</param>
+		/// <param name="fbxCoordinate">座標系</param>
 		InstancingModel(int instanceMax,
 			const wchar_t* filePath,
 			const AnimationClip* animationClip = nullptr,
@@ -15,9 +28,6 @@ namespace GameObj {
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded
 		) {
 			Init(instanceMax, filePath, animationClip, fbxUpAxis, fbxCoordinate);
-		}
-		~InstancingModel() {
-			Release();
 		}
 
 		void Release() {
@@ -69,7 +79,43 @@ namespace GameObj {
 			m_instanceNum++;
 		}
 
-		void PostLoopPostUpdate()override;
+		//インスタンスごとのデータを扱う用のインターフェイスクラス 
+		class IInstancesData {
+		public:
+			virtual ~IInstancesData() {};
+		public:
+			//描画前に実行する処理
+			//主にSRVの設定をする
+			virtual void PreDrawUpdate() = 0;
+			//PostLoopPostUpdateで実行する処理
+			//主にストラクチャーバッファの更新をする
+			virtual void PostLoopPostUpdate() = 0;
+			//CInstancingModelRenderのAddDrawInstanceで実行する処理
+			//主にインスタンスごとのデータを追加する
+			//virtual void AddDrawInstance() {}// = 0;
+		};
+		/// <summary>
+		/// IInstanceDataをセット
+		/// </summary>
+		/// <param name="IID">IInstanceData</param>
+		void SetIInstanceData(std::unique_ptr<IInstancesData>&& IID) {
+			m_instanceData = std::move(IID);
+		}
+		/// <summary>
+		/// 設定されているIInstanceDataを取得
+		/// </summary>
+		/// <returns>設定されているIInstanceData</returns>
+		IInstancesData* GetIInstanceData()const {
+			return m_instanceData.get();
+		}
+		/// <summary>
+		/// IInstanceDataのAddDrawInstanceを実行する
+		/// </summary>
+		/*void IInstanceData_AddDrawInstance(){
+			if (m_instanceData) {
+				m_instanceData->AddDrawInstance();
+			}
+		}*/
 
 	private:
 		int m_instanceNum = 0;
@@ -87,6 +133,8 @@ namespace GameObj {
 		ID3D11ShaderResourceView*	m_worldMatrixSRVOld = nullptr;
 
 		std::function<void()> m_preDrawFunc = nullptr;
+
+		std::unique_ptr<IInstancesData> m_instanceData;
 
 		Shader m_vsShader, m_vsZShader;
 		Shader m_vsSkinShader, m_vsZSkinShader;
@@ -178,6 +226,7 @@ namespace GameObj {
 			//インスタンシングモデルに送る
 			if (m_isDraw) {
 				m_model[m_playingAnimNum]->AddDrawInstance(&m_worldMatrix, &m_worldMatrixOld);
+				//m_model[m_playingAnimNum]->IInstanceData_AddDrawInstance();
 			}
 			m_worldMatrixOld = m_worldMatrix;
 		}

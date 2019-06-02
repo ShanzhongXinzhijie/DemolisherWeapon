@@ -64,6 +64,9 @@ namespace DemolisherWeapon {
 		//ビルボードであると設定
 		modelPtr->GetSkinModel().SetIsBillboard(true);
 
+		//TODO シャドウマップにおけるビルボードの向き(インポスタも)
+		//TODO インポスタ、Z値出力シェーダ
+
 		//初期化完了
 		m_isInit = true;
 	}

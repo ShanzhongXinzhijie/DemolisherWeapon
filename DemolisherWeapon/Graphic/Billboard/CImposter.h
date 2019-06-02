@@ -3,6 +3,36 @@
 namespace DemolisherWeapon {
 
 	/// <summary>
+	/// インポスターのインスタンシング描画におけるテクスチャインデックスを扱うクラス
+	/// </summary>
+	class InstancingImposterIndex : public GameObj::InstancingModel::IInstancesData {
+	public:
+		void PreDrawUpdate()override;
+		void PostLoopPostUpdate()override;
+
+	public:
+		/// <summary>
+		/// コンストラクタ
+		/// </summary>
+		/// <param name="instancingMaxNum">インスタンス最大数</param>
+		InstancingImposterIndex(int instancingMaxNum);
+	
+		/// <summary>
+		/// このフレームに描画するインスタンスの追加
+		/// </summary>
+		/// <param name="x">横インデックス</param>
+		/// <param name="y">縦インデックス</param>
+		void AddDrawInstance(int x, int y);
+
+	private:
+		std::unique_ptr<int[][2]>							m_instancingIndex;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_indexSB;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_indexSRV;
+		int m_instanceNum = 0;
+		int m_instanceMax = 0;
+	};
+
+	/// <summary>
 	/// インポスターのテクスチャを作るクラス
 	/// </summary>
 	class ImposterTexRender {
@@ -122,7 +152,6 @@ namespace GameObj {
 	{
 	public:
 		void PostLoopUpdate()override;
-		void PostRender()override;
 	public:
 		/// <summary>
 		/// 初期化
@@ -183,10 +212,8 @@ namespace GameObj {
 		SkinModelEffectShader m_billboardPS;
 		CVector3 m_pos;
 		float m_scale = 1.0f;
-
-		int m_x=0;
-		CVector3 m_camv;
-		CFont m_font;
+		//インスタンシング用
+		InstancingImposterIndex* m_instancingIndex = nullptr;
 	};
 }
 }

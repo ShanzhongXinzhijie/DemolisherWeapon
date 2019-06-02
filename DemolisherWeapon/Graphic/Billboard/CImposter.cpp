@@ -1,9 +1,65 @@
 #include "DWstdafx.h"
 #include "CImposter.h"
+#include "Graphic\Model\SkinModelShaderConst.h"
 
 namespace DemolisherWeapon {
 	ImposterTexBank* ImposterTexBank::instance = nullptr;
 
+	InstancingImposterIndex::InstancingImposterIndex(int instancingMaxNum) {
+		m_instanceMax = instancingMaxNum;
+		m_instanceNum = 0;
+
+		//インデックス配列の確保
+		m_instancingIndex = std::make_unique<int[][2]>(instancingMaxNum);
+
+		//StructuredBufferの確保
+		D3D11_BUFFER_DESC desc;
+		ZeroMemory(&desc, sizeof(desc));
+		int stride = sizeof(int[2]);
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		desc.ByteWidth = static_cast<UINT>(stride * instancingMaxNum);
+		desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		desc.StructureByteStride = stride;
+		GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, m_indexSB.ReleaseAndGetAddressOf());
+
+		//ShaderResourceViewの確保
+		D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
+		ZeroMemory(&descSRV, sizeof(descSRV));
+		descSRV.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
+		descSRV.BufferEx.FirstElement = 0;
+		descSRV.Format = DXGI_FORMAT_UNKNOWN;
+		descSRV.BufferEx.NumElements = desc.ByteWidth / desc.StructureByteStride;
+		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_indexSB.Get(), &descSRV, m_indexSRV.ReleaseAndGetAddressOf());
+	}
+
+	void InstancingImposterIndex::PreDrawUpdate() {
+		//シェーダーリソースにセット
+		GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(
+			enSkinModelSRVReg_InstancingImposterTextureIndex, 1, m_indexSRV.GetAddressOf()
+		);
+	}
+	void InstancingImposterIndex::PostLoopPostUpdate() {
+		//StructuredBufferを更新
+		GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
+			m_indexSB.Get(), 0, NULL, m_instancingIndex.get(), 0, 0
+		);
+		m_instanceNum = 0;
+	}
+
+	void InstancingImposterIndex::AddDrawInstance(int x, int y) {
+		if (m_instanceNum + 1 >= m_instanceMax) {
+#ifndef DW_MASTER
+			char message[256];
+			sprintf_s(message, "【InstancingImposterIndex】インスタンスの最大数に達しています！\nインスタンス最大数:%d\n", m_instanceMax);
+			OutputDebugStringA(message);
+#endif				
+			return;
+		}
+		m_instancingIndex[m_instanceNum][0] = x;
+		m_instancingIndex[m_instanceNum][1] = y;
+		m_instanceNum++;
+	}
+	
 	void ImposterTexRender::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
 		//解像度・分割数設定
 		m_gbufferSizeX = (UINT)resolution.x; m_gbufferSizeY = (UINT)resolution.y;
@@ -258,7 +314,17 @@ namespace GameObj {
 
 		//ビルボード
 		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo), instancingNum, filepath);
-		m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
+		if (m_billboard.GetIsInstancing()) {
+			//インスタンシング用シェーダ
+			D3D_SHADER_MACRO macros[] = {
+				"INSTANCING", "1",
+				NULL, NULL
+			};
+			m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS, "INSTANCING", macros);
+		}
+		else {
+			m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
+		}
 		m_billboard.GetModel().GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
 				mat->SetNormalTexture(m_texture->GetSRV(ImposterTexRender::enGBufferNormal));
@@ -273,6 +339,19 @@ namespace GameObj {
 		//m_billboard.GetModel().GetSkinModel().SetIsImposter(true);
 		//分割数設定
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
+		//インスタンシング用のクラス設定
+		//TODO インスタンシング順とインデックス順、一致するのか? インスタンシングモデルに紐付ける?
+		if (m_billboard.GetIsInstancing()) {
+			if (!m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData()) {
+				//新規作成
+				m_billboard.GetInstancingModel().GetInstancingModel()->SetIInstanceData(std::make_unique<InstancingImposterIndex>(m_billboard.GetInstancingModel().GetInstancingModel()->GetInstanceMax()));
+			}
+			//既存のもの使う
+			m_instancingIndex = dynamic_cast<InstancingImposterIndex*>(m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData());
+		}
+		else {
+			m_instancingIndex = nullptr;
+		}
 		//ラスタライザーステート
 		/*
 		D3D11_RASTERIZER_DESC desc = {};
@@ -296,7 +375,7 @@ namespace GameObj {
 
 	void CImposter::PostLoopUpdate() {
 		if (!m_isInit) { return; }
-		if (!m_billboard.GetModel().GetIsDraw()) { return; }
+		if (!m_billboard.GetModel().GetIsDraw()) { return; }//描画しないなら実行しない
 		if (!GetMainCamera()) {
 #ifndef DW_MASTER
 			OutputDebugStringA("CImposter::PostLoopUpdate() カメラが設定されていません。\n");
@@ -315,16 +394,15 @@ namespace GameObj {
 		CVector3 axisDir;
 		
 		//X軸回転
-		//y = (int)(m_texture->GetPartNumY() / 2.0f + 0.5f);
-		//axisDir = polyDir;
-		//axisDir.y = 0; axisDir.Normalize();
-		//float XRot = acos(polyDir.Dot(axisDir));
-		//if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はaxisDir
-		//	y = (int)std::round(-XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
-		//}
-		//else {
-		//	y = (int)std::round(XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
-		//}
+		axisDir = polyDir;
+		axisDir.y = 0; axisDir.Normalize();
+		float XRot = acos(polyDir.Dot(axisDir));
+		if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はaxisDir
+			y = (int)std::round(-XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
+		}
+		else {
+			y = (int)std::round(XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
+		}
 		
 		//Y軸回転		
 		axisDir = CVector3(0.0f, 0.0f, 1.0f);
@@ -348,8 +426,13 @@ namespace GameObj {
 		}*/
 
 		//モデルに設定
-		m_billboard.GetModel().GetSkinModel().SetImposterIndex(x,y);
-		
+		if (m_billboard.GetIsInstancing()) {
+			m_instancingIndex->AddDrawInstance(x, y);
+		}
+		else {
+			m_billboard.GetModel().GetSkinModel().SetImposterIndex(x, y);
+		}
+
 		//カメラ方向にモデルサイズ分座標ずらす
 		//※埋まり防止
 		CVector3 bias = GetMainCamera()->GetPos() - m_pos;
@@ -360,21 +443,15 @@ namespace GameObj {
 
 		//回転
 		CQuaternion rot;
-		rot = CQuaternion::Identity();
-		rot.SetRotation(CVector3::AxisY(), x * -(CMath::PI2 / m_texture->GetPartNumX()) + CMath::PI + CMath::PI);
-		rot.Multiply(CQuaternion(CVector3::AxisX(), CMath::PI*0.5f));
-		//rot.Concatenate(CQuaternion(CVector3::GetCross((GetMainCamera()->GetTarget()- GetMainCamera()->GetPos()).GetNorm(), GetMainCamera()->GetUp()), -y * (CMath::PI / m_texture->GetPartNumY()) - CMath::PI*0.5f));
+		rot.SetRotation(CVector3::AxisY(), x * -(CMath::PI2 / (m_texture->GetPartNumX()-1)) + CMath::PI + CMath::PI);
+		//rot.Multiply(CQuaternion(CVector3::AxisX(), CMath::PI*0.5f));
+		CVector3 AxisX = CVector3::AxisX();
+		rot.Multiply(AxisX);
+		rot.Concatenate(CQuaternion(AxisX, -y * -(CMath::PI / (m_texture->GetPartNumY()-1)) + CMath::PI*0.5f));
 		m_billboard.SetRot(rot);
 
+		//行列の更新
 		m_billboard.GetModel().GetSkinModel().UpdateWorldMatrix(m_billboard.GetModel().GetPos(), m_billboard.GetModel().GetRot(), m_billboard.GetModel().GetScale());
-
-		m_x = x; m_camv = GetMainCamera()->GetPos();
-	}
-	void CImposter::PostRender() {
-		wchar_t txt[128];
-		CVector3 ca= GetMainCamera()->GetPos()- m_camv;
-		swprintf_s(txt, L"%d B(%.1f,%.1f,%.1f)", m_x, ca.x, ca.y, ca.z);
-		m_font.Draw(txt, { 0.5f,0.5f });
 	}
 }
 }

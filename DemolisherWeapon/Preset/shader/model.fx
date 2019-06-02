@@ -34,9 +34,11 @@ Texture2D<float4> LightingTexture : register(t2);
 //ボーン行列
 StructuredBuffer<float4x4> boneMatrix : register(t3);
 StructuredBuffer<float4x4> boneMatrixOld : register(t4);
+#if defined(INSTANCING)
 //インスタンシング用ワールド行列
 StructuredBuffer<float4x4> InstancingWorldMatrix : register(t5);
 StructuredBuffer<float4x4> InstancingWorldMatrixOld : register(t6);
+#endif
 
 /////////////////////////////////////////////////////////////
 // SamplerState

@@ -93,6 +93,10 @@ namespace GameObj {
 				GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrix, 1, &m_worldMatrixSRV);
 				GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, &m_worldMatrixSRVOld);
 
+				//IInstanceData‚Ìˆ—ŽÀs
+				if (m_instanceData) { m_instanceData->PreDrawUpdate(); }
+
+				//Ý’è‚³‚ê‚Ä‚¢‚éˆ—ŽÀs
 				if (m_preDrawFunc) { m_preDrawFunc(); }
 			}
 		);
@@ -156,6 +160,9 @@ namespace GameObj {
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
 			m_worldMatrixSBOld, 0, NULL, m_instancingWorldMatrixOld.get(), 0, 0
 		);
+
+		//IInstanceData‚Ìˆ—ŽÀs
+		if (m_instanceData) { m_instanceData->PostLoopPostUpdate(); }
 		
 		m_instanceNum = 0;
 	}

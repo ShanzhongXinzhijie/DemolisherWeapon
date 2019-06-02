@@ -1,5 +1,10 @@
 #include"model.fx"
 
+#if defined(INSTANCING)
+//インスタンシング用テクスチャインデックス
+StructuredBuffer<int2> InstancingImposterTextureIndex : register(t7);
+#endif
+
 //インポスターの出力
 struct PSOutput_RenderImposter {
 	float4 albedo		: SV_Target0;		//アルベド
@@ -42,18 +47,23 @@ PSOutput_RenderGBuffer PSMain_ImposterRenderGBuffer(PSInput In)
 	/*
 #if ALBEDO_MAP && NORMAL_MAP
 	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset);
-#endif*/
+#endif
 	if (In.TexCoord.x < 0.01f || In.TexCoord.x > 1.0f - 0.01f || -In.TexCoord.y < 0.01f || -In.TexCoord.y > 1.0f - 0.01f) {
 		Out.albedo = float4(-In.TexCoord.y, 0, 0, 1);
 		return Out;
 	}
-	
+	*/
 	
 	//インデックスからuv座標を算出
 	In.TexCoord.x /= imposterPartNum.x;
 	In.TexCoord.y /= imposterPartNum.y;
+#if defined(INSTANCING)
+	In.TexCoord.x += (1.0f / imposterPartNum.x) * InstancingImposterTextureIndex[In.instanceID].x;
+	In.TexCoord.y += (1.0f / imposterPartNum.y) * InstancingImposterTextureIndex[In.instanceID].y;
+#else
 	In.TexCoord.x += (1.0f / imposterPartNum.x) * imposterIndex.x;
 	In.TexCoord.y += (1.0f / imposterPartNum.y) * imposterIndex.y;
+#endif
 
 	//アルベド
 #if ALBEDO_MAP
