@@ -13,7 +13,9 @@ public:
 	/// <param name="filePath">ファイルパス</param>
 	/// <param name="entryFuncName">エントリー関数の名前</param>
 	/// <param name="shaderType">シェーダの種類</param>
-	void Load(const char* filePath, const char* entryFuncName, Shader::EnType shaderType);
+	/// <param name="definesIdentifier">追加の識別子</param>
+	/// <param name="pDefines">追加のマクロ</param>
+	void Load(const char* filePath, const char* entryFuncName, Shader::EnType shaderType, const char* definesIdentifier = nullptr, const D3D_SHADER_MACRO* pDefines = nullptr);
 
 	/// <summary>
 	/// シェーダの取得
@@ -40,7 +42,7 @@ private:
 	//マクロの数
 	static constexpr int MACRO_NUM = 4;
 	//シェーダー初期化用配列
-	D3D_SHADER_MACRO macros[MACRO_NUM + 1] = {
+	D3D_SHADER_MACRO m_macros[MACRO_NUM + 1] = {
 			"MOTIONBLUR", "0",
 			"NORMAL_MAP", "0",
 			"ALBEDO_MAP", "0",
