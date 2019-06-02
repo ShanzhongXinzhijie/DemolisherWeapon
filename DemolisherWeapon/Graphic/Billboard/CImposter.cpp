@@ -341,6 +341,7 @@ namespace GameObj {
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
 		//インスタンシング用のクラス設定
 		//TODO インスタンシング順とインデックス順、一致するのか? インスタンシングモデルに紐付ける?
+		//TODO 行列更新切る
 		if (m_billboard.GetIsInstancing()) {
 			if (!m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData()) {
 				//新規作成
@@ -375,7 +376,7 @@ namespace GameObj {
 
 	void CImposter::PostLoopUpdate() {
 		if (!m_isInit) { return; }
-		if (!m_billboard.GetModel().GetIsDraw()) { return; }//描画しないなら実行しない
+		if (!m_billboard.GetIsDraw()) { return; }//描画しないなら実行しない				
 		if (!GetMainCamera()) {
 #ifndef DW_MASTER
 			OutputDebugStringA("CImposter::PostLoopUpdate() カメラが設定されていません。\n");
@@ -439,7 +440,7 @@ namespace GameObj {
 		bias.Normalize();
 		bias *= m_scale*m_texture->GetModelSize();
 		m_billboard.SetPos(m_pos + bias);		
-		//m_billboard.SetPos(m_pos);
+		m_billboard.SetPos(m_pos);
 
 		//回転
 		CQuaternion rot;

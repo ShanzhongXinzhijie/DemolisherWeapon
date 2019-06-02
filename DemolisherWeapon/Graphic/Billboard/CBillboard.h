@@ -81,6 +81,14 @@ namespace DemolisherWeapon {
 				m_model.SetIsDraw(isdraw);
 			}
 		}
+		bool GetIsDraw()const {
+			if (m_isIns) {
+				return m_insModel.GetIsDraw();
+			}
+			else {
+				return m_model.GetIsDraw();
+			}
+		}
 
 		/// <summary>
 		/// インスタンシングモデルか取得
