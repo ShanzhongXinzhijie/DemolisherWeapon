@@ -4,11 +4,13 @@
 
 #pragma once
 #include <random>
+#include <algorithm>
 
 namespace DemolisherWeapon{
 
 class CMath{
 public:
+	//‰~ü—¦
 	static const float PI;
 	static const float PI2;
 	/*!
@@ -41,6 +43,12 @@ public:
 		return f * f;
 	}
 
+	//ˆø”f‚ğ0.0f`1.0f‚ÅƒNƒ‰ƒ“ƒv
+	static inline float Saturate(float f) {
+		return Clamp(f,0.0f,1.0f);
+	}
+
+	//ˆø”in‚ğlow`high‚ÌŠÔ‚Éû‚ß‚é
 	template<typename Ttype>
 	static inline Ttype Clamp(Ttype in, Ttype low, Ttype high) {
 		return min(max(in, low), high);
@@ -53,9 +61,11 @@ private:
 	static std::uniform_real_distribution<float> zeroToOne;
 	static std::uniform_int_distribution<> intRandom;
 public:
+	//0.0f`1.0f‚Ìfloat—”‚ğæ“¾
 	static float RandomZeroToOne() {
 		return zeroToOne(mt);
 	}
+	//0`RAND_MAX‚Ìint—”‚ğæ“¾
 	static int RandomInt() {
 		return intRandom(mt);
 	}

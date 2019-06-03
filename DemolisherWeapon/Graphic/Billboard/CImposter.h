@@ -54,6 +54,16 @@ namespace DemolisherWeapon {
 		}
 
 		/// <summary>
+		/// モデルのカメラへの方向のサイズを得る
+		/// </summary>
+		/// <param name="x">横インデックス</param>
+		/// <param name="y">縦インデックス</param>
+		/// <returns>モデルのカメラへの方向のサイズ</returns>
+		float GetDirectionOfCameraSize(int x, int y)const {
+			return m_toCamDirSize[m_partNumY-1+y][x];
+		}
+
+		/// <summary>
 		/// テクスチャ分割数の取得
 		/// </summary>
 		/// <returns>テクスチャ分割数</returns>
@@ -91,8 +101,9 @@ namespace DemolisherWeapon {
 		
 		UINT m_gbufferSizeX = 0, m_gbufferSizeY = 0;//テクスチャサイズ
 		UINT m_partNumX = 0, m_partNumY = 0;		//テクスチャ分割数
-		//std::vector<std::vector<CVector3>> m_fronts, m_ups;//分割された各テクスチャの前方向と上方向
 		float m_imposterMaxSize;//モデルの大きさ
+		CVector3 m_boundingBoxMaxSize, m_boundingBoxMinSize;
+		std::vector<std::vector<float>> m_toCamDirSize;//分割された各テクスチャのモデルのカメラ方向の大きさ
 	};
 
 	/// <summary>

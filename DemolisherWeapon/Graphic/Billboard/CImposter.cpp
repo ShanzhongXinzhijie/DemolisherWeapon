@@ -114,6 +114,8 @@ namespace DemolisherWeapon {
 		
 		//バウンディングボックスからモデルのサイズを求める
 		m_imposterMaxSize = 0.0f;
+		m_boundingBoxMaxSize = { 0.0f };
+		m_boundingBoxMinSize = { 0.0f };
 		model.FindMeshes(
 			[&](const std::shared_ptr<DirectX::ModelMesh>& meshes) {
 				CVector3 size, extents;
@@ -123,13 +125,26 @@ namespace DemolisherWeapon {
 				size += extents;
 				size.Abs();
 				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y, max(size.x, size.z)));
+				m_boundingBoxMaxSize.x = max(m_boundingBoxMaxSize.x, size.x);
+				m_boundingBoxMaxSize.y = max(m_boundingBoxMaxSize.y, size.z); //Z-UP
+				m_boundingBoxMinSize.z = min(m_boundingBoxMinSize.z, -size.y);//Z-UPなのでYが逆
 
 				size = meshes->boundingBox.Center;
 				size -= extents;
 				size.Abs();
 				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y, max(size.x, size.z)));
+				m_boundingBoxMinSize.x = min(m_boundingBoxMinSize.x, -size.x);
+				m_boundingBoxMinSize.y = min(m_boundingBoxMinSize.y, -size.z);//Z-UP
+				m_boundingBoxMaxSize.z = max(m_boundingBoxMaxSize.z, size.y); //Z-UPなのでYが逆
 			}
 		);
+
+		//モデルのカメラ方向の大きさをクリア
+		m_toCamDirSize.clear();
+		//確保
+		m_toCamDirSize.resize(m_partNumY);
+		for (auto& Y : m_toCamDirSize) { Y.resize(m_partNumX); }
+		m_toCamDirSize.shrink_to_fit();
 
 		//インポスタテクスチャの作成
 		Render(model);
@@ -251,6 +266,17 @@ namespace DemolisherWeapon {
 			//モデル描画
 			model.Draw();
 
+			//モデルのカメラ方向の大きさを記録
+			float toCamDirMaxSize = 0.0f;
+			CVector3 toCamDir;
+			toCamDir = m_boundingBoxMinSize;
+			rotM.Multiply(toCamDir);
+			toCamDirMaxSize = CVector3::AxisZ().Dot(toCamDir);
+			toCamDir = m_boundingBoxMaxSize;
+			rotM.Multiply(toCamDir);
+			toCamDirMaxSize = max(toCamDirMaxSize, CVector3::AxisZ().Dot(toCamDir));
+			m_toCamDirSize[indY][i%m_partNumX] = toCamDirMaxSize;
+
 			//ビューポート横にずらす
 			viewport.TopLeftX += viewport.Width;
 
@@ -337,11 +363,12 @@ namespace GameObj {
 		m_billboard.GetModel().GetSkinModel().SetIsBillboard(false);
 		//インポスターとして設定
 		//m_billboard.GetModel().GetSkinModel().SetIsImposter(true);
+		//行列計算無効
+		//(こちら側で計算する)
+		m_billboard.GetModel().GetSkinModel().SetIsCalcWorldMatrix(false);
 		//分割数設定
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
 		//インスタンシング用のクラス設定
-		//TODO インスタンシング順とインデックス順、一致するのか? インスタンシングモデルに紐付ける?
-		//TODO 行列更新切る
 		if (m_billboard.GetIsInstancing()) {
 			if (!m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData()) {
 				//新規作成
@@ -397,7 +424,7 @@ namespace GameObj {
 		//X軸回転
 		axisDir = polyDir;
 		axisDir.y = 0; axisDir.Normalize();
-		float XRot = acos(polyDir.Dot(axisDir));
+		float XRot = acos(CMath::Saturate(polyDir.Dot(axisDir)));
 		if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はaxisDir
 			y = (int)std::round(-XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
 		}
@@ -408,7 +435,7 @@ namespace GameObj {
 		//Y軸回転		
 		axisDir = CVector3(0.0f, 0.0f, 1.0f);
 		polyDir.y = 0.0f; polyDir.Normalize();
-		float YRot = acos(polyDir.Dot(axisDir));
+		float YRot = acos(CMath::Saturate(polyDir.Dot(axisDir)));
 		if (CVector2(polyDir.x, polyDir.z).Cross(CVector2(axisDir.x, axisDir.z)) > 0.0f) {
 			x += (int)std::round(-YRot / CMath::PI2 * m_texture->GetPartNumX()) + (int)(m_texture->GetPartNumX() / 2.0f - 0.5f);
 		}
@@ -438,9 +465,9 @@ namespace GameObj {
 		//※埋まり防止
 		CVector3 bias = GetMainCamera()->GetPos() - m_pos;
 		bias.Normalize();
-		bias *= m_scale*m_texture->GetModelSize();
+		bias *= m_scale*m_texture->GetDirectionOfCameraSize(x,y);
 		m_billboard.SetPos(m_pos + bias);		
-		m_billboard.SetPos(m_pos);
+		//m_billboard.SetPos(m_pos);
 
 		//回転
 		CQuaternion rot;

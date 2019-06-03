@@ -496,7 +496,7 @@ public:
 	//‚Q‚Â‚Ì³‹K‰»ƒxƒNƒgƒ‹AB‚Ì‚È‚·Šp“xƒÆ‚ğ‹‚ß‚é
 	static inline float AngleOf2NormalizeVector(const CVector3& A, const CVector3& B)
 	{
-		return acos(A.Dot(B));
+		return acos(CMath::Saturate(A.Dot(B)));
 	}
 
 	/*!

@@ -23,7 +23,7 @@ void SkinModelEffectShader::Load(const char* filePath, const char* entryFuncName
 			i++;
 		}
 		//追加の識別子の文字数カウント
-		strCnt = strlen(definesIdentifier);
+		strCnt = (int)strlen(definesIdentifier);
 		
 		//確保
 		combinedMacro = std::make_unique<D3D_SHADER_MACRO[]>(MACRO_NUM + macroCnt + 1);
