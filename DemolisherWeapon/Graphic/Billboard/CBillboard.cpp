@@ -66,6 +66,7 @@ namespace DemolisherWeapon {
 
 		//TODO シャドウマップにおけるビルボードの向き(インポスタも)
 		//TODO インポスタ、Z値出力シェーダ
+		//TODO モーションブラー
 
 		//初期化完了
 		m_isInit = true;

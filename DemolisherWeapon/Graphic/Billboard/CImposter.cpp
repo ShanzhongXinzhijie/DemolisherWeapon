@@ -424,7 +424,7 @@ namespace GameObj {
 		//XŽ²‰ñ“]
 		axisDir = polyDir;
 		axisDir.y = 0; axisDir.Normalize();
-		float XRot = acos(CMath::Saturate(polyDir.Dot(axisDir)));
+		float XRot = acos(CMath::ClampFromNegOneToPosOne(polyDir.Dot(axisDir)));
 		if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)‚ÍaxisDir
 			y = (int)std::round(-XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
 		}
@@ -435,7 +435,7 @@ namespace GameObj {
 		//YŽ²‰ñ“]		
 		axisDir = CVector3(0.0f, 0.0f, 1.0f);
 		polyDir.y = 0.0f; polyDir.Normalize();
-		float YRot = acos(CMath::Saturate(polyDir.Dot(axisDir)));
+		float YRot = acos(CMath::ClampFromNegOneToPosOne(polyDir.Dot(axisDir)));
 		if (CVector2(polyDir.x, polyDir.z).Cross(CVector2(axisDir.x, axisDir.z)) > 0.0f) {
 			x += (int)std::round(-YRot / CMath::PI2 * m_texture->GetPartNumX()) + (int)(m_texture->GetPartNumX() / 2.0f - 0.5f);
 		}

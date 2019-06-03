@@ -48,7 +48,7 @@ namespace DemolisherWeapon {
 				CVector3 basis2Target = ik.targetPos - jointPos; basis2Target.Normalize();
 
 				//‰ñ“]Šp
-				float rotationAngle = acos(CMath::Saturate(basis2Effector.Dot(basis2Target)));
+				float rotationAngle = acos(CMath::ClampFromNegOneToPosOne(basis2Effector.Dot(basis2Target)));
 				
 				//‰ñ“]Šp‚ªˆê’èˆÈã‚ÅŽÀs
 				if (rotationAngle > 1.0e-5f) {

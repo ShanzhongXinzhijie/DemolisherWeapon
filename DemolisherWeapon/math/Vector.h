@@ -496,7 +496,7 @@ public:
 	//２つの正規化ベクトルABのなす角度θを求める
 	static inline float AngleOf2NormalizeVector(const CVector3& A, const CVector3& B)
 	{
-		return acos(CMath::Saturate(A.Dot(B)));
+		return acos(CMath::ClampFromNegOneToPosOne(A.Dot(B)));
 	}
 
 	/*!

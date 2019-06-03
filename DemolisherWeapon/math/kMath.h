@@ -48,6 +48,11 @@ public:
 		return Clamp(f,0.0f,1.0f);
 	}
 
+	//ˆø”f‚ğ-1.0f`1.0f‚ÅƒNƒ‰ƒ“ƒv
+	static inline float ClampFromNegOneToPosOne(float f) {
+		return Clamp(f, -1.0f, 1.0f);
+	}
+
 	//ˆø”in‚ğlow`high‚ÌŠÔ‚Éû‚ß‚é
 	template<typename Ttype>
 	static inline Ttype Clamp(Ttype in, Ttype low, Ttype high) {
