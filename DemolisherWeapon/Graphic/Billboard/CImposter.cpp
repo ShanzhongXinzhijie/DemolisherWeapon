@@ -433,9 +433,8 @@ namespace GameObj {
 		//ビルボード設定解除
 		//(こちら側で回転させる)
 		m_billboard.GetModel().GetSkinModel().SetIsBillboard(false);
-		//TODO 行列計算無効
-		//(こちら側で計算する)
-		//m_billboard.GetModel().GetSkinModel().SetIsCalcWorldMatrix(false);
+		//アップデートの無効化(こちら側でやる)
+		m_billboard.GetModel().SetIsEnableUpdate(false);
 		//分割数設定
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
 		
@@ -562,7 +561,6 @@ namespace GameObj {
 		m_billboard.SetScale(scale);
 
 		//モデルに設定(行列)
-		//TODO モデルレンダーの行列計算タイミングしだいではいらない...?
 		if (!m_billboard.GetIsInstancing()) {
 			//行列の更新
 			m_billboard.GetModel().GetSkinModel().UpdateWorldMatrix(m_billboard.GetPos(), m_billboard.GetRot(), m_billboard.GetScale());

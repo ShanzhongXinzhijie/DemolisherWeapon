@@ -113,6 +113,11 @@ public:
 		return m_animCon;
 	}	
 
+	//Update関数を実行するか設定
+	void SetIsEnableUpdate(bool enable) {
+		m_isEnableUpdate = enable;
+	}
+
 	//描画を行うか設定
 	void SetIsDraw(bool flag) {
 		m_isDraw = flag;
@@ -183,6 +188,8 @@ private:
 	CVector3		m_scale = CVector3::One();
 
 	AnimationController m_animCon;
+
+	bool m_isEnableUpdate = true;//Updateを実行するか?
 
 	bool m_isDraw = true;//表示するか
 	bool m_isShadowCaster = true;//シャドウマップに書き込むか

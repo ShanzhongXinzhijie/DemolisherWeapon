@@ -238,7 +238,7 @@ namespace GameObj {
 		
 		void PostLoopUpdate()override final {
 			if (!m_isInit) { return; }
-			if (!m_isDraw) { m_isFirstWorldMatRef = true; return; }//TODO これ通常のモデルにも?
+			if (!m_isDraw) { m_isFirstWorldMatRef = true; return; }
 
 			//ワールド行列を求める(バイアス含む)
 			m_model[m_playingAnimNum]->GetModelRender().GetSkinModel().CalcWorldMatrix( m_pos, m_rot, m_scale, m_worldMatrix, m_SRTMatrix);

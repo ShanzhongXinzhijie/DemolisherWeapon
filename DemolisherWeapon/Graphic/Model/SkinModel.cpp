@@ -133,7 +133,7 @@ void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& r
 	}
 
 	//最初のワールド座標更新なら...
-	if (m_isFirstWorldMatRef || RefreshOldPos) {//TODO これだけ問題
+	if (m_isFirstWorldMatRef || RefreshOldPos) {
 		m_isFirstWorldMatRef = false;
 		//旧座標の更新
 		UpdateOldMatrix();

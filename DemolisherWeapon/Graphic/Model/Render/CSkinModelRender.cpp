@@ -44,10 +44,8 @@ void CSkinModelRender::PreLoopUpdate() {
 }
 
 void CSkinModelRender::Update() {
-	if (!m_isInit || m_animUpdating) { return; }
+	if (!m_isInit || m_animUpdating || !m_isEnableUpdate) { return; }
 
-	//TODO ‚±‚Ì•ÓPostLoop‚ÅÀs
-	// ˆÊ’uæ“¾‚ÌŠÖ”‚«‚½‚Æ‚«‚É‚à‚â‚é‚µ
 	if (!m_isUpdated) {
 		m_animUpdating = true;
 		m_animCon.Update();
