@@ -5,6 +5,19 @@ namespace DemolisherWeapon {
 	class CBillboard //: public IGameObject
 	{
 	public:
+		//インスタンシングにおける各インスタンスのSRT行列を保存するためのクラス
+		class InstancingSRTRecorder : public GameObj::InstancingModel::IInstancesData {
+		public:
+			InstancingSRTRecorder(int instancingMaxNum);
+			void PreDrawUpdate()override {}
+			void PostLoopPostUpdate()override {}
+			void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix)override;
+
+			const std::unique_ptr<CMatrix[]>& GetSRTMatrix()const { return m_SRTMatrix; }
+		private:
+			std::unique_ptr<CMatrix[]>	m_SRTMatrix;
+		};
+
 		/// <summary>
 		/// シャドウマップ描画時に実行する処理
 		/// </summary>
@@ -22,7 +35,7 @@ namespace DemolisherWeapon {
 		//インスタンシング用
 		class ShodowWorldMatrixCalcerInstancing : public ShadowMapRender::IPrePost {
 		public:
-			ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model);
+			ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model, InstancingSRTRecorder* insSRT);
 			void PreDraw()override;
 			void PreModelDraw()override;
 			void PostDraw()override;
@@ -30,6 +43,7 @@ namespace DemolisherWeapon {
 			int m_instancesNum = 0;
 			std::unique_ptr<CMatrix[]>	m_worldMatrix;
 			GameObj::InstancingModel* m_ptrModel = nullptr;
+			InstancingSRTRecorder* m_ptrInsSRT = nullptr;
 		};
 
 	public:
@@ -40,7 +54,7 @@ namespace DemolisherWeapon {
 		/// <param name="instancingNum">インスタンシング描画数</param>
 		void Init(std::experimental::filesystem::path fileName, int instancingNum = 1);
 		//SRVから初期化
-		void Init(ID3D11ShaderResourceView* srv, int instancingNum = 1, const wchar_t* identifiers = nullptr, bool isSetshadowPrePost = true);
+		void Init(ID3D11ShaderResourceView* srv, int instancingNum = 1, const wchar_t* identifiers = nullptr, bool isSetIInstancesDataAndShadowPrePost = true);
 
 		//座標・回転・拡大の設定
 		void SetPos(const CVector3& pos) {

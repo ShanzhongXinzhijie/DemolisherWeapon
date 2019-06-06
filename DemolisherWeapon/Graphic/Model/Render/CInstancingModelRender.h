@@ -41,8 +41,6 @@ namespace GameObj {
 			m_instancingWorldMatrixOld.reset();
 			if (m_worldMatrixSBOld) { m_worldMatrixSBOld->Release(); m_worldMatrixSBOld = nullptr; }
 			if (m_worldMatrixSRVOld) { m_worldMatrixSRVOld->Release(); m_worldMatrixSRVOld = nullptr; }
-			
-			m_instancingSRTMatrix.reset();
 		}
 
 		//初期化
@@ -69,7 +67,7 @@ namespace GameObj {
 		}
 
 		//このフレームに描画するインスタンスの追加
-		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix) {
+		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld) {
 			if (m_instanceNum + 1 >= m_instanceMax) {
 #ifndef DW_MASTER
 				char message[256];
@@ -81,14 +79,12 @@ namespace GameObj {
 
 			m_instancingWorldMatrix[m_instanceNum] = woridMatrix;
 			m_instancingWorldMatrixOld[m_instanceNum] = woridMatrixOld;
-			
-			m_instancingSRTMatrix[m_instanceNum] = SRTMatrix;
 
 			m_instanceNum++;
 		}
 
 		//ビルボード部分のみワールド行列更新
-		void UpdateBillBoardMatrix();
+		void UpdateBillBoardMatrix(const CMatrix* SRTMat);
 
 		/// <summary>
 		/// ワールド行列の取得
@@ -125,7 +121,7 @@ namespace GameObj {
 
 			//CInstancingModelRenderのAddDrawInstanceで実行する処理
 			//主にインスタンスごとのデータを追加する
-			//virtual void AddDrawInstance() {}// = 0;
+			virtual void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix) {}
 		};
 		/// <summary>
 		/// IInstanceDataをセット
@@ -142,11 +138,11 @@ namespace GameObj {
 		/// <summary>
 		/// IInstanceDataのAddDrawInstanceを実行する
 		/// </summary>
-		/*void IInstanceData_AddDrawInstance(){
+		void IInstanceData_AddDrawInstance(const CMatrix& SRTMatrix){
 			if (m_instanceData) {
-				m_instanceData->AddDrawInstance();
+				m_instanceData->AddDrawInstance(m_instanceNum, SRTMatrix);
 			}
-		}*/
+		}
 
 	private:
 		int m_instanceNum = 0, m_instanceDrawNum = 0;
@@ -162,8 +158,6 @@ namespace GameObj {
 		std::unique_ptr<CMatrix[]>	m_instancingWorldMatrixOld;
 		ID3D11Buffer*				m_worldMatrixSBOld = nullptr;
 		ID3D11ShaderResourceView*	m_worldMatrixSRVOld = nullptr;
-		
-		std::unique_ptr<CMatrix[]>	m_instancingSRTMatrix;
 
 		std::function<void()> m_preDrawFunc = nullptr;
 
@@ -258,8 +252,8 @@ namespace GameObj {
 
 			//インスタンシングモデルに送る
 			if (m_isDraw) {
-				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix);
-				//m_model[m_playingAnimNum]->IInstanceData_AddDrawInstance();
+				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld);
+				m_model[m_playingAnimNum]->IInstanceData_AddDrawInstance(m_SRTMatrix);
 			}
 			m_worldMatrixOld = m_worldMatrix;
 		}

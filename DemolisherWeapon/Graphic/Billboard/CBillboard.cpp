@@ -4,6 +4,13 @@
 namespace DemolisherWeapon {
 //namespace GameObj {
 	
+	CBillboard::InstancingSRTRecorder::InstancingSRTRecorder(int instancingMaxNum) {
+		m_SRTMatrix = std::make_unique<CMatrix[]>(instancingMaxNum);
+	}
+	void CBillboard::InstancingSRTRecorder::AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix) {
+		m_SRTMatrix[instanceNum] = SRTMatrix;
+	}
+
 	CBillboard::ShodowWorldMatrixCalcer::ShodowWorldMatrixCalcer(SkinModel* model) : m_ptrModel(model) {
 	}
 	void CBillboard::ShodowWorldMatrixCalcer::PreDraw() {
@@ -25,8 +32,8 @@ namespace DemolisherWeapon {
 		//m_ptrModel->SetDepthBias(m_depthBias);
 	}
 
-	CBillboard::ShodowWorldMatrixCalcerInstancing::ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model)
-	: m_ptrModel(model){
+	CBillboard::ShodowWorldMatrixCalcerInstancing::ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model, InstancingSRTRecorder* insSRT)
+	: m_ptrModel(model), m_ptrInsSRT(insSRT){
 		m_instancesNum = m_ptrModel->GetInstanceMax();//TODO 途中変更不可に
 		m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
 	}
@@ -40,7 +47,7 @@ namespace DemolisherWeapon {
 	}
 	void CBillboard::ShodowWorldMatrixCalcerInstancing::PreModelDraw() {
 		//新たなワールド行列に更新
-		m_ptrModel->UpdateBillBoardMatrix();
+		m_ptrModel->UpdateBillBoardMatrix(m_ptrInsSRT->GetSRTMatrix().get());
 	}
 	void CBillboard::ShodowWorldMatrixCalcerInstancing::PostDraw() {
 		//ワールド行列を戻す
@@ -74,7 +81,7 @@ namespace DemolisherWeapon {
 			tex->Release();
 		}
 	}
-	void CBillboard::Init(ID3D11ShaderResourceView* srv, int instancingNum, const wchar_t* identifiers, bool isSetshadowPrePost) {
+	void CBillboard::Init(ID3D11ShaderResourceView* srv, int instancingNum, const wchar_t* identifiers, bool isSetIInstancesDataAndShadowPrePost) {
 		//インスタンシング描画か?
 		m_isIns = instancingNum > 1 && identifiers ? true : false;
 
@@ -103,14 +110,26 @@ namespace DemolisherWeapon {
 		//シャドウマップの描画時に面を反転させない
 		modelPtr->SetIsShadowDrawReverse(false);
 
-		//シャドウマップ描画時に実行する処理を設定
-		if (isSetshadowPrePost && !modelPtr->GetShadowMapPrePost()) {
-			//ビルボードのものを設定
+		if (isSetIInstancesDataAndShadowPrePost) {
+			//インスタンシング用のクラス設定
+			InstancingSRTRecorder* insSRT = nullptr;
 			if (m_isIns) {
-				modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerInstancing>(m_insModel.GetInstancingModel()));
+				if (!m_insModel.GetInstancingModel()->GetIInstanceData()) {
+					//新規作成
+					m_insModel.GetInstancingModel()->SetIInstanceData(std::make_unique<InstancingSRTRecorder>(m_insModel.GetInstancingModel()->GetInstanceMax()));
+				}
+				//既存のもの使う
+				insSRT = dynamic_cast<InstancingSRTRecorder*>(m_insModel.GetInstancingModel()->GetIInstanceData());
 			}
-			else {
-				modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcer>(&modelPtr->GetSkinModel()));
+			//シャドウマップ描画時に実行する処理を設定
+			if (!modelPtr->GetShadowMapPrePost()) {
+				//ビルボードのものを設定
+				if (m_isIns) {
+					modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerInstancing>(m_insModel.GetInstancingModel(), insSRT));
+				}
+				else {
+					modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcer>(&modelPtr->GetSkinModel()));
+				}
 			}
 		}
 
