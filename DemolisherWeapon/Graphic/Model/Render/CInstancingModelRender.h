@@ -67,7 +67,7 @@ namespace GameObj {
 		}
 
 		//このフレームに描画するインスタンスの追加
-		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld) {
+		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix) {
 			if (m_instanceNum + 1 >= m_instanceMax) {
 #ifndef DW_MASTER
 				char message[256];
@@ -79,6 +79,9 @@ namespace GameObj {
 
 			m_instancingWorldMatrix[m_instanceNum] = woridMatrix;
 			m_instancingWorldMatrixOld[m_instanceNum] = woridMatrixOld;
+
+			//IInstanceDataの処理実行
+			if (m_instanceData) { m_instanceData->AddDrawInstance(m_instanceNum, SRTMatrix); }
 
 			m_instanceNum++;
 		}
@@ -119,7 +122,7 @@ namespace GameObj {
 			//主にストラクチャーバッファの更新をする
 			virtual void PostLoopPostUpdate() = 0;
 
-			//CInstancingModelRenderのAddDrawInstanceで実行する処理
+			//AddDrawInstanceで実行する処理
 			//主にインスタンスごとのデータを追加する
 			virtual void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix) {}
 		};
@@ -134,14 +137,6 @@ namespace GameObj {
 		/// </summary>
 		IInstancesData* GetIInstanceData()const {
 			return m_instanceData.get();
-		}
-		/// <summary>
-		/// IInstanceDataのAddDrawInstanceを実行する
-		/// </summary>
-		void IInstanceData_AddDrawInstance(const CMatrix& SRTMatrix){
-			if (m_instanceData) {
-				m_instanceData->AddDrawInstance(m_instanceNum, SRTMatrix);
-			}
 		}
 
 	private:
@@ -252,8 +247,7 @@ namespace GameObj {
 
 			//インスタンシングモデルに送る
 			if (m_isDraw) {
-				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld);
-				m_model[m_playingAnimNum]->IInstanceData_AddDrawInstance(m_SRTMatrix);
+				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix);
 			}
 			m_worldMatrixOld = m_worldMatrix;
 		}
