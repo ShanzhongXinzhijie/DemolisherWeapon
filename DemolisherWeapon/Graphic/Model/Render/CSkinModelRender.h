@@ -120,9 +120,21 @@ public:
 	bool GetIsDraw() const{
 		return m_isDraw;
 	}
+
 	//シャドウマップへの描画を行うか設定
 	void SetIsShadowCaster(bool flag){
 		m_isShadowCaster = flag;
+	}
+	//シャドウマップの描画時に面を反転させるか設定
+	void SetIsShadowDrawReverse(bool flag) {
+		m_isShadowDrawReverse = flag;
+	}
+	//シャドウマップ描画前後で行う処理を設定
+	void SetShadowMapPrePost(std::unique_ptr<ShadowMapRender::IPrePost>&& prepost) {
+		m_shadowMapPrePost = std::move(prepost);
+	}
+	ShadowMapRender::IPrePost* GetShadowMapPrePost()const {
+		return m_shadowMapPrePost.get();
 	}
 
 	//一番奥に描画するか設定
@@ -174,11 +186,14 @@ private:
 
 	bool m_isDraw = true;//表示するか
 	bool m_isShadowCaster = true;//シャドウマップに書き込むか
+	bool m_isShadowDrawReverse = true;//シャドウマップ描画時に面を反転させるか?
 
 	bool m_isUpdated = false;			//アップデート済みか?
 	bool m_isUpdatedWorldMatrix = false;//ワールド行列更新済みか?
 
 	bool m_animUpdating = false;
+
+	std::unique_ptr<ShadowMapRender::IPrePost> m_shadowMapPrePost;
 
 	static ID3D11RasterizerState* m_mostDepthRSCw;
 	static ID3D11RasterizerState* m_mostDepthRSCCw;

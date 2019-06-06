@@ -41,4 +41,4 @@ private:
 
 //•`‰æ‡ŠÖŒW
 static const int DRAW_PRIORITY_MAX = 5;
-static const int DRAW_PRIORITY_DEFAULT = 3;
+static const int DRAW_PRIORITY_DEFAULT = 2;

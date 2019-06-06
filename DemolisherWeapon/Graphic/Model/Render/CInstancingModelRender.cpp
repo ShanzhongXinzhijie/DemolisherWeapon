@@ -121,6 +121,7 @@ namespace GameObj {
 		//ワールド行列の確保
 		m_instancingWorldMatrix.reset(new CMatrix[m_instanceMax]);
 		m_instancingWorldMatrixOld.reset(new CMatrix[m_instanceMax]);
+		m_instancingSRTMatrix.reset(new CMatrix[m_instanceMax]);
 
 		//StructuredBufferの確保
 		D3D11_BUFFER_DESC desc;
@@ -150,6 +151,7 @@ namespace GameObj {
 
 		//描画インスタンス数の設定
 		m_model.GetSkinModel().SetInstanceNum(m_instanceNum);
+		m_instanceDrawNum = m_instanceNum;
 
 		if (m_instanceNum <= 0) { return; }		
 
@@ -165,6 +167,21 @@ namespace GameObj {
 		if (m_instanceData) { m_instanceData->PostLoopPostUpdate(); }
 		
 		m_instanceNum = 0;
+	}
+
+	void InstancingModel::UpdateBillBoardMatrix() {
+		//TODO SRT ビルボードのレイのクラスに移植
+		// 保存インターフェース関数
+		//行列更新
+		for (int i = 0; i < m_instanceDrawNum; i++) {
+			m_model.GetSkinModel().UpdateBillBoardMatrix(m_instancingSRTMatrix[i], m_instancingWorldMatrix[i]);
+		}
+		//StructuredBufferを更新。
+		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
+			m_worldMatrixSB, 0, NULL, m_instancingWorldMatrix.get(), 0, 0
+		);
+		//IInstanceDataの処理実行
+		//if (m_instanceData) { m_instanceData->PostLoopPostUpdate(); }
 	}
 	
 	InstancingModelManager CInstancingModelRender::m_s_instancingModelManager;

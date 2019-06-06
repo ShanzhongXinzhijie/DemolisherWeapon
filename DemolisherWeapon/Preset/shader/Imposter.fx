@@ -99,3 +99,32 @@ PSOutput_RenderGBuffer PSMain_ImposterRenderGBuffer(PSInput In)
 
 	return Out;
 }
+
+#if defined(TEXTURE)
+//インポスターのZ値出力
+float4 PSMain_ImposterRenderZ(ZPSInput In) : SV_Target0
+{
+	//インデックスからuv座標を算出
+	In.TexCoord.x /= imposterPartNum.x;
+	In.TexCoord.y /= imposterPartNum.y;
+#if defined(INSTANCING)
+	In.TexCoord.x += (1.0f / imposterPartNum.x) * InstancingImposterTextureIndex[In.instanceID].x;
+	In.TexCoord.y += (1.0f / imposterPartNum.y) * InstancingImposterTextureIndex[In.instanceID].y;
+#else
+	In.TexCoord.x += (1.0f / imposterPartNum.x) * imposterIndex.x;
+	In.TexCoord.y += (1.0f / imposterPartNum.y) * imposterIndex.y;
+#endif
+
+	//アルベド
+	float alpha = albedoTexture.Sample(Sampler, In.TexCoord).a * albedoScale.a;
+
+	//αテスト
+	if (alpha > 0.5f) {
+	}
+	else {
+		discard;
+	}
+
+	return In.posInProj.z / In.posInProj.w + depthBias.x;
+}
+#endif

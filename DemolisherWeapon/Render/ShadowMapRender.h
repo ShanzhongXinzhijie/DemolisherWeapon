@@ -18,11 +18,25 @@ public:
 	ShadowMapRender();
 	~ShadowMapRender();
 
-	void Init();
-	void Release();
-
 	void Render()override;
 	void PostRender()override;
+
+public:
+	//描画前後に行う処理を設定するためのクラス
+	class IPrePost {
+	public:
+		virtual ~IPrePost() {};
+	public:
+		virtual void PreDraw() {};		//すべてのシャドウマップの描画前に行う処理
+		virtual void PreModelDraw() {};	//モデル達の描画前に行う処理
+		virtual void PostModelDraw() {};//モデル達の描画後に行う処理
+		virtual void PostDraw() {};		//すべてのシャドウマップの描画後に行う処理
+	};
+
+public:
+	//初期化
+	void Init();
+	void Release();
 
 	//シャドウマップ全体の有効・無効を設定
 	void SetSetting(EnShadowMapMode setting) {
@@ -30,8 +44,12 @@ public:
 	}
 
 	//シャドウマップに描画するモデルを追加
-	void AddDrawModel(SkinModel* caster, int priority) {
-		m_drawModelList[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX)].push_back(caster);
+	void AddDrawModel(SkinModel* caster, int priority, bool reverse) {
+		m_drawModelList[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX)].push_back({ caster, reverse });
+	}
+	//描画前後に行う処理を追加
+	void AddPrePostAction(IPrePost* action) {
+		m_prePostActionList.push_back(action);
 	}
 
 	//シャドウマップをひとつ有効化
@@ -101,7 +119,8 @@ public:
 private:
 	EnShadowMapMode m_setting = enPCSS;
 
-	std::list<SkinModel*> m_drawModelList[DRAW_PRIORITY_MAX];
+	std::list<std::pair<SkinModel*,bool>> m_drawModelList[DRAW_PRIORITY_MAX];
+	std::list<IPrePost*> m_prePostActionList;
 
 	CShadowMap m_shadowMaps[SHADOWMAP_NUM];
 };

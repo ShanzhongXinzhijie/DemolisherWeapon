@@ -63,7 +63,7 @@ private:
 	virtual void CalcMBlurProjMatrix(CMatrix& projMOld, float rate) = 0;
 
 	//ビルボード行列・クォータニオンの更新
-	void UpdateBillboard(const CVector3& pos);
+	void UpdateBillboard();
 
 public:
 	//カメラ(行列)を更新
@@ -118,25 +118,25 @@ public:
 	/// インポスタークォータニオンを取得
 	/// </summary>
 	/// <returns></returns>
-	CQuaternion GetImposterQuaternion(const CVector3& pos);
+	CQuaternion GetImposterQuaternion(const CVector3& pos)const;
 
 	/// <summary>
 	/// インポスター行列を取得
 	/// </summary>
 	/// <returns></returns>
-	CMatrix GetImposterMatrix(const CVector3& pos);
+	CMatrix GetImposterMatrix(const CVector3& pos)const;
 
 	/// <summary>
 	/// ビルボードクォータニオンを取得
 	/// </summary>
 	/// <returns></returns>
-	CQuaternion GetBillboardQuaternion(const CVector3& pos);
+	CQuaternion GetBillboardQuaternion();
 
 	/// <summary>
 	/// ビルボード行列を取得
 	/// </summary>
 	/// <returns></returns>
-	CMatrix GetBillboardMatrix(const CVector3& pos);
+	CMatrix GetBillboardMatrix();
 
 protected:
 	bool m_change = true;//変更点あるか

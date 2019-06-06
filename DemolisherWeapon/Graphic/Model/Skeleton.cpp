@@ -14,9 +14,6 @@ void Bone::CalcWorldTRS()
 		CMatrix mWorld = m_worldMatrix;		
 
 		//バイアスを消す
-		CMatrix mBiasScr;
-		CMatrix mBiasRot;
-
 		if (m_isUseBias) {
 			//左手座標系に変換
 			if (m_enFbxCoordinate == enFbxRightHanded) {
@@ -25,12 +22,12 @@ void Bone::CalcWorldTRS()
 				mWorld.m[2][2] *= -1.0f;
 				mWorld.m[2][3] *= -1.0f;
 			}
-
-			CoordinateSystemBias::GetBias(mBiasRot, mBiasScr, m_enFbxUpAxis, m_enFbxCoordinate, true);
 		}
 
 		//拡大のバイアス解除
-		//mWorld.Mul(mBiasScr, mWorld);
+		if (m_isUseBias) {
+			//mWorld.Mul(m_reverseBiasScr, mWorld);
+		}
 
 		//行列から拡大率を取得する。
 		m_scale.x = mWorld.v[0].Length();
@@ -47,7 +44,9 @@ void Bone::CalcWorldTRS()
 		mWorld.v[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
 		
 		//回転のバイアス解除
-		mWorld.Mul(mBiasRot, mWorld);
+		if (m_isUseBias) {
+			mWorld.Mul(m_reverseBiasRot, mWorld);
+		}
 
 		m_rotation.SetRotation(mWorld);
 		

@@ -13,7 +13,12 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 	case enZShader: 
 		//Z’l‚Ì•`‰æ
 		deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSZShader->GetBody(), NULL, 0);
-		deviceContext->PSSetShader((ID3D11PixelShader*)m_psZShader[m_isUseTexZShader ? 1 : 0].GetBody(), NULL, 0);
+		if (m_pPSZShader == &m_psZShader[0]) {
+			deviceContext->PSSetShader((ID3D11PixelShader*)m_psZShader[m_isUseTexZShader ? 1 : 0].GetBody(), NULL, 0);
+		}
+		else {
+			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSZShader->GetBody(), NULL, 0);
+		}
 		break;
 	default:
 		//’Êí•`‰æ

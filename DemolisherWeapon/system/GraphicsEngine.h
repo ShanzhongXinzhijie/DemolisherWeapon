@@ -118,8 +118,8 @@ public:
 	void AddDrawModelToD3Render(SkinModel* sm, int priority) {
 		m_gbufferRender.AddDrawModel(sm, priority);
 	};
-	void AddDrawModelToShadowMapRender(SkinModel* sm, int priority) {
-		m_shadowMapRender.AddDrawModel(sm, priority);
+	void AddDrawModelToShadowMapRender(SkinModel* sm, int priority, bool reverse) {
+		m_shadowMapRender.AddDrawModel(sm, priority, reverse);
 	}
 
 	//レンダーマネージャーの取得

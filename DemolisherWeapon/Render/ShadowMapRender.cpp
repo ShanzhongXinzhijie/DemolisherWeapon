@@ -24,8 +24,11 @@ void ShadowMapRender::Release() {
 }
 
 void ShadowMapRender::Render() {
-
 	if (m_setting == enOFF) { return; }
+
+	for (auto& list : m_prePostActionList) {
+		list->PreDraw();
+	}
 
 	//もともとの状態を保存
 	GameObj::ICamera* oldcam = GetMainCamera();
@@ -33,7 +36,7 @@ void ShadowMapRender::Render() {
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSGetViewports(&kaz, &oldviewport);
 
 	//シェーダーをZ値書き込み様に
-	ModelEffect::SetShaderMode(ModelEffect::enZShader);
+	ModelEffect::SetShaderMode(ModelEffect::enZShader);	
 	
 	for (int i = 0; i < SHADOWMAP_NUM; i++) {		
 
@@ -42,13 +45,21 @@ void ShadowMapRender::Render() {
 		//描画準備
 		m_shadowMaps[i].PreparePreDraw();
 
+		for (auto& list : m_prePostActionList) {
+			list->PreModelDraw();
+		}
+
 		//描画
 		for (auto& list : m_drawModelList) {
 			for (auto& cas : list) {
-				cas->Draw(true);
+				cas.first->Draw(cas.second);
 			}
 		}
-	}
+
+		for (auto& list : m_prePostActionList) {
+			list->PostModelDraw();
+		}
+	}	
 
 	//シェーダーを通常に
 	ModelEffect::SetShaderMode(ModelEffect::enNormalShader);
@@ -61,11 +72,16 @@ void ShadowMapRender::Render() {
 
 	//レンダーターゲット解除
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+
+	for (auto& list : m_prePostActionList) {
+		list->PostDraw();
+	}
 }
 void ShadowMapRender::PostRender() {
 	for (auto& list : m_drawModelList) {
 		list.clear();
 	}
+	m_prePostActionList.clear();
 }
 
 }

@@ -3,13 +3,50 @@
 
 namespace DemolisherWeapon {
 //namespace GameObj {
-	CBillboard::CBillboard()
-	{
+	
+	CBillboard::ShodowWorldMatrixCalcer::ShodowWorldMatrixCalcer(SkinModel* model) : m_ptrModel(model) {
 	}
-	CBillboard::~CBillboard()
-	{
+	void CBillboard::ShodowWorldMatrixCalcer::PreDraw() {
+		//現在のワールド行列の保存
+		m_worldMatrix = m_ptrModel->GetWorldMatrix();
+		//TODO 深度値バイアス
+		//車道はたいしたことでないのでDEPTH_BIAS_D32_FLOAT
+		//m_depthBias = m_ptrModel->GetDepthBias();
+		//m_ptrModel->SetDepthBias(m_depthBias + );
+	}
+	void CBillboard::ShodowWorldMatrixCalcer::PreModelDraw() {
+		//新たなワールド行列に更新
+		m_ptrModel->UpdateBillBoardMatrix();
+	}
+	void CBillboard::ShodowWorldMatrixCalcer::PostDraw() {
+		//ワールド行列を戻す
+		m_ptrModel->SetWorldMatrix(m_worldMatrix);
+		//深度値バイアス戻す
+		//m_ptrModel->SetDepthBias(m_depthBias);
 	}
 
+	CBillboard::ShodowWorldMatrixCalcerInstancing::ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model)
+	: m_ptrModel(model){
+		m_instancesNum = m_ptrModel->GetInstanceMax();//TODO 途中変更不可に
+		m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
+	}
+	void CBillboard::ShodowWorldMatrixCalcerInstancing::PreDraw() {
+		//現在のワールド行列の保存
+		const auto& mats = m_ptrModel->GetWorldMatrix();
+		int max = m_ptrModel->GetDrawInstanceNum();
+		for (int i = 0; i < max; i++) {
+			m_worldMatrix[i] = mats[i];
+		}
+	}
+	void CBillboard::ShodowWorldMatrixCalcerInstancing::PreModelDraw() {
+		//新たなワールド行列に更新
+		m_ptrModel->UpdateBillBoardMatrix();
+	}
+	void CBillboard::ShodowWorldMatrixCalcerInstancing::PostDraw() {
+		//ワールド行列を戻す
+		m_ptrModel->SetUpdateDrawWorldMatrix(m_worldMatrix.get());
+	}
+	
 	void CBillboard::Init(std::experimental::filesystem::path fileName, int instancingNum) {
 		//テクスチャ読み込み
 		ID3D11ShaderResourceView* tex = nullptr;
@@ -37,7 +74,7 @@ namespace DemolisherWeapon {
 			tex->Release();
 		}
 	}
-	void CBillboard::Init(ID3D11ShaderResourceView* srv, int instancingNum, const wchar_t* identifiers) {
+	void CBillboard::Init(ID3D11ShaderResourceView* srv, int instancingNum, const wchar_t* identifiers, bool isSetshadowPrePost) {
 		//インスタンシング描画か?
 		m_isIns = instancingNum > 1 && identifiers ? true : false;
 
@@ -63,10 +100,19 @@ namespace DemolisherWeapon {
 
 		//ビルボードであると設定
 		modelPtr->GetSkinModel().SetIsBillboard(true);
+		//シャドウマップの描画時に面を反転させない
+		modelPtr->SetIsShadowDrawReverse(false);
 
-		//TODO シャドウマップにおけるビルボードの向き(インポスタも)
-		//TODO インポスタ、Z値出力シェーダ
-		//TODO モーションブラー
+		//シャドウマップ描画時に実行する処理を設定
+		if (isSetshadowPrePost && !modelPtr->GetShadowMapPrePost()) {
+			//ビルボードのものを設定
+			if (m_isIns) {
+				modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerInstancing>(m_insModel.GetInstancingModel()));
+			}
+			else {
+				modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcer>(&modelPtr->GetSkinModel()));
+			}
+		}
 
 		//初期化完了
 		m_isInit = true;

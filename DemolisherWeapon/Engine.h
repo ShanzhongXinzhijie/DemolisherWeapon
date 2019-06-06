@@ -363,10 +363,15 @@ static inline void AddDrawModelToD3Render(SkinModel* sm, int priority = DRAW_PRI
 {
 	GetEngine().GetGraphicsEngine().AddDrawModelToD3Render(sm, priority);
 }
-//シャドウマップレンダーに描画するモデルを登録
-static inline void AddDrawModelToShadowMapRender(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT)
+/// <summary>
+/// シャドウマップレンダーに描画するモデルを登録
+/// </summary>
+/// <param name="sm">描画するモデル</param>
+/// <param name="priority">描画順(0～DRAW_PRIORITY_MAX)(大きいと後に描画)</param>
+/// <param name="reverse">面方向を反転するか</param>
+static inline void AddDrawModelToShadowMapRender(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT, bool reverse = true)
 {
-	GetEngine().GetGraphicsEngine().AddDrawModelToShadowMapRender(sm, priority);
+	GetEngine().GetGraphicsEngine().AddDrawModelToShadowMapRender(sm, priority, reverse);
 }
 //物理エンジンのデバッグ表示のモードを設定する
 static inline void SetPhysicsDebugDrawMode(int debugMode) {

@@ -146,6 +146,8 @@ struct ZPSInput {
 	float4 Position 	: SV_POSITION;
 	float2 TexCoord 	: TEXCOORD0;
 	float4 posInProj	: TEXCOORD1;
+
+	uint instanceID		: InstanceID;
 };
 
 
@@ -245,6 +247,7 @@ ZPSInput VSMain_RenderZ(VSInputNmTxVcTangent In
 	ZPSInput psInput = (ZPSInput)0;
 
 #if defined(INSTANCING)
+	psInput.instanceID = instanceID;
 	float4 pos = mul(InstancingWorldMatrix[instanceID], In.Position);
 #else
 	float4 pos = mul(mWorld, In.Position);
@@ -388,6 +391,7 @@ ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In
 		skinning += boneMatrix[In.Indices[3]] * (1.0f - w);		
 	}
 #if defined(INSTANCING)
+	psInput.instanceID = instanceID;
 	//インスタンシング
 	skinning = mul(InstancingWorldMatrix[instanceID], skinning);
 #endif

@@ -8,6 +8,7 @@ namespace DemolisherWeapon {
 		SetDefaultVS();
 		SetDefaultVSZ();
 		SetDefaultPS();
+		SetDefaultPSZ();
 		SetDefaultAlbedoTexture();
 		SetDefaultNormalTexture();
 		SetDefaultLightingTexture();
@@ -19,6 +20,7 @@ namespace DemolisherWeapon {
 		SetVS(modeleffect->GetDefaultMaterialSetting().GetVS());
 		SetVSZ(modeleffect->GetDefaultMaterialSetting().GetVSZ());
 		SetPS(modeleffect->GetDefaultMaterialSetting().GetPS());
+		SetPSZ(modeleffect->GetDefaultMaterialSetting().GetPSZ());
 
 		SetAlbedoTexture(modeleffect->GetDefaultMaterialSetting().GetAlbedoTexture());
 		SetNormalTexture(modeleffect->GetDefaultMaterialSetting().GetNormalTexture());
@@ -37,6 +39,9 @@ namespace DemolisherWeapon {
 	}
 	void MaterialSetting::SetDefaultPS() {
 		m_pPSShader = m_isInit->GetDefaultPS();
+	}
+	void MaterialSetting::SetDefaultPSZ() {
+		m_pPSZShader = m_isInit->GetDefaultPSZ();
 	}
 	//TriPlanarMapping用のシェーダを設定
 	void MaterialSetting::SetTriPlanarMappingPS() {

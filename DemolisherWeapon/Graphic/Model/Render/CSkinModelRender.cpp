@@ -46,6 +46,8 @@ void CSkinModelRender::PreLoopUpdate() {
 void CSkinModelRender::Update() {
 	if (!m_isInit || m_animUpdating) { return; }
 
+	//TODO この辺PostLoopで実行
+	// 位置取得の関数きたときにもやるし
 	if (!m_isUpdated) {
 		m_animUpdating = true;
 		m_animCon.Update();
@@ -65,12 +67,16 @@ void CSkinModelRender::PostUpdate() {
 }
 
 void CSkinModelRender::PostLoopUpdate() {
-	if (!m_isInit) { return; }	
-	
+	if (!m_isInit) { return; }		
 	if (!m_isDraw) { return; }
 
-	if (m_isShadowCaster) { AddDrawModelToShadowMapRender(&m_model, m_priority); }
-
+	if (m_isShadowCaster) {
+		//シャドウマップ描画前後で実行する処理を送る
+		if (m_shadowMapPrePost) { GetGraphicsEngine().GetShadowMapRender().AddPrePostAction(m_shadowMapPrePost.get()); }
+		//シャドウマップレンダーにモデル送る
+		AddDrawModelToShadowMapRender(&m_model, m_priority, m_isShadowDrawReverse); 
+	}
+	//3Dモデルレンダーにモデル送る
 	AddDrawModelToD3Render(&m_model, m_priority);
 }
 

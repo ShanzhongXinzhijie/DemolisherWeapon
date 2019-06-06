@@ -5,10 +5,32 @@ namespace DemolisherWeapon {
 	class CBillboard //: public IGameObject
 	{
 	public:
-		CBillboard();
-		~CBillboard();
-
-		//void PostLoopUpdate()override;
+		/// <summary>
+		/// シャドウマップ描画時に実行する処理
+		/// </summary>
+		class ShodowWorldMatrixCalcer : public ShadowMapRender::IPrePost {
+		public:
+			ShodowWorldMatrixCalcer(SkinModel* model);
+			void PreDraw()override;
+			void PreModelDraw()override;
+			void PostDraw()override;
+		private:
+			//float m_depthBias = 0.0f;
+			CMatrix	m_worldMatrix;
+			SkinModel* m_ptrModel = nullptr;
+		};
+		//インスタンシング用
+		class ShodowWorldMatrixCalcerInstancing : public ShadowMapRender::IPrePost {
+		public:
+			ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model);
+			void PreDraw()override;
+			void PreModelDraw()override;
+			void PostDraw()override;
+		private:
+			int m_instancesNum = 0;
+			std::unique_ptr<CMatrix[]>	m_worldMatrix;
+			GameObj::InstancingModel* m_ptrModel = nullptr;
+		};
 
 	public:
 		/// <summary>
@@ -18,7 +40,7 @@ namespace DemolisherWeapon {
 		/// <param name="instancingNum">インスタンシング描画数</param>
 		void Init(std::experimental::filesystem::path fileName, int instancingNum = 1);
 		//SRVから初期化
-		void Init(ID3D11ShaderResourceView* srv, int instancingNum = 1, const wchar_t* identifiers = nullptr);
+		void Init(ID3D11ShaderResourceView* srv, int instancingNum = 1, const wchar_t* identifiers = nullptr, bool isSetshadowPrePost = true);
 
 		//座標・回転・拡大の設定
 		void SetPos(const CVector3& pos) {

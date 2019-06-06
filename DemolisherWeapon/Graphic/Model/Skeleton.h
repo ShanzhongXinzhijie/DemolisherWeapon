@@ -166,6 +166,7 @@ public:
 		m_isUseBias = true;
 		m_enFbxUpAxis = fbxUpAxis;
 		m_enFbxCoordinate = fbxCoordinate;
+		CoordinateSystemBias::GetBias(m_reverseBiasRot, m_reverseBiasScr, m_enFbxUpAxis, m_enFbxCoordinate, true);
 	}
 
 private:
@@ -191,6 +192,8 @@ private:
 	bool m_isUseBias = false;
 	EnFbxUpAxis			  m_enFbxUpAxis = enFbxUpAxisZ;			//FBXの上方向
 	EnFbxCoordinateSystem m_enFbxCoordinate = enFbxRightHanded;	//FBXの座標系
+	CMatrix m_reverseBiasScr;
+	CMatrix m_reverseBiasRot;
 };
 /*!
  *@brief	スケルトン。

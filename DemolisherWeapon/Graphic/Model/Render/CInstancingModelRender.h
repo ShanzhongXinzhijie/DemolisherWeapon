@@ -34,12 +34,15 @@ namespace GameObj {
 			//インスタンシング用リソースの開放
 			m_instanceMax = 0;
 			m_instanceNum = 0;
+
 			m_instancingWorldMatrix.reset();
 			if (m_worldMatrixSB) { m_worldMatrixSB->Release(); m_worldMatrixSB = nullptr; }
 			if (m_worldMatrixSRV) { m_worldMatrixSRV->Release(); m_worldMatrixSRV = nullptr; }
 			m_instancingWorldMatrixOld.reset();
 			if (m_worldMatrixSBOld) { m_worldMatrixSBOld->Release(); m_worldMatrixSBOld = nullptr; }
 			if (m_worldMatrixSRVOld) { m_worldMatrixSRVOld->Release(); m_worldMatrixSRVOld = nullptr; }
+			
+			m_instancingSRTMatrix.reset();
 		}
 
 		//初期化
@@ -54,6 +57,9 @@ namespace GameObj {
 		void SetInstanceMax(int instanceMax);
 		int  GetInstanceMax()const { return m_instanceMax; }
 
+		//描画インスタンス数の取得
+		int GetDrawInstanceNum()const { return m_instanceDrawNum; }
+
 		//モデルの取得
 		GameObj::CSkinModelRender& GetModelRender() { return m_model; }
 
@@ -63,7 +69,7 @@ namespace GameObj {
 		}
 
 		//このフレームに描画するインスタンスの追加
-		void AddDrawInstance(const CMatrix* woridMatrix, const CMatrix* woridMatrixOld = nullptr) {
+		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix) {
 			if (m_instanceNum + 1 >= m_instanceMax) {
 #ifndef DW_MASTER
 				char message[256];
@@ -73,10 +79,35 @@ namespace GameObj {
 				return;
 			}
 
-			if (!woridMatrixOld) { woridMatrixOld = woridMatrix; }
-			m_instancingWorldMatrix[m_instanceNum] = *woridMatrix;
-			m_instancingWorldMatrixOld[m_instanceNum] = *woridMatrixOld;
+			m_instancingWorldMatrix[m_instanceNum] = woridMatrix;
+			m_instancingWorldMatrixOld[m_instanceNum] = woridMatrixOld;
+			
+			m_instancingSRTMatrix[m_instanceNum] = SRTMatrix;
+
 			m_instanceNum++;
+		}
+
+		//ビルボード部分のみワールド行列更新
+		void UpdateBillBoardMatrix();
+
+		/// <summary>
+		/// ワールド行列の取得
+		/// </summary>
+		const auto& GetWorldMatrix()const {
+			return m_instancingWorldMatrix;
+		}
+		/// <summary>
+		/// ワールド行列の設定と更新
+		/// </summary>
+		void SetUpdateDrawWorldMatrix(const CMatrix* mat) {
+			//設定
+			for (int i = 0; i < GetDrawInstanceNum(); i++) {
+				m_instancingWorldMatrix[i] = mat[i];
+			}
+			//StructuredBufferを更新。
+			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
+				m_worldMatrixSB, 0, NULL, m_instancingWorldMatrix.get(), 0, 0
+			);
 		}
 
 		//インスタンスごとのデータを扱う用のインターフェイスクラス 
@@ -87,9 +118,11 @@ namespace GameObj {
 			//描画前に実行する処理
 			//主にSRVの設定をする
 			virtual void PreDrawUpdate() = 0;
+
 			//PostLoopPostUpdateで実行する処理
 			//主にストラクチャーバッファの更新をする
 			virtual void PostLoopPostUpdate() = 0;
+
 			//CInstancingModelRenderのAddDrawInstanceで実行する処理
 			//主にインスタンスごとのデータを追加する
 			//virtual void AddDrawInstance() {}// = 0;
@@ -97,14 +130,12 @@ namespace GameObj {
 		/// <summary>
 		/// IInstanceDataをセット
 		/// </summary>
-		/// <param name="IID">IInstanceData</param>
 		void SetIInstanceData(std::unique_ptr<IInstancesData>&& IID) {
 			m_instanceData = std::move(IID);
 		}
 		/// <summary>
 		/// 設定されているIInstanceDataを取得
 		/// </summary>
-		/// <returns>設定されているIInstanceData</returns>
 		IInstancesData* GetIInstanceData()const {
 			return m_instanceData.get();
 		}
@@ -118,7 +149,7 @@ namespace GameObj {
 		}*/
 
 	private:
-		int m_instanceNum = 0;
+		int m_instanceNum = 0, m_instanceDrawNum = 0;
 		int m_instanceMax = 0;
 
 		GameObj::CSkinModelRender m_model;
@@ -131,6 +162,8 @@ namespace GameObj {
 		std::unique_ptr<CMatrix[]>	m_instancingWorldMatrixOld;
 		ID3D11Buffer*				m_worldMatrixSBOld = nullptr;
 		ID3D11ShaderResourceView*	m_worldMatrixSRVOld = nullptr;
+		
+		std::unique_ptr<CMatrix[]>	m_instancingSRTMatrix;
 
 		std::function<void()> m_preDrawFunc = nullptr;
 
@@ -211,10 +244,10 @@ namespace GameObj {
 		
 		void PostLoopUpdate()override final {
 			if (!m_isInit) { return; }
-			if (!m_isDraw) { m_isFirstWorldMatRef = true; return; }
+			if (!m_isDraw) { m_isFirstWorldMatRef = true; return; }//TODO これ通常のモデルにも?
 
 			//ワールド行列を求める(バイアス含む)
-			m_model[m_playingAnimNum]->GetModelRender().GetSkinModel().CalcWorldMatrix( m_pos, m_rot, m_scale, m_worldMatrix);
+			m_model[m_playingAnimNum]->GetModelRender().GetSkinModel().CalcWorldMatrix( m_pos, m_rot, m_scale, m_worldMatrix, m_SRTMatrix);
 
 			//最初のワールド座標更新なら...
 			if (m_isFirstWorldMatRef) {
@@ -225,7 +258,7 @@ namespace GameObj {
 
 			//インスタンシングモデルに送る
 			if (m_isDraw) {
-				m_model[m_playingAnimNum]->AddDrawInstance(&m_worldMatrix, &m_worldMatrixOld);
+				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix);
 				//m_model[m_playingAnimNum]->IInstanceData_AddDrawInstance();
 			}
 			m_worldMatrixOld = m_worldMatrix;
@@ -290,6 +323,7 @@ namespace GameObj {
 		CQuaternion m_rot;
 		CVector3 m_scale = CVector3::One();
 		CMatrix m_worldMatrix, m_worldMatrixOld;
+		CMatrix m_SRTMatrix;
 
 	public:
 		static InstancingModelManager& GetInstancingModelManager() { return m_s_instancingModelManager; }

@@ -34,7 +34,7 @@ private:
 protected:
 	//使用中のシェーダーのポインタ
 	SKEShaderPtr m_pVSShader; Shader* m_pVSZShader = nullptr;
-	SKEShaderPtr m_pPSShader;
+	SKEShaderPtr m_pPSShader; Shader* m_pPSZShader = nullptr;
 
 	//デフォルトバーテックスシェーダ
 	SkinModelEffectShader m_vsDefaultShader;
@@ -78,6 +78,7 @@ public:
 
 		//デフォルトのシェーダを設定
 		m_pPSShader = &m_psDefaultShader;
+		m_pPSZShader = &m_psZShader[0];
 
 		//マテリアル設定(m_defaultMaterialSetting)を初期化してやる
 		MaterialSettingInit(m_defaultMaterialSetting);
@@ -235,6 +236,9 @@ public:
 	SkinModelEffectShader* GetDefaultPS() {
 		return &m_psDefaultShader;
 	}
+	Shader* GetDefaultPSZ() {
+		return &m_psZShader[0];
+	}
 	//TriPlanarMapping用のシェーダを取得
 	SkinModelEffectShader* GetTriPlanarMappingPS() {
 		return &m_psTriPlanarMapShader;
@@ -278,6 +282,7 @@ public:
 		m_pVSShader = matset.GetVS();
 		m_pVSZShader = matset.GetVSZ(); 
 		m_pPSShader = matset.GetPS();
+		m_pPSZShader = matset.GetPSZ();
 
 		m_pAlbedoTex = matset.GetAlbedoTexture();
 		m_pNormalTex = matset.GetNormalTexture();

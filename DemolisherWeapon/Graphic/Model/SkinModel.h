@@ -38,7 +38,17 @@ public:
 	void UpdateWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, bool RefreshOldPos = false);
 
 	//ワールド行列を計算する
-	void CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix);
+	void CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix, CMatrix& returnSRTMatrix)const;
+	void CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix)const {
+		CalcWorldMatrix(position, rotation, scale, returnWorldMatrix, returnWorldMatrix);
+	}
+
+	//(拡大×回転×平行移動)行列を計算する
+	void CalcSRTMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix)const;
+
+	//ワールド行列のビルボード部分のみ更新
+	void UpdateBillBoardMatrix();
+	void UpdateBillBoardMatrix(const CMatrix& SRTMatrix, CMatrix& returnMat)const;
 
 	//旧行列の記録
 	void UpdateOldMatrix() {
@@ -46,6 +56,21 @@ public:
 		m_worldMatrixOld = m_worldMatrix;
 		//ボーン
 		m_skeleton.UpdateBoneMatrixOld();
+	}
+
+	/// <summary>
+	/// ワールド行列の取得
+	/// </summary>
+	/// <returns>ワールド行列</returns>
+	const CMatrix& GetWorldMatrix()const {
+		return m_worldMatrix;
+	}
+	/// <summary>
+	/// ワールド行列の設定
+	/// </summary>
+	/// <param name="mat">設定する行列</param>
+	void SetWorldMatrix(const CMatrix& mat) {
+		m_worldMatrix = mat;
 	}
 
 	/*!
@@ -158,6 +183,9 @@ public:
 	void SetDepthBias(float bias) {
 		m_depthBias = bias;
 	}
+	float GetDepthBias()const {
+		return m_depthBias;
+	}
 
 	/// <summary>
 	/// ビルボードであるか設定
@@ -167,6 +195,9 @@ public:
 		m_isBillboard = enable;
 		m_isImposter = false;
 	}
+	bool GetIsBillboard()const {
+		return m_isBillboard;
+	}
 	/// <summary>
 	/// インポスターであるか設定
 	/// </summary>
@@ -174,6 +205,9 @@ public:
 	void SetIsImposter(bool enable) {
 		m_isImposter = enable;
 		m_isBillboard = false;
+	}
+	bool GetIsImposter()const {
+		return m_isImposter;
 	}
 
 	/// <summary>
@@ -184,6 +218,10 @@ public:
 	void SetImposterIndex(int x, int y) {
 		m_imposterIndex[0] = x;
 		m_imposterIndex[1] = y;
+	}
+	void GetImposterIndex(int& x, int& y) {
+		 x = m_imposterIndex[0];
+		 y = m_imposterIndex[1];
 	}
 	/// <summary>
 	/// インポスターの枚数を設定
@@ -219,6 +257,11 @@ public:
 	}
 
 private:
+	/// <summary>
+	/// ビルボード行列の計算
+	/// </summary>
+	/// <param name="returnMat">戻り値</param>
+	void CalcBillBoardMatrix(const CVector3& position, CMatrix& returnMat)const;
 	/*!
 	*@brief	サンプラステートの初期化。
 	*/
@@ -262,6 +305,8 @@ private:
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
+	CMatrix m_biasMatrix;
+	CMatrix m_SRTMatrix;
 	bool m_isFirstWorldMatRef = true;
 
 	//マテリアル個別設定	

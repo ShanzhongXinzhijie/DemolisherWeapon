@@ -97,6 +97,9 @@ namespace DemolisherWeapon {
 		const SKEShaderPtr& GetPS() const{
 			return m_pPSShader;
 		}
+		Shader* GetPSZ() const {
+			return m_pPSZShader;
+		}
 		//シェーダを設定
 		void SetVS(const SKEShaderPtr& ps) {
 			m_pVSShader = ps;
@@ -107,10 +110,14 @@ namespace DemolisherWeapon {
 		void SetPS(const SKEShaderPtr& ps) {
 			m_pPSShader = ps;
 		}
+		void SetPSZ(Shader* ps) {
+			m_pPSZShader = ps;
+		}
 		//シェーダをデフォに戻す
 		void SetDefaultVS();
 		void SetDefaultVSZ();
 		void SetDefaultPS();
+		void SetDefaultPSZ();
 
 		//TriPlanarMapping用のシェーダを設定
 		void SetTriPlanarMappingPS();
@@ -220,6 +227,7 @@ namespace DemolisherWeapon {
 		Shader *m_pVSZShader = nullptr; 
 		//ピクセルシェーダ
 		SKEShaderPtr m_pPSShader;		
+		Shader *m_pPSZShader = nullptr;
 
 		//テクスチャ
 		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;		

@@ -11,6 +11,8 @@ namespace DemolisherWeapon {
 
 		//インデックス配列の確保
 		m_instancingIndex = std::make_unique<int[][2]>(instancingMaxNum);
+		m_instancingPos = std::make_unique<CVector3[]>(instancingMaxNum);
+		m_instancingScale = std::make_unique<float[]>(instancingMaxNum);
 
 		//StructuredBufferの確保
 		D3D11_BUFFER_DESC desc;
@@ -43,10 +45,11 @@ namespace DemolisherWeapon {
 		GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
 			m_indexSB.Get(), 0, NULL, m_instancingIndex.get(), 0, 0
 		);
+		m_instanceDrawNum = m_instanceNum;
 		m_instanceNum = 0;
 	}
 
-	void InstancingImposterIndex::AddDrawInstance(int x, int y) {
+	void InstancingImposterIndex::AddDrawInstance(int x, int y, const CVector3& pos, float scale) {
 		if (m_instanceNum + 1 >= m_instanceMax) {
 #ifndef DW_MASTER
 			char message[256];
@@ -57,22 +60,79 @@ namespace DemolisherWeapon {
 		}
 		m_instancingIndex[m_instanceNum][0] = x;
 		m_instancingIndex[m_instanceNum][1] = y;
+		m_instancingPos[m_instanceNum] = pos;
+		m_instancingScale[m_instanceNum] = scale;
 		m_instanceNum++;
+	}
+
+	ShodowWorldMatrixCalcerImposter::ShodowWorldMatrixCalcerImposter(GameObj::CImposter* imp, SkinModel* model) : m_ptrImposter(imp), m_ptrModel(model) {
+	}
+	void ShodowWorldMatrixCalcerImposter::PreDraw() {
+		//現在のワールド行列の保存
+		m_worldMatrix = m_ptrModel->GetWorldMatrix();
+		//現在のインデックスの保存
+		m_ptrModel->GetImposterIndex(m_x, m_y);
+	}
+	void ShodowWorldMatrixCalcerImposter::PreModelDraw() {
+		//更新
+		m_ptrImposter->PostLoopUpdate();
+	}
+	void ShodowWorldMatrixCalcerImposter::PostDraw() {
+		//ワールド行列を戻す
+		m_ptrModel->SetWorldMatrix(m_worldMatrix);
+		//インデックスを戻す
+		m_ptrModel->SetImposterIndex(m_x, m_y);
+	}
+	
+	ShodowWorldMatrixCalcerInstancingImposter::ShodowWorldMatrixCalcerInstancingImposter(ImposterTexRender* tex, GameObj::InstancingModel* model, InstancingImposterIndex* index)
+	: m_ptrTexture(tex), m_ptrModel(model), m_ptrIndex(index) {
+		m_instancesNum = m_ptrModel->GetInstanceMax();//TODO 途中変更不可に
+		m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
+		m_worldMatrixNew = std::make_unique<CMatrix[]>(m_instancesNum);
+		m_index = std::make_unique<int[][2]>(m_instancesNum);
+		m_indexNew = std::make_unique<int[][2]>(m_instancesNum);
+	}
+	void ShodowWorldMatrixCalcerInstancingImposter::PreDraw() {
+		int max = m_ptrModel->GetDrawInstanceNum();
+		//現在のワールド行列の保存
+		const auto& mats = m_ptrModel->GetWorldMatrix();
+		for (int i = 0; i < max; i++) {
+			m_worldMatrix[i] = mats[i];
+		}
+		//現在のインデックスの保存
+		const auto& inds = m_ptrIndex->GetIndexs();
+		for (int i = 0; i < max; i++) {
+			m_index[i][0] = inds[i][0];
+			m_index[i][1] = inds[i][1];
+		}
+	}
+	void ShodowWorldMatrixCalcerInstancingImposter::PreModelDraw() {
+		//計算
+		CVector3 pos; CQuaternion rot; float scale = 1.0f;
+		int max = m_ptrModel->GetDrawInstanceNum();
+		const auto& poses = m_ptrIndex->GetPoses();
+		const auto& scales = m_ptrIndex->GetScales();
+		for (int i = 0; i < max; i++) {
+			GameObj::CImposter::CalcWorldMatrixAndIndex(m_ptrModel->GetModelRender().GetSkinModel(), *m_ptrTexture, poses[i], scales[i], pos, rot, scale, m_indexNew[i][0], m_indexNew[i][1]);
+			m_ptrModel->GetModelRender().GetSkinModel().CalcWorldMatrix(pos, rot, scale, m_worldMatrixNew[i]);
+		}
+		//新たなワールド行列に更新
+		m_ptrModel->SetUpdateDrawWorldMatrix(m_worldMatrixNew.get());
+		//新たなインテックスに更新
+		m_ptrIndex->SetUpdateDrawIndex(m_indexNew.get());
+	}
+	void ShodowWorldMatrixCalcerInstancingImposter::PostDraw() {
+		//ワールド行列を戻す
+		m_ptrModel->SetUpdateDrawWorldMatrix(m_worldMatrix.get());
+		//インデックスを戻す
+		m_ptrIndex->SetUpdateDrawIndex(m_index.get());
 	}
 	
 	void ImposterTexRender::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
 		//解像度・分割数設定
 		m_gbufferSizeX = (UINT)resolution.x; m_gbufferSizeY = (UINT)resolution.y;
 		m_partNumX = (UINT)partNum.x; m_partNumY = (UINT)partNum.y;
-
-		//配列確保
-		/*m_fronts.clear();
-		m_ups.clear();
-		m_fronts.resize(m_partNumY);
-		m_ups.resize(m_partNumY);
-		m_fronts.shrink_to_fit();
-		m_ups.shrink_to_fit();*/
-
+		
 		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
 
 		//テクスチャ作成
@@ -339,7 +399,9 @@ namespace GameObj {
 		m_texture = ImposterTexBank::GetInstance().Load(filepath, resolution, partNum);
 
 		//ビルボード
-		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo), instancingNum, filepath);
+		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo), instancingNum, filepath, false);
+
+		//シェーダ読み込み
 		if (m_billboard.GetIsInstancing()) {
 			//インスタンシング用シェーダ
 			D3D_SHADER_MACRO macros[] = {
@@ -347,27 +409,36 @@ namespace GameObj {
 				NULL, NULL
 			};
 			m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS, "INSTANCING", macros);
+			
+			D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1","INSTANCING", "1", NULL, NULL };
+			m_zShader.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderZ", Shader::EnType::PS, "TEXTURE_INSTANCING", macrosZ);
 		}
 		else {
 			m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
+			
+			D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1", NULL, NULL };
+			m_zShader.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderZ", Shader::EnType::PS, "TEXTURE", macrosZ);
 		}
+
+		//いろいろ設定
 		m_billboard.GetModel().GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
 				mat->SetNormalTexture(m_texture->GetSRV(ImposterTexRender::enGBufferNormal));
 				mat->SetLightingTexture(m_texture->GetSRV(ImposterTexRender::enGBufferLightParam));
 				mat->SetPS(&m_billboardPS);
+				mat->SetPSZ(&m_zShader);
 			}
 		);
+
 		//ビルボード設定解除
 		//(こちら側で回転させる)
 		m_billboard.GetModel().GetSkinModel().SetIsBillboard(false);
-		//インポスターとして設定
-		//m_billboard.GetModel().GetSkinModel().SetIsImposter(true);
-		//行列計算無効
+		//TODO 行列計算無効
 		//(こちら側で計算する)
-		m_billboard.GetModel().GetSkinModel().SetIsCalcWorldMatrix(false);
+		//m_billboard.GetModel().GetSkinModel().SetIsCalcWorldMatrix(false);
 		//分割数設定
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
+		
 		//インスタンシング用のクラス設定
 		if (m_billboard.GetIsInstancing()) {
 			if (!m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData()) {
@@ -380,6 +451,17 @@ namespace GameObj {
 		else {
 			m_instancingIndex = nullptr;
 		}
+
+		//シャドウマップ描画用設定
+		if (!m_billboard.GetModel().GetShadowMapPrePost()) {//すでに設定されてなければ
+			if (m_billboard.GetIsInstancing()) {
+				m_billboard.GetModel().SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerInstancingImposter>(m_texture, m_billboard.GetInstancingModel().GetInstancingModel(), m_instancingIndex));
+			}
+			else {
+				m_billboard.GetModel().SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerImposter>(this, &m_billboard.GetModel().GetSkinModel()));
+			}
+		}
+
 		//ラスタライザーステート
 		/*
 		D3D11_RASTERIZER_DESC desc = {};
@@ -401,9 +483,7 @@ namespace GameObj {
 		m_isInit = true;
 	}
 
-	void CImposter::PostLoopUpdate() {
-		if (!m_isInit) { return; }
-		if (!m_billboard.GetIsDraw()) { return; }//描画しないなら実行しない				
+	void CImposter::CalcWorldMatrixAndIndex(const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x, int& index_y) {
 		if (!GetMainCamera()) {
 #ifndef DW_MASTER
 			OutputDebugStringA("CImposter::PostLoopUpdate() カメラが設定されていません。\n");
@@ -412,74 +492,81 @@ namespace GameObj {
 		}
 
 		//インポスター用インデックス計算
-		int x = 0, y = 0;
-		
-		CVector3 polyDir;
-		polyDir += { 0.0f,0.0f,-1.0f };
-		GetMainCamera()->GetImposterQuaternion(m_pos).Multiply(polyDir);
-		polyDir.Normalize();
+		index_x = 0, index_y = 0;
+
+		CVector3 polyDir = { 0.0f, 0.0f, -1.0f };
+		GetMainCamera()->GetImposterQuaternion(pos).Multiply(polyDir);
+		//polyDir.Normalize();
 
 		CVector3 axisDir;
-		
+
 		//X軸回転
-		axisDir = polyDir;
-		axisDir.y = 0; axisDir.Normalize();
+		axisDir = polyDir; axisDir.y = 0.0f; axisDir.Normalize();
 		float XRot = acos(CMath::ClampFromNegOneToPosOne(polyDir.Dot(axisDir)));
-		if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f,0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はaxisDir
-			y = (int)std::round(-XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
+		if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f, 0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はaxisDir
+			index_y = (int)std::round(-XRot / CMath::PI * texture.GetPartNumY()) - (int)(texture.GetPartNumY() / 2.0f - 0.5f);
 		}
 		else {
-			y = (int)std::round(XRot / CMath::PI * m_texture->GetPartNumY()) - (int)(m_texture->GetPartNumY() / 2.0f - 0.5f);
+			index_y = (int)std::round(XRot / CMath::PI * texture.GetPartNumY()) - (int)(texture.GetPartNumY() / 2.0f - 0.5f);
 		}
-		
+
 		//Y軸回転		
 		axisDir = CVector3(0.0f, 0.0f, 1.0f);
 		polyDir.y = 0.0f; polyDir.Normalize();
 		float YRot = acos(CMath::ClampFromNegOneToPosOne(polyDir.Dot(axisDir)));
 		if (CVector2(polyDir.x, polyDir.z).Cross(CVector2(axisDir.x, axisDir.z)) > 0.0f) {
-			x += (int)std::round(-YRot / CMath::PI2 * m_texture->GetPartNumX()) + (int)(m_texture->GetPartNumX() / 2.0f - 0.5f);
+			index_x += (int)std::round(-YRot / CMath::PI2 * texture.GetPartNumX()) + (int)(texture.GetPartNumX() / 2.0f - 0.5f);
 		}
 		else {
-			x += (int)std::round(YRot / CMath::PI2 * m_texture->GetPartNumX()) + (int)(m_texture->GetPartNumX() / 2.0f - 0.5f);
-		}
-
-		/*float distance = -1.0f;
-		for (int indy = 0; indy < m_partNumY; indy++) {
-			for (int indx = 0; indx < m_partNumX; indx++) {
-				if (distance < 0.0f || distance >(polyDir - m_fronts[indy][indx]).Length() + ( - m_ups[indy][indx]).Length()) {
-					distance = (polyDir - m_fronts[indy][indx]).Length() + ( - m_ups[indy][indx]).Length();
-					x = indx, y = indy;
-				}
-			}
-		}*/
-
-		//モデルに設定
-		if (m_billboard.GetIsInstancing()) {
-			m_instancingIndex->AddDrawInstance(x, y);
-		}
-		else {
-			m_billboard.GetModel().GetSkinModel().SetImposterIndex(x, y);
+			index_x += (int)std::round(YRot / CMath::PI2 * texture.GetPartNumX()) + (int)(texture.GetPartNumX() / 2.0f - 0.5f);
 		}
 
 		//カメラ方向にモデルサイズ分座標ずらす
 		//※埋まり防止
-		CVector3 bias = GetMainCamera()->GetPos() - m_pos;
-		bias.Normalize();
-		bias *= m_scale*m_texture->GetDirectionOfCameraSize(x,y);
-		m_billboard.SetPos(m_pos + bias);		
-		//m_billboard.SetPos(m_pos);
-
+		CVector3 bias = GetMainCamera()->GetPos() - pos; bias.Normalize();
+		bias *= scale * texture.GetDirectionOfCameraSize(index_x, index_y);
+		
 		//回転
 		CQuaternion rot;
-		rot.SetRotation(CVector3::AxisY(), x * -(CMath::PI2 / (m_texture->GetPartNumX()-1)) + CMath::PI + CMath::PI);
-		//rot.Multiply(CQuaternion(CVector3::AxisX(), CMath::PI*0.5f));
+		rot.SetRotation(CVector3::AxisY(), index_x * -(CMath::PI2 / (texture.GetPartNumX() - 1)) + CMath::PI + CMath::PI);
 		CVector3 AxisX = CVector3::AxisX();
 		rot.Multiply(AxisX);
-		rot.Concatenate(CQuaternion(AxisX, -y * -(CMath::PI / (m_texture->GetPartNumY()-1)) + CMath::PI*0.5f));
-		m_billboard.SetRot(rot);
+		rot.Concatenate(CQuaternion(AxisX, -index_y * -(CMath::PI / (texture.GetPartNumY() - 1)) + CMath::PI*0.5f));
+		
+		//返す
+		position_return = pos + bias;
+		rotation_return = rot;
+		scale_return = scale * texture.GetModelSize()*2.0f;
+	}
 
-		//行列の更新
-		m_billboard.GetModel().GetSkinModel().UpdateWorldMatrix(m_billboard.GetModel().GetPos(), m_billboard.GetModel().GetRot(), m_billboard.GetModel().GetScale());
+	void CImposter::PostLoopUpdate() {
+		if (!m_isInit) { return; }
+		if (!m_billboard.GetIsDraw()) { return; }//描画しないなら実行しない				
+
+		//計算
+		int x = 0, y = 0;
+		CVector3 pos; CQuaternion rot; float scale = 1.0f;
+		CalcWorldMatrixAndIndex(m_billboard.GetModel().GetSkinModel(), *m_texture, m_pos, m_scale, pos, rot, scale, x, y);
+
+		//モデルに設定(インデックス)
+		if (m_billboard.GetIsInstancing()) {
+			m_instancingIndex->AddDrawInstance(x, y, m_pos, m_scale);
+		}
+		else {
+			m_billboard.GetModel().GetSkinModel().SetImposterIndex(x, y);
+		}		
+
+		//SRTの設定
+		m_billboard.SetPos(pos);
+		m_billboard.SetRot(rot);
+		m_billboard.SetScale(scale);
+
+		//モデルに設定(行列)
+		//TODO モデルレンダーの行列計算タイミングしだいではいらない...?
+		if (!m_billboard.GetIsInstancing()) {
+			//行列の更新
+			m_billboard.GetModel().GetSkinModel().UpdateWorldMatrix(m_billboard.GetPos(), m_billboard.GetRot(), m_billboard.GetScale());
+		}
 	}
 }
 }

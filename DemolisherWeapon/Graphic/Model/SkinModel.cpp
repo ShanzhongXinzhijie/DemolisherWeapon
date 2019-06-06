@@ -24,6 +24,11 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	m_enFbxUpAxis = enFbxUpAxis;
 	m_enFbxCoordinate = enFbxCoordinate;
 
+	//バイアス取得
+	CMatrix mBiasScr;
+	CoordinateSystemBias::GetBias(m_biasMatrix, mBiasScr, m_enFbxUpAxis, m_enFbxCoordinate);
+	m_biasMatrix.Mul(mBiasScr, m_biasMatrix);
+
 	//スケルトンのデータを読み込む。
 	InitSkeleton(filePath);
 
@@ -118,7 +123,7 @@ void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& r
 {
 	if (m_isCalcWorldMatrix) {
 		//ワールド行列を計算
-		CalcWorldMatrix(position, rotation, scale, m_worldMatrix);
+		CalcWorldMatrix(position, rotation, scale, m_worldMatrix, m_SRTMatrix);
 		//スケルトンの更新。
 		m_skeleton.Update(m_worldMatrix);
 	}
@@ -128,42 +133,81 @@ void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& r
 	}
 
 	//最初のワールド座標更新なら...
-	if (m_isFirstWorldMatRef || RefreshOldPos) {
+	if (m_isFirstWorldMatRef || RefreshOldPos) {//TODO これだけ問題
 		m_isFirstWorldMatRef = false;
 		//旧座標の更新
 		UpdateOldMatrix();
 	}
 }
 
-void SkinModel::CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix) {
-	//バイアス取得
-	CMatrix mBiasRot;
-	CMatrix mBiasScr;
-	CoordinateSystemBias::GetBias(mBiasRot, mBiasScr, m_enFbxUpAxis, m_enFbxCoordinate);
-	
-	//ワールド行列を作成する。
-	//拡大×回転×平行移動の順番で乗算するように！
-	//順番を間違えたら結果が変わるよ。
-	CMatrix mat;
-	returnWorldMatrix.MakeScaling(scale);//拡大
-	if (m_isImposter) {
-		//インポスター用の回転
-		mat.MakeRotationFromQuaternion(GetMainCamera()->GetImposterQuaternion(position)*rotation);
-	}else
-	if (m_isBillboard) {
-		//ビルボード用の回転
-		mat.MakeRotationFromQuaternion(GetMainCamera()->GetBillboardQuaternion(position)*rotation);
+void SkinModel::CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix, CMatrix& returnSRTMatrix)const {
+	//(拡大×回転×平行移動)行列を適応
+	CalcSRTMatrix(position, rotation, scale, returnSRTMatrix);
+	returnWorldMatrix = returnSRTMatrix;
+
+	//ビルボード適応
+	if (m_isImposter || m_isBillboard) {
+		CMatrix mat;
+		CalcBillBoardMatrix(position, mat);
+		returnWorldMatrix.Mul(mat, returnWorldMatrix);
 	}
-	else {
-		mat.MakeRotationFromQuaternion(rotation);//回転
-	}
-	returnWorldMatrix.Mul(returnWorldMatrix, mat);//拡大×回転
-	mat.MakeTranslation(position);//平行移動
-	returnWorldMatrix.Mul(returnWorldMatrix, mat);//(拡大×回転)×平行移動
 
 	//バイアス適応
-	mBiasRot.Mul(mBiasScr, mBiasRot);
-	returnWorldMatrix.Mul(mBiasRot, returnWorldMatrix);
+	returnWorldMatrix.Mul(m_biasMatrix, returnWorldMatrix);
+}
+
+void SkinModel::CalcBillBoardMatrix(const CVector3& position, CMatrix& returnMat)const {
+	if (m_isImposter) {
+		//インポスター用の回転
+		returnMat.MakeRotationFromQuaternion(GetMainCamera()->GetImposterQuaternion(position));
+	}
+	else
+	if (m_isBillboard) {
+		//ビルボード用の回転
+		returnMat.MakeRotationFromQuaternion(GetMainCamera()->GetBillboardQuaternion());
+	}
+}
+
+void SkinModel::CalcSRTMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix)const {
+	//(拡大×回転×平行移動)行列を作成
+	CMatrix mat;
+	returnWorldMatrix.MakeScaling(scale);			//拡大	
+	mat.MakeRotationFromQuaternion(rotation);		//回転	
+	returnWorldMatrix.Mul(returnWorldMatrix, mat);	//拡大×回転
+	mat.MakeTranslation(position);					//平行移動
+	returnWorldMatrix.Mul(returnWorldMatrix, mat);	//(拡大×回転)×平行移動
+}
+
+void SkinModel::UpdateBillBoardMatrix() {
+	if (m_isCalcWorldMatrix) {
+		//(拡大×回転×平行移動)行列を適応
+		m_worldMatrix = m_SRTMatrix;
+
+		//ビルボード適応
+		if (m_isImposter || m_isBillboard) {
+			CMatrix mat;
+			CalcBillBoardMatrix({ m_SRTMatrix.m[3][0],m_SRTMatrix.m[3][1],m_SRTMatrix.m[3][2] }, mat);
+			m_worldMatrix.Mul(mat, m_worldMatrix);
+		}
+
+		//バイアス適応
+		m_worldMatrix.Mul(m_biasMatrix, m_worldMatrix);
+
+		//スケルトンの更新。
+		m_skeleton.Update(m_worldMatrix);
+	}
+}
+void SkinModel::UpdateBillBoardMatrix(const CMatrix& SRTMatrix, CMatrix& returnMat) const{
+	//(拡大×回転×平行移動)行列を適応
+	returnMat = SRTMatrix;
+	//ビルボード適応
+	if (m_isImposter || m_isBillboard) {
+		CMatrix mat;
+		CalcBillBoardMatrix({ SRTMatrix.m[3][0],SRTMatrix.m[3][1],SRTMatrix.m[3][2] }, mat);
+		returnMat.Mul(mat, returnMat);
+	}
+	//バイアス適応
+	returnMat.Mul(m_biasMatrix, returnMat);
 }
 
 static const float REFERENCE_FRUSTUM_SIZE = (1.0f / tan(3.14f*0.5f / 2.0f));
