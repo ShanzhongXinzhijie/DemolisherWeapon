@@ -504,9 +504,8 @@ namespace GameObj {
 		//インポスター用インデックス計算
 		index_x = 0, index_y = 0;
 
-		CVector3 polyDir = { 0.0f, 0.0f, -1.0f };
-		GetMainCamera()->GetImposterQuaternion(pos).Multiply(polyDir);
-		//polyDir.Normalize();
+		CVector3 polyDir = GetMainCamera()->GetPos() - pos; polyDir.Normalize(); //{ 0.0f, 0.0f, -1.0f };
+		//GetMainCamera()->GetImposterQuaternion(pos).Multiply(polyDir);
 
 		CVector3 axisDir;
 
