@@ -7,14 +7,20 @@ namespace DemolisherWeapon {
 	public:
 		//インスタンシングにおける各インスタンスのSRT行列を保存するためのクラス
 		class InstancingSRTRecorder : public GameObj::InstancingModel::IInstancesData {
+		private:
+			void Reset(int instancingMaxNum);
 		public:
 			InstancingSRTRecorder(int instancingMaxNum);
 			void PreDrawUpdate()override {}
 			void PostLoopPostUpdate()override {}
 			void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix)override;
-
+		public:
+			//インスタンス最大数を設定
+			void SetInstanceMax(int instanceMax);
+			//SRT行列の取得
 			const std::unique_ptr<CMatrix[]>& GetSRTMatrix()const { return m_SRTMatrix; }
 		private:
+			int m_instanceMax = 0;
 			std::unique_ptr<CMatrix[]>	m_SRTMatrix;
 		};
 

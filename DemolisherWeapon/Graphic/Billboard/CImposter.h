@@ -6,16 +6,19 @@ namespace DemolisherWeapon {
 	/// インポスターのインスタンシング描画におけるテクスチャインデックスを扱うクラス
 	/// </summary>
 	class InstancingImposterIndex : public GameObj::InstancingModel::IInstancesData {
-	public:
-		void PreDrawUpdate()override;
-		void PostLoopPostUpdate()override;
-
+	private:
+		void Reset(int instancingMaxNum);
 	public:
 		/// <summary>
 		/// コンストラクタ
 		/// </summary>
 		/// <param name="instancingMaxNum">インスタンス最大数</param>
 		InstancingImposterIndex(int instancingMaxNum);
+		void PreDrawUpdate()override;
+		void PostLoopPostUpdate()override;
+	public:
+		//インスタンス最大数を設定
+		void SetInstanceMax(int instanceMax);
 	
 		/// <summary>
 		/// このフレームに描画するインスタンスの追加
@@ -232,10 +235,6 @@ namespace GameObj {
 		bool m_isInit = false;
 		//テクスチャ
 		ImposterTexRender* m_texture = nullptr;
-		//ラスタライザーステート
-		//デプスバイアス用...
-		//Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_depthRSCw;
-		//Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_depthRSCCw;
 		//ビルボード
 		CBillboard m_billboard;
 		SkinModelEffectShader m_billboardPS;

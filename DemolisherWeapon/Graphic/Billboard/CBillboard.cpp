@@ -4,11 +4,21 @@
 namespace DemolisherWeapon {
 //namespace GameObj {
 	
+	void CBillboard::InstancingSRTRecorder::Reset(int instancingMaxNum) {
+		m_instanceMax = instancingMaxNum;
+		m_SRTMatrix.reset();
+		m_SRTMatrix = std::make_unique<CMatrix[]>(m_instanceMax);
+	}
 	CBillboard::InstancingSRTRecorder::InstancingSRTRecorder(int instancingMaxNum) {
-		m_SRTMatrix = std::make_unique<CMatrix[]>(instancingMaxNum);
+		Reset(instancingMaxNum);
 	}
 	void CBillboard::InstancingSRTRecorder::AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix) {
 		m_SRTMatrix[instanceNum] = SRTMatrix;
+	}
+	void CBillboard::InstancingSRTRecorder::SetInstanceMax(int instanceMax) {
+		if (instanceMax > m_instanceMax) {
+			Reset(instanceMax);
+		}
 	}
 
 	CBillboard::ShodowWorldMatrixCalcer::ShodowWorldMatrixCalcer(CBillboard* model) : m_ptrBillboard(model) {
@@ -31,10 +41,16 @@ namespace DemolisherWeapon {
 	CBillboard::ShodowWorldMatrixCalcerInstancing::ShodowWorldMatrixCalcerInstancing(CBillboard* model, InstancingSRTRecorder* insSRT)
 	: m_ptrBillboard(model), m_ptrInsSRT(insSRT){
 		m_ptrModel = m_ptrBillboard->GetInstancingModel().GetInstancingModel();
-		m_instancesNum = m_ptrModel->GetInstanceMax();//TODO 途中変更不可に
+		m_instancesNum = m_ptrModel->GetInstanceMax();
 		m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
 	}
 	void CBillboard::ShodowWorldMatrixCalcerInstancing::PreDraw() {
+		//最大インスタンス数の増加に対応
+		if (m_instancesNum < m_ptrModel->GetInstanceMax()) {
+			m_instancesNum = m_ptrModel->GetInstanceMax();
+			m_worldMatrix.reset();
+			m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
+		}
 		//現在のワールド行列の保存
 		const auto& mats = m_ptrModel->GetWorldMatrix();
 		int max = m_ptrModel->GetDrawInstanceNum();
@@ -118,6 +134,7 @@ namespace DemolisherWeapon {
 				}
 				//既存のもの使う
 				insSRT = dynamic_cast<InstancingSRTRecorder*>(m_insModel.GetInstancingModel()->GetIInstanceData());
+				insSRT->SetInstanceMax(m_insModel.GetInstancingModel()->GetInstanceMax());
 			}
 			//シャドウマップ描画時に実行する処理を設定
 			if (!modelPtr->GetShadowMapPrePost()) {

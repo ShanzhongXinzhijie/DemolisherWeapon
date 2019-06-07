@@ -5,11 +5,14 @@
 namespace DemolisherWeapon {
 	ImposterTexBank* ImposterTexBank::instance = nullptr;
 
-	InstancingImposterIndex::InstancingImposterIndex(int instancingMaxNum) {
+	void InstancingImposterIndex::Reset(int instancingMaxNum) {
 		m_instanceMax = instancingMaxNum;
 		m_instanceNum = 0;
 
 		//インデックス配列の確保
+		m_instancingIndex.reset();
+		m_instancingPos.reset();
+		m_instancingScale.reset();
 		m_instancingIndex = std::make_unique<int[][2]>(instancingMaxNum);
 		m_instancingPos = std::make_unique<CVector3[]>(instancingMaxNum);
 		m_instancingScale = std::make_unique<float[]>(instancingMaxNum);
@@ -33,7 +36,9 @@ namespace DemolisherWeapon {
 		descSRV.BufferEx.NumElements = desc.ByteWidth / desc.StructureByteStride;
 		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_indexSB.Get(), &descSRV, m_indexSRV.ReleaseAndGetAddressOf());
 	}
-
+	InstancingImposterIndex::InstancingImposterIndex(int instancingMaxNum) {
+		Reset(instancingMaxNum);
+	}
 	void InstancingImposterIndex::PreDrawUpdate() {
 		//シェーダーリソースにセット
 		GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(
@@ -48,7 +53,6 @@ namespace DemolisherWeapon {
 		m_instanceDrawNum = m_instanceNum;
 		m_instanceNum = 0;
 	}
-
 	void InstancingImposterIndex::AddDrawInstance(int x, int y, const CVector3& pos, float scale) {
 		if (m_instanceNum + 1 >= m_instanceMax) {
 #ifndef DW_MASTER
@@ -63,6 +67,11 @@ namespace DemolisherWeapon {
 		m_instancingPos[m_instanceNum] = pos;
 		m_instancingScale[m_instanceNum] = scale;
 		m_instanceNum++;
+	}
+	void InstancingImposterIndex::SetInstanceMax(int instanceMax) {
+		if (instanceMax > m_instanceMax) {
+			Reset(instanceMax);
+		}
 	}
 
 	ShodowWorldMatrixCalcerImposter::ShodowWorldMatrixCalcerImposter(GameObj::CImposter* imp, SkinModel* model) : m_ptrImposter(imp), m_ptrModel(model) {
@@ -86,13 +95,29 @@ namespace DemolisherWeapon {
 	
 	ShodowWorldMatrixCalcerInstancingImposter::ShodowWorldMatrixCalcerInstancingImposter(ImposterTexRender* tex, GameObj::InstancingModel* model, InstancingImposterIndex* index)
 	: m_ptrTexture(tex), m_ptrModel(model), m_ptrIndex(index) {
-		m_instancesNum = m_ptrModel->GetInstanceMax();//TODO 途中変更不可に
+		m_instancesNum = m_ptrModel->GetInstanceMax();
+
 		m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
 		m_worldMatrixNew = std::make_unique<CMatrix[]>(m_instancesNum);
 		m_index = std::make_unique<int[][2]>(m_instancesNum);
 		m_indexNew = std::make_unique<int[][2]>(m_instancesNum);
 	}
 	void ShodowWorldMatrixCalcerInstancingImposter::PreDraw() {
+		//最大インスタンス数の増加に対応
+		if (m_instancesNum < m_ptrModel->GetInstanceMax()) {
+			m_instancesNum = m_ptrModel->GetInstanceMax();
+			
+			m_worldMatrix.reset();
+			m_worldMatrixNew.reset();
+			m_index.reset();
+			m_indexNew.reset();
+
+			m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
+			m_worldMatrixNew = std::make_unique<CMatrix[]>(m_instancesNum);
+			m_index = std::make_unique<int[][2]>(m_instancesNum);
+			m_indexNew = std::make_unique<int[][2]>(m_instancesNum);
+		}
+
 		int max = m_ptrModel->GetDrawInstanceNum();
 		//現在のワールド行列の保存
 		const auto& mats = m_ptrModel->GetWorldMatrix();
@@ -446,6 +471,7 @@ namespace GameObj {
 			}
 			//既存のもの使う
 			m_instancingIndex = dynamic_cast<InstancingImposterIndex*>(m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData());
+			m_instancingIndex->SetInstanceMax(m_billboard.GetInstancingModel().GetInstancingModel()->GetInstanceMax());
 		}
 		else {
 			m_instancingIndex = nullptr;
@@ -460,21 +486,6 @@ namespace GameObj {
 				m_billboard.GetModel().SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerImposter>(this, &m_billboard.GetModel().GetSkinModel()));
 			}
 		}
-
-		//ラスタライザーステート
-		/*
-		D3D11_RASTERIZER_DESC desc = {};
-		desc.CullMode = D3D11_CULL_FRONT;
-		desc.FillMode = D3D11_FILL_SOLID;
-		desc.DepthClipEnable = true;
-		desc.MultisampleEnable = true;
-		desc.DepthBias = -(INT)DEPTH_BIAS_D32_FLOAT(m_texture->GetModelSize() / (GetMainCamera()->GetFar()-GetMainCamera()->GetNear()));
-		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, m_depthRSCw.ReleaseAndGetAddressOf());
-		desc.CullMode = D3D11_CULL_BACK;
-		desc.FillMode = D3D11_FILL_SOLID;
-		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, m_depthRSCCw.ReleaseAndGetAddressOf());
-		m_billboard.GetModel().GetSkinModel().SetRasterizerState(m_depthRSCw.Get(), m_depthRSCCw.Get());
-		*/
 
 		//スケール初期化
 		SetScale(1.0f);
