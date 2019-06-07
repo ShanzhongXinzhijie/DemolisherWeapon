@@ -87,7 +87,7 @@ namespace GameObj {
 		}
 
 		//ビルボード部分のみワールド行列更新
-		void UpdateBillBoardMatrix(const CMatrix* SRTMat);
+		void UpdateBillBoardMatrix(const CMatrix* SRTMat, const CVector3& posOffset);
 
 		/// <summary>
 		/// ワールド行列の取得

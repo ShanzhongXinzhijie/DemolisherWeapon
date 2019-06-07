@@ -178,15 +178,18 @@ void SkinModel::CalcSRTMatrix(const CVector3& position, const CQuaternion& rotat
 	returnWorldMatrix.Mul(returnWorldMatrix, mat);	//(拡大×回転)×平行移動
 }
 
-void SkinModel::UpdateBillBoardMatrix() {
-	if (m_isCalcWorldMatrix) {
+void SkinModel::UpdateBillBoardMatrix(const CVector3& posOffset) {
+	if (m_isCalcWorldMatrix) {		
 		//(拡大×回転×平行移動)行列を適応
 		m_worldMatrix = m_SRTMatrix;
+
+		//オフセット適応
+		m_worldMatrix.m[3][0] += posOffset.x, m_worldMatrix.m[3][1] += posOffset.y, m_worldMatrix.m[3][2] += posOffset.z;
 
 		//ビルボード適応
 		if (m_isImposter || m_isBillboard) {
 			CMatrix mat;
-			CalcBillBoardMatrix({ m_SRTMatrix.m[3][0],m_SRTMatrix.m[3][1],m_SRTMatrix.m[3][2] }, mat);
+			CalcBillBoardMatrix({ m_worldMatrix.m[3][0],m_worldMatrix.m[3][1],m_worldMatrix.m[3][2] }, mat);
 			m_worldMatrix.Mul(mat, m_worldMatrix);
 		}
 
@@ -197,13 +200,15 @@ void SkinModel::UpdateBillBoardMatrix() {
 		m_skeleton.Update(m_worldMatrix);
 	}
 }
-void SkinModel::UpdateBillBoardMatrix(const CMatrix& SRTMatrix, CMatrix& returnMat) const{
+void SkinModel::UpdateBillBoardMatrix(const CVector3& posOffset, const CMatrix& SRTMatrix, CMatrix& returnMat) const{
 	//(拡大×回転×平行移動)行列を適応
 	returnMat = SRTMatrix;
+	//オフセット適応
+	returnMat.m[3][0] += posOffset.x, returnMat.m[3][1] += posOffset.y, returnMat.m[3][2] += posOffset.z;
 	//ビルボード適応
 	if (m_isImposter || m_isBillboard) {
 		CMatrix mat;
-		CalcBillBoardMatrix({ SRTMatrix.m[3][0],SRTMatrix.m[3][1],SRTMatrix.m[3][2] }, mat);
+		CalcBillBoardMatrix({ returnMat.m[3][0],returnMat.m[3][1],returnMat.m[3][2] }, mat);
 		returnMat.Mul(mat, returnMat);
 	}
 	//バイアス適応

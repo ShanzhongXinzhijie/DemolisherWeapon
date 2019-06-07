@@ -23,7 +23,7 @@ namespace DemolisherWeapon {
 		/// </summary>
 		class ShodowWorldMatrixCalcer : public ShadowMapRender::IPrePost {
 		public:
-			ShodowWorldMatrixCalcer(SkinModel* model);
+			ShodowWorldMatrixCalcer(CBillboard* model);
 			void PreDraw()override;
 			void PreModelDraw()override;
 			void PostDraw()override;
@@ -31,11 +31,12 @@ namespace DemolisherWeapon {
 			//float m_depthBias = 0.0f;
 			CMatrix	m_worldMatrix;
 			SkinModel* m_ptrModel = nullptr;
+			CBillboard* m_ptrBillboard = nullptr;
 		};
 		//インスタンシング用
 		class ShodowWorldMatrixCalcerInstancing : public ShadowMapRender::IPrePost {
 		public:
-			ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model, InstancingSRTRecorder* insSRT);
+			ShodowWorldMatrixCalcerInstancing(CBillboard* model, InstancingSRTRecorder* insSRT);
 			void PreDraw()override;
 			void PreModelDraw()override;
 			void PostDraw()override;
@@ -44,6 +45,7 @@ namespace DemolisherWeapon {
 			std::unique_ptr<CMatrix[]>	m_worldMatrix;
 			GameObj::InstancingModel* m_ptrModel = nullptr;
 			InstancingSRTRecorder* m_ptrInsSRT = nullptr;
+			CBillboard* m_ptrBillboard = nullptr;
 		};
 
 	public:
@@ -107,6 +109,11 @@ namespace DemolisherWeapon {
 			*rot = GetRot();
 			*scale = GetScale();
 		}
+		//スケールの最大値を取得
+		float GetMaxScale()const {
+			const CVector3& scale = GetScale();
+			return max(max(scale.x, scale.y), scale.z);
+		}		
 
 		//描画するか設定
 		void SetIsDraw(bool isdraw) {

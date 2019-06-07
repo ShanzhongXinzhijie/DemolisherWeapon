@@ -11,29 +11,26 @@ namespace DemolisherWeapon {
 		m_SRTMatrix[instanceNum] = SRTMatrix;
 	}
 
-	CBillboard::ShodowWorldMatrixCalcer::ShodowWorldMatrixCalcer(SkinModel* model) : m_ptrModel(model) {
+	CBillboard::ShodowWorldMatrixCalcer::ShodowWorldMatrixCalcer(CBillboard* model) : m_ptrBillboard(model) {
+		m_ptrModel = &m_ptrBillboard->GetModel().GetSkinModel();
 	}
 	void CBillboard::ShodowWorldMatrixCalcer::PreDraw() {
 		//現在のワールド行列の保存
 		m_worldMatrix = m_ptrModel->GetWorldMatrix();
-		//TODO 深度値バイアス
-		//車道はたいしたことでないのでDEPTH_BIAS_D32_FLOAT
-		//m_depthBias = m_ptrModel->GetDepthBias();
-		//m_ptrModel->SetDepthBias(m_depthBias + );
 	}
 	void CBillboard::ShodowWorldMatrixCalcer::PreModelDraw() {
 		//新たなワールド行列に更新
-		m_ptrModel->UpdateBillBoardMatrix();
+		//ポジションをずらす...カメラの前方向に
+		m_ptrModel->UpdateBillBoardMatrix(GetMainCamera()->GetFront()*m_ptrBillboard->GetMaxScale());
 	}
 	void CBillboard::ShodowWorldMatrixCalcer::PostDraw() {
 		//ワールド行列を戻す
 		m_ptrModel->SetWorldMatrix(m_worldMatrix);
-		//深度値バイアス戻す
-		//m_ptrModel->SetDepthBias(m_depthBias);
 	}
 
-	CBillboard::ShodowWorldMatrixCalcerInstancing::ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model, InstancingSRTRecorder* insSRT)
-	: m_ptrModel(model), m_ptrInsSRT(insSRT){
+	CBillboard::ShodowWorldMatrixCalcerInstancing::ShodowWorldMatrixCalcerInstancing(CBillboard* model, InstancingSRTRecorder* insSRT)
+	: m_ptrBillboard(model), m_ptrInsSRT(insSRT){
+		m_ptrModel = m_ptrBillboard->GetInstancingModel().GetInstancingModel();
 		m_instancesNum = m_ptrModel->GetInstanceMax();//TODO 途中変更不可に
 		m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
 	}
@@ -47,7 +44,8 @@ namespace DemolisherWeapon {
 	}
 	void CBillboard::ShodowWorldMatrixCalcerInstancing::PreModelDraw() {
 		//新たなワールド行列に更新
-		m_ptrModel->UpdateBillBoardMatrix(m_ptrInsSRT->GetSRTMatrix().get());
+		//ポジションをずらす...カメラの前方向に
+		m_ptrModel->UpdateBillBoardMatrix(m_ptrInsSRT->GetSRTMatrix().get(), GetMainCamera()->GetFront()*m_ptrBillboard->GetMaxScale());
 	}
 	void CBillboard::ShodowWorldMatrixCalcerInstancing::PostDraw() {
 		//ワールド行列を戻す
@@ -125,10 +123,10 @@ namespace DemolisherWeapon {
 			if (!modelPtr->GetShadowMapPrePost()) {
 				//ビルボードのものを設定
 				if (m_isIns) {
-					modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerInstancing>(m_insModel.GetInstancingModel(), insSRT));
+					modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerInstancing>(this, insSRT));
 				}
 				else {
-					modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcer>(&modelPtr->GetSkinModel()));
+					modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcer>(this));
 				}
 			}
 		}

@@ -47,8 +47,8 @@ public:
 	void CalcSRTMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix)const;
 
 	//ワールド行列のビルボード部分のみ更新
-	void UpdateBillBoardMatrix();
-	void UpdateBillBoardMatrix(const CMatrix& SRTMatrix, CMatrix& returnMat)const;
+	void UpdateBillBoardMatrix(const CVector3& posOffset);
+	void UpdateBillBoardMatrix(const CVector3& posOffset, const CMatrix& SRTMatrix, CMatrix& returnMat)const;
 
 	//旧行列の記録
 	void UpdateOldMatrix() {
