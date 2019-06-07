@@ -75,7 +75,7 @@ namespace DemolisherWeapon {
 	}
 	void ShodowWorldMatrixCalcerImposter::PreModelDraw() {
 		//更新
-		m_ptrImposter->PostLoopUpdate();
+		m_ptrImposter->ImposterUpdate(true);
 	}
 	void ShodowWorldMatrixCalcerImposter::PostDraw() {
 		//ワールド行列を戻す
@@ -113,7 +113,7 @@ namespace DemolisherWeapon {
 		const auto& poses = m_ptrIndex->GetPoses();
 		const auto& scales = m_ptrIndex->GetScales();
 		for (int i = 0; i < max; i++) {
-			GameObj::CImposter::CalcWorldMatrixAndIndex(m_ptrModel->GetModelRender().GetSkinModel(), *m_ptrTexture, poses[i], scales[i], pos, rot, scale, m_indexNew[i][0], m_indexNew[i][1]);
+			GameObj::CImposter::CalcWorldMatrixAndIndex(true, m_ptrModel->GetModelRender().GetSkinModel(), *m_ptrTexture, poses[i], scales[i], pos, rot, scale, m_indexNew[i][0], m_indexNew[i][1]);
 			m_ptrModel->GetModelRender().GetSkinModel().CalcWorldMatrix(pos, rot, scale, m_worldMatrixNew[i]);
 		}
 		//新たなワールド行列に更新
@@ -482,10 +482,10 @@ namespace GameObj {
 		m_isInit = true;
 	}
 
-	void CImposter::CalcWorldMatrixAndIndex(const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x, int& index_y) {
+	void CImposter::CalcWorldMatrixAndIndex(bool isShadowDrawMode, const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x, int& index_y) {
 		if (!GetMainCamera()) {
 #ifndef DW_MASTER
-			OutputDebugStringA("CImposter::PostLoopUpdate() カメラが設定されていません。\n");
+			OutputDebugStringA("CImposter::CalcWorldMatrixAndIndex() カメラが設定されていません。\n");
 #endif
 			return;
 		}
@@ -522,9 +522,12 @@ namespace GameObj {
 
 		//カメラ方向にモデルサイズ分座標ずらす
 		//※埋まり防止
-		CVector3 bias = GetMainCamera()->GetPos() - pos; bias.Normalize();
-		bias *= scale * texture.GetDirectionOfCameraSize(index_x, index_y);
-		
+		CVector3 bias;
+		if (!isShadowDrawMode) {
+			bias = GetMainCamera()->GetPos() - pos; bias.Normalize();
+			bias *= scale * texture.GetDirectionOfCameraSize(index_x, index_y);
+		}
+
 		//回転
 		CQuaternion rot;
 		rot.SetRotation(CVector3::AxisY(), index_x * -(CMath::PI2 / (texture.GetPartNumX() - 1)) + CMath::PI + CMath::PI);
@@ -538,14 +541,14 @@ namespace GameObj {
 		scale_return = scale * texture.GetModelSize()*2.0f;
 	}
 
-	void CImposter::PostLoopUpdate() {
+	void CImposter::ImposterUpdate(bool isShadowDrawMode) {
 		if (!m_isInit) { return; }
 		if (!m_billboard.GetIsDraw()) { return; }//描画しないなら実行しない				
 
 		//計算
 		int x = 0, y = 0;
 		CVector3 pos; CQuaternion rot; float scale = 1.0f;
-		CalcWorldMatrixAndIndex(m_billboard.GetModel().GetSkinModel(), *m_texture, m_pos, m_scale, pos, rot, scale, x, y);
+		CalcWorldMatrixAndIndex(isShadowDrawMode, m_billboard.GetModel().GetSkinModel(), *m_texture, m_pos, m_scale, pos, rot, scale, x, y);
 
 		//モデルに設定(インデックス)
 		if (m_billboard.GetIsInstancing()) {

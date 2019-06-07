@@ -190,7 +190,7 @@ namespace GameObj {
 	class CImposter : public IGameObject
 	{
 	public:
-		void PostLoopUpdate()override;
+		void PostLoopUpdate()override { ImposterUpdate(false); }
 	public:
 		/// <summary>
 		/// 初期化
@@ -202,7 +202,10 @@ namespace GameObj {
 		void Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum, int instancingNum = 1);
 		
 		//ワールド行列とインデックスの計算
-		static void CalcWorldMatrixAndIndex(const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x_return, int& index_y_return);
+		static void CalcWorldMatrixAndIndex(bool isShadowDrawMode, const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x_return, int& index_y_return);
+
+		//インポスターの更新
+		void ImposterUpdate(bool isShadowDrawMode);
 
 		//座標・拡大の設定
 		void SetPos(const CVector3& pos) {
