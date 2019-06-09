@@ -504,10 +504,13 @@ namespace GameObj {
 		//インポスター用インデックス計算
 		index_x = 0, index_y = 0;
 
-		CVector3 polyDir = GetMainCamera()->GetPos() - pos; polyDir.Normalize(); //{ 0.0f, 0.0f, -1.0f };
-		//GetMainCamera()->GetImposterQuaternion(pos).Multiply(polyDir);
+		CVector3 polyDir = GetMainCamera()->GetPos() - pos; polyDir.Normalize();
+		CVector3 bias = polyDir;
 
 		CVector3 axisDir;
+
+		//TODO 頂点シェーダでやる?
+		//Out VS(){インデックスとか求める(); 通常();}
 
 		//X軸回転
 		axisDir = polyDir; axisDir.y = 0.0f; axisDir.Normalize();
@@ -532,9 +535,7 @@ namespace GameObj {
 
 		//カメラ方向にモデルサイズ分座標ずらす
 		//※埋まり防止
-		CVector3 bias;
 		if (!isShadowDrawMode) {
-			bias = GetMainCamera()->GetPos() - pos; bias.Normalize();
 			bias *= scale * texture.GetDirectionOfCameraSize(index_x, index_y);
 		}
 

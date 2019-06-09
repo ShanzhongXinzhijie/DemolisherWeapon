@@ -70,21 +70,21 @@ namespace DemolisherWeapon {
 				m_insModel.SetPos(pos);
 				return;
 			}
-			m_model.SetPos(pos);
+			//m_model.SetPos(pos);
 		}
 		void SetRot(const CQuaternion& rot) {
 			if (m_isIns) {
 				m_insModel.SetRot(rot);
 				return;
 			}
-			m_model.SetRot(rot);
+			//m_model.SetRot(rot);
 		}
 		void SetScale(const CVector3& scale) {
 			if (m_isIns) {
 				m_insModel.SetScale(scale);
 				return;
 			}
-			m_model.SetScale(scale);
+			//m_model.SetScale(scale);
 		}
 		void SetPRS(const CVector3& pos, const CQuaternion& rot, const CVector3& scale) {
 			SetPos(pos);
@@ -93,22 +93,22 @@ namespace DemolisherWeapon {
 		}
 		//座標・回転・拡大の取得
 		const CVector3& GetPos() const {
-			if (m_isIns) {
+			//if (m_isIns) {
 				return m_insModel.GetPos();
-			}
-			return m_model.GetPos();
+			//}
+			//return m_model.GetPos();
 		}
 		const CQuaternion& GetRot() const {
-			if (m_isIns) {
+			//if (m_isIns) {
 				return m_insModel.GetRot();
-			}
-			return m_model.GetRot();
+			//}
+			//return m_model.GetRot();
 		}
 		const CVector3& GetScale() const {
-			if (m_isIns) {
+			//if (m_isIns) {
 				return m_insModel.GetScale();
-			}
-			return m_model.GetScale();
+			//}
+			//return m_model.GetScale();
 		}
 		void GetPRS(CVector3* pos, CQuaternion* rot, CVector3* scale) const {
 			*pos = GetPos();
@@ -126,17 +126,17 @@ namespace DemolisherWeapon {
 			if (m_isIns) {
 				m_insModel.SetIsDraw(isdraw);
 			}
-			else {
-				m_model.SetIsDraw(isdraw);
-			}
+			//else {
+			//	m_model.SetIsDraw(isdraw);
+			//}
 		}
 		bool GetIsDraw()const {
 			if (m_isIns) {
 				return m_insModel.GetIsDraw();
 			}
-			else {
-				return m_model.GetIsDraw();
-			}
+			//else {
+			//	return m_model.GetIsDraw();
+			//}
 		}
 
 		/// <summary>
@@ -152,9 +152,9 @@ namespace DemolisherWeapon {
 			if (m_isIns) {
 				return m_insModel.GetInstancingModel()->GetModelRender();
 			}
-			else {
-				return m_model;
-			}
+			//else {
+			//	return m_model;
+			//}
 		}
 		//インスタンシングモデルの取得
 		GameObj::CInstancingModelRender& GetInstancingModel() {
@@ -169,7 +169,7 @@ namespace DemolisherWeapon {
 	private:
 		bool m_isInit = false;
 		bool m_isIns = false;
-		GameObj::CSkinModelRender m_model;
+		//GameObj::CSkinModelRender m_model;
 		GameObj::CInstancingModelRender m_insModel;
 	};
 //}

@@ -104,14 +104,15 @@ namespace DemolisherWeapon {
 			m_insModel.Init(instancingNum, L"Preset/modelData/billboard.cmo", nullptr, 0, enFbxUpAxisZ, enFbxRightHanded, &identifiers);
 		}
 		else {
-			m_model.Init(L"Preset/modelData/billboard.cmo");
+		//	m_model.Init(L"Preset/modelData/billboard.cmo");
 		}
+		//m_model.SetIsDraw(false);
 
 		//テクスチャ適応
-		GameObj::CSkinModelRender* modelPtr = &m_model;
-		if (m_isIns) {
+		GameObj::CSkinModelRender* modelPtr;// = &m_model;
+		//if (m_isIns) {
 			modelPtr = &m_insModel.GetInstancingModel()->GetModelRender();
-		}
+		//}
 		modelPtr->GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
 				mat->SetAlbedoTexture(srv);
