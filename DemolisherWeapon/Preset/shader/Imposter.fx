@@ -39,6 +39,24 @@ PSOutput_RenderImposter PSMain_RenderImposter(PSInput In)
 	return finalOut;
 }
 
+PSInput VSMain_Imposter(VSInputNmTxVcTangent In
+#if defined(INSTANCING)
+	, uint instanceID : SV_InstanceID
+#endif 
+) {
+	//インポスター行列計算
+	//インデックスも
+
+
+	PSInput psInput = VSMain(In
+#if defined(INSTANCING)
+							, instanceID
+#endif 
+							);
+
+	return psInput;
+}
+
 //インポスターのGBufferへの書き込み
 PSOutput_RenderGBuffer PSMain_ImposterRenderGBuffer(PSInput In)
 {

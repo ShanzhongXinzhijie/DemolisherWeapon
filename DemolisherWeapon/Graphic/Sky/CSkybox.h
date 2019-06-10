@@ -19,6 +19,7 @@ namespace GameObj {
 
 		GameObj::CSkinModelRender m_skyModel;
 		Shader m_psShader;
+		Shader m_vsShader;
 	};
 
 }

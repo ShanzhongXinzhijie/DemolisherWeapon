@@ -25,12 +25,14 @@ namespace GameObj {
 		
 		//シェーダ
 		D3D_SHADER_MACRO macros[] = { "SKY_CUBE", "1", "MOTIONBLUR", "1", NULL, NULL };
+		m_vsShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "SKY_CUBE", macros);
 		m_psShader.Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS, "SKY_CUBE", macros);
 
 		//モデルにテクスチャとシェーダ設定
 		m_skyModel.GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
 				mat->SetAlbedoTexture(tex);
+				mat->SetVS(&m_vsShader);
 				mat->SetPS(&m_psShader);
 				mat->SetLightingEnable(false);
 			}

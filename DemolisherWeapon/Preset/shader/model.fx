@@ -168,7 +168,12 @@ PSInput VSMain( VSInputNmTxVcTangent In
 	float4 pos = mul(mWorld, In.Position);
 #endif
 
-	float3 posW = pos.xyz; psInput.cubemapPos = normalize(posW - camWorldPos); psInput.Worldpos = posW;
+	float3 posW = pos.xyz;
+#if defined(SKY_CUBE)
+	psInput.cubemapPos = normalize(posW - camWorldPos);
+#endif
+	psInput.Worldpos = posW;
+
 	pos = mul(mView, pos); psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
 	psInput.Position = pos;
@@ -308,7 +313,11 @@ PSInput VSMainSkin( VSInputNmTxWeights In
 	psInput.Binormal = cross(psInput.Normal, psInput.Tangent);//normalize( mul(skinning, In.Binormal) );
 #endif
 
-	float3 posW = pos.xyz; psInput.cubemapPos = normalize(posW - camWorldPos); psInput.Worldpos = posW;
+	float3 posW = pos.xyz; 
+#if defined(SKY_CUBE)
+	psInput.cubemapPos = normalize(posW - camWorldPos);
+#endif
+	psInput.Worldpos = posW;
 
 	pos = mul(mView, pos);  psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
