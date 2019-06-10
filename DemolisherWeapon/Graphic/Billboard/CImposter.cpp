@@ -502,52 +502,35 @@ namespace GameObj {
 		}
 
 		//インポスター用インデックス計算
-		index_x = 0, index_y = 0;
-
 		CVector3 polyDir = GetMainCamera()->GetPos() - pos; polyDir.Normalize();
-		CVector3 bias = polyDir;
-
-		CVector3 axisDir;
-
+		
 		//TODO 頂点シェーダでやる?
 		//Out VS(){インデックスとか求める(); 通常();}
 
 		//X軸回転
-		axisDir = polyDir; axisDir.y = 0.0f; axisDir.Normalize();
-		float XRot = acos(CMath::ClampFromNegOneToPosOne(polyDir.Dot(axisDir)));
-		if (CVector2(CVector2(polyDir.x, polyDir.z).Length(), polyDir.y).GetNorm().Cross(CVector2(1.0f, 0.0f)) > 0.0f) {//CVector2(1.0f,0.0f)はaxisDir
-			index_y = (int)std::round(-XRot / CMath::PI * texture.GetPartNumY()) - (int)(texture.GetPartNumY() / 2.0f - 0.5f);
-		}
-		else {
-			index_y = (int)std::round(XRot / CMath::PI * texture.GetPartNumY()) - (int)(texture.GetPartNumY() / 2.0f - 0.5f);
-		}
+		CVector3 axisDir = polyDir; axisDir.x = CVector2(polyDir.x, polyDir.z).Length();
+		float XRot = std::atan2(axisDir.y, axisDir.x);
+		index_y = (int)std::round(XRot / CMath::PI * texture.GetPartNumY()) - (int)(texture.GetPartNumY() / 2.0f - 0.5f);
 
 		//Y軸回転		
-		axisDir = CVector3(0.0f, 0.0f, 1.0f);
-		polyDir.y = 0.0f; polyDir.Normalize();
-		float YRot = acos(CMath::ClampFromNegOneToPosOne(polyDir.Dot(axisDir)));
-		if (CVector2(polyDir.x, polyDir.z).Cross(CVector2(axisDir.x, axisDir.z)) > 0.0f) {
-			index_x += (int)std::round(-YRot / CMath::PI2 * texture.GetPartNumX()) + (int)(texture.GetPartNumX() / 2.0f - 0.5f);
-		}
-		else {
-			index_x += (int)std::round(YRot / CMath::PI2 * texture.GetPartNumX()) + (int)(texture.GetPartNumX() / 2.0f - 0.5f);
-		}
+		float YRot = std::atan2(polyDir.x, polyDir.z);
+		index_x = (int)std::round(-YRot / CMath::PI2 * texture.GetPartNumX()) + (int)(texture.GetPartNumX() / 2.0f - 0.5f);
 
 		//カメラ方向にモデルサイズ分座標ずらす
 		//※埋まり防止
 		if (!isShadowDrawMode) {
-			bias *= scale * texture.GetDirectionOfCameraSize(index_x, index_y);
+			polyDir *= scale * texture.GetDirectionOfCameraSize(index_x, index_y);
 		}
 
 		//回転
 		CQuaternion rot;
-		rot.SetRotation(CVector3::AxisY(), index_x * -(CMath::PI2 / (texture.GetPartNumX() - 1)) + CMath::PI + CMath::PI);
+		rot.SetRotation(CVector3::AxisY(), index_x * -(CMath::PI2 / (texture.GetPartNumX() - 1)) + CMath::PI2);
 		CVector3 AxisX = CVector3::AxisX();
 		rot.Multiply(AxisX);
 		rot.Concatenate(CQuaternion(AxisX, -index_y * -(CMath::PI / (texture.GetPartNumY() - 1)) + CMath::PI*0.5f));
 		
 		//返す
-		position_return = pos + bias;
+		position_return = pos + polyDir;
 		rotation_return = rot;
 		scale_return = scale * texture.GetModelSize()*2.0f;
 	}
