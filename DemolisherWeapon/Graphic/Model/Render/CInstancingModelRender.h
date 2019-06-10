@@ -67,7 +67,7 @@ namespace GameObj {
 		}
 
 		//このフレームに描画するインスタンスの追加
-		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix) {
+		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix, const CVector3& scale) {
 			if (m_instanceNum + 1 >= m_instanceMax) {
 #ifndef DW_MASTER
 				char message[256];
@@ -81,13 +81,17 @@ namespace GameObj {
 			m_instancingWorldMatrixOld[m_instanceNum] = woridMatrixOld;
 
 			//IInstanceDataの処理実行
-			if (m_instanceData) { m_instanceData->AddDrawInstance(m_instanceNum, SRTMatrix); }
+			if (m_instanceData) { m_instanceData->AddDrawInstance(m_instanceNum, SRTMatrix, scale); }
 
 			m_instanceNum++;
 		}
 
-		//ビルボード部分のみワールド行列更新
-		void UpdateBillBoardMatrix(const CMatrix* SRTMat, const CVector3& posOffset);
+		/// <summary>
+		/// ビルボード部分のみワールド行列更新
+		/// </summary>
+		/// <param name="SRTMat">SRT行列の配列(描画するインスタンス分)</param>
+		/// <param name="posOffset_toCamFront">カメラ前方向への座標オフセットの配列(描画するインスタンス分)</param>
+		void UpdateBillBoardMatrix(const CMatrix* SRTMat, const float* posOffset_toCamFront);
 
 		/// <summary>
 		/// ワールド行列の取得
@@ -124,7 +128,7 @@ namespace GameObj {
 
 			//AddDrawInstanceで実行する処理
 			//主にインスタンスごとのデータを追加する
-			virtual void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix) {}
+			virtual void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale) {}
 		};
 		/// <summary>
 		/// IInstanceDataをセット
@@ -247,7 +251,7 @@ namespace GameObj {
 
 			//インスタンシングモデルに送る
 			if (m_isDraw) {
-				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix);
+				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix, m_scale);
 			}
 			m_worldMatrixOld = m_worldMatrix;
 		}

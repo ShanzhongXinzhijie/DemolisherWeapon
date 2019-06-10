@@ -168,10 +168,10 @@ namespace GameObj {
 		m_instanceNum = 0;
 	}
 
-	void InstancingModel::UpdateBillBoardMatrix(const CMatrix* SRTMat, const CVector3& posOffset) {
+	void InstancingModel::UpdateBillBoardMatrix(const CMatrix* SRTMat, const float* posOffset_toCamFront) {
 		//行列更新
 		for (int i = 0; i < m_instanceDrawNum; i++) {
-			m_model.GetSkinModel().UpdateBillBoardMatrix(posOffset, SRTMat[i], m_instancingWorldMatrix[i]);
+			m_model.GetSkinModel().UpdateBillBoardMatrix(GetMainCamera()->GetFront() * posOffset_toCamFront[i], SRTMat[i], m_instancingWorldMatrix[i]);
 		}
 		//StructuredBufferを更新。
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(

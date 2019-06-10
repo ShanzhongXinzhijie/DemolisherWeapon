@@ -13,15 +13,18 @@ namespace DemolisherWeapon {
 			InstancingSRTRecorder(int instancingMaxNum);
 			void PreDrawUpdate()override {}
 			void PostLoopPostUpdate()override {}
-			void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix)override;
+			void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale)override;
 		public:
 			//インスタンス最大数を設定
 			void SetInstanceMax(int instanceMax);
 			//SRT行列の取得
 			const std::unique_ptr<CMatrix[]>& GetSRTMatrix()const { return m_SRTMatrix; }
+			//スケールの最大値を取得
+			const std::unique_ptr<float[]>& GetMaxScale()const { return m_maxScale;	}
 		private:
 			int m_instanceMax = 0;
 			std::unique_ptr<CMatrix[]>	m_SRTMatrix;
+			std::unique_ptr<float[]> m_maxScale;
 		};
 
 		/// <summary>
@@ -34,7 +37,6 @@ namespace DemolisherWeapon {
 			void PreModelDraw()override;
 			void PostDraw()override;
 		private:
-			//float m_depthBias = 0.0f;
 			CMatrix	m_worldMatrix;
 			SkinModel* m_ptrModel = nullptr;
 			CBillboard* m_ptrBillboard = nullptr;
@@ -42,7 +44,7 @@ namespace DemolisherWeapon {
 		//インスタンシング用
 		class ShodowWorldMatrixCalcerInstancing : public ShadowMapRender::IPrePost {
 		public:
-			ShodowWorldMatrixCalcerInstancing(CBillboard* model, InstancingSRTRecorder* insSRT);
+			ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model, InstancingSRTRecorder* insSRT);
 			void PreDraw()override;
 			void PreModelDraw()override;
 			void PostDraw()override;
@@ -51,7 +53,6 @@ namespace DemolisherWeapon {
 			std::unique_ptr<CMatrix[]>	m_worldMatrix;
 			GameObj::InstancingModel* m_ptrModel = nullptr;
 			InstancingSRTRecorder* m_ptrInsSRT = nullptr;
-			CBillboard* m_ptrBillboard = nullptr;
 		};
 
 	public:
@@ -67,24 +68,24 @@ namespace DemolisherWeapon {
 		//座標・回転・拡大の設定
 		void SetPos(const CVector3& pos) {
 			if (m_isIns) {
-				m_insModel.SetPos(pos);
+				m_insModel->SetPos(pos);
 				return;
 			}
-			//m_model.SetPos(pos);
+			m_model->SetPos(pos);
 		}
 		void SetRot(const CQuaternion& rot) {
 			if (m_isIns) {
-				m_insModel.SetRot(rot);
+				m_insModel->SetRot(rot);
 				return;
 			}
-			//m_model.SetRot(rot);
+			m_model->SetRot(rot);
 		}
 		void SetScale(const CVector3& scale) {
 			if (m_isIns) {
-				m_insModel.SetScale(scale);
+				m_insModel->SetScale(scale);
 				return;
 			}
-			//m_model.SetScale(scale);
+			m_model->SetScale(scale);
 		}
 		void SetPRS(const CVector3& pos, const CQuaternion& rot, const CVector3& scale) {
 			SetPos(pos);
@@ -93,22 +94,22 @@ namespace DemolisherWeapon {
 		}
 		//座標・回転・拡大の取得
 		const CVector3& GetPos() const {
-			//if (m_isIns) {
-				return m_insModel.GetPos();
-			//}
-			//return m_model.GetPos();
+			if (m_isIns) {
+				return m_insModel->GetPos();
+			}
+			return m_model->GetPos();
 		}
 		const CQuaternion& GetRot() const {
-			//if (m_isIns) {
-				return m_insModel.GetRot();
-			//}
-			//return m_model.GetRot();
+			if (m_isIns) {
+				return m_insModel->GetRot();
+			}
+			return m_model->GetRot();
 		}
 		const CVector3& GetScale() const {
-			//if (m_isIns) {
-				return m_insModel.GetScale();
-			//}
-			//return m_model.GetScale();
+			if (m_isIns) {
+				return m_insModel->GetScale();
+			}
+			return m_model->GetScale();
 		}
 		void GetPRS(CVector3* pos, CQuaternion* rot, CVector3* scale) const {
 			*pos = GetPos();
@@ -124,19 +125,19 @@ namespace DemolisherWeapon {
 		//描画するか設定
 		void SetIsDraw(bool isdraw) {
 			if (m_isIns) {
-				m_insModel.SetIsDraw(isdraw);
+				m_insModel->SetIsDraw(isdraw);
 			}
-			//else {
-			//	m_model.SetIsDraw(isdraw);
-			//}
+			else {
+				m_model->SetIsDraw(isdraw);
+			}
 		}
 		bool GetIsDraw()const {
 			if (m_isIns) {
-				return m_insModel.GetIsDraw();
+				return m_insModel->GetIsDraw();
 			}
-			//else {
-			//	return m_model.GetIsDraw();
-			//}
+			else {
+				return m_model->GetIsDraw();
+			}
 		}
 
 		/// <summary>
@@ -150,11 +151,11 @@ namespace DemolisherWeapon {
 		//モデルの取得
 		GameObj::CSkinModelRender& GetModel() {
 			if (m_isIns) {
-				return m_insModel.GetInstancingModel()->GetModelRender();
+				return m_insModel->GetInstancingModel()->GetModelRender();
 			}
-			//else {
-			//	return m_model;
-			//}
+			else {
+				return *m_model;
+			}
 		}
 		//インスタンシングモデルの取得
 		GameObj::CInstancingModelRender& GetInstancingModel() {
@@ -163,14 +164,14 @@ namespace DemolisherWeapon {
 				OutputDebugStringA("【警告】CBillBoard::GetInstancingModel() ※このビルボードはインスタンシング描画じゃないよ?\n");
 			}
 #endif
-			return m_insModel;
+			return *m_insModel;
 		}
 
 	private:
 		bool m_isInit = false;
 		bool m_isIns = false;
-		//GameObj::CSkinModelRender m_model;
-		GameObj::CInstancingModelRender m_insModel;
+		std::unique_ptr<GameObj::CSkinModelRender> m_model;
+		std::unique_ptr<GameObj::CInstancingModelRender> m_insModel;
 	};
 //}
 }
