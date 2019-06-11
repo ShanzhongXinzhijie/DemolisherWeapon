@@ -100,6 +100,13 @@ public:
 	virtual float GetFOV()const = 0;
 	virtual float GetAspect()const = 0;
 
+	/// <summary>
+	/// 指定の距離における錐台のサイズ 
+	/// </summary>
+	/// <param name="z">カメラからの距離</param>
+	/// <param name="returnPlaneSize">錐台のサイズが返ってくる</param>
+	virtual void GetFrustumPlaneSize(float z, CVector2& returnPlaneSize)const = 0;
+
 	//座標等設定
 	void SetPos(const CVector3& v) { m_pos = v; m_change = true; m_isNeedUpdateFront = true; }
 	void SetTarget(const CVector3& v) { m_target = v; m_change = true; m_isNeedUpdateFront = true; }
@@ -184,6 +191,11 @@ public:
 	float GetAspect() const override {
 		return m_aspect;
 	}
+	//指定の距離における錐台のサイズ
+	void GetFrustumPlaneSize(float z, CVector2& returnPlaneSize)const override {
+		returnPlaneSize.y = 2.0f * z * tan(m_viewAngle*0.5f);
+		returnPlaneSize.x = m_aspect * returnPlaneSize.y;
+	}
 
 private:
 	void UpdateProjMatrix()override {
@@ -217,6 +229,11 @@ public:
 	//アスペクト比の取得
 	float GetAspect() const override {
 		return m_width / m_height;
+	}
+	//指定の距離における錐台のサイズ
+	void GetFrustumPlaneSize(float z, CVector2& returnPlaneSize)const override {
+		returnPlaneSize.y = GetHeight();
+		returnPlaneSize.x = GetWidth();
 	}
 
 	/// <summary>
