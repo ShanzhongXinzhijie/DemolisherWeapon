@@ -103,8 +103,7 @@ void CalcImposter(out int2 out_index, inout float3 inout_pos
 
 		//TODO バイアス行列
 
-		//回転
-		/*
+		//回転		
 		float r = -out_index.y * -(PI / (imposterPartNum.y - 1)) + PI * 0.5f;
 		float sinr = sin(r), cosr = cos(r);
 		float3x3 rotX = {1.0f,0.0f,0.0f,
@@ -123,13 +122,13 @@ void CalcImposter(out int2 out_index, inout float3 inout_pos
 		//};
 		inout_pos = mul(inout_pos, rotX);
 		inout_pos = mul(inout_pos, rotY);
-		*/
 		
+/*		
 		float4 rotX = rotate_angle_axis(-out_index.y * -(PI / (imposterPartNum.y - 1)) + PI * 0.5f, float3(1.0f, 0.0f, 0.0f));
 		float4 rotY = rotate_angle_axis(-out_index.x * -(PI2 / (imposterPartNum.x - 1)) + PI2, float3(0.0f, 0.0f, 1.0f));
 		rotX = qmul(rotY, rotX);
 		inout_pos = rotate_vector(inout_pos, rotX);
-
+*/
 		//返す
 		//position_return = pos + polyDir;
 		//rotation_return = rot;

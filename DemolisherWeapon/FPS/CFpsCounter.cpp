@@ -52,7 +52,7 @@ void CFpsCounter::Draw() {
 	m_add += m_fps; m_avgcnt++; m_addTime += m_frametimeSec;
 	if (m_addTime > 1.0f) {//1•b‚²‚Æ‚É•½‹Ï’lXV
 		m_avg = m_add / m_avgcnt;
-		m_add = 0.0f; m_avgcnt = 0;
+		m_add = 0.0f; m_avgcnt = 0; m_addTime = 0.0f;
 	}
 
 	if (GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD5)) {
