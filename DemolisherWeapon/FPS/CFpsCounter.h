@@ -47,6 +47,9 @@ private:
 	bool m_isDebugDraw = false;
 #endif
 
+	//fps•\Ž¦—p
+	float m_max = 0.0f, m_min = 100000.0f, m_avg = 0.0f, m_add = 0.0f, m_addTime = 0.0f;
+	int m_avgcnt = 0;
 };
 
 }
