@@ -429,6 +429,10 @@ namespace GameObj {
 		//シェーダ読み込み
 		if (m_billboard.GetIsInstancing()) {
 			//インスタンシング用シェーダ
+			D3D_SHADER_MACRO macrosVS[] = { "INSTANCING", "1", "ALL_VS", "1", NULL, NULL };
+			m_vsShader.Load("Preset/shader/Imposter.fx", "VSMain_Imposter", Shader::EnType::VS, "INSTANCING", macrosVS);
+			m_vsZShader.Load("Preset/shader/Imposter.fx", "VSMain_RenderZ_Imposter", Shader::EnType::VS, "INSTANCING", macrosVS);
+
 			D3D_SHADER_MACRO macros[] = {
 				"INSTANCING", "1",
 				NULL, NULL
@@ -439,6 +443,10 @@ namespace GameObj {
 			m_zShader.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderZ", Shader::EnType::PS, "TEXTURE_INSTANCING", macrosZ);
 		}
 		else {
+			D3D_SHADER_MACRO macrosVS[] = { "ALL_VS", "1", NULL, NULL };
+			m_vsShader.Load("Preset/shader/Imposter.fx", "VSMain_Imposter", Shader::EnType::VS, "NORMAL", macrosVS);
+			m_vsZShader.Load("Preset/shader/Imposter.fx", "VSMain_RenderZ_Imposter", Shader::EnType::VS, "NORMAL", macrosVS);
+
 			m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
 			
 			D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1", NULL, NULL };
@@ -450,6 +458,8 @@ namespace GameObj {
 			[&](MaterialSetting* mat) {
 				mat->SetNormalTexture(m_texture->GetSRV(ImposterTexRender::enGBufferNormal));
 				mat->SetLightingTexture(m_texture->GetSRV(ImposterTexRender::enGBufferLightParam));
+				mat->SetVS(&m_vsShader);
+				mat->SetVSZ(&m_vsZShader);
 				mat->SetPS(&m_billboardPS);
 				mat->SetPSZ(&m_zShader);
 			}
@@ -494,6 +504,7 @@ namespace GameObj {
 	}
 
 	void CImposter::CalcWorldMatrixAndIndex(bool isShadowDrawMode, const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x, int& index_y) {
+		/*
 		if (!GetMainCamera()) {
 #ifndef DW_MASTER
 			OutputDebugStringA("CImposter::CalcWorldMatrixAndIndex() カメラが設定されていません。\n");
@@ -525,13 +536,11 @@ namespace GameObj {
 		//回転
 		CQuaternion rot;
 		rot.SetRotation(CVector3::AxisY(), index_x * -(CMath::PI2 / (texture.GetPartNumX() - 1)) + CMath::PI2);
-		CVector3 AxisX = CVector3::AxisX();
-		rot.Multiply(AxisX);
-		rot.Concatenate(CQuaternion(AxisX, -index_y * -(CMath::PI / (texture.GetPartNumY() - 1)) + CMath::PI*0.5f));
-		
+		rot.Multiply(CQuaternion(CVector3::AxisX(), -index_y * -(CMath::PI / (texture.GetPartNumY() - 1)) + CMath::PI*0.5f));
+		*/
 		//返す
-		position_return = pos + polyDir;
-		rotation_return = rot;
+		position_return = pos;// +polyDir;
+		rotation_return = CQuaternion::Identity();// rot;
 		scale_return = scale * texture.GetModelSize()*2.0f;
 	}
 

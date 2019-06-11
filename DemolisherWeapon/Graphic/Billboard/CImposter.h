@@ -238,7 +238,7 @@ namespace GameObj {
 		//ビルボード
 		CBillboard m_billboard;
 		SkinModelEffectShader m_billboardPS;
-		Shader m_zShader;
+		Shader m_zShader, m_vsShader, m_vsZShader;
 		CVector3 m_pos;
 		float m_scale = 1.0f;
 		//インスタンシング用

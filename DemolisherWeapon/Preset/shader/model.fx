@@ -139,6 +139,8 @@ struct PSInput{
 	uint instanceID		: InstanceID;
 
 	float3 cubemapPos	: CUBE_POS;
+
+	int2 imposterIndex : IMPOSTER_INDEX;
 };
 
 //Z値書き込みピクセルシェーダーの入力
@@ -148,6 +150,8 @@ struct ZPSInput {
 	float4 posInProj	: TEXCOORD1;
 
 	uint instanceID		: InstanceID;
+
+	int2 imposterIndex : IMPOSTER_INDEX;
 };
 
 
