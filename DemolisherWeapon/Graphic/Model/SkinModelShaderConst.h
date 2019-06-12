@@ -28,7 +28,7 @@ enum EnSkinModelSRVReg{
 	enSkinModelSRVReg_InstancingWorldMatrixOld, 
 	
 	enSkinModelSRVReg_Free = 7,								//ここから使ってない
-	enSkinModelSRVReg_InstancingImposterTextureIndex = 7,	//ただし、インポスターのインスタンシング描画で使用する場合アリ
+	enSkinModelSRVReg_ImposterSizeToCamera = 7,				//ただし、インポスター描画で使用する場合アリ
 
 	enSkinModelSRVReg_Free2,								//ここからマジで使ってない
 };

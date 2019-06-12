@@ -3,67 +3,6 @@
 namespace DemolisherWeapon {
 
 	/// <summary>
-	/// インポスターのインスタンシング描画におけるテクスチャインデックスを扱うクラス
-	/// </summary>
-	class InstancingImposterIndex : public GameObj::InstancingModel::IInstancesData {
-	private:
-		void Reset(int instancingMaxNum);
-	public:
-		/// <summary>
-		/// コンストラクタ
-		/// </summary>
-		/// <param name="instancingMaxNum">インスタンス最大数</param>
-		InstancingImposterIndex(int instancingMaxNum);
-		void PreDrawUpdate()override;
-		void PostLoopPostUpdate()override;
-	public:
-		//インスタンス最大数を設定
-		void SetInstanceMax(int instanceMax);
-	
-		/// <summary>
-		/// このフレームに描画するインスタンスの追加
-		/// </summary>
-		/// <param name="x">横インデックス</param>
-		/// <param name="y">縦インデックス</param>
-		void AddDrawInstance(int x, int y, const CVector3& pos, float scale);
-		
-		//インデックスの取得
-		const std::unique_ptr<int[][2]>& GetIndexs()const {
-			return m_instancingIndex;
-		}
-		//インデックスの設定と更新
-		void SetUpdateDrawIndex(const int index[][2]) {
-			//設定
-			for (int i = 0; i < m_instanceDrawNum; i++) {
-				m_instancingIndex[i][0] = index[i][0];
-				m_instancingIndex[i][1] = index[i][1];
-			}
-			//StructuredBufferを更新
-			GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-				m_indexSB.Get(), 0, NULL, m_instancingIndex.get(), 0, 0
-			);
-		}
-
-		//座標取得
-		const std::unique_ptr<CVector3[]>& GetPoses()const {
-			return m_instancingPos;
-		}
-		//スケールの取得
-		const std::unique_ptr<float[]>& GetScales()const {
-			return m_instancingScale;
-		}
-
-	private:
-		std::unique_ptr<int[][2]>							m_instancingIndex;
-		std::unique_ptr<CVector3[]>							m_instancingPos;
-		std::unique_ptr<float[]>							m_instancingScale;
-		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_indexSB;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_indexSRV;
-		int m_instanceNum = 0, m_instanceDrawNum = 0;
-		int m_instanceMax = 0;
-	};
-
-	/// <summary>
 	/// インポスターのテクスチャを作るクラス
 	/// </summary>
 	class ImposterTexRender {
@@ -91,8 +30,13 @@ namespace DemolisherWeapon {
 		/// <param name="y">縦インデックス</param>
 		/// <returns>モデルのカメラへの方向のサイズ</returns>
 		float GetDirectionOfCameraSize(int x, int y)const {
-			return m_toCamDirSize[m_partNumY-1+y][x];
+			return m_toCamDirSize[(m_partNumY-1+y)*m_partNumX + x];
 		}
+
+		/// <summary>
+		/// モデルのカメラへの方向のサイズSRVを頂点シェーダに設定
+		/// </summary>
+		void VSSetSizeToCameraSRV();
 
 		/// <summary>
 		/// テクスチャ分割数の取得
@@ -134,7 +78,11 @@ namespace DemolisherWeapon {
 		UINT m_partNumX = 0, m_partNumY = 0;		//テクスチャ分割数
 		float m_imposterMaxSize;//モデルの大きさ
 		CVector3 m_boundingBoxMaxSize, m_boundingBoxMinSize;
-		std::vector<std::vector<float>> m_toCamDirSize;//分割された各テクスチャのモデルのカメラ方向の大きさ
+
+		//分割された各テクスチャのモデルのカメラ方向の大きさ
+		std::unique_ptr<float[]>							m_toCamDirSize;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_toCamDirSizeSB;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_toCamDirSizeSRV;
 	};
 
 	/// <summary>
@@ -187,13 +135,9 @@ namespace DemolisherWeapon {
 	private:
 		std::unordered_map<int, ImposterTexRender*> m_impTexMap;
 	};
-
-namespace GameObj {
-
-	class CImposter : public IGameObject
+	
+	class CImposter
 	{
-	public:
-		void PostLoopUpdate()override { ImposterUpdate(false); }
 	public:
 		/// <summary>
 		/// 初期化
@@ -204,18 +148,14 @@ namespace GameObj {
 		/// <param name="instancingNum">インスタンシング描画数</param>
 		void Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum, int instancingNum = 1);
 		
-		//ワールド行列とインデックスの計算
-		static void CalcWorldMatrixAndIndex(bool isShadowDrawMode, const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x_return, int& index_y_return);
-
-		//インポスターの更新
-		void ImposterUpdate(bool isShadowDrawMode);
-
 		//座標・拡大の設定
 		void SetPos(const CVector3& pos) {
 			m_pos = pos;
+			m_billboard.SetPos(m_pos);
 		}
 		void SetScale(float scale) {
 			m_scale = scale;
+			m_billboard.SetScale(m_scale * m_texture->GetModelSize()*2.0f);
 		}
 
 		//座標・拡大の取得
@@ -241,38 +181,6 @@ namespace GameObj {
 		Shader m_zShader, m_vsShader, m_vsZShader;
 		CVector3 m_pos;
 		float m_scale = 1.0f;
-		//インスタンシング用
-		InstancingImposterIndex* m_instancingIndex = nullptr;
 	};
-}
-	/// <summary>
-	/// インポスターのシャドウマップ描画時に実行する処理
-	/// </summary>
-	class ShodowWorldMatrixCalcerImposter : public ShadowMapRender::IPrePost {
-	public:
-		ShodowWorldMatrixCalcerImposter(GameObj::CImposter* imp, SkinModel* model);
-		void PreDraw()override;
-		void PreModelDraw()override;
-		void PostDraw()override;
-	private:
-		int m_x = 0, m_y = 0;
-		CMatrix	m_worldMatrix;
-		GameObj::CImposter* m_ptrImposter = nullptr;
-		SkinModel* m_ptrModel = nullptr;
-	};
-	//インスタンシング用
-	class ShodowWorldMatrixCalcerInstancingImposter : public ShadowMapRender::IPrePost {
-	public:
-		ShodowWorldMatrixCalcerInstancingImposter(ImposterTexRender* tex, GameObj::InstancingModel* model, InstancingImposterIndex* index);
-		void PreDraw()override;
-		void PreModelDraw()override;
-		void PostDraw()override;
-	private:
-		int m_instancesNum = 0;
-		std::unique_ptr<int[][2]> m_index, m_indexNew;
-		std::unique_ptr<CMatrix[]>	m_worldMatrix, m_worldMatrixNew;
-		ImposterTexRender* m_ptrTexture = nullptr;
-		GameObj::InstancingModel* m_ptrModel = nullptr;
-		InstancingImposterIndex* m_ptrIndex = nullptr;
-	};
+	
 }

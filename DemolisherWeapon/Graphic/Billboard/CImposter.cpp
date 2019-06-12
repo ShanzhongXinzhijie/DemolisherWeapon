@@ -4,154 +4,6 @@
 
 namespace DemolisherWeapon {
 	ImposterTexBank* ImposterTexBank::instance = nullptr;
-
-	void InstancingImposterIndex::Reset(int instancingMaxNum) {
-		m_instanceMax = instancingMaxNum;
-		m_instanceNum = 0;
-
-		//インデックス配列の確保
-		m_instancingIndex.reset();
-		m_instancingPos.reset();
-		m_instancingScale.reset();
-		m_instancingIndex = std::make_unique<int[][2]>(instancingMaxNum);
-		m_instancingPos = std::make_unique<CVector3[]>(instancingMaxNum);
-		m_instancingScale = std::make_unique<float[]>(instancingMaxNum);
-
-		//StructuredBufferの確保
-		D3D11_BUFFER_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-		int stride = sizeof(int[2]);
-		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		desc.ByteWidth = static_cast<UINT>(stride * instancingMaxNum);
-		desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		desc.StructureByteStride = stride;
-		GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, m_indexSB.ReleaseAndGetAddressOf());
-
-		//ShaderResourceViewの確保
-		D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
-		ZeroMemory(&descSRV, sizeof(descSRV));
-		descSRV.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
-		descSRV.BufferEx.FirstElement = 0;
-		descSRV.Format = DXGI_FORMAT_UNKNOWN;
-		descSRV.BufferEx.NumElements = desc.ByteWidth / desc.StructureByteStride;
-		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_indexSB.Get(), &descSRV, m_indexSRV.ReleaseAndGetAddressOf());
-	}
-	InstancingImposterIndex::InstancingImposterIndex(int instancingMaxNum) {
-		Reset(instancingMaxNum);
-	}
-	void InstancingImposterIndex::PreDrawUpdate() {
-		//シェーダーリソースにセット
-		GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(
-			enSkinModelSRVReg_InstancingImposterTextureIndex, 1, m_indexSRV.GetAddressOf()
-		);
-	}
-	void InstancingImposterIndex::PostLoopPostUpdate() {
-		//StructuredBufferを更新
-		GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-			m_indexSB.Get(), 0, NULL, m_instancingIndex.get(), 0, 0
-		);
-		m_instanceDrawNum = m_instanceNum;
-		m_instanceNum = 0;
-	}
-	void InstancingImposterIndex::AddDrawInstance(int x, int y, const CVector3& pos, float scale) {
-		if (m_instanceNum + 1 >= m_instanceMax) {
-#ifndef DW_MASTER
-			char message[256];
-			sprintf_s(message, "【InstancingImposterIndex】インスタンスの最大数に達しています！\nインスタンス最大数:%d\n", m_instanceMax);
-			OutputDebugStringA(message);
-#endif				
-			return;
-		}
-		m_instancingIndex[m_instanceNum][0] = x;
-		m_instancingIndex[m_instanceNum][1] = y;
-		m_instancingPos[m_instanceNum] = pos;
-		m_instancingScale[m_instanceNum] = scale;
-		m_instanceNum++;
-	}
-	void InstancingImposterIndex::SetInstanceMax(int instanceMax) {
-		if (instanceMax > m_instanceMax) {
-			Reset(instanceMax);
-		}
-	}
-
-	ShodowWorldMatrixCalcerImposter::ShodowWorldMatrixCalcerImposter(GameObj::CImposter* imp, SkinModel* model) : m_ptrImposter(imp), m_ptrModel(model) {
-	}
-	void ShodowWorldMatrixCalcerImposter::PreDraw() {
-		//現在のワールド行列の保存
-		m_worldMatrix = m_ptrModel->GetWorldMatrix();
-		//現在のインデックスの保存
-		m_ptrModel->GetImposterIndex(m_x, m_y);
-	}
-	void ShodowWorldMatrixCalcerImposter::PreModelDraw() {
-		//更新
-		m_ptrImposter->ImposterUpdate(true);
-	}
-	void ShodowWorldMatrixCalcerImposter::PostDraw() {
-		//ワールド行列を戻す
-		m_ptrModel->SetWorldMatrix(m_worldMatrix);
-		//インデックスを戻す
-		m_ptrModel->SetImposterIndex(m_x, m_y);
-	}
-	
-	ShodowWorldMatrixCalcerInstancingImposter::ShodowWorldMatrixCalcerInstancingImposter(ImposterTexRender* tex, GameObj::InstancingModel* model, InstancingImposterIndex* index)
-	: m_ptrTexture(tex), m_ptrModel(model), m_ptrIndex(index) {
-		m_instancesNum = m_ptrModel->GetInstanceMax();
-
-		m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
-		m_worldMatrixNew = std::make_unique<CMatrix[]>(m_instancesNum);
-		m_index = std::make_unique<int[][2]>(m_instancesNum);
-		m_indexNew = std::make_unique<int[][2]>(m_instancesNum);
-	}
-	void ShodowWorldMatrixCalcerInstancingImposter::PreDraw() {
-		//最大インスタンス数の増加に対応
-		if (m_instancesNum < m_ptrModel->GetInstanceMax()) {
-			m_instancesNum = m_ptrModel->GetInstanceMax();
-			
-			m_worldMatrix.reset();
-			m_worldMatrixNew.reset();
-			m_index.reset();
-			m_indexNew.reset();
-
-			m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
-			m_worldMatrixNew = std::make_unique<CMatrix[]>(m_instancesNum);
-			m_index = std::make_unique<int[][2]>(m_instancesNum);
-			m_indexNew = std::make_unique<int[][2]>(m_instancesNum);
-		}
-
-		int max = m_ptrModel->GetDrawInstanceNum();
-		//現在のワールド行列の保存
-		const auto& mats = m_ptrModel->GetWorldMatrix();
-		for (int i = 0; i < max; i++) {
-			m_worldMatrix[i] = mats[i];
-		}
-		//現在のインデックスの保存
-		const auto& inds = m_ptrIndex->GetIndexs();
-		for (int i = 0; i < max; i++) {
-			m_index[i][0] = inds[i][0];
-			m_index[i][1] = inds[i][1];
-		}
-	}
-	void ShodowWorldMatrixCalcerInstancingImposter::PreModelDraw() {
-		//計算
-		CVector3 pos; CQuaternion rot; float scale = 1.0f;
-		int max = m_ptrModel->GetDrawInstanceNum();
-		const auto& poses = m_ptrIndex->GetPoses();
-		const auto& scales = m_ptrIndex->GetScales();
-		for (int i = 0; i < max; i++) {
-			GameObj::CImposter::CalcWorldMatrixAndIndex(true, m_ptrModel->GetModelRender().GetSkinModel(), *m_ptrTexture, poses[i], scales[i], pos, rot, scale, m_indexNew[i][0], m_indexNew[i][1]);
-			m_ptrModel->GetModelRender().GetSkinModel().CalcWorldMatrix(pos, rot, scale, m_worldMatrixNew[i]);
-		}
-		//新たなワールド行列に更新
-		m_ptrModel->SetUpdateDrawWorldMatrix(m_worldMatrixNew.get());
-		//新たなインテックスに更新
-		m_ptrIndex->SetUpdateDrawIndex(m_indexNew.get());
-	}
-	void ShodowWorldMatrixCalcerInstancingImposter::PostDraw() {
-		//ワールド行列を戻す
-		m_ptrModel->SetUpdateDrawWorldMatrix(m_worldMatrix.get());
-		//インデックスを戻す
-		m_ptrIndex->SetUpdateDrawIndex(m_index.get());
-	}
 	
 	void ImposterTexRender::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
 		//解像度・分割数設定
@@ -223,16 +75,41 @@ namespace DemolisherWeapon {
 				m_boundingBoxMaxSize.z = max(m_boundingBoxMaxSize.z, size.y); //Z-UPなのでYが逆
 			}
 		);
-
-		//モデルのカメラ方向の大きさをクリア
-		m_toCamDirSize.clear();
-		//確保
-		m_toCamDirSize.resize(m_partNumY);
-		for (auto& Y : m_toCamDirSize) { Y.resize(m_partNumX); }
-		m_toCamDirSize.shrink_to_fit();
+	
+		//モデルのカメラ方向の大きさ
+		m_toCamDirSize = std::make_unique<float[]>(m_partNumX*m_partNumY);
+		//StructuredBufferの確保
+		D3D11_BUFFER_DESC desc;
+		ZeroMemory(&desc, sizeof(desc));
+		int stride = sizeof(float);
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		desc.ByteWidth = static_cast<UINT>(stride * (m_partNumX*m_partNumY));
+		desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		desc.StructureByteStride = stride;
+		GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, m_toCamDirSizeSB.ReleaseAndGetAddressOf());
+		//ShaderResourceViewの確保
+		D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
+		ZeroMemory(&descSRV, sizeof(descSRV));
+		descSRV.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
+		descSRV.BufferEx.FirstElement = 0;
+		descSRV.Format = DXGI_FORMAT_UNKNOWN;
+		descSRV.BufferEx.NumElements = desc.ByteWidth / desc.StructureByteStride;
+		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_toCamDirSizeSB.Get(), &descSRV, m_toCamDirSizeSRV.ReleaseAndGetAddressOf());
 
 		//インポスタテクスチャの作成
 		Render(model);
+
+		//StructuredBufferを更新
+		GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
+			m_toCamDirSizeSB.Get(), 0, NULL, m_toCamDirSize.get(), 0, 0
+		);		
+	}
+
+	void ImposterTexRender::VSSetSizeToCameraSRV() {
+		//シェーダーリソースにセット
+		GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(
+			enSkinModelSRVReg_ImposterSizeToCamera, 1, m_toCamDirSizeSRV.GetAddressOf()
+		);
 	}
 
 	void ImposterTexRender::Render(SkinModel& model) {
@@ -360,8 +237,8 @@ namespace DemolisherWeapon {
 			toCamDir = m_boundingBoxMaxSize;
 			rotM.Multiply(toCamDir);
 			toCamDirMaxSize = max(toCamDirMaxSize, CVector3::AxisZ().Dot(toCamDir));
-			m_toCamDirSize[indY][i%m_partNumX] = toCamDirMaxSize;
-
+			m_toCamDirSize[indY*m_partNumX + i%m_partNumX] = toCamDirMaxSize;
+			
 			//ビューポート横にずらす
 			viewport.TopLeftX += viewport.Width;
 
@@ -416,9 +293,7 @@ namespace DemolisherWeapon {
 		}
 		m_impTexMap.clear();
 	}
-
-namespace GameObj {
-
+	
 	void CImposter::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum, int instancingNum) {
 		//テクスチャ生成
 		m_texture = ImposterTexBank::GetInstance().Load(filepath, resolution, partNum);
@@ -473,28 +348,12 @@ namespace GameObj {
 		//分割数設定
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
 		
-		//インスタンシング用のクラス設定
+		//SetPreDrawFunctionの設定
 		if (m_billboard.GetIsInstancing()) {
-			if (!m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData()) {
-				//新規作成
-				m_billboard.GetInstancingModel().GetInstancingModel()->SetIInstanceData(std::make_unique<InstancingImposterIndex>(m_billboard.GetInstancingModel().GetInstancingModel()->GetInstanceMax()));
-			}
-			//既存のもの使う
-			m_instancingIndex = dynamic_cast<InstancingImposterIndex*>(m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData());
-			m_instancingIndex->SetInstanceMax(m_billboard.GetInstancingModel().GetInstancingModel()->GetInstanceMax());
+			m_billboard.GetInstancingModel().GetInstancingModel()->SetPreDrawFunction([this]() { m_texture->VSSetSizeToCameraSRV(); });
 		}
 		else {
-			m_instancingIndex = nullptr;
-		}
-
-		//シャドウマップ描画用設定
-		if (!m_billboard.GetModel().GetShadowMapPrePost()) {//すでに設定されてなければ
-			if (m_billboard.GetIsInstancing()) {
-				m_billboard.GetModel().SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerInstancingImposter>(m_texture, m_billboard.GetInstancingModel().GetInstancingModel(), m_instancingIndex));
-			}
-			else {
-				m_billboard.GetModel().SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerImposter>(this, &m_billboard.GetModel().GetSkinModel()));
-			}
+			m_billboard.GetModel().GetSkinModel().SetPreDrawFunction([this](SkinModel*) { m_texture->VSSetSizeToCameraSRV(); });
 		}
 
 		//スケール初期化
@@ -503,8 +362,9 @@ namespace GameObj {
 		m_isInit = true;
 	}
 
+	/*
 	void CImposter::CalcWorldMatrixAndIndex(bool isShadowDrawMode, const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x, int& index_y) {
-		/*
+		
 		if (!GetMainCamera()) {
 #ifndef DW_MASTER
 			OutputDebugStringA("CImposter::CalcWorldMatrixAndIndex() カメラが設定されていません。\n");
@@ -515,9 +375,6 @@ namespace GameObj {
 		//インポスター用インデックス計算
 		CVector3 polyDir = GetMainCamera()->GetPos() - pos; polyDir.Normalize();
 		
-		//TODO 頂点シェーダでやる?
-		//Out VS(){インデックスとか求める(); 通常();}
-
 		//X軸回転
 		CVector3 axisDir = polyDir; axisDir.x = CVector2(polyDir.x, polyDir.z).Length();
 		float XRot = std::atan2(axisDir.y, axisDir.x);
@@ -537,40 +394,11 @@ namespace GameObj {
 		CQuaternion rot;
 		rot.SetRotation(CVector3::AxisY(), index_x * -(CMath::PI2 / (texture.GetPartNumX() - 1)) + CMath::PI2);
 		rot.Multiply(CQuaternion(CVector3::AxisX(), -index_y * -(CMath::PI / (texture.GetPartNumY() - 1)) + CMath::PI*0.5f));
-		*/
+
 		//返す
 		position_return = pos;// +polyDir;
 		rotation_return = CQuaternion::Identity();// rot;
 		scale_return = scale * texture.GetModelSize()*2.0f;
 	}
-
-	void CImposter::ImposterUpdate(bool isShadowDrawMode) {
-		if (!m_isInit) { return; }
-		if (!m_billboard.GetIsDraw()) { return; }//描画しないなら実行しない				
-
-		//計算
-		int x = 0, y = 0;
-		CVector3 pos; CQuaternion rot; float scale = 1.0f;
-		CalcWorldMatrixAndIndex(isShadowDrawMode, m_billboard.GetModel().GetSkinModel(), *m_texture, m_pos, m_scale, pos, rot, scale, x, y);
-
-		//モデルに設定(インデックス)
-		if (m_billboard.GetIsInstancing()) {
-			m_instancingIndex->AddDrawInstance(x, y, m_pos, m_scale);
-		}
-		else {
-			m_billboard.GetModel().GetSkinModel().SetImposterIndex(x, y);
-		}		
-
-		//SRTの設定
-		m_billboard.SetPos(pos);
-		m_billboard.SetRot(rot);
-		m_billboard.SetScale(scale);
-
-		//モデルに設定(行列)
-		if (!m_billboard.GetIsInstancing()) {
-			//行列の更新
-			m_billboard.GetModel().GetSkinModel().UpdateWorldMatrix(m_billboard.GetPos(), m_billboard.GetRot(), m_billboard.GetScale());
-		}
-	}
-}
+	*/
 }

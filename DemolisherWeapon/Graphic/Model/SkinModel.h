@@ -211,19 +211,6 @@ public:
 	}
 
 	/// <summary>
-	/// インポスター用インデックスを設定
-	/// </summary>
-	/// <param name="x">横インデックス</param>
-	/// <param name="y">縦インデックス</param>
-	void SetImposterIndex(int x, int y) {
-		m_imposterIndex[0] = x;
-		m_imposterIndex[1] = y;
-	}
-	void GetImposterIndex(int& x, int& y) {
-		 x = m_imposterIndex[0];
-		 y = m_imposterIndex[1];
-	}
-	/// <summary>
 	/// インポスターの枚数を設定
 	/// </summary>
 	/// <param name="x">横の枚数</param>
@@ -292,6 +279,7 @@ private:
 		//カメラの移動量
 		CVector4 camMoveVec;
 
+		//深度値のバイアス
 		CVector4 depthBias;
 
 		//カメラのワールド座標
@@ -299,9 +287,8 @@ private:
 
 		float padding = 0.0f;
 
-		//インポスター用インデックス
-		int imposterPartNum[2];
-		int imposterIndex[2];
+		//インポスター用
+		int imposterPartNum[2];//分割数
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
@@ -329,9 +316,8 @@ private:
 	bool m_isBillboard = false;//ビルボードか？
 	bool m_isImposter = false;//インポスターか？
 
-	//インポスター用インデックス
-	int m_imposterPartNum[2] = {};
-	int m_imposterIndex[2] = {};
+	//インポスター用
+	int m_imposterPartNum[2] = {};//分割数
 
 	int m_instanceNum = 1;//インスタンス数
 

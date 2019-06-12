@@ -1,39 +1,10 @@
 #include"model.fx"
 
-#if defined(INSTANCING)
-//インスタンシング用テクスチャインデックス
-StructuredBuffer<int2> InstancingImposterTextureIndex : register(t7);
-#endif
+//モデルサイズ(カメラ方向への)
+StructuredBuffer<float> ImposterSizeToCamera : register(t7);
 
-///////////////////////////////////////////////////////////////////////
-// クォータニオンの計算												 //
-// https://gist.github.com/mattatz/40a91588d5fb38240403f198a938a593  //
-///////////////////////////////////////////////////////////////////////
 static const float PI = 3.14159265359f;
 static const float PI2 = PI * 2.0f;
-// Quaternion multiplication
-// http://mathworld.wolfram.com/Quaternion.html
-float4 qmul(float4 q1, float4 q2)
-{
-	return float4(
-		q2.xyz * q1.w + q1.xyz * q2.w + cross(q1.xyz, q2.xyz),
-		q1.w * q2.w - dot(q1.xyz, q2.xyz)
-		);
-}
-// Vector rotation with a quaternion
-// http://mathworld.wolfram.com/Quaternion.html
-float3 rotate_vector(float3 v, float4 r)
-{
-	float4 r_c = r * float4(-1, -1, -1, 1);
-	return qmul(r, qmul(float4(v, 0), r_c)).xyz;
-}
-// A given angle of rotation about a given axis
-float4 rotate_angle_axis(float angle, float3 axis)
-{
-	float sn = sin(angle * 0.5);
-	float cs = cos(angle * 0.5);
-	return float4(axis * sn, cs);
-}
 
 //インポスターの出力
 struct PSOutput_RenderImposter {
@@ -70,7 +41,7 @@ PSOutput_RenderImposter PSMain_RenderImposter(PSInput In)
 }
 
 //インポスターの計算
-void CalcImposter(out int2 out_index, inout float3 inout_pos
+float3 CalcImposter(out int2 out_index, inout float3 inout_pos
 #if defined(INSTANCING)
 	, in uint instanceID
 #endif
@@ -82,58 +53,42 @@ void CalcImposter(out int2 out_index, inout float3 inout_pos
 	float3 pos = float3(mWorld._m03, mWorld._m13, mWorld._m23);
 #endif
 
-		//インポスター用インデックス計算
-		float3 polyDir = normalize(camWorldPos - pos);
+	//インポスター用インデックス計算
+	float3 polyDir = normalize(camWorldPos - pos);
 
-		//X軸回転
-		float3 axisDir = polyDir; axisDir.x = length(float2(polyDir.x, polyDir.z));
-		float XRot = atan2(axisDir.y, axisDir.x);
-		out_index.y = (int)round(XRot / PI * imposterPartNum.y) - (int)(imposterPartNum.y / 2.0f - 0.5f);
+	//X軸回転
+	float3 axisDir = polyDir; axisDir.x = length(float2(polyDir.x, polyDir.z));
+	float XRot = atan2(axisDir.y, axisDir.x);
+	out_index.y = (int)round(XRot / PI * imposterPartNum.y) - (int)(imposterPartNum.y / 2.0f - 0.5f);
 
-		//Y軸回転		
-		float YRot = atan2(polyDir.x, polyDir.z);
-		out_index.x = (int)round(-YRot / PI2 * imposterPartNum.x) + (int)(imposterPartNum.x / 2.0f - 0.5f);
+	//Y軸回転		
+	float YRot = atan2(polyDir.x, polyDir.z);
+	out_index.x = (int)round(-YRot / PI2 * imposterPartNum.x) + (int)(imposterPartNum.x / 2.0f - 0.5f);
 
-		//カメラ方向にモデルサイズ分座標ずらす
-		//※埋まり防止
-		//TODO ここだけプログラム側でやる
-	//#if !defined(SHADOW)
-	//		polyDir *= scale * texture.GetDirectionOfCameraSize(index_x, index_y);
-	//#endif
+	//回転		
+	float r = -out_index.y * -(PI / (imposterPartNum.y - 1)) + PI * 0.5f;
+	float sinr = sin(r), cosr = cos(r);
+	float3x3 rotX = {1.0f,0.0f,0.0f,
+						0.0f,cosr,sinr,
+						0.0f,-sinr,cosr
+					};
+	r = -out_index.x * -(PI2 / (imposterPartNum.x - 1)) + PI2;
+	sinr = sin(r), cosr = cos(r);
+	float3x3 rotY = {cosr,sinr,0.0f, //※Z軸回転
+						-sinr,cosr,0.0f,
+						0.0f,0.0f,1.0f
+					};
+	//{cosr, 0.0f, -sinr,
+	//	0.0f, 1.0f, 0.0f,
+	//	sinr, 0.0f, cosr
+	//};
+	inout_pos = mul(inout_pos, rotX);
+	inout_pos = mul(inout_pos, rotY);
 
-		//TODO バイアス行列
+	//TODO 法線が回転してない
+	//行列を作ってワールドにかける(移動除く)→移動つける
 
-		//回転		
-		float r = -out_index.y * -(PI / (imposterPartNum.y - 1)) + PI * 0.5f;
-		float sinr = sin(r), cosr = cos(r);
-		float3x3 rotX = {1.0f,0.0f,0.0f,
-						 0.0f,cosr,sinr,
-						 0.0f,-sinr,cosr
-						};
-		r = -out_index.x * -(PI2 / (imposterPartNum.x - 1)) + PI2;
-		sinr = sin(r), cosr = cos(r);
-		float3x3 rotY = {cosr,sinr,0.0f, //※Z軸回転
-						 -sinr,cosr,0.0f,
-						 0.0f,0.0f,1.0f
-						};
-		//{cosr, 0.0f, -sinr,
-		//	0.0f, 1.0f, 0.0f,
-		//	sinr, 0.0f, cosr
-		//};
-		inout_pos = mul(inout_pos, rotX);
-		inout_pos = mul(inout_pos, rotY);
-		
-/*		
-		float4 rotX = rotate_angle_axis(-out_index.y * -(PI / (imposterPartNum.y - 1)) + PI * 0.5f, float3(1.0f, 0.0f, 0.0f));
-		float4 rotY = rotate_angle_axis(-out_index.x * -(PI2 / (imposterPartNum.x - 1)) + PI2, float3(0.0f, 0.0f, 1.0f));
-		rotX = qmul(rotY, rotX);
-		inout_pos = rotate_vector(inout_pos, rotX);
-*/
-		//返す
-		//position_return = pos + polyDir;
-		//rotation_return = rot;
-		//TODO
-		//scale_return = scale * texture.GetModelSize()*2.0f;
+	return polyDir;
 }
 
 //頂点シェーダ(通常)
@@ -142,21 +97,26 @@ PSInput VSMain_Imposter(VSInputNmTxVcTangent In
 	, uint instanceID : SV_InstanceID
 #endif 
 ) {
+	//インポスター情報の計算
 	int2 index;
+	float3 polyDir =
 	CalcImposter(index, In.Position.xyz
 #if defined(INSTANCING)
 		, instanceID
 #endif 
 	);
-
-	PSInput psInput = VSMain(In
+	
+	//通常処理
+	//TODO 引数にワールド行列
+	PSInput psInput = VSModel(In, polyDir * ImposterSizeToCamera[(imposterPartNum.y - 1 + index.y)*imposterPartNum.x + index.x]//カメラ方向にモデルサイズ分座標ずらす//※埋まり防止
 #if defined(INSTANCING)
-							, instanceID
+		, instanceID
 #endif 
-							);
+	);
 
+	//インデックス設定
 	psInput.imposterIndex = index;
-
+	
 	return psInput;
 }
 //頂点シェーダ(深度値)
@@ -165,6 +125,7 @@ ZPSInput VSMain_RenderZ_Imposter(VSInputNmTxVcTangent In
 	, uint instanceID : SV_InstanceID
 #endif 
 ) {
+	//インポスター情報の計算
 	int2 index;
 	CalcImposter(index, In.Position.xyz
 #if defined(INSTANCING)
@@ -172,12 +133,14 @@ ZPSInput VSMain_RenderZ_Imposter(VSInputNmTxVcTangent In
 #endif 
 	);
 
+	//通常処理
 	ZPSInput psInput = VSMain_RenderZ(In
 #if defined(INSTANCING)
 		, instanceID
 #endif 
-		);
+	);
 
+	//インデックス設定
 	psInput.imposterIndex = index;
 
 	return psInput;
@@ -201,13 +164,8 @@ PSOutput_RenderGBuffer PSMain_ImposterRenderGBuffer(PSInput In)
 	//インデックスからuv座標を算出
 	In.TexCoord.x /= imposterPartNum.x;
 	In.TexCoord.y /= imposterPartNum.y;
-#if defined(INSTANCING)
 	In.TexCoord.x += (1.0f / imposterPartNum.x) * In.imposterIndex.x;
 	In.TexCoord.y += (1.0f / imposterPartNum.y) * In.imposterIndex.y;
-#else
-	In.TexCoord.x += (1.0f / imposterPartNum.x) * In.imposterIndex.x;
-	In.TexCoord.y += (1.0f / imposterPartNum.y) * In.imposterIndex.y;
-#endif
 
 	//アルベド
 #if ALBEDO_MAP
@@ -251,13 +209,8 @@ float4 PSMain_ImposterRenderZ(ZPSInput In) : SV_Target0
 	//インデックスからuv座標を算出
 	In.TexCoord.x /= imposterPartNum.x;
 	In.TexCoord.y /= imposterPartNum.y;
-#if defined(INSTANCING)
 	In.TexCoord.x += (1.0f / imposterPartNum.x) * In.imposterIndex.x;
 	In.TexCoord.y += (1.0f / imposterPartNum.y) * In.imposterIndex.y;
-#else
-	In.TexCoord.x += (1.0f / imposterPartNum.x) * In.imposterIndex.x;
-	In.TexCoord.y += (1.0f / imposterPartNum.y) * In.imposterIndex.y;
-#endif
 
 	//アルベド
 	float alpha = albedoTexture.Sample(Sampler, In.TexCoord).a * albedoScale.a;

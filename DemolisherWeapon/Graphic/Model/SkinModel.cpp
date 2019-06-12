@@ -251,8 +251,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 
 	vsCb.camWorldPos = GetMainCamera()->GetPos();
 	
-	vsCb.imposterIndex[0] = m_imposterIndex[0];
-	vsCb.imposterIndex[1] = m_imposterIndex[1];
+	//インポスター分割数
 	vsCb.imposterPartNum[0] = m_imposterPartNum[0];
 	vsCb.imposterPartNum[1] = m_imposterPartNum[1];
 

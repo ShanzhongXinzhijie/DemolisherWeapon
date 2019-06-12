@@ -74,9 +74,8 @@ cbuffer VSPSCb : register(b0){
 
 	//4 bytes auto padding.
 
-	//インポスター用インデックス
-	int2 imposterPartNum;
-	int2 imposterIndex;
+	//インポスター用
+	int2 imposterPartNum;//分割数
 };
 
 //定数バッファ　[MaterialSetting.h:MaterialParam]
@@ -158,31 +157,39 @@ struct ZPSInput {
 /*!--------------------------------------------------------------------------------------
  * @brief	スキンなしモデル用の頂点シェーダー。
 -------------------------------------------------------------------------------------- */
-PSInput VSMain( VSInputNmTxVcTangent In
+PSInput VSModel( VSInputNmTxVcTangent In, float3 worldposOffset
 #if defined(INSTANCING)
-	, uint instanceID : SV_InstanceID 
+	, uint instanceID : SV_InstanceID
 #endif 
 ){
 	PSInput psInput = (PSInput)0;
 
+	//ワールド行列適応
 #if defined(INSTANCING)
 	psInput.instanceID = instanceID;
 	float4 pos = mul(InstancingWorldMatrix[instanceID], In.Position);
 #else
 	float4 pos = mul(mWorld, In.Position);
 #endif
+	pos.xyz += worldposOffset*1.0f;//オフセット適応 //TODO ブラー　スケール　ビルボード
 
 	float3 posW = pos.xyz;
+	psInput.Worldpos = posW;
+
+	//スカイボックス用情報
 #if defined(SKY_CUBE)
 	psInput.cubemapPos = normalize(posW - camWorldPos);
 #endif
-	psInput.Worldpos = posW;
 
+	//ビュープロジェクション行列適応
 	pos = mul(mView, pos); psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
+
+	//設定
 	psInput.Position = pos;
 	psInput.TexCoord = In.TexCoord;
 
+	//法線情報
 #if defined(INSTANCING)
 	psInput.Normal = normalize(mul(InstancingWorldMatrix[instanceID], In.Normal));
 #if NORMAL_MAP
@@ -197,6 +204,7 @@ PSInput VSMain( VSInputNmTxVcTangent In
 #endif
 #endif
 
+	//変換後座標
 	psInput.curPos = pos;
 
 	//ベロシティマップ用情報
@@ -246,6 +254,17 @@ PSInput VSMain( VSInputNmTxVcTangent In
 #endif
 
 	return psInput;
+}
+PSInput VSMain(VSInputNmTxVcTangent In
+#if defined(INSTANCING)
+	, uint instanceID : SV_InstanceID
+#endif 
+) {
+	return VSModel(In, 0
+#if defined(INSTANCING)
+		, instanceID
+#endif 
+	);
 }
 //Z値書き込み用
 ZPSInput VSMain_RenderZ(VSInputNmTxVcTangent In
