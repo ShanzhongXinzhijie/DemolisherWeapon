@@ -2,6 +2,39 @@
 
 namespace DemolisherWeapon {
 
+	class ImposterTexRender;
+
+	/// <summary>
+	/// インポスターのインスタンシング描画における拡大率を扱うクラス
+	/// </summary>
+	class InstancingImposterScale : public GameObj::InstancingModel::IInstancesData {
+	private:
+		void Reset(int instancingMaxNum);
+	public:
+		void PreDrawUpdate()override;
+		void PostLoopPostUpdate()override;
+		void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale)override;
+
+	public:
+		/// <summary>
+		/// コンストラクタ
+		/// </summary>
+		/// <param name="instancingMaxNum">インスタンス最大数</param>
+		/// <param name="tex">インポスターテクスチャ</param>
+		InstancingImposterScale(int instancingMaxNum, ImposterTexRender* tex);
+
+		//インスタンス最大数を設定
+		void SetInstanceMax(int instanceMax)override;
+
+	private:
+		ImposterTexRender* m_texture = nullptr;
+
+		std::unique_ptr<float[]>							m_scales;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_scaleSB;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_scaleSRV;
+		int m_instanceMax = 0;
+	};
+
 	/// <summary>
 	/// インポスターのテクスチャを作るクラス
 	/// </summary>
@@ -156,6 +189,7 @@ namespace DemolisherWeapon {
 		void SetScale(float scale) {
 			m_scale = scale;
 			m_billboard.SetScale(m_scale * m_texture->GetModelSize()*2.0f);
+			m_billboard.GetModel().GetSkinModel().SetImposterScale(m_scale);
 		}
 
 		//座標・拡大の取得

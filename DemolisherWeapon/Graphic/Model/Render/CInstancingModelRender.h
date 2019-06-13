@@ -129,6 +129,10 @@ namespace GameObj {
 			//AddDrawInstanceで実行する処理
 			//主にインスタンスごとのデータを追加する
 			virtual void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale) {}
+
+			//SetInstanceMaxで実行する処理
+			//インスタンス最大数を設定
+			virtual void SetInstanceMax(int instanceMax) {}
 		};
 		/// <summary>
 		/// IInstanceDataをセット

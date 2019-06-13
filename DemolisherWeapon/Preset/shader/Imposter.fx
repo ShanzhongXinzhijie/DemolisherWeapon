@@ -2,11 +2,15 @@
 
 //モデルサイズ(カメラ方向への)
 StructuredBuffer<float> ImposterSizeToCamera : register(t7);
+#if defined(INSTANCING)
+//インスタンシング用インポスター拡大率
+StructuredBuffer<float> InstancingImposterScale : register(t8);
+#endif
 
 static const float PI = 3.14159265359f;
 static const float PI2 = PI * 2.0f;
 
-//インポスターの出力
+//インポスターテクスチャの出力
 struct PSOutput_RenderImposter {
 	float4 albedo		: SV_Target0;		//アルベド
 	float3 normal		: SV_Target1;		//法線
@@ -41,7 +45,7 @@ PSOutput_RenderImposter PSMain_RenderImposter(PSInput In)
 }
 
 //インポスターの計算
-float3 CalcImposter(out int2 out_index, inout float3 inout_pos
+void CalcImposter(out int2 out_index, out float4x4 out_rotMat, out float3 out_offsetPos
 #if defined(INSTANCING)
 	, in uint instanceID
 #endif
@@ -66,30 +70,37 @@ float3 CalcImposter(out int2 out_index, inout float3 inout_pos
 	out_index.x = (int)round(-YRot / PI2 * imposterPartNum.x) + (int)(imposterPartNum.x / 2.0f - 0.5f);
 
 	//回転		
-	float r = -out_index.y * -(PI / (imposterPartNum.y - 1)) + PI * 0.5f;
+	float r = -out_index.y * (PI / (imposterPartNum.y - 1)) - PI * 0.5f;
 	float sinr = sin(r), cosr = cos(r);
-	float3x3 rotX = {1.0f,0.0f,0.0f,
-						0.0f,cosr,sinr,
-						0.0f,-sinr,cosr
+	float4x4 rotX = {1.0f,0.0f,0.0f,0.0f, //※X軸回転
+					0.0f,cosr,sinr,0.0f,
+					0.0f,-sinr,cosr,0.0f,
+					0.0f,0.0f,0.0f,1.0f,
 					};
-	r = -out_index.x * -(PI2 / (imposterPartNum.x - 1)) + PI2;
+	r = out_index.x * (PI2 / (imposterPartNum.x - 1));
 	sinr = sin(r), cosr = cos(r);
-	float3x3 rotY = {cosr,sinr,0.0f, //※Z軸回転
-						-sinr,cosr,0.0f,
-						0.0f,0.0f,1.0f
+	float4x4 rotY = /*{cosr,sinr,0.0f,0.0f, //※Z軸回転
+					-sinr,cosr,0.0f,0.0f,
+					0.0f,0.0f,1.0f,0.0f,
+					0.0f,0.0f,0.0f,1.0f,
+					};*/
+					{cosr, 0.0f, -sinr, 0.0f, //※Y軸回転
+					0.0f, 1.0f, 0.0f, 0.0f,
+					sinr, 0.0f, cosr, 0.0f,
+					0.0f,0.0f,0.0f,1.0f,
 					};
-	//{cosr, 0.0f, -sinr,
-	//	0.0f, 1.0f, 0.0f,
-	//	sinr, 0.0f, cosr
-	//};
-	inout_pos = mul(inout_pos, rotX);
-	inout_pos = mul(inout_pos, rotY);
 
-	//TODO 法線が回転してない
-	//行列を作ってワールドにかける(移動除く)→移動つける
-
-	return polyDir;
+	//回転行列の作成
+	out_rotMat = mul(rotY, rotX);
+	//カメラ方向にモデルサイズ分座標ずらす
+	//※埋まり防止
+#if defined(INSTANCING)	
+	out_offsetPos = polyDir * (InstancingImposterScale[instanceID] * ImposterSizeToCamera[(imposterPartNum.y - 1 + out_index.y)*imposterPartNum.x + out_index.x]);
+#else
+	out_offsetPos = polyDir * (imposterScale * ImposterSizeToCamera[(imposterPartNum.y - 1 + out_index.y)*imposterPartNum.x + out_index.x]);
+#endif
 }
+//TODO ビルボード版
 
 //頂点シェーダ(通常)
 PSInput VSMain_Imposter(VSInputNmTxVcTangent In
@@ -99,16 +110,38 @@ PSInput VSMain_Imposter(VSInputNmTxVcTangent In
 ) {
 	//インポスター情報の計算
 	int2 index;
-	float3 polyDir =
-	CalcImposter(index, In.Position.xyz
+	float4x4 rotMat;
+	float3 offsetPos, offsetPosOld;
+	CalcImposter(index, rotMat, offsetPos
 #if defined(INSTANCING)
 		, instanceID
 #endif 
 	);
+
+	//座標合成
+	offsetPosOld = offsetPos;
+#if defined(INSTANCING)
+	offsetPos += float3(InstancingWorldMatrix[instanceID]._m03, InstancingWorldMatrix[instanceID]._m13, InstancingWorldMatrix[instanceID]._m23);
+	offsetPosOld += float3(InstancingWorldMatrixOld[instanceID]._m03, InstancingWorldMatrixOld[instanceID]._m13, InstancingWorldMatrixOld[instanceID]._m23);
+#else
+	offsetPos += float3(mWorld._m03, mWorld._m13, mWorld._m23);
+	offsetPosOld += float3(mWorld_old._m03, mWorld_old._m13, mWorld_old._m23);
+#endif
+
+	//行列合成
+	float4x4 worldMat, worldMatOld;
+#if defined(INSTANCING)
+	worldMat = mul(rotMat, InstancingWorldMatrix[instanceID]);
+	worldMatOld = mul(rotMat, InstancingWorldMatrixOld[instanceID]);
+#else
+	worldMat = mul(rotMat, mWorld);
+	worldMatOld = mul(rotMat, mWorld_old);	
+#endif
+	worldMat._m03 = offsetPos.x; worldMat._m13 = offsetPos.y; worldMat._m23 = offsetPos.z;
+	worldMatOld._m03 = offsetPosOld.x; worldMatOld._m13 = offsetPosOld.y; worldMatOld._m23 = offsetPosOld.z;
 	
 	//通常処理
-	//TODO 引数にワールド行列
-	PSInput psInput = VSModel(In, polyDir * ImposterSizeToCamera[(imposterPartNum.y - 1 + index.y)*imposterPartNum.x + index.x]//カメラ方向にモデルサイズ分座標ずらす//※埋まり防止
+	PSInput psInput = VSModel(In, worldMat, worldMatOld
 #if defined(INSTANCING)
 		, instanceID
 #endif 
@@ -124,17 +157,34 @@ ZPSInput VSMain_RenderZ_Imposter(VSInputNmTxVcTangent In
 #if defined(INSTANCING)
 	, uint instanceID : SV_InstanceID
 #endif 
-) {
+) {	
 	//インポスター情報の計算
 	int2 index;
-	CalcImposter(index, In.Position.xyz
+	float4x4 worldMat;
+	float3 pos;
+	CalcImposter(index, worldMat, pos
 #if defined(INSTANCING)
 		, instanceID
 #endif 
 	);
 
+	//座標合成
+#if defined(INSTANCING)
+	pos = float3(InstancingWorldMatrix[instanceID]._m03, InstancingWorldMatrix[instanceID]._m13, InstancingWorldMatrix[instanceID]._m23);
+#else
+	pos = float3(mWorld._m03, mWorld._m13, mWorld._m23);
+#endif
+
+	//行列合成
+#if defined(INSTANCING)
+	worldMat = mul(worldMat, InstancingWorldMatrix[instanceID]);
+#else
+	worldMat = mul(worldMat, mWorld);
+#endif
+	worldMat._m03 = pos.x; worldMat._m13 = pos.y; worldMat._m23 = pos.z;
+
 	//通常処理
-	ZPSInput psInput = VSMain_RenderZ(In
+	ZPSInput psInput = VSModel_RenderZ(In, worldMat
 #if defined(INSTANCING)
 		, instanceID
 #endif 
@@ -154,12 +204,12 @@ PSOutput_RenderGBuffer PSMain_ImposterRenderGBuffer(PSInput In)
 	/*
 #if ALBEDO_MAP && NORMAL_MAP
 	Out.albedo = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset);
-#endif
+#endif	
 	if (In.TexCoord.x < 0.01f || In.TexCoord.x > 1.0f - 0.01f || -In.TexCoord.y < 0.01f || -In.TexCoord.y > 1.0f - 0.01f) {
 		Out.albedo = float4(-In.TexCoord.y, 0, 0, 1);
 		return Out;
 	}
-	*/	
+	*/
 	
 	//インデックスからuv座標を算出
 	In.TexCoord.x /= imposterPartNum.x;

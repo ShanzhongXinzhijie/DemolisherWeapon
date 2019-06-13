@@ -2,7 +2,6 @@
 #include "CBillboard.h"
 
 namespace DemolisherWeapon {
-//namespace GameObj {
 	
 	//(インスタンシング)SRT行列を保存する処理
 
@@ -163,5 +162,4 @@ namespace DemolisherWeapon {
 		m_isInit = true;
 	}
 
-//}
 }

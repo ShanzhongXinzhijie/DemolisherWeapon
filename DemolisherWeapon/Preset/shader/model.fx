@@ -54,6 +54,7 @@ sampler Sampler : register(s0);
  * [SkinModel.h:SVSConstantBuffer]
  */
 cbuffer VSPSCb : register(b0){
+	//行列
 	float4x4 mWorld;
 	float4x4 mView;
 	float4x4 mProj;
@@ -76,6 +77,7 @@ cbuffer VSPSCb : register(b0){
 
 	//インポスター用
 	int2 imposterPartNum;//分割数
+	float imposterScale;//スケール
 };
 
 //定数バッファ　[MaterialSetting.h:MaterialParam]
@@ -153,26 +155,20 @@ struct ZPSInput {
 	int2 imposterIndex : IMPOSTER_INDEX;
 };
 
-
-/*!--------------------------------------------------------------------------------------
- * @brief	スキンなしモデル用の頂点シェーダー。
--------------------------------------------------------------------------------------- */
-PSInput VSModel( VSInputNmTxVcTangent In, float3 worldposOffset
+//スキンなしモデルの頂点シェーダ用関数
+PSInput VSModel( VSInputNmTxVcTangent In, float4x4 worldMat, float4x4 worldMatOld
 #if defined(INSTANCING)
 	, uint instanceID : SV_InstanceID
 #endif 
 ){
 	PSInput psInput = (PSInput)0;
 
-	//ワールド行列適応
 #if defined(INSTANCING)
-	psInput.instanceID = instanceID;
-	float4 pos = mul(InstancingWorldMatrix[instanceID], In.Position);
-#else
-	float4 pos = mul(mWorld, In.Position);
+	psInput.instanceID = instanceID;//インスタンスID保存
 #endif
-	pos.xyz += worldposOffset*1.0f;//オフセット適応 //TODO ブラー　スケール　ビルボード
 
+	//ワールド行列適応
+	float4 pos = mul(worldMat, In.Position);
 	float3 posW = pos.xyz;
 	psInput.Worldpos = posW;
 
@@ -190,18 +186,10 @@ PSInput VSModel( VSInputNmTxVcTangent In, float3 worldposOffset
 	psInput.TexCoord = In.TexCoord;
 
 	//法線情報
-#if defined(INSTANCING)
-	psInput.Normal = normalize(mul(InstancingWorldMatrix[instanceID], In.Normal));
+	psInput.Normal = normalize(mul(worldMat, In.Normal));
 #if NORMAL_MAP
-	psInput.Tangent = normalize(mul(InstancingWorldMatrix[instanceID], In.Tangent));
-	psInput.Binormal = cross(psInput.Normal, psInput.Tangent);//normalize(mul(InstancingWorldMatrix[instanceID], In.Binormal));
-#endif
-#else
-	psInput.Normal = normalize(mul(mWorld, In.Normal));
-#if NORMAL_MAP
-	psInput.Tangent = normalize(mul(mWorld, In.Tangent));
-	psInput.Binormal = cross(psInput.Normal, psInput.Tangent);// normalize(mul(mWorld, In.Binormal));
-#endif
+	psInput.Tangent = normalize(mul(worldMat, In.Tangent));
+	psInput.Binormal = cross(psInput.Normal, psInput.Tangent);// normalize(mul(worldMat, In.Binormal));
 #endif
 
 	//変換後座標
@@ -209,78 +197,63 @@ PSInput VSModel( VSInputNmTxVcTangent In, float3 worldposOffset
 
 	//ベロシティマップ用情報
 #if MOTIONBLUR
+	float4 oldpos = mul(worldMatOld, In.Position);
+	oldpos.xyz = lerp(posW, oldpos.xyz, MotionBlurScale);
 
-#if defined(INSTANCING)
-		float4 oldpos = mul(InstancingWorldMatrixOld[instanceID], In.Position);
-#else
-		float4 oldpos = mul(mWorld_old, In.Position);
-#endif
+	float3 trans = float3(worldMat._m03, worldMat._m13, worldMat._m23);
+	float3 transOld = float3(worldMatOld._m03, worldMatOld._m13, worldMatOld._m23);
+	transOld = lerp(trans, transOld, MotionBlurScale);
+	trans -= transOld;
 
-		oldpos.xyz = lerp(posW, oldpos.xyz, MotionBlurScale);
+	if (length(trans) > camMoveVec.w
+		&& distance(camMoveVec.xyz, trans) > camMoveVec.w
+		|| distance(float3(worldMat._m00, worldMat._m10, worldMat._m20), float3(worldMatOld._m00, worldMatOld._m10, worldMatOld._m20)) > 0.0f
+		|| distance(float3(worldMat._m01, worldMat._m11, worldMat._m21), float3(worldMatOld._m01, worldMatOld._m11, worldMatOld._m21)) > 0.0f
+		|| distance(float3(worldMat._m02, worldMat._m12, worldMat._m22), float3(worldMatOld._m02, worldMatOld._m12, worldMatOld._m22)) > 0.0f
+	){
+		psInput.isWorldMove = true;
+	}
 
-#if defined(INSTANCING)
-		float3 trans = float3(InstancingWorldMatrix[instanceID]._m03, InstancingWorldMatrix[instanceID]._m13, InstancingWorldMatrix[instanceID]._m23);
-		float3 transOld = float3(InstancingWorldMatrixOld[instanceID]._m03, InstancingWorldMatrixOld[instanceID]._m13, InstancingWorldMatrixOld[instanceID]._m23);
-#else
-		float3 trans = float3(mWorld._m03, mWorld._m13, mWorld._m23);
-		float3 transOld = float3(mWorld_old._m03, mWorld_old._m13, mWorld_old._m23);
-#endif
+	float4 oldpos2 = mul(mView_old, oldpos);
+	oldpos = mul(mView, oldpos);
+	oldpos.xyz = lerp(oldpos.xyz, oldpos2.xyz, MotionBlurScale);
 
-		transOld = lerp(trans, transOld, MotionBlurScale);
-		trans -= transOld;
-
-		if (length(trans) > camMoveVec.w
-			&& distance(camMoveVec.xyz, trans) > camMoveVec.w
-#if defined(INSTANCING)
-			|| distance(float3(InstancingWorldMatrix[instanceID]._m00, InstancingWorldMatrix[instanceID]._m10, InstancingWorldMatrix[instanceID]._m20), float3(InstancingWorldMatrixOld[instanceID]._m00, InstancingWorldMatrixOld[instanceID]._m10, InstancingWorldMatrixOld[instanceID]._m20)) > 0.0f
-			|| distance(float3(InstancingWorldMatrix[instanceID]._m01, InstancingWorldMatrix[instanceID]._m11, InstancingWorldMatrix[instanceID]._m21), float3(InstancingWorldMatrixOld[instanceID]._m01, InstancingWorldMatrixOld[instanceID]._m11, InstancingWorldMatrixOld[instanceID]._m21)) > 0.0f
-			|| distance(float3(InstancingWorldMatrix[instanceID]._m02, InstancingWorldMatrix[instanceID]._m12, InstancingWorldMatrix[instanceID]._m22), float3(InstancingWorldMatrixOld[instanceID]._m02, InstancingWorldMatrixOld[instanceID]._m12, InstancingWorldMatrixOld[instanceID]._m22)) > 0.0f
-#else
-			|| distance(float3(mWorld._m00, mWorld._m10, mWorld._m20), float3(mWorld_old._m00, mWorld_old._m10, mWorld_old._m20)) > 0.0f
-			|| distance(float3(mWorld._m01, mWorld._m11, mWorld._m21), float3(mWorld_old._m01, mWorld_old._m11, mWorld_old._m21)) > 0.0f
-			|| distance(float3(mWorld._m02, mWorld._m12, mWorld._m22), float3(mWorld_old._m02, mWorld_old._m12, mWorld_old._m22)) > 0.0f
-#endif
-		){
-			psInput.isWorldMove = true;
-		}
-
-		float4 oldpos2 = mul(mView_old, oldpos);
-		oldpos = mul(mView, oldpos);
-		oldpos.xyz = lerp(oldpos.xyz, oldpos2.xyz, MotionBlurScale);
-
-		oldpos = mul(mProj_old, oldpos);
+	oldpos = mul(mProj_old, oldpos);
 		
-		psInput.lastPos = oldpos;
+	psInput.lastPos = oldpos;
 #endif
 
 	return psInput;
 }
+
+/*!--------------------------------------------------------------------------------------
+ * @brief	スキンなしモデル用の頂点シェーダー。
+-------------------------------------------------------------------------------------- */
 PSInput VSMain(VSInputNmTxVcTangent In
 #if defined(INSTANCING)
 	, uint instanceID : SV_InstanceID
 #endif 
 ) {
-	return VSModel(In, 0
 #if defined(INSTANCING)
-		, instanceID
+	return VSModel(In, InstancingWorldMatrix[instanceID], InstancingWorldMatrixOld[instanceID], instanceID);
+#else
+	return VSModel(In, mWorld, mWorld_old);
 #endif 
-	);
 }
-//Z値書き込み用
-ZPSInput VSMain_RenderZ(VSInputNmTxVcTangent In
+
+//Z値書き込み用スキンなしモデル頂点シェーダ用関数
+ZPSInput VSModel_RenderZ(VSInputNmTxVcTangent In, float4x4 worldMat
 #if defined(INSTANCING)
 	, uint instanceID : SV_InstanceID
 #endif 
-){
+) {
 	ZPSInput psInput = (ZPSInput)0;
 
 #if defined(INSTANCING)
 	psInput.instanceID = instanceID;
-	float4 pos = mul(InstancingWorldMatrix[instanceID], In.Position);
-#else
-	float4 pos = mul(mWorld, In.Position);
 #endif
 
+	float4 pos = mul(worldMat, In.Position);
 	pos = mul(mView, pos);
 	pos = mul(mProj, pos);
 	psInput.Position = pos;
@@ -288,6 +261,19 @@ ZPSInput VSMain_RenderZ(VSInputNmTxVcTangent In
 	psInput.TexCoord = In.TexCoord;
 
 	return psInput;
+}
+
+//Z値書き込み用スキンなしモデル頂点シェーダー
+ZPSInput VSMain_RenderZ(VSInputNmTxVcTangent In
+#if defined(INSTANCING)
+	, uint instanceID : SV_InstanceID
+#endif 
+) {
+#if defined(INSTANCING)
+	return VSModel_RenderZ(In, InstancingWorldMatrix[instanceID], instanceID);
+#else
+	return VSModel_RenderZ(In, mWorld);
+#endif 
 }
 
 /*!--------------------------------------------------------------------------------------

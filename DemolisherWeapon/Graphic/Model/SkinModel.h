@@ -219,6 +219,10 @@ public:
 		m_imposterPartNum[0] = x;
 		m_imposterPartNum[1] = y;
 	}
+	//インポスターの拡大率を設定
+	void SetImposterScale(float scale) {
+		m_imposterScale = scale;
+	}
 
 	//インスタンス数を設定
 	void SetInstanceNum(int num) {
@@ -289,6 +293,7 @@ private:
 
 		//インポスター用
 		int imposterPartNum[2];//分割数
+		float imposterScale;//スケール
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
@@ -318,6 +323,7 @@ private:
 
 	//インポスター用
 	int m_imposterPartNum[2] = {};//分割数
+	float m_imposterScale = 1.0f;
 
 	int m_instanceNum = 1;//インスタンス数
 

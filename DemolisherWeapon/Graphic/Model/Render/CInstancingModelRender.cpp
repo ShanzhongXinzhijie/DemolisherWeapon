@@ -106,6 +106,8 @@ namespace GameObj {
 	}
 
 	void InstancingModel::SetInstanceMax(int instanceMax) {
+		//IInstanceData‚Ìˆ—ŽÀs
+		if (m_instanceData) { m_instanceData->SetInstanceMax(instanceMax); }
 
 		//Ý’èÅ‘å”‚ªŒ»ÝˆÈ‰º‚È‚ç”‚¾‚¯•ÏX
 		if (m_instanceMax >= instanceMax) {
