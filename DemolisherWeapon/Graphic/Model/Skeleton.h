@@ -255,12 +255,17 @@ public:
 	void SendBoneMatrixArrayToGPU();
 
 	/// <summary>
-	/// IK実行クラスの取得
+	/// IK設定の作成
 	/// </summary>
-	/// <returns>IK実行クラスのインスタンス</returns>
-	SkeletonIK& GetSkeletonIK() {
-		return m_ik;
+	/// <returns>IKの設定へのポインタ</returns>
+	SkeletonIK::IKSetting* CreateIK() {
+		return m_ik.CreateIK();
 	}
+	/// <summary>
+	/// IK全体の実行するかどうかを設定
+	/// </summary>
+	/// <param name="enable">実行するか</param>
+	void SetEnableIK(bool enable) { m_ik.SetEnable(enable); }
 
 public:
 	/*!

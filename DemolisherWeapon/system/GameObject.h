@@ -191,7 +191,6 @@ public:
 	IGameObject& operator=(IGameObject&&)noexcept = delete;// {};
 
 private:
-
 	//開始
 	void SetIsStart() {
 		m_isStart = true;
@@ -219,26 +218,23 @@ private:
 	void MarkNewGOMark() {
 		m_newgoMark = true;
 	}
-
 	//DeleteGOされた
 	void お前はもう死んでいる() {
 		m_isDead = true;
 	}
 
 public:
-
 	//NewGOで作ったか?
 	bool GetNewGOMark() const {
 		return m_newgoMark;
 	}
-
 	//DeleteGOされてる?
 	bool お前はもう死んでいる？() const{
 		return m_isDead;
 	}
 
 	//有効化
-	void SetEnable(bool e) {
+	void SetEnable(bool e){
 		m_enable = e;
 	}
 	//有効なのか？
@@ -249,7 +245,6 @@ public:
 
 	//開始しているのか？
 	bool GetIsStart(){
-
 		if (m_quickStart) {
 			if (GetEnable() && !m_isStart) {
 				if (Start()) {
@@ -257,27 +252,8 @@ public:
 				}
 			}
 		}
-
 		return m_isStart;
 	}
-
-	//死ぬ
-	/*void LetsGoHell() {
-		Rengoku();
-		m_goToHell = true; m_enable = false;
-	}
-	//お前死ぬのか？
-	bool GetGoToHell() {
-		return m_goToHell;
-	}
-	//地獄に到着
-	void ArriveHell() {
-		m_nowOnHell = true;
-	}
-	//地獄にいるか?
-	bool GetNowOnHell() {
-		return m_nowOnHell;
-	}*/
 	
 	//登録されているか?
 	bool IsRegistered() const{
@@ -335,7 +311,6 @@ public:
 	virtual void PostUpdate() {};
 	virtual void PostLoopUpdate() {};
 	virtual void PostLoopPostUpdate() {};
-	//virtual void Rengoku() {};
 
 	virtual void PostRender() {};
 
@@ -344,9 +319,6 @@ private:
 	bool m_enable = true;
 	bool m_isStart = false;
 	bool m_quickStart = false;
-
-	//bool m_goToHell = false;//地獄に向かっているか?
-	//bool m_nowOnHell = false;//地獄にいるか?
 
 	GORegister* m_register = nullptr;//マネージャーに登録されているか(ポインタ)
 	
