@@ -1,3 +1,6 @@
+#ifndef DW_IMPOSTER_FX
+#define DW_IMPOSTER_FX
+
 #include"model.fx"
 
 //モデルサイズ(カメラ方向への)
@@ -100,7 +103,6 @@ void CalcImposter(out int2 out_index, out float4x4 out_rotMat, out float3 out_of
 	out_offsetPos = polyDir * (imposterScale * ImposterSizeToCamera[(imposterPartNum.y - 1 + out_index.y)*imposterPartNum.x + out_index.x]);
 #endif
 }
-//TODO ビルボード版
 
 //頂点シェーダ(通常)
 PSInput VSMain_Imposter(VSInputNmTxVcTangent In
@@ -168,20 +170,19 @@ ZPSInput VSMain_RenderZ_Imposter(VSInputNmTxVcTangent In
 #endif 
 	);
 
-	//座標合成
-#if defined(INSTANCING)
-	pos = float3(InstancingWorldMatrix[instanceID]._m03, InstancingWorldMatrix[instanceID]._m13, InstancingWorldMatrix[instanceID]._m23);
-#else
-	pos = float3(mWorld._m03, mWorld._m13, mWorld._m23);
-#endif
-
 	//行列合成
 #if defined(INSTANCING)
 	worldMat = mul(worldMat, InstancingWorldMatrix[instanceID]);
 #else
 	worldMat = mul(worldMat, mWorld);
 #endif
-	worldMat._m03 = pos.x; worldMat._m13 = pos.y; worldMat._m23 = pos.z;
+
+	//座標合成
+#if defined(INSTANCING)
+	worldMat._m03 = InstancingWorldMatrix[instanceID]._m03; worldMat._m13 = InstancingWorldMatrix[instanceID]._m13; worldMat._m23 = InstancingWorldMatrix[instanceID]._m23;
+#else
+	worldMat._m03 = mWorld._m03; worldMat._m13 = mWorld._m13; worldMat._m23 = mWorld._m23;
+#endif
 
 	//通常処理
 	ZPSInput psInput = VSModel_RenderZ(In, worldMat
@@ -275,3 +276,5 @@ float4 PSMain_ImposterRenderZ(ZPSInput In) : SV_Target0
 	return In.posInProj.z / In.posInProj.w + depthBias.x;
 }
 #endif
+
+#endif //DW_IMPOSTER_FX

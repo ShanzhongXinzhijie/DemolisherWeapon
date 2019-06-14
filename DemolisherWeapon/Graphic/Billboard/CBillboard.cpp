@@ -1,79 +1,7 @@
 #include "DWstdafx.h"
 #include "CBillboard.h"
 
-namespace DemolisherWeapon {
-	
-	//(インスタンシング)SRT行列を保存する処理
-
-	void CBillboard::InstancingSRTRecorder::Reset(int instancingMaxNum) {
-		m_instanceMax = instancingMaxNum;
-		m_SRTMatrix = std::make_unique<CMatrix[]>(m_instanceMax);
-		m_maxScale = std::make_unique<float[]>(m_instanceMax);
-	}
-	CBillboard::InstancingSRTRecorder::InstancingSRTRecorder(int instancingMaxNum) {
-		Reset(instancingMaxNum);
-	}
-	void CBillboard::InstancingSRTRecorder::AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale) {
-		m_SRTMatrix[instanceNum] = SRTMatrix;
-		m_maxScale[instanceNum] = max(scale.x,max(scale.y, scale.z));
-	}
-	void CBillboard::InstancingSRTRecorder::SetInstanceMax(int instanceMax) {
-		if (instanceMax > m_instanceMax) {
-			Reset(instanceMax);
-		}
-	}
-
-	//シャドウマップ描画時の式
-
-	CBillboard::ShodowWorldMatrixCalcer::ShodowWorldMatrixCalcer(CBillboard* model) : m_ptrBillboard(model) {
-		m_ptrModel = &m_ptrBillboard->GetModel().GetSkinModel();
-	}
-	void CBillboard::ShodowWorldMatrixCalcer::PreDraw() {
-		//現在のワールド行列の保存
-		m_worldMatrix = m_ptrModel->GetWorldMatrix();
-	}
-	void CBillboard::ShodowWorldMatrixCalcer::PreModelDraw() {
-		//新たなワールド行列に更新
-		//ポジションをずらす...カメラの前方向に
-		m_ptrModel->UpdateBillBoardMatrix(GetMainCamera()->GetFront()*m_ptrBillboard->GetMaxScale());
-	}
-	void CBillboard::ShodowWorldMatrixCalcer::PostDraw() {
-		//ワールド行列を戻す
-		m_ptrModel->SetWorldMatrix(m_worldMatrix);
-	}
-
-	//(インスタンシング)シャドウマップ描画時の式
-
-	CBillboard::ShodowWorldMatrixCalcerInstancing::ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model, InstancingSRTRecorder* insSRT)
-	: m_ptrModel(model), m_ptrInsSRT(insSRT){
-		m_instancesNum = m_ptrModel->GetInstanceMax();
-		m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
-	}
-	void CBillboard::ShodowWorldMatrixCalcerInstancing::PreDraw() {
-		//最大インスタンス数の増加に対応
-		if (m_instancesNum < m_ptrModel->GetInstanceMax()) {
-			m_instancesNum = m_ptrModel->GetInstanceMax();
-			m_worldMatrix.reset();
-			m_worldMatrix = std::make_unique<CMatrix[]>(m_instancesNum);
-		}
-		//現在のワールド行列の保存
-		const auto& mats = m_ptrModel->GetWorldMatrix();
-		int max = m_ptrModel->GetDrawInstanceNum();
-		for (int i = 0; i < max; i++) {
-			m_worldMatrix[i] = mats[i];
-		}
-	}
-	void CBillboard::ShodowWorldMatrixCalcerInstancing::PreModelDraw() {
-		//新たなワールド行列に更新
-		//ポジションをずらす...カメラの前方向に
-		m_ptrModel->UpdateBillBoardMatrix(m_ptrInsSRT->GetSRTMatrix().get(), m_ptrInsSRT->GetMaxScale().get());
-	}
-	void CBillboard::ShodowWorldMatrixCalcerInstancing::PostDraw() {
-		//ワールド行列を戻す
-		m_ptrModel->SetUpdateDrawWorldMatrix(m_worldMatrix.get());
-	}
-	
-	//ビルボード
+namespace DemolisherWeapon {	
 
 	void CBillboard::Init(std::experimental::filesystem::path fileName, int instancingNum) {
 		//テクスチャ読み込み
@@ -102,7 +30,7 @@ namespace DemolisherWeapon {
 			tex->Release();
 		}
 	}
-	void CBillboard::Init(ID3D11ShaderResourceView* srv, int instancingNum, const wchar_t* identifiers, bool isSetIInstancesDataAndShadowPrePost) {
+	void CBillboard::Init(ID3D11ShaderResourceView* srv, int instancingNum, const wchar_t* identifiers) {
 		//インスタンシング描画か?
 		m_isIns = instancingNum > 1 && identifiers ? true : false;
 
@@ -115,9 +43,21 @@ namespace DemolisherWeapon {
 			m_model = std::make_unique<GameObj::CSkinModelRender>();
 			m_model->Init(L"Preset/modelData/billboard.cmo");
 		}
-		//m_model.SetIsDraw(false);
 
-		//テクスチャ適応
+		//シェーダ読み込み
+		if (m_isIns) {
+			//インスタンシング用シェーダ
+			D3D_SHADER_MACRO macrosVS[] = { "INSTANCING", "1", "ALL_VS", "1", NULL, NULL };
+			m_vsShader.Load("Preset/shader/billboard.fx", "VSMain_Billboard", Shader::EnType::VS, "INSTANCING", macrosVS);
+			m_vsZShader.Load("Preset/shader/billboard.fx", "VSMain_RenderZ_Billboard", Shader::EnType::VS, "INSTANCING", macrosVS);
+		}
+		else {
+			D3D_SHADER_MACRO macrosVS[] = { "ALL_VS", "1", NULL, NULL };
+			m_vsShader.Load("Preset/shader/billboard.fx", "VSMain_Billboard", Shader::EnType::VS, "NORMAL", macrosVS);
+			m_vsZShader.Load("Preset/shader/billboard.fx", "VSMain_RenderZ_Billboard", Shader::EnType::VS, "NORMAL", macrosVS);
+		}
+
+		//いろいろ設定
 		GameObj::CSkinModelRender* modelPtr = m_model.get();
 		if (m_isIns) {
 			modelPtr = &m_insModel->GetInstancingModel()->GetModelRender();
@@ -126,37 +66,13 @@ namespace DemolisherWeapon {
 			[&](MaterialSetting* mat) {
 				mat->SetAlbedoTexture(srv);
 				mat->SetIsUseTexZShader(true);//Z値出力シェーダでテクスチャを使用
+				mat->SetVS(&m_vsShader);
+				mat->SetVSZ(&m_vsZShader);
 			}
 		);
 
-		//ビルボードであると設定
-		modelPtr->GetSkinModel().SetIsBillboard(true);
 		//シャドウマップの描画時に面を反転させない
 		modelPtr->SetIsShadowDrawReverse(false);
-
-		if (isSetIInstancesDataAndShadowPrePost) {
-			//インスタンシング用のクラス設定
-			InstancingSRTRecorder* insSRT = nullptr;
-			if (m_isIns) {
-				if (!m_insModel->GetInstancingModel()->GetIInstanceData()) {
-					//新規作成
-					m_insModel->GetInstancingModel()->SetIInstanceData(std::make_unique<InstancingSRTRecorder>(m_insModel->GetInstancingModel()->GetInstanceMax()));
-				}
-				//既存のもの使う
-				insSRT = dynamic_cast<InstancingSRTRecorder*>(m_insModel->GetInstancingModel()->GetIInstanceData());
-				insSRT->SetInstanceMax(m_insModel->GetInstancingModel()->GetInstanceMax());
-			}
-			//シャドウマップ描画時に実行する処理を設定
-			if (!modelPtr->GetShadowMapPrePost()) {
-				//ビルボードのものを設定
-				if (m_isIns) {
-					modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcerInstancing>(m_insModel->GetInstancingModel(), insSRT));
-				}
-				else {
-					modelPtr->SetShadowMapPrePost(std::make_unique<ShodowWorldMatrixCalcer>(this));
-				}
-			}
-		}
 
 		//初期化完了
 		m_isInit = true;

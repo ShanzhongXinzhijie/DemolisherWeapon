@@ -1,6 +1,8 @@
 /*!
  * @brief	モデルシェーダー。
  */
+#ifndef DW_MODEL_FX
+#define DW_MODEL_FX
 
 #include"MotionBlurHeader.h"
 
@@ -583,3 +585,5 @@ float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 	return In.posInProj.z / In.posInProj.w + depthBias.x ;// +1.0f*max(abs(ddx(In.posInProj.z / In.posInProj.w)), abs(ddy(In.posInProj.z / In.posInProj.w)));
 }
 #endif
+
+#endif //DW_MODEL_FX

@@ -46,10 +46,6 @@ public:
 	//(拡大×回転×平行移動)行列を計算する
 	void CalcSRTMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix)const;
 
-	//ワールド行列のビルボード部分のみ更新
-	void UpdateBillBoardMatrix(const CVector3& posOffset);
-	void UpdateBillBoardMatrix(const CVector3& posOffset, const CMatrix& SRTMatrix, CMatrix& returnMat)const;
-
 	//旧行列の記録
 	void UpdateOldMatrix() {
 		//前回のワールド行列を記録
@@ -188,29 +184,6 @@ public:
 	}
 
 	/// <summary>
-	/// ビルボードであるか設定
-	/// </summary>
-	/// <param name="enable">ビルボードか？</param>
-	void SetIsBillboard(bool enable) {
-		m_isBillboard = enable;
-		m_isImposter = false;
-	}
-	bool GetIsBillboard()const {
-		return m_isBillboard;
-	}
-	/// <summary>
-	/// インポスターであるか設定
-	/// </summary>
-	/// <param name="enable">インポスターか？</param>
-	void SetIsImposter(bool enable) {
-		m_isImposter = enable;
-		m_isBillboard = false;
-	}
-	bool GetIsImposter()const {
-		return m_isImposter;
-	}
-
-	/// <summary>
 	/// インポスターの枚数を設定
 	/// </summary>
 	/// <param name="x">横の枚数</param>
@@ -248,11 +221,6 @@ public:
 	}
 
 private:
-	/// <summary>
-	/// ビルボード行列の計算
-	/// </summary>
-	/// <param name="returnMat">戻り値</param>
-	void CalcBillBoardMatrix(const CVector3& position, CMatrix& returnMat)const;
 	/*!
 	*@brief	サンプラステートの初期化。
 	*/
@@ -316,11 +284,8 @@ private:
 
 	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;//ラスタライザステート
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
-	float m_depthBias = 0.0f;//深度値バイアス
+	float m_depthBias = 0.0f;//深度値バイアス	
 	
-	bool m_isBillboard = false;//ビルボードか？
-	bool m_isImposter = false;//インポスターか？
-
 	//インポスター用
 	int m_imposterPartNum[2] = {};//分割数
 	float m_imposterScale = 1.0f;

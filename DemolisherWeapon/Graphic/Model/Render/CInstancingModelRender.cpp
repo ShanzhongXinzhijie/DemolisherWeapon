@@ -169,17 +169,6 @@ namespace GameObj {
 		
 		m_instanceNum = 0;
 	}
-
-	void InstancingModel::UpdateBillBoardMatrix(const CMatrix* SRTMat, const float* posOffset_toCamFront) {
-		//行列更新
-		for (int i = 0; i < m_instanceDrawNum; i++) {
-			m_model.GetSkinModel().UpdateBillBoardMatrix(GetMainCamera()->GetFront() * posOffset_toCamFront[i], SRTMat[i], m_instancingWorldMatrix[i]);
-		}
-		//StructuredBufferを更新。
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-			m_worldMatrixSB, 0, NULL, m_instancingWorldMatrix.get(), 0, 0
-		);
-	}
 	
 	InstancingModelManager CInstancingModelRender::m_s_instancingModelManager;
 }

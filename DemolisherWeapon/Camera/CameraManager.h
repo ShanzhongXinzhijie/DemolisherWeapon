@@ -131,25 +131,23 @@ public:
 	/// <summary>
 	/// インポスタークォータニオンを取得
 	/// </summary>
-	/// <returns></returns>
+	/// <param name="pos">カメラ位置</param>
 	CQuaternion GetImposterQuaternion(const CVector3& pos)const;
 
 	/// <summary>
 	/// インポスター行列を取得
 	/// </summary>
-	/// <returns></returns>
+	/// <param name="pos">カメラ位置</param>
 	CMatrix GetImposterMatrix(const CVector3& pos)const;
 
 	/// <summary>
 	/// ビルボードクォータニオンを取得
 	/// </summary>
-	/// <returns></returns>
 	CQuaternion GetBillboardQuaternion();
 
 	/// <summary>
 	/// ビルボード行列を取得
 	/// </summary>
-	/// <returns></returns>
 	CMatrix GetBillboardMatrix();
 
 protected:

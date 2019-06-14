@@ -202,4 +202,7 @@
     <CustomBuild Include="Preset\modelData\billboard.cmo" />
     <CustomBuild Include="Preset\shader\Imposter.fx" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Preset\shader\billboard.fx" />
+  </ItemGroup>
 </Project>

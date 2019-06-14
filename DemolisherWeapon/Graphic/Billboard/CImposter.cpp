@@ -348,7 +348,7 @@ namespace DemolisherWeapon {
 		m_texture = ImposterTexBank::GetInstance().Load(filepath, resolution, partNum);
 
 		//ビルボード
-		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo), instancingNum, filepath, false);
+		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo), instancingNum, filepath);
 
 		//シェーダ読み込み
 		if (m_billboard.GetIsInstancing()) {
@@ -389,11 +389,6 @@ namespace DemolisherWeapon {
 			}
 		);
 
-		//ビルボード設定解除
-		//(こちら側で回転させる)
-		m_billboard.GetModel().GetSkinModel().SetIsBillboard(false);
-		//アップデートの無効化(こちら側でやる)
-		//m_billboard.GetModel().SetIsEnableUpdate(false);
 		//分割数設定
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
 		
@@ -418,7 +413,7 @@ namespace DemolisherWeapon {
 
 		m_isInit = true;
 	}
-	//TODO Y軸オフセット(インポスター)
+	//TODO Y軸オフセット(インポスター) 
 
 	/*
 	void CImposter::CalcWorldMatrixAndIndex(bool isShadowDrawMode, const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x, int& index_y) {

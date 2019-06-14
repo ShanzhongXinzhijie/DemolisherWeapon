@@ -145,27 +145,8 @@ void SkinModel::CalcWorldMatrix(const CVector3& position, const CQuaternion& rot
 	CalcSRTMatrix(position, rotation, scale, returnSRTMatrix);
 	returnWorldMatrix = returnSRTMatrix;
 
-	//ビルボード適応
-	if (m_isImposter || m_isBillboard) {
-		CMatrix mat;
-		CalcBillBoardMatrix(position, mat);
-		returnWorldMatrix.Mul(mat, returnWorldMatrix);
-	}
-
 	//バイアス適応
 	returnWorldMatrix.Mul(m_biasMatrix, returnWorldMatrix);
-}
-
-void SkinModel::CalcBillBoardMatrix(const CVector3& position, CMatrix& returnMat)const {
-	if (m_isImposter) {
-		//インポスター用の回転
-		returnMat.MakeRotationFromQuaternion(GetMainCamera()->GetImposterQuaternion(position));
-	}
-	else
-	if (m_isBillboard) {
-		//ビルボード用の回転
-		returnMat.MakeRotationFromQuaternion(GetMainCamera()->GetBillboardQuaternion());
-	}
 }
 
 void SkinModel::CalcSRTMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix)const {
@@ -176,43 +157,6 @@ void SkinModel::CalcSRTMatrix(const CVector3& position, const CQuaternion& rotat
 	returnWorldMatrix.Mul(returnWorldMatrix, mat);	//拡大×回転
 	mat.MakeTranslation(position);					//平行移動
 	returnWorldMatrix.Mul(returnWorldMatrix, mat);	//(拡大×回転)×平行移動
-}
-
-void SkinModel::UpdateBillBoardMatrix(const CVector3& posOffset) {
-	if (m_isCalcWorldMatrix) {		
-		//(拡大×回転×平行移動)行列を適応
-		m_worldMatrix = m_SRTMatrix;
-
-		//オフセット適応
-		m_worldMatrix.m[3][0] += posOffset.x, m_worldMatrix.m[3][1] += posOffset.y, m_worldMatrix.m[3][2] += posOffset.z;
-
-		//ビルボード適応
-		if (m_isImposter || m_isBillboard) {
-			CMatrix mat;
-			CalcBillBoardMatrix({ m_worldMatrix.m[3][0],m_worldMatrix.m[3][1],m_worldMatrix.m[3][2] }, mat);
-			m_worldMatrix.Mul(mat, m_worldMatrix);
-		}
-
-		//バイアス適応
-		m_worldMatrix.Mul(m_biasMatrix, m_worldMatrix);
-
-		//スケルトンの更新。
-		m_skeleton.Update(m_worldMatrix);
-	}
-}
-void SkinModel::UpdateBillBoardMatrix(const CVector3& posOffset, const CMatrix& SRTMatrix, CMatrix& returnMat) const{
-	//(拡大×回転×平行移動)行列を適応
-	returnMat = SRTMatrix;
-	//オフセット適応
-	returnMat.m[3][0] += posOffset.x, returnMat.m[3][1] += posOffset.y, returnMat.m[3][2] += posOffset.z;
-	//ビルボード適応
-	if (m_isImposter || m_isBillboard) {
-		CMatrix mat;
-		CalcBillBoardMatrix({ returnMat.m[3][0],returnMat.m[3][1],returnMat.m[3][2] }, mat);
-		returnMat.Mul(mat, returnMat);
-	}
-	//バイアス適応
-	returnMat.Mul(m_biasMatrix, returnMat);
 }
 
 static const float REFERENCE_FRUSTUM_SIZE = (1.0f / tan(3.14f*0.5f / 2.0f));

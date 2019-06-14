@@ -87,13 +87,6 @@ namespace GameObj {
 		}
 
 		/// <summary>
-		/// ビルボード部分のみワールド行列更新
-		/// </summary>
-		/// <param name="SRTMat">SRT行列の配列(描画するインスタンス分)</param>
-		/// <param name="posOffset_toCamFront">カメラ前方向への座標オフセットの配列(描画するインスタンス分)</param>
-		void UpdateBillBoardMatrix(const CMatrix* SRTMat, const float* posOffset_toCamFront);
-
-		/// <summary>
 		/// ワールド行列の取得
 		/// </summary>
 		const auto& GetWorldMatrix()const {

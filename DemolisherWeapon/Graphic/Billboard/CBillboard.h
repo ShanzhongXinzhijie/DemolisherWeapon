@@ -1,60 +1,8 @@
 #pragma once
 
 namespace DemolisherWeapon {
-//namespace GameObj{
-	class CBillboard //: public IGameObject
+	class CBillboard 
 	{
-	public:
-		//インスタンシングにおける各インスタンスのSRT行列を保存するためのクラス
-		class InstancingSRTRecorder : public GameObj::InstancingModel::IInstancesData {
-		private:
-			void Reset(int instancingMaxNum);
-		public:
-			InstancingSRTRecorder(int instancingMaxNum);
-			void PreDrawUpdate()override {}
-			void PostLoopPostUpdate()override {}
-			void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale)override;
-		public:
-			//インスタンス最大数を設定
-			void SetInstanceMax(int instanceMax);
-			//SRT行列の取得
-			const std::unique_ptr<CMatrix[]>& GetSRTMatrix()const { return m_SRTMatrix; }
-			//スケールの最大値を取得
-			const std::unique_ptr<float[]>& GetMaxScale()const { return m_maxScale;	}
-		private:
-			int m_instanceMax = 0;
-			std::unique_ptr<CMatrix[]>	m_SRTMatrix;
-			std::unique_ptr<float[]> m_maxScale;
-		};
-
-		/// <summary>
-		/// シャドウマップ描画時に実行する処理
-		/// </summary>
-		class ShodowWorldMatrixCalcer : public ShadowMapRender::IPrePost {
-		public:
-			ShodowWorldMatrixCalcer(CBillboard* model);
-			void PreDraw()override;
-			void PreModelDraw()override;
-			void PostDraw()override;
-		private:
-			CMatrix	m_worldMatrix;
-			SkinModel* m_ptrModel = nullptr;
-			CBillboard* m_ptrBillboard = nullptr;
-		};
-		//インスタンシング用
-		class ShodowWorldMatrixCalcerInstancing : public ShadowMapRender::IPrePost {
-		public:
-			ShodowWorldMatrixCalcerInstancing(GameObj::InstancingModel* model, InstancingSRTRecorder* insSRT);
-			void PreDraw()override;
-			void PreModelDraw()override;
-			void PostDraw()override;
-		private:
-			int m_instancesNum = 0;
-			std::unique_ptr<CMatrix[]>	m_worldMatrix;
-			GameObj::InstancingModel* m_ptrModel = nullptr;
-			InstancingSRTRecorder* m_ptrInsSRT = nullptr;
-		};
-
 	public:
 		/// <summary>
 		/// 初期化
@@ -63,7 +11,7 @@ namespace DemolisherWeapon {
 		/// <param name="instancingNum">インスタンシング描画数</param>
 		void Init(std::experimental::filesystem::path fileName, int instancingNum = 1);
 		//SRVから初期化
-		void Init(ID3D11ShaderResourceView* srv, int instancingNum = 1, const wchar_t* identifiers = nullptr, bool isSetIInstancesDataAndShadowPrePost = true);
+		void Init(ID3D11ShaderResourceView* srv, int instancingNum = 1, const wchar_t* identifiers = nullptr);
 
 		//座標・回転・拡大の設定
 		void SetPos(const CVector3& pos) {
@@ -172,6 +120,7 @@ namespace DemolisherWeapon {
 		bool m_isIns = false;
 		std::unique_ptr<GameObj::CSkinModelRender> m_model;
 		std::unique_ptr<GameObj::CInstancingModelRender> m_insModel;
+
+		Shader m_vsShader, m_vsZShader;
 	};
-//}
 }
