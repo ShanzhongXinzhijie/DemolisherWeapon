@@ -23,7 +23,7 @@ namespace DemolisherWeapon {
 			if (IK.GetIsFootIK()) {
 				if (!CalcFootIKTarget(IK)) {
 					//接触してなかったら実行しない
-					return;
+					continue;
 				}
 			}
 
@@ -36,7 +36,7 @@ namespace DemolisherWeapon {
 		//反復
 		for (int i = 0; i < ik.iteration; i++) {
 			//先端のボーンから実行
-			for (Bone* joint = ik.tipBone->GetParentBone(); joint != ik.rootBone && joint != nullptr; joint = joint->GetParentBone()) {
+			for (Bone* joint = ik.tipBone->GetParentBone(); joint != ik.rootBone->GetParentBone() && joint != nullptr; joint = joint->GetParentBone()) {
 				//先端ボーンの位置取得
 				CVector3 effectorPos = ik.tipBone->GetPosition();
 				//ボーンの位置取得
