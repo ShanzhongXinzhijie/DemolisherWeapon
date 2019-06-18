@@ -14,10 +14,6 @@ SkinModel::~SkinModel()
 		//定数バッファを解放。
 		m_cb->Release();
 	}
-	//if (m_samplerState != nullptr) {
-	//	//サンプラステートを解放。
-	//	m_samplerState->Release();
-	//}
 }
 void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate)
 {
@@ -34,9 +30,6 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 
 	//定数バッファの作成。
 	InitConstantBuffer();
-
-	//サンプラステートの初期化。
-	//InitSamplerState();
 
 	//SkinModelDataManagerを使用してCMOファイルのロード。
 	m_modelDx = m_skinModelDataManager.Load(filePath, m_skeleton);	
@@ -108,22 +101,34 @@ void SkinModel::InitConstantBuffer()
 	//作成。
 	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bufferDesc, NULL, &m_cb);
 }
-//void SkinModel::InitSamplerState()
-//{
-//	//テクスチャのサンプリング方法を指定するためのサンプラステートを作成。
-//	D3D11_SAMPLER_DESC desc;
-//	ZeroMemory(&desc, sizeof(desc));
-//	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-//	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-//	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-//	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-//	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
-//}
+
 void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, bool RefreshOldPos)
 {
 	if (m_isCalcWorldMatrix) {
 		//ワールド行列を計算
-		CalcWorldMatrix(position, rotation, scale, m_worldMatrix, m_SRTMatrix);
+		CalcWorldMatrix(position, rotation, scale, m_worldMatrix);// , m_SRTMatrix);
+		//スケルトンの更新。
+		m_skeleton.Update(m_worldMatrix);
+	}
+	else {
+		//スケルトンの更新。
+		m_skeleton.Update(CMatrix::Identity());
+	}
+
+	//最初のワールド座標更新なら...
+	if (m_isFirstWorldMatRef || RefreshOldPos) {
+		m_isFirstWorldMatRef = false;
+		//旧座標の更新
+		UpdateOldMatrix();
+	}
+}
+void SkinModel::UpdateWorldMatrixTranslation(const CVector3& position, bool RefreshOldPos) 
+{
+	if (m_isCalcWorldMatrix) {
+		//ワールド行列の平行移動部分を設定
+		//※この部分以外↑(UpdateWorldMatrix)と同じ
+		m_worldMatrix.SetTranslation(position);
+		//m_SRTMatrix.SetTranslation(position);
 		//スケルトンの更新。
 		m_skeleton.Update(m_worldMatrix);
 	}
@@ -155,8 +160,7 @@ void SkinModel::CalcSRTMatrix(const CVector3& position, const CQuaternion& rotat
 	returnWorldMatrix.MakeScaling(scale);			//拡大	
 	mat.MakeRotationFromQuaternion(rotation);		//回転	
 	returnWorldMatrix.Mul(returnWorldMatrix, mat);	//拡大×回転
-	mat.MakeTranslation(position);					//平行移動
-	returnWorldMatrix.Mul(returnWorldMatrix, mat);	//(拡大×回転)×平行移動
+	returnWorldMatrix.SetTranslation(position);		//平行移動を設定
 }
 
 static const float REFERENCE_FRUSTUM_SIZE = (1.0f / tan(3.14f*0.5f / 2.0f));
@@ -207,8 +211,6 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	//定数バッファをGPUに転送。
 	d3dDeviceContext->VSSetConstantBuffers(enSkinModelCBReg_VSPS, 1, &m_cb);
 	d3dDeviceContext->PSSetConstantBuffers(enSkinModelCBReg_VSPS, 1, &m_cb);
-	//サンプラステートを設定。
-	//d3dDeviceContext->PSSetSamplers(0, 1, &m_samplerState);
 	//ボーン行列をGPUに転送。
 	m_skeleton.SendBoneMatrixArrayToGPU();
 

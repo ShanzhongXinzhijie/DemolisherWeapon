@@ -72,16 +72,14 @@ void Animation::UpdateLocalPose(float deltaTime)
 
 void Animation::UpdateGlobalPose()
 {
-	//グローバルポーズ計算用のメモリをスタックから確保。
+	//初期化
 	int numBone = m_skeleton->GetNumBones();
-	/*CQuaternion* qGlobalPose = (CQuaternion*)alloca(sizeof(CQuaternion) * numBone);
-	CVector3* vGlobalPose = (CVector3*)alloca(sizeof(CVector3) * numBone);
-	CVector3* vGlobalScale = (CVector3*)alloca(sizeof(CVector3) * numBone);*/
 	for (int i = 0; i < numBone; i++) {
 		m_GlobalRotation[i] = CQuaternion::Identity();
 		m_GlobalTranslation[i] = CVector3::Zero();
 		m_GlobalScale[i] = CVector3::One();
 	}
+
 	//グローバルポーズを計算していく。
 	int startIndex = m_startAnimationPlayController;
 	for (int i = 0; i < m_numAnimationPlayController; i++) {
@@ -131,29 +129,6 @@ void Animation::UpdateGlobalPose()
 			m_GlobalRotation[boneNo].Slerp(intepolateRate, m_GlobalRotation[boneNo], qBone);
 		}
 	}
-	//グローバルポーズをスケルトンに反映させていく。
-	/*for (int boneNo = 0; boneNo < numBone; boneNo++) {
-		
-		//拡大行列を作成。
-		CMatrix scaleMatrix;
-		scaleMatrix.MakeScaling(vGlobalScale[boneNo]);
-		//回転行列を作成。
-		CMatrix rotMatrix;
-		rotMatrix.MakeRotationFromQuaternion(qGlobalPose[boneNo]);
-		//平行移動行列を作成。
-		CMatrix transMat;
-		transMat.MakeTranslation(vGlobalPose[boneNo]);
-
-		//全部を合成して、ボーン行列を作成。
-		CMatrix boneMatrix;
-		boneMatrix.Mul(scaleMatrix, rotMatrix);
-		boneMatrix.Mul(boneMatrix, transMat);
-		
-		m_skeleton->SetBoneLocalMatrix(
-			boneNo,
-			boneMatrix
-		);			
-	}*/
 		
 	//最終アニメーション以外は補間完了していたら除去していく。
 	int numAnimationPlayController = m_numAnimationPlayController;

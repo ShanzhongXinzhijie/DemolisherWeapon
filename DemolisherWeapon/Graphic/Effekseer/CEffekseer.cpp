@@ -54,12 +54,11 @@ void CEffekseer::Update()
 }
 
 void CEffekseer::SetBaseMatrix(){
-	CMatrix mTrans, mRot, mScale, mBase;
-	mTrans.MakeTranslation(m_pos);
+	CMatrix mRot, mScale, mBase;
 	mRot.MakeRotationFromQuaternion(m_rot);
 	mScale.MakeScaling(m_scale);
 	mBase = mScale * mRot;
-	mBase = mBase * mTrans;
+	mBase.SetTranslation(m_pos);
 	GetEngine().GetEffekseer().GetManager()->SetBaseMatrix(m_handle, mBase);//SetMatrix
 }
 

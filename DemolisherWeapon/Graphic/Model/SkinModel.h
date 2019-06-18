@@ -31,11 +31,15 @@ public:
 	
 	/*!
 	*@brief	モデルをワールド座標系に変換するためのワールド行列を更新する。
-	*@param[in]	position	モデルの座標。
-	*@param[in]	rotation	モデルの回転。
-	*@param[in]	scale		モデルの拡大率。
+			※スケルトンも更新される
+	*@param[in]	position		モデルの座標。
+	*@param[in]	rotation		モデルの回転。
+	*@param[in]	scale			モデルの拡大率。
+	*@param[in]	RefreshOldPos	旧行列をリフレッシュするか
 	*/
 	void UpdateWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, bool RefreshOldPos = false);
+	//平行移動部分のみ更新
+	void UpdateWorldMatrixTranslation(const CVector3& position, bool RefreshOldPos = false);
 
 	//ワールド行列を計算する
 	void CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix, CMatrix& returnSRTMatrix)const;
@@ -222,10 +226,6 @@ public:
 
 private:
 	/*!
-	*@brief	サンプラステートの初期化。
-	*/
-	//void InitSamplerState();
-	/*!
 	*@brief	定数バッファの作成。
 	*/
 	void InitConstantBuffer();
@@ -266,7 +266,7 @@ private:
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
 	CMatrix m_biasMatrix;
-	CMatrix m_SRTMatrix;
+	//CMatrix m_SRTMatrix;
 	bool m_isFirstWorldMatRef = true;
 
 	//マテリアル個別設定	
@@ -280,7 +280,6 @@ private:
 	Skeleton			m_skeleton;						//!<スケルトン。
 	DirectX::Model*		m_modelDx;						//!<DirectXTKが提供するモデルクラス。
 	std::wstring		m_modelName;					//!<モデルの名前。
-	//ID3D11SamplerState* m_samplerState = nullptr;		//!<サンプラステート。
 
 	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;//ラスタライザステート
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;

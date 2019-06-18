@@ -14,7 +14,6 @@ namespace DemolisherWeapon{
  */
 class CMatrix{
 public:
-
 	union {
 		DirectX::XMFLOAT4X4 mat;
 		struct {
@@ -26,6 +25,7 @@ public:
 		CVector4 v[4];
 		float m[4][4];
 	};
+
 public:
 	operator DirectX::XMMATRIX() const
 	{
@@ -58,6 +58,7 @@ public:
 		return eMat;
 	}
 
+	//コンストラクタ
 	CMatrix() {
 		mat = Identity().mat;
 	}
@@ -76,6 +77,7 @@ public:
 	{
 		mat = m;
 	}
+
 	/*!
 	*@brief	代入演算子。
 	*/
@@ -84,6 +86,7 @@ public:
 		mat = _m.mat;
 		return *this;
 	}
+
 	/*!
 	*@brief	ベクトルと3x3行列の乗算
 	*@param[in,out]		v	乗算されるベクトル。
@@ -113,6 +116,16 @@ public:
 			DirectX::XMVector4Transform(vOut, *this) 
 		);
 	}
+
+	/// <summary>
+	/// 行列の平行移動部分を再設定
+	/// </summary>
+	void SetTranslation(const CVector3& trans) {
+		m[3][0] = trans.x;
+		m[3][1] = trans.y;
+		m[3][2] = trans.z;
+	}
+
 	/*!
 	 *@brief	平行移動行列を作成。
 	 */
@@ -123,6 +136,7 @@ public:
 			DirectX::XMMatrixTranslationFromVector(trans)
 		);
 	}
+
 	/*!
 	*@brief	Y軸周りの回転行列を作成。
 	*@param[in]	angle	回転角度(単位ラジアン)
@@ -179,6 +193,7 @@ public:
 			DirectX::XMMatrixRotationAxis(axis, angle)
 		);
 	}
+
 	/*!
 	*@brief	拡大行列を作成。
 	*@param[in] scale		拡大率。
@@ -190,6 +205,7 @@ public:
 			DirectX::XMMatrixScalingFromVector(scale)
 		);
 	}
+
 	/*!
 	* @brief	プロジェクション行列を作成。
 	*@param[in]	viewAngle	画角。(ラジアン)。
@@ -230,6 +246,7 @@ public:
 			DirectX::XMMatrixOrthographicOffCenterLH(left, right, bottom, top, fNear, fFar)
 		);
 	}
+
 	/*!
 	 * @brief	注視点、上方向、カメラ位置からカメラ行列を作成。
 	 *@param[in]	position	カメラ位置。
@@ -256,6 +273,7 @@ public:
 			DirectX::XMMatrixLookToLH(position, direction, up)
 		);
 	}
+
 	/*!
 	 *@brief	行列と行列の乗算
 	 *@details
@@ -270,6 +288,7 @@ public:
 		);
 		mat = lm;
 	}
+
 	/*!
 	 *@brief	逆行列を計算。
 	 *@param[in]	m	元になる行列。
@@ -288,6 +307,10 @@ public:
 			DirectX::XMMatrixInverse(NULL, *this)
 		);
 	}
+
+	/// <summary>
+	/// 転置行列を計算
+	/// </summary>
 	void Transpose()
 	{
 		DirectX::XMStoreFloat4x4(
@@ -299,6 +322,9 @@ public:
 	//2つの行列を補間する
 	void Interpolate(CMatrix m1, CMatrix m2, float blendTrans, float blendRot, float blendScale);
 
+	/// <summary>
+	/// 単位行列を取得
+	/// </summary>
 	static const CMatrix Identity()
 	{
 		static const CMatrix identity(

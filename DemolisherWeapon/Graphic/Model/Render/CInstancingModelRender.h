@@ -7,7 +7,7 @@ namespace GameObj {
 	//インスタンシング用モデル
 	class InstancingModel : public IQSGameObject {
 	public:
-		InstancingModel() {};
+		InstancingModel() = default;
 		~InstancingModel() { Release(); };
 
 		void PostLoopPostUpdate()override;
@@ -181,6 +181,7 @@ namespace GameObj {
 		//指定のモデルを削除
 		void Delete(const wchar_t* filePath, const AnimationClip* animationClip = nullptr, const wchar_t* identifier = nullptr);
 
+		//モデルのロード
 		GameObj::InstancingModel* Load(
 			int instanceMax,										//新規読み込み時のみ使用
 			const wchar_t* filePath,
@@ -189,6 +190,7 @@ namespace GameObj {
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//新規読み込み時のみ使用
 			const wchar_t* identifier = nullptr
 		);
+
 	private:
 		typedef std::tuple<std::size_t, std::size_t, std::size_t> key_t;
 
@@ -236,8 +238,19 @@ namespace GameObj {
 			if (!m_isInit) { return; }
 			if (!m_isDraw) { m_isFirstWorldMatRef = true; return; }
 
-			//ワールド行列を求める(バイアス含む)
-			m_model[m_playingAnimNum]->GetModelRender().GetSkinModel().CalcWorldMatrix( m_pos, m_rot, m_scale, m_worldMatrix, m_SRTMatrix);
+			//ワールド行列、更新してなければ
+			if (!m_isUpdatedWorldMatrix) {
+				if (m_isSetRotOrScale) {
+					//ワールド行列を求める(バイアス含む)
+					m_model[m_playingAnimNum]->GetModelRender().GetSkinModel().CalcWorldMatrix(m_pos, m_rot, m_scale, m_worldMatrix, m_SRTMatrix);
+					m_isSetRotOrScale = false;
+				}
+				else {
+					//平行移動部分を更新
+					m_worldMatrix.SetTranslation(m_pos);
+					m_SRTMatrix.SetTranslation(m_pos);
+				}
+			}
 
 			//最初のワールド座標更新なら...
 			if (m_isFirstWorldMatRef) {
@@ -250,17 +263,25 @@ namespace GameObj {
 			if (m_isDraw) {
 				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix, m_scale);
 			}
-			m_worldMatrixOld = m_worldMatrix;
+
+			//更新してなければ
+			if (!m_isUpdatedWorldMatrix) {
+				m_worldMatrixOld = m_worldMatrix;
+				m_isUpdatedWorldMatrix = true;//更新済みにする
+			}
 		}
 
 		//座標とか設定
 		void SetPos(const CVector3& pos) {
+			m_isUpdatedWorldMatrix = false;
 			m_pos = pos;
 		}
 		void SetRot(const CQuaternion& rot) {
+			m_isUpdatedWorldMatrix = false; m_isSetRotOrScale = true;
 			m_rot = rot;
 		}
 		void SetScale(const CVector3& scale) {
+			m_isUpdatedWorldMatrix = false; m_isSetRotOrScale = true;
 			m_scale = scale;
 		}
 		void SetPRS(const CVector3& pos, const CQuaternion& rot, const CVector3& scale) {
@@ -303,11 +324,13 @@ namespace GameObj {
 	private:
 		bool m_isInit = false;
 		bool m_isDraw = true;
-
+		
 		std::vector<GameObj::InstancingModel*> m_model;
 		int m_playingAnimNum = 0;
 
-		bool m_isFirstWorldMatRef = true;
+		bool m_isUpdatedWorldMatrix = false;//ワールド行列更新済みか?
+		bool m_isSetRotOrScale = true;		//回転または拡大を設定したか?
+		bool m_isFirstWorldMatRef = true;	//最初のワールド行列更新か?
 		CVector3 m_pos;
 		CQuaternion m_rot;
 		CVector3 m_scale = CVector3::One();

@@ -171,12 +171,9 @@ void AnimationPlayController::Update(float deltaTime, Animation* animation, bool
 				//回転行列を作成。
 				CMatrix rotMatrix;
 				rotMatrix.MakeRotationFromQuaternion(rot);
-				//平行移動行列を作成。
-				CMatrix transMat;
-				transMat.MakeTranslation(move);
 				//全部を合成して、ボーン行列を作成。
 				m_boneMatrix[keyframe->boneIndex].Mul(scaleMatrix, rotMatrix);
-				m_boneMatrix[keyframe->boneIndex].Mul(m_boneMatrix[keyframe->boneIndex], transMat);
+				m_boneMatrix[keyframe->boneIndex].SetTranslation(move);
 			}
 		}
 #ifndef DW_MASTER	

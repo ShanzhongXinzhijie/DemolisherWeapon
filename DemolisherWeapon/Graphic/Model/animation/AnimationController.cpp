@@ -44,10 +44,10 @@ void AnimationController::Update() {
 }
 
 void AnimationController::Update(float updateTime) {
-
 	//アニメーションある?
 	if (m_animations.size() == 0) { return; }
 
+	//アニメーションの更新
 	int i = 0;
 	for (auto& anim : m_animations) {
 		anim.Update(m_animPlaySpeedSec[i]*updateTime);
@@ -56,30 +56,36 @@ void AnimationController::Update(float updateTime) {
 
 	//グローバルポーズをスケルトンに反映させていく。
 	int numBone = m_skeleton->GetNumBones();
-	for (int boneNo = 0; boneNo < numBone; boneNo++) {
+	for (int boneNo = 0; boneNo < numBone; boneNo++) {//すべてのボーンに実行
 
-		CMatrix scaleMatrix;
-		CMatrix transMat;
-		CMatrix rotMatrix;
+		CVector3 integratedTrans, integratedScale = 1.0f;
+		CQuaternion integratedRot;
 
+		//アニメーションの分だけ実行
 		for (auto& anim : m_animations) {
+			//ボーンの状態を取得
 			CVector3 trans, scr;
 			CQuaternion rot;
-			anim.GetGlobalPose( boneNo, trans, rot, scr);
-
-			//拡大行列を作成。
-			scaleMatrix.MakeScaling(scr);
-			//回転行列を作成。
-			rotMatrix.MakeRotationFromQuaternion(rot);
-			//平行移動行列を作成。
-			transMat.MakeTranslation(trans);
+			anim.GetGlobalPose(boneNo, trans, rot, scr);
+			//ブレンド
+			integratedTrans += trans;
+			if (&anim == &m_animations[0]) {
+				integratedRot = rot;
+			}
+			else {
+				integratedRot.Slerp(0.5f, integratedRot, rot);//仮
+			}
+			integratedScale *= scr;
 		}
 
 		//全部を合成して、ボーン行列を作成。
-		CMatrix boneMatrix;
-		boneMatrix.Mul(scaleMatrix, rotMatrix);
-		boneMatrix.Mul(boneMatrix, transMat);
+		CMatrix boneMatrix, rotMatrix;
+		boneMatrix.MakeScaling(integratedScale);			//拡大行列を作成
+		rotMatrix.MakeRotationFromQuaternion(integratedRot);//回転行列を作成
+		boneMatrix.Mul(boneMatrix, rotMatrix);				//拡大×回転
+		boneMatrix.SetTranslation(integratedTrans);			//平行移動を適用
 
+		//ボーンに設定
 		m_skeleton->SetBoneLocalMatrix(
 			boneNo,
 			boneMatrix

@@ -40,15 +40,14 @@ public:
 		m_pos = pos;
 	}
 	void SetRot(const CQuaternion& rot) {
-		ImNonUpdateWorldMatrix();
+		ImNonUpdateWorldMatrix(); m_isSetRotOrScale = true;
 		m_rot = rot;
 	}
 	void SetScale(const CVector3& scale) {
-		ImNonUpdateWorldMatrix();
+		ImNonUpdateWorldMatrix(); m_isSetRotOrScale = true;
 		m_scale = scale;
 	}
 	void SetPRS(const CVector3& pos, const CQuaternion& rot, const CVector3& scale) {
-		ImNonUpdateWorldMatrix();
 		SetPos(pos);
 		SetRot(rot);
 		SetScale(scale);
@@ -162,15 +161,23 @@ public:
 		return m_priority;
 	}
 
-	//ワールド行列を更新
-	void UpdateWorldMatrix(bool reflesh = false) {
-		m_model.UpdateWorldMatrix(m_pos, m_rot, m_scale, reflesh);
+	//ワールド行列を更新(スケルトンも更新される)
+	void UpdateWorldMatrix(bool refreshOldPos = false) {
+		if (m_isSetRotOrScale) {
+			//ワールド行列更新
+			m_model.UpdateWorldMatrix(m_pos, m_rot, m_scale, refreshOldPos);
+			m_isSetRotOrScale = false;
+		}
+		else {
+			//ワールド行列の平行移動部分更新
+			m_model.UpdateWorldMatrixTranslation(m_pos, refreshOldPos);
+		}
 		m_isUpdatedWorldMatrix = true;
 	}
 	//ワールド行列をリフレッシュ
 	void RefreshWorldMatrix() {
 		ImNonUpdate();
-		ImNonUpdateWorldMatrix();
+		ImNonUpdateWorldMatrix(); m_isSetRotOrScale = true;
 		m_isRefreshMode = true;
 		Update();
 		m_isRefreshMode = false;
@@ -180,7 +187,7 @@ private:
 	bool m_isInit = false;
 	bool m_isRefreshMode = false;
 
-	int m_priority = DRAW_PRIORITY_DEFAULT;
+	int m_priority = DRAW_PRIORITY_DEFAULT;//描画順
 	
 	SkinModel m_model;
 	CVector3		m_pos;
@@ -191,12 +198,13 @@ private:
 
 	bool m_isEnableUpdate = true;//Updateを実行するか?
 
-	bool m_isDraw = true;//表示するか
-	bool m_isShadowCaster = true;//シャドウマップに書き込むか
-	bool m_isShadowDrawReverse = true;//シャドウマップ描画時に面を反転させるか?
+	bool m_isDraw = true;				//表示するか
+	bool m_isShadowCaster = true;		//シャドウマップに書き込むか
+	bool m_isShadowDrawReverse = true;	//シャドウマップ描画時に面を反転させるか?
 
 	bool m_isUpdated = false;			//アップデート済みか?
 	bool m_isUpdatedWorldMatrix = false;//ワールド行列更新済みか?
+	bool m_isSetRotOrScale = true;		//回転または拡大を設定したか?
 
 	bool m_animUpdating = false;
 
