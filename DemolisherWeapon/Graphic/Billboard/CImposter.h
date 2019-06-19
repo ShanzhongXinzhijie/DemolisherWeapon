@@ -153,6 +153,7 @@ namespace DemolisherWeapon {
 	public:
 		/// <summary>
 		/// インポスターテクスチャのロード
+		/// ※現状、同じモデルの解像度・分割数違いを作成できない
 		/// </summary>
 		/// <param name="filepath">3Dモデルのファイルパス</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
@@ -174,6 +175,7 @@ namespace DemolisherWeapon {
 	public:
 		/// <summary>
 		/// 初期化
+		/// ※現状、同じモデルの解像度・分割数違いを作成できない 
 		/// </summary>
 		/// <param name="filepath">3Dモデルのファイルパス</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
