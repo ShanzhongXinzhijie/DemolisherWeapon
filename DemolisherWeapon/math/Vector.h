@@ -425,7 +425,7 @@ public:
 		DirectX::XMVECTOR xmvr = DirectX::XMVector3Cross(xmv0, xmv1);
 		DirectX::XMStoreFloat3(&vec, xmvr);
 	}
-	CVector3 GetCross(const CVector3& _v)
+	CVector3 GetCross(const CVector3& _v)const
 	{
 		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat3(&vec);
 		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat3(&_v.vec);

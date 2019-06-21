@@ -110,7 +110,7 @@ public:
 	//À•W“™İ’è
 	void SetPos(const CVector3& v) { m_pos = v; m_change = true; m_isNeedUpdateFront = true; }
 	void SetTarget(const CVector3& v) { m_target = v; m_change = true; m_isNeedUpdateFront = true; }
-	void SetUp(const CVector3& v) { m_up = v; m_change = true; }
+	void SetUp(const CVector3& v) { m_up = v; m_up.Normalize(); m_change = true; }
 
 	//‰“‹ßİ’è
 	void SetNear(const float v) { m_near = v; m_change = true; }

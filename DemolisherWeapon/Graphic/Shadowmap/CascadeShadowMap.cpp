@@ -23,11 +23,12 @@ namespace GameObj {
 	}
 
 	CVector4 CascadeShadowMap::CreateAABB(float Near, float Far) {
-
+		//視錐台の各方向
 		CVector3 vZ = (GetMainCamera()->GetTarget() - GetMainCamera()->GetPos()).GetNorm();
 		CVector3 vX; vX.Cross(GetMainCamera()->GetUp(), vZ); vX.Normalize();
 		CVector3 vY; vY.Cross(vZ, vX); vY.Normalize();
 
+		//アスペクト比と視野角の取得
 		float aspect = GetMainCamera()->GetAspect();
 		float fov = GetMainCamera()->GetFOV();
 
@@ -35,15 +36,19 @@ namespace GameObj {
 			//平行投影カメラの場合
 		}
 
+		//近平面の高さと幅
 		float nearPlaneHalfHeight = tanf(fov * 0.5f) * Near;
 		float nearPlaneHalfWidth = nearPlaneHalfHeight * aspect;
 
+		//遠平面の高さと幅
 		float farPlaneHalfHeight = tanf(fov * 0.5f) * Far;
 		float farPlaneHalfWidth = farPlaneHalfHeight * aspect;
 
+		//近・遠平面の中心座標
 		CVector3 nearPlaneCenter = GetMainCamera()->GetPos() + vZ * Near;
 		CVector3 farPlaneCenter = GetMainCamera()->GetPos() + vZ * Far;
 
+		//視錐台の頂点を求める
 		CVector3 corners[8];
 
 		corners[0] = nearPlaneCenter - vX * nearPlaneHalfWidth - vY * nearPlaneHalfHeight;
@@ -56,6 +61,7 @@ namespace GameObj {
 		corners[6] = farPlaneCenter + vX * farPlaneHalfWidth + vY * farPlaneHalfHeight;
 		corners[7] = farPlaneCenter + vX * farPlaneHalfWidth - vY * farPlaneHalfHeight;
 
+		//AABBを求める
 		//CMatrix viewProj; viewProj.Mul(m_lightCam->GetViewMatrix(), m_lightCam->GetProjMatrix());
 		CVector3 point = corners[0]; m_lightCam->GetViewMatrix().Mul(point); //viewProj.Mul(point);
 		CVector2 mini = { point.x,point.y };

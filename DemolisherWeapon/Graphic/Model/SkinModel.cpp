@@ -167,18 +167,19 @@ static const float REFERENCE_FRUSTUM_SIZE = (1.0f / tan(3.14f*0.5f / 2.0f));
 
 void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlendState, ID3D11DepthStencilState* pDepthStencilState)
 {
+#ifndef DW_MASTER
+	if (!GetMainCamera()) {
+		MessageBox(NULL, "カメラが設定されていません!!", "Error", MB_OK);
+		std::abort();
+		return;
+	}
+#endif
+
 	if (m_instanceNum <= 0) { return; }
 
 	DirectX::CommonStates state(GetEngine().GetGraphicsEngine().GetD3DDevice());
 
 	ID3D11DeviceContext* d3dDeviceContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
-
-#ifndef DW_MASTER
-	if (!GetMainCamera()) {
-		MessageBox(NULL, "カメラが設定されていません!!", "Error", MB_OK);
-		std::abort();
-	}
-#endif
 
 	//定数バッファの内容を更新。
 	SVSConstantBuffer vsCb;
