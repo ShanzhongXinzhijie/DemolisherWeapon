@@ -66,7 +66,6 @@ namespace DemolisherWeapon {
 			planes[i][0].Cross(b-a,c-a); planes[i][0] *= -1.0f; planes[i][0].Normalize();//法線
 			planes[i][1] = a;//平面上の一点
 		}
-		//TODO ここの法線確認
 		//AABB作成(モデル)
 		//TODO カメラ側でやる?(毎回やらなくていい)
 

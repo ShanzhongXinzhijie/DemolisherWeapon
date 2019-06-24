@@ -98,10 +98,16 @@ namespace DemolisherWeapon {
 		model.Init(filepath);
 		model.UpdateWorldMatrix(0.0f, CQuaternion::Identity(), 1.0f);
 		
+		//バイアス行列取得
+		CMatrix mBias, mBiasScr;
+		CoordinateSystemBias::GetBias(mBias, mBiasScr, enFbxUpAxisZ, enFbxRightHanded);
+		mBias.Mul(mBiasScr, mBias);
+
 		//バウンディングボックスからモデルのサイズを求める
 		m_imposterMaxSize = 0.0f;
 		m_boundingBoxMaxSize = { 0.0f };
 		m_boundingBoxMinSize = { 0.0f };
+		bool isFirst = true;
 		model.FindMeshes(
 			[&](const std::shared_ptr<DirectX::ModelMesh>& meshes) {
 				CVector3 size, extents;
@@ -109,19 +115,33 @@ namespace DemolisherWeapon {
 
 				size = meshes->boundingBox.Center;
 				size += extents;
+				mBias.Mul3x3(size);//バイアスの適応
+				if (isFirst) {
+					m_boundingBoxMaxSize = size;
+				}
+				else {
+					m_boundingBoxMaxSize.x = max(m_boundingBoxMaxSize.x, size.x);
+					m_boundingBoxMaxSize.y = max(m_boundingBoxMaxSize.y, size.y);
+					m_boundingBoxMaxSize.z = max(m_boundingBoxMaxSize.z, size.z);
+				}
 				size.Abs();
 				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y, max(size.x, size.z)));
-				m_boundingBoxMaxSize.x = max(m_boundingBoxMaxSize.x, size.x);
-				m_boundingBoxMaxSize.y = max(m_boundingBoxMaxSize.y, size.z); //Z-UP
-				m_boundingBoxMinSize.z = min(m_boundingBoxMinSize.z, -size.y);//Z-UPなのでYが逆
 
 				size = meshes->boundingBox.Center;
 				size -= extents;
+				mBias.Mul3x3(size);//バイアスの適応
+				if (isFirst) {
+					m_boundingBoxMinSize = size;
+				}
+				else {
+					m_boundingBoxMinSize.x = min(m_boundingBoxMinSize.x, size.x);
+					m_boundingBoxMinSize.y = min(m_boundingBoxMinSize.y, size.y);
+					m_boundingBoxMinSize.z = min(m_boundingBoxMinSize.z, size.z);
+				}
 				size.Abs();
 				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y, max(size.x, size.z)));
-				m_boundingBoxMinSize.x = min(m_boundingBoxMinSize.x, -size.x);
-				m_boundingBoxMinSize.y = min(m_boundingBoxMinSize.y, -size.z);//Z-UP
-				m_boundingBoxMaxSize.z = max(m_boundingBoxMaxSize.z, size.y); //Z-UPなのでYが逆
+
+				isFirst = false;
 			}
 		);
 	
