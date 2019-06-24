@@ -11,19 +11,20 @@ namespace DemolisherWeapon{
 class CMath{
 public:
 	//‰~ü—¦
-	static const float PI;
-	static const float PI2;
+	static constexpr float PI = 3.14159265358979323846f;
+	static constexpr float PI2 = PI*2.0f;
+
 	/*!
 	 * @brief	degree‚©‚çradian‚É•ÏŠ·B
 	 */
-	static float DegToRad( float deg )
+	static constexpr float DegToRad( float deg )
 	{
 		return deg * (PI/180.0f);
 	}
 	/*!
 	 * @brief	radian‚©‚çdegree‚É•ÏŠ·B
 	 */
-	static float RadToDeg( float rad )
+	static constexpr float RadToDeg( float rad )
 	{
 		return rad / (PI/180.0f);
 	}
@@ -33,29 +34,29 @@ public:
 	 *  ret = t0 + (t1-t0) + rate;
 	 *@param[in]	t		•âŠÔ—¦	0.0`1.0
 	 */
-	static inline float Lerp(float rate, float t0, float t1)
+	static constexpr float Lerp(float rate, float t0, float t1)
 	{
 		return t0 + (t1 - t0)*rate;
 	}
 
 	//ˆø”f‚Ì“ñæ‚ğæ“¾
-	static inline float Square(float f) {
+	static constexpr float Square(float f) {
 		return f * f;
 	}
 
 	//ˆø”f‚ğ0.0f`1.0f‚ÅƒNƒ‰ƒ“ƒv
-	static inline float Saturate(float f) {
+	static constexpr float Saturate(float f) {
 		return Clamp(f,0.0f,1.0f);
 	}
 
 	//ˆø”f‚ğ-1.0f`1.0f‚ÅƒNƒ‰ƒ“ƒv
-	static inline float ClampFromNegOneToPosOne(float f) {
+	static constexpr float ClampFromNegOneToPosOne(float f) {
 		return Clamp(f, -1.0f, 1.0f);
 	}
 
 	//ˆø”in‚ğlow`high‚ÌŠÔ‚Éû‚ß‚é
 	template<typename Ttype>
-	static inline Ttype Clamp(Ttype in, Ttype low, Ttype high) {
+	static constexpr Ttype Clamp(Ttype in, Ttype low, Ttype high) {
 		return min(max(in, low), high);
 	}	
 
