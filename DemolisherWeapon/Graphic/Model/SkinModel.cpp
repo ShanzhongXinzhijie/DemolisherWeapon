@@ -245,6 +245,8 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 			v_max.x = max(v_max.x, vertex.x); v_max.y = max(v_max.y, vertex.y); v_max.z = max(v_max.z, vertex.z);
 		}
 
+		//TODO リファクタリング
+
 		if (!FrustumCulling::AABBTest(GetMainCamera(), v_min, v_max)) { 
 			return;
 		}

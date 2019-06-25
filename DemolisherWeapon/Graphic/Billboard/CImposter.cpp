@@ -435,7 +435,7 @@ namespace DemolisherWeapon {
 
 		m_isInit = true;
 	}
-	//TODO Y軸オフセット(インポスター) 
+	//TODO Y軸オフセット(ラジアンで)(インポスター) 
 
 	/*
 	void CImposter::CalcWorldMatrixAndIndex(bool isShadowDrawMode, const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x, int& index_y) {
