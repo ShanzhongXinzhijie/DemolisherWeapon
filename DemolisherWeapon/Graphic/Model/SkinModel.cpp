@@ -1,6 +1,7 @@
 #include "DWstdafx.h"
 #include "SkinModel.h"
 #include "SkinModelShaderConst.h"
+#include "Graphic/FrustumCulling.h"
 
 #include <filesystem>
 
@@ -17,10 +18,11 @@ SkinModel::~SkinModel()
 }
 void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate)
 {
+	//FBX情報を設定
 	m_enFbxUpAxis = enFbxUpAxis;
 	m_enFbxCoordinate = enFbxCoordinate;
 
-	//バイアス取得
+	//バイアス行列取得
 	CMatrix mBiasScr;
 	CoordinateSystemBias::GetBias(m_biasMatrix, mBiasScr, m_enFbxUpAxis, m_enFbxCoordinate);
 	m_biasMatrix.Mul(mBiasScr, m_biasMatrix);
@@ -40,6 +42,41 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 			[&](ModelEffect* mat) {
 			m_materialSetting.emplace_back();
 		}
+		);
+		//バウンディングボックスの取得・生成
+		bool isFirst = true;
+		FindMeshes(
+			[&](const std::shared_ptr<DirectX::ModelMesh>& meshes) {
+				CVector3 size, extents;
+				extents = meshes->boundingBox.Extents;
+
+				//最大値
+				size = meshes->boundingBox.Center;
+				size += extents;
+				//m_biasMatrix.Mul3x3(size);//バイアスの適応
+				if (isFirst) {
+					m_maxAABB = size;
+				}
+				else {
+					m_maxAABB.x = max(m_maxAABB.x, size.x);
+					m_maxAABB.y = max(m_maxAABB.y, size.y);
+					m_maxAABB.z = max(m_maxAABB.z, size.z);
+				}
+				//最小値
+				size = meshes->boundingBox.Center;
+				size -= extents;
+				//m_biasMatrix.Mul3x3(size);//バイアスの適応
+				if (isFirst) {
+					m_minAABB = size;
+				}
+				else {
+					m_minAABB.x = min(m_minAABB.x, size.x);
+					m_minAABB.y = min(m_minAABB.y, size.y);
+					m_minAABB.z = min(m_minAABB.z, size.z);
+				}
+
+				isFirst = false;
+			}
 		);
 	}
 
@@ -175,10 +212,45 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	}
 #endif
 
+	//描画インスタンス数が0
 	if (m_instanceNum <= 0) { return; }
 
-	DirectX::CommonStates state(GetEngine().GetGraphicsEngine().GetD3DDevice());
+	//視錐台カリング
+	//※インスタンス数が1のときのみ
+	if (m_isFrustumCull && instanceNum*m_instanceNum == 1) {
+		static const CVector3 boxOffset[8] =
+		{
+			{ -1.0f, -1.0f,  1.0f },
+			{  1.0f, -1.0f,  1.0f },
+			{  1.0f,  1.0f,  1.0f },
+			{ -1.0f,  1.0f,  1.0f },
+			{ -1.0f, -1.0f, -1.0f },
+			{  1.0f, -1.0f, -1.0f },
+			{  1.0f,  1.0f, -1.0f },
+			{ -1.0f,  1.0f, -1.0f },
+		};
 
+		CVector3 center, extents;
+		center = m_minAABB + m_maxAABB; center /= 2.0f;
+		extents = m_maxAABB - center;
+
+		CVector3 vertex, v_min, v_max;
+		vertex = center + extents * boxOffset[0];
+		m_worldMatrix.Mul(vertex);
+		v_min = vertex; v_max = vertex;
+		for (int i = 1; i < 8; i++) {
+			vertex = center + extents * boxOffset[i];
+			m_worldMatrix.Mul(vertex); 			
+			v_min.x = min(v_min.x, vertex.x); v_min.y = min(v_min.y, vertex.y); v_min.z = min(v_min.z, vertex.z);
+			v_max.x = max(v_max.x, vertex.x); v_max.y = max(v_max.y, vertex.y); v_max.z = max(v_max.z, vertex.z);
+		}
+
+		if (!FrustumCulling::AABBTest(GetMainCamera(), v_min, v_max)) { 
+			return;
+		}
+	}
+
+	DirectX::CommonStates state(GetEngine().GetGraphicsEngine().GetD3DDevice());
 	ID3D11DeviceContext* d3dDeviceContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 	//定数バッファの内容を更新。

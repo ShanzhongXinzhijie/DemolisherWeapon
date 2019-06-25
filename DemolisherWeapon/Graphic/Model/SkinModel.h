@@ -211,6 +211,21 @@ public:
 		m_isCalcWorldMatrix = enable;
 	}
 
+	//視錐台カリングを行うか設定
+	void SetIsFrustumCulling(bool enable) {
+		m_isFrustumCull = enable;
+	}
+
+	//バウンディングボックスを設定
+	void SetBoundingBox(const CVector3& min, const CVector3& max) {
+		m_minAABB = min;
+		m_maxAABB = max;
+	}
+	void GetBoundingBox(CVector3& return_min, CVector3& return_max) {
+		return_min = m_minAABB;
+		return_max = m_maxAABB;
+	}
+
 	//描画前に行う処理を設定
 	void SetPreDrawFunction(std::function<void(SkinModel*)> func) {
 		m_preDrawFunc = func;
@@ -274,12 +289,12 @@ private:
 	bool isMatSetEnable = false;
 	std::vector<MaterialSetting> m_materialSetting;
 
-	EnFbxUpAxis			m_enFbxUpAxis = enFbxUpAxisZ;	//!<FBXの上方向。
-	EnFbxCoordinateSystem m_enFbxCoordinate = enFbxRightHanded;//FBXの座標系
-	ID3D11Buffer*		m_cb = nullptr;					//!<定数バッファ。
-	Skeleton			m_skeleton;						//!<スケルトン。
-	DirectX::Model*		m_modelDx;						//!<DirectXTKが提供するモデルクラス。
-	std::wstring		m_modelName;					//!<モデルの名前。
+	EnFbxUpAxis			m_enFbxUpAxis = enFbxUpAxisZ;			//!<FBXの上方向。
+	EnFbxCoordinateSystem m_enFbxCoordinate = enFbxRightHanded;	//FBXの座標系
+	ID3D11Buffer*		m_cb = nullptr;							//!<定数バッファ。
+	Skeleton			m_skeleton;								//!<スケルトン。
+	DirectX::Model*		m_modelDx;								//!<DirectXTKが提供するモデルクラス。
+	std::wstring		m_modelName;							//!<モデルの名前。
 
 	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;//ラスタライザステート
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
@@ -292,6 +307,9 @@ private:
 	int m_instanceNum = 1;//インスタンス数
 
 	bool m_isCalcWorldMatrix = true;//ワールド行列を計算するか?
+
+	bool m_isFrustumCull = false;//視錐台カリングするか?
+	CVector3 m_minAABB, m_maxAABB;//バウンディングボックス
 
 	std::function<void(SkinModel*)> m_preDrawFunc = nullptr;//ユーザー設定の処理
 

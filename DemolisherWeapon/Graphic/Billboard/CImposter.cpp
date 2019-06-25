@@ -113,6 +113,7 @@ namespace DemolisherWeapon {
 				CVector3 size, extents;
 				extents = meshes->boundingBox.Extents;
 
+				//最大値
 				size = meshes->boundingBox.Center;
 				size += extents;
 				mBias.Mul3x3(size);//バイアスの適応
@@ -127,6 +128,7 @@ namespace DemolisherWeapon {
 				size.Abs();
 				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y, max(size.x, size.z)));
 
+				//最小値
 				size = meshes->boundingBox.Center;
 				size -= extents;
 				mBias.Mul3x3(size);//バイアスの適応

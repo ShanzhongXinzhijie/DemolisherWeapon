@@ -4,7 +4,7 @@
 namespace DemolisherWeapon {
 
 	bool FrustumCulling::AABBTest(GameObj::ICamera* camera, const CVector3& aabbMin, const CVector3& aabbMax) {
-		//平行投影カメラの場合...
+		//TODO 平行投影カメラの場合...
 
 		//視錐台の各方向
 		CVector3 vZ = GetMainCamera()->GetFront();
@@ -48,9 +48,9 @@ namespace DemolisherWeapon {
 				c = nearPlaneCenter + vX * nearPlaneHalfWidth + vY * nearPlaneHalfHeight;
 			}
 			if (i == 3) {//左
-				a = farPlaneCenter - vX * farPlaneHalfWidth + vY * farPlaneHalfHeight;
-				b = farPlaneCenter - vX * farPlaneHalfWidth - vY * farPlaneHalfHeight;
-				c = nearPlaneCenter - vX * nearPlaneHalfWidth + vY * nearPlaneHalfHeight;
+				a = farPlaneCenter - vX * farPlaneHalfWidth - vY * farPlaneHalfHeight;
+				b = farPlaneCenter - vX * farPlaneHalfWidth + vY * farPlaneHalfHeight;
+				c = nearPlaneCenter - vX * nearPlaneHalfWidth - vY * nearPlaneHalfHeight;
 			}			
 			if (i == 4) {//下
 				a = farPlaneCenter + vX * farPlaneHalfWidth + vY * farPlaneHalfHeight;
@@ -66,7 +66,6 @@ namespace DemolisherWeapon {
 			planes[i][0].Cross(b-a,c-a); planes[i][0] *= -1.0f; planes[i][0].Normalize();//法線
 			planes[i][1] = a;//平面上の一点
 		}
-		//AABB作成(モデル)
 		//TODO カメラ側でやる?(毎回やらなくていい)
 
 		//視錐台カリング
