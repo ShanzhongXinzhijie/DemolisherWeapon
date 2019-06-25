@@ -155,6 +155,12 @@ namespace GameObj {
 		ID3D11Buffer*				m_worldMatrixSBOld = nullptr;
 		ID3D11ShaderResourceView*	m_worldMatrixSRVOld = nullptr;
 
+		//‹‘äƒJƒŠƒ“ƒO—p
+		std::unique_ptr<bool[]>		m_drawInstanceMask;
+		std::unique_ptr<CMatrix[]>	m_worldMatrixCache;
+		std::unique_ptr<CMatrix[]>	m_worldMatrixOldCache;
+		//TODO
+
 		std::function<void()> m_preDrawFunc = nullptr;
 
 		std::unique_ptr<IInstancesData> m_instanceData;

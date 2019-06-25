@@ -28,7 +28,9 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	m_biasMatrix.Mul(mBiasScr, m_biasMatrix);
 
 	//スケルトンのデータを読み込む。
-	InitSkeleton(filePath);
+	if (!InitSkeleton(filePath)) {
+		m_isFrustumCull = true;//スケルトンなければ視錐台カリングする
+	}
 
 	//定数バッファの作成。
 	InitConstantBuffer();
@@ -53,7 +55,6 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 				//最大値
 				size = meshes->boundingBox.Center;
 				size += extents;
-				//m_biasMatrix.Mul3x3(size);//バイアスの適応
 				if (isFirst) {
 					m_maxAABB = size;
 				}
@@ -65,7 +66,6 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 				//最小値
 				size = meshes->boundingBox.Center;
 				size -= extents;
-				//m_biasMatrix.Mul3x3(size);//バイアスの適応
 				if (isFirst) {
 					m_minAABB = size;
 				}
@@ -78,13 +78,15 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 				isFirst = false;
 			}
 		);
+		m_centerAABB = m_minAABB + m_maxAABB; m_centerAABB /= 2.0f;
+		m_extentsAABB = m_maxAABB - m_centerAABB;
 	}
 
 	//ファイル名記録
 	std::experimental::filesystem::path ps = filePath;
 	m_modelName = ps.stem();
 }
-void SkinModel::InitSkeleton(const wchar_t* filePath)
+bool SkinModel::InitSkeleton(const wchar_t* filePath)
 {
 	//スケルトンのデータを読み込む。
 	//cmoファイルの拡張子をtksに変更する。
@@ -98,7 +100,7 @@ void SkinModel::InitSkeleton(const wchar_t* filePath)
 		MessageBox(NULL, message, "Error", MB_OK);
 		std::abort();
 #endif
-		return;
+		return false;
 	}
 	//.cmoファイルを.tksに置き換える。
 	skeletonFilePath.replace(pos, 4, L".tks");
@@ -113,6 +115,7 @@ void SkinModel::InitSkeleton(const wchar_t* filePath)
 		sprintf_s(message, "tksファイルの読み込みに失敗しました。%ls\n", skeletonFilePath.c_str());
 		OutputDebugStringA(message);
 #endif
+		return false;
 	}
 	else {
 		int numBone = m_skeleton.GetNumBones();
@@ -120,6 +123,8 @@ void SkinModel::InitSkeleton(const wchar_t* filePath)
 			m_skeleton.GetBone(i)->SetCoordinateSystem(m_enFbxUpAxis, m_enFbxCoordinate);
 		}
 	}
+
+	return true;
 }
 void SkinModel::InitConstantBuffer()
 {
@@ -213,7 +218,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 #endif
 
 	//描画インスタンス数が0
-	if (m_instanceNum <= 0) { return; }
+	if (instanceNum*m_instanceNum <= 0) { return; }
 
 	//視錐台カリング
 	//※インスタンス数が1のときのみ
@@ -230,23 +235,22 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 			{ -1.0f,  1.0f, -1.0f },
 		};
 
-		CVector3 center, extents;
-		center = m_minAABB + m_maxAABB; center /= 2.0f;
-		extents = m_maxAABB - center;
-
+		//AABBを作る
 		CVector3 vertex, v_min, v_max;
-		vertex = center + extents * boxOffset[0];
-		m_worldMatrix.Mul(vertex);
-		v_min = vertex; v_max = vertex;
-		for (int i = 1; i < 8; i++) {
-			vertex = center + extents * boxOffset[i];
+		for (int i = 0; i < 8; i++) {
+			vertex = m_centerAABB + m_extentsAABB * boxOffset[i];
 			m_worldMatrix.Mul(vertex); 			
-			v_min.x = min(v_min.x, vertex.x); v_min.y = min(v_min.y, vertex.y); v_min.z = min(v_min.z, vertex.z);
-			v_max.x = max(v_max.x, vertex.x); v_max.y = max(v_max.y, vertex.y); v_max.z = max(v_max.z, vertex.z);
+			if (i == 0) {
+				v_min = vertex; v_max = vertex;
+			}
+			else {
+				v_min.x = min(v_min.x, vertex.x); v_min.y = min(v_min.y, vertex.y); v_min.z = min(v_min.z, vertex.z);
+				v_max.x = max(v_max.x, vertex.x); v_max.y = max(v_max.y, vertex.y); v_max.z = max(v_max.z, vertex.z);
+			}
 		}
+		//TODO ここで毎回やらんでいい
 
-		//TODO リファクタリング
-
+		//視錐台カリング
 		if (!FrustumCulling::AABBTest(GetMainCamera(), v_min, v_max)) { 
 			return;
 		}

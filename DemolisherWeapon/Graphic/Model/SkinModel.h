@@ -220,6 +220,8 @@ public:
 	void SetBoundingBox(const CVector3& min, const CVector3& max) {
 		m_minAABB = min;
 		m_maxAABB = max;
+		m_centerAABB = m_minAABB + m_maxAABB; m_centerAABB /= 2.0f;
+		m_extentsAABB = m_maxAABB - m_centerAABB;
 	}
 	void GetBoundingBox(CVector3& return_min, CVector3& return_max) {
 		return_min = m_minAABB;
@@ -248,7 +250,7 @@ private:
 	*@brief	スケルトンの初期化。
 	*@param[in]	filePath		ロードするcmoファイルのファイルパス。
 	*/
-	void InitSkeleton(const wchar_t* filePath);	
+	bool InitSkeleton(const wchar_t* filePath);	
 	
 private:
 	//定数バッファ。
@@ -310,6 +312,7 @@ private:
 
 	bool m_isFrustumCull = false;//視錐台カリングするか?
 	CVector3 m_minAABB, m_maxAABB;//バウンディングボックス
+	CVector3 m_centerAABB, m_extentsAABB;
 
 	std::function<void(SkinModel*)> m_preDrawFunc = nullptr;//ユーザー設定の処理
 

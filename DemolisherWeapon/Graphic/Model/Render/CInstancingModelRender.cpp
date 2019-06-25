@@ -65,6 +65,8 @@ namespace GameObj {
 		m_model.Init(filePath, animPtr, animPtr ? 1 : 0, fbxUpAxis, fbxCoordinate);
 		//ワールド行列を計算させない
 		m_model.GetSkinModel().SetIsCalcWorldMatrix(false);
+		//視錐台カリングを無効化(こちら側でやる)
+		m_model.GetSkinModel().SetIsFrustumCulling(false);
 		//インスタンシング用頂点シェーダをロード
 		D3D_SHADER_MACRO macros[] = { "INSTANCING", "1", "ALL_VS", "1", NULL, NULL };
 		m_vsShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "INSTANCING", macros);
@@ -89,9 +91,12 @@ namespace GameObj {
 		//描画前にやる処理を設定
 		m_model.GetSkinModel().SetPreDrawFunction(
 			[&](SkinModel*) {
+				//視錐台カリング
+				//TODO
+
 				//シェーダーリソースにワールド行列をセット
-				GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrix, 1, &m_worldMatrixSRV);
-				GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, &m_worldMatrixSRVOld);
+				GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrix, 1, &m_worldMatrixSRV);
+				GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, &m_worldMatrixSRVOld);
 
 				//IInstanceDataの処理実行
 				if (m_instanceData) { m_instanceData->PreDrawUpdate(); }
@@ -121,8 +126,13 @@ namespace GameObj {
 		m_instanceMax = instanceMax;
 		
 		//ワールド行列の確保
-		m_instancingWorldMatrix.reset(new CMatrix[m_instanceMax]);
-		m_instancingWorldMatrixOld.reset(new CMatrix[m_instanceMax]);
+		m_instancingWorldMatrix = std::make_unique<CMatrix[]>(m_instanceMax);
+		m_instancingWorldMatrixOld = std::make_unique<CMatrix[]>(m_instanceMax);
+		//視錐台カリング用
+		m_drawInstanceMask = std::make_unique<bool[]>(m_instanceMax);
+		m_worldMatrixCache = std::make_unique<CMatrix[]>(m_instanceMax);
+		m_worldMatrixOldCache = std::make_unique<CMatrix[]>(m_instanceMax);
+		//TODO
 
 		//StructuredBufferの確保
 		D3D11_BUFFER_DESC desc;
