@@ -5,6 +5,7 @@
 namespace DemolisherWeapon {
 	ImposterTexBank* ImposterTexBank::instance = nullptr;
 
+//インポスターのインスタンシング描画における拡大率を扱うクラス
 	void InstancingImposterScale::Reset(int instancingMaxNum) {
 		m_instanceMax = instancingMaxNum;
 
@@ -54,6 +55,7 @@ namespace DemolisherWeapon {
 		}
 	}
 	
+//インポスターテクスチャ
 	void ImposterTexRender::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
 		//解像度・分割数設定
 		m_gbufferSizeX = (UINT)resolution.x; m_gbufferSizeY = (UINT)resolution.y;
@@ -343,6 +345,7 @@ namespace DemolisherWeapon {
 		GetGraphicsEngine().EndGPUEvent();
 	}
 
+//インポスターテクスチャバンク
 	ImposterTexRender* ImposterTexBank::Load(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
 		int index = Util::MakeHash(filepath);
 		if (m_impTexMap.count(index) > 0) {
@@ -365,6 +368,7 @@ namespace DemolisherWeapon {
 		m_impTexMap.clear();
 	}
 	
+//インポスター
 	void CImposter::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum, int instancingNum) {
 		//テクスチャ生成
 		m_texture = ImposterTexBank::GetInstance().Load(filepath, resolution, partNum);

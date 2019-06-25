@@ -134,12 +134,12 @@ public:
 		m_isShadowDrawReverse = flag;
 	}
 	//シャドウマップ描画前後で行う処理を設定
-	void SetShadowMapPrePost(std::unique_ptr<ShadowMapRender::IPrePost>&& prepost) {
+	/*void SetShadowMapPrePost(std::unique_ptr<ShadowMapRender::IPrePost>&& prepost) {
 		m_shadowMapPrePost = std::move(prepost);
 	}
 	ShadowMapRender::IPrePost* GetShadowMapPrePost()const {
 		return m_shadowMapPrePost.get();
-	}
+	}*/
 
 	//一番奥に描画するか設定
 	void SetIsMostDepth(bool enable) {
@@ -208,7 +208,7 @@ private:
 
 	bool m_animUpdating = false;
 
-	std::unique_ptr<ShadowMapRender::IPrePost> m_shadowMapPrePost;
+	//std::unique_ptr<ShadowMapRender::IPrePost> m_shadowMapPrePost;
 
 	static ID3D11RasterizerState* m_mostDepthRSCw;
 	static ID3D11RasterizerState* m_mostDepthRSCCw;

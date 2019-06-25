@@ -23,7 +23,7 @@ public:
 
 public:
 	//描画前後に行う処理を設定するためのクラス
-	class IPrePost {
+	/*class IPrePost {
 	public:
 		virtual ~IPrePost() {};
 	public:
@@ -31,7 +31,7 @@ public:
 		virtual void PreModelDraw() {};	//モデル達の描画前に行う処理
 		virtual void PostModelDraw() {};//モデル達の描画後に行う処理
 		virtual void PostDraw() {};		//すべてのシャドウマップの描画後に行う処理
-	};
+	};*/
 
 public:
 	//初期化
@@ -48,9 +48,9 @@ public:
 		m_drawModelList[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX)].push_back({ caster, reverse });
 	}
 	//描画前後に行う処理を追加
-	void AddPrePostAction(IPrePost* action) {
-		m_prePostActionList.push_back(action);
-	}
+	//void AddPrePostAction(IPrePost* action) {
+	//	m_prePostActionList.push_back(action);
+	//}
 
 	//シャドウマップをひとつ有効化
 	//UINT width, UINT height ...シャドウマップのサイズ
@@ -120,7 +120,7 @@ private:
 	EnShadowMapMode m_setting = enPCSS;
 
 	std::list<std::pair<SkinModel*,bool>> m_drawModelList[DRAW_PRIORITY_MAX];
-	std::list<IPrePost*> m_prePostActionList;
+	//std::list<IPrePost*> m_prePostActionList;
 
 	CShadowMap m_shadowMaps[SHADOWMAP_NUM];
 };

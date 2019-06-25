@@ -70,7 +70,7 @@ void CSkinModelRender::PostLoopUpdate() {
 
 	if (m_isShadowCaster) {
 		//シャドウマップ描画前後で実行する処理を送る
-		if (m_shadowMapPrePost) { GetGraphicsEngine().GetShadowMapRender().AddPrePostAction(m_shadowMapPrePost.get()); }
+		//if (m_shadowMapPrePost) { GetGraphicsEngine().GetShadowMapRender().AddPrePostAction(m_shadowMapPrePost.get()); }
 		//シャドウマップレンダーにモデル送る
 		AddDrawModelToShadowMapRender(&m_model, m_priority, m_isShadowDrawReverse); 
 	}

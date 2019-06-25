@@ -26,9 +26,9 @@ void ShadowMapRender::Release() {
 void ShadowMapRender::Render() {
 	if (m_setting == enOFF) { return; }
 
-	for (auto& list : m_prePostActionList) {
+	/*for (auto& list : m_prePostActionList) {
 		list->PreDraw();
-	}
+	}*/
 
 	//もともとの状態を保存
 	GameObj::ICamera* oldcam = GetMainCamera();
@@ -45,9 +45,9 @@ void ShadowMapRender::Render() {
 		//描画準備
 		m_shadowMaps[i].PreparePreDraw();
 
-		for (auto& list : m_prePostActionList) {
+		/*for (auto& list : m_prePostActionList) {
 			list->PreModelDraw();
-		}
+		}*/
 
 		//描画
 		for (auto& list : m_drawModelList) {
@@ -56,9 +56,9 @@ void ShadowMapRender::Render() {
 			}
 		}
 
-		for (auto& list : m_prePostActionList) {
+		/*for (auto& list : m_prePostActionList) {
 			list->PostModelDraw();
-		}
+		}*/
 	}	
 
 	//シェーダーを通常に
@@ -73,15 +73,15 @@ void ShadowMapRender::Render() {
 	//レンダーターゲット解除
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
 
-	for (auto& list : m_prePostActionList) {
+	/*for (auto& list : m_prePostActionList) {
 		list->PostDraw();
-	}
+	}*/
 }
 void ShadowMapRender::PostRender() {
 	for (auto& list : m_drawModelList) {
 		list.clear();
 	}
-	m_prePostActionList.clear();
+	//m_prePostActionList.clear();
 }
 
 }
