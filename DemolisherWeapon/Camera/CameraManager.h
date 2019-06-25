@@ -6,7 +6,7 @@ namespace DemolisherWeapon {
 
 namespace GameObj {
 
-class ICamera : public IQSGameObject{//IGameObject{
+class ICamera : public IQSGameObject{
 public:
 	using IQSGameObject::IQSGameObject;
 	virtual ~ICamera();
@@ -17,17 +17,14 @@ public:
 	void PostUpdate()override {
 		UpdateMatrix();
 	}
-	//void PostLoopUpdate()override {
-		//CalcMBlurParameter();
-	//}
 
 	//メインカメラに設定されているか設定
 	//ユーザーは使わないでください
 	void SetIsMainCamera(bool isMainCamera) {
 		m_isMainCamera = isMainCamera;
 	}
-private:
-	bool m_isMainCamera = false;//メインカメラに設定されているか?
+
+private: bool m_isMainCamera = false;//メインカメラに設定されているか?
 
 private:
 	//行列の更新
@@ -62,6 +59,9 @@ private:
 	}
 	virtual void CalcMBlurProjMatrix(CMatrix& projMOld, float rate) = 0;
 
+	//視錐台の6平面の計算
+	void CalcFrustum6Planes();
+
 	//ビルボード行列・クォータニオンの更新
 	void UpdateBillboard();
 
@@ -74,6 +74,8 @@ public:
 		if (isFirstMatrixUpdate) {
 			UpdateOldMatrix();
 		}
+		//8平面の更新
+		CalcFrustum6Planes();
 	};
 
 	//行列の取得
@@ -106,6 +108,26 @@ public:
 	/// <param name="z">カメラからの距離</param>
 	/// <param name="returnPlaneSize">錐台のサイズが返ってくる</param>
 	virtual void GetFrustumPlaneSize(float z, CVector2& returnPlaneSize)const = 0;
+
+	enum Frustum6Plane{
+		enNearPlane,	//近平面
+		enFarPlane,		//遠平面
+		enRightPlane,	//右
+		enLeftPlane,	//左
+		enBottomPlane,	//下
+		enTopPlane,		//上
+		en6PlaneNum,
+	};
+	/// <summary>
+	/// 視錐台の平面を取得
+	/// ※法線は内向き 
+	/// </summary>
+	/// <param name="ind">どの平面か(0～5)</param>
+	/// <returns>視錐台の平面</returns>
+	const Plane& GetFrustumPlane(Frustum6Plane ind) {
+		if (m_change) { UpdateMatrix(); }//必要あれば行列更新
+		return m_planes[ind];
+	}
 
 	//座標等設定
 	void SetPos(const CVector3& v) { m_pos = v; m_change = true; m_isNeedUpdateFront = true; }
@@ -162,6 +184,8 @@ protected:
 	CMatrix m_projMat, m_viewMat;
 	CMatrix m_projMatOld, m_viewMatOld;
 	bool isFirstMatrixUpdate = true;
+
+	Plane m_planes[6];//視錐台の6平面
 
 	//ビルボード行列・クォータニオン
 	CMatrix m_billboardMat;

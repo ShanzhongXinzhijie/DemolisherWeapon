@@ -270,9 +270,11 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="DWVersion.h" />
     <ClInclude Include="Graphic\FrustumCulling.h" />
     <ClInclude Include="Graphic\Billboard\CImposter.h" />
     <ClInclude Include="Graphic\Billboard\CBillboard.h" />
+    <ClInclude Include="math\Plane.h" />
     <ClInclude Include="Render\DepthOfFieldRender.h" />
     <ClInclude Include="Render\BloomRender.h" />
     <ClInclude Include="Graphic\CLine.h" />
@@ -364,6 +366,7 @@
     <ClCompile Include="Graphic\FrustumCulling.cpp" />
     <ClCompile Include="Graphic\Billboard\CImposter.cpp" />
     <ClCompile Include="Graphic\Billboard\CBillboard.cpp" />
+    <ClCompile Include="math\Plane.cpp" />
     <ClCompile Include="Render\DepthOfFieldRender.cpp" />
     <ClCompile Include="Render\BloomRender.cpp" />
     <ClCompile Include="Graphic\CLine.cpp" />

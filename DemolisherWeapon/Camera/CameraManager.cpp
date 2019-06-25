@@ -11,6 +11,67 @@ ICamera::~ICamera() {
 	}
 }
 
+//視錐台の6平面を取得
+void ICamera::CalcFrustum6Planes(){
+	//視錐台の各方向
+	CVector3 vZ = GetMainCamera()->GetFront();
+	CVector3 vX; vX.Cross(GetMainCamera()->GetUp(), vZ);
+	CVector3 vY; vY.Cross(vZ, vX);
+
+	//近平面の高さと幅
+	CVector2 nearPlaneHalf;
+	GetMainCamera()->GetFrustumPlaneSize(GetMainCamera()->GetNear(), nearPlaneHalf);
+	nearPlaneHalf *= 0.5f;
+
+	//遠平面の高さと幅
+	CVector2 farPlaneHalf;
+	GetMainCamera()->GetFrustumPlaneSize(GetMainCamera()->GetFar(), farPlaneHalf);
+	farPlaneHalf *= 0.5f;
+
+	//近・遠平面の中心座標
+	CVector3 nearPlaneCenter = GetMainCamera()->GetPos() + vZ * GetMainCamera()->GetNear();
+	CVector3 farPlaneCenter = GetMainCamera()->GetPos() + vZ * GetMainCamera()->GetFar();
+
+	//視錐台の各平面を求める
+	//※法線は内向き
+	CVector3 a, b, c;
+	for (int i = 0; i < 6; i++) {
+		if (i == 0) {//近平面
+			a = nearPlaneCenter + vX * nearPlaneHalf.x + vY * nearPlaneHalf.y;//++
+			b = nearPlaneCenter + vX * nearPlaneHalf.x - vY * nearPlaneHalf.y;//+-
+			c = nearPlaneCenter - vX * nearPlaneHalf.x + vY * nearPlaneHalf.y;//-+
+		}
+		if (i == 1) {//遠平面
+			a = farPlaneCenter - vX * farPlaneHalf.x + vY * farPlaneHalf.y;//-+
+			b = farPlaneCenter - vX * farPlaneHalf.x - vY * farPlaneHalf.y;//--
+			c = farPlaneCenter + vX * farPlaneHalf.x + vY * farPlaneHalf.y;//++
+		}
+		if (i == 2) {//右
+			a = farPlaneCenter + vX * farPlaneHalf.x + vY * farPlaneHalf.y;
+			b = farPlaneCenter + vX * farPlaneHalf.x - vY * farPlaneHalf.y;
+			c = nearPlaneCenter + vX * nearPlaneHalf.x + vY * nearPlaneHalf.y;
+		}
+		if (i == 3) {//左
+			a = farPlaneCenter - vX * farPlaneHalf.x - vY * farPlaneHalf.y;
+			b = farPlaneCenter - vX * farPlaneHalf.x + vY * farPlaneHalf.y;
+			c = nearPlaneCenter - vX * nearPlaneHalf.x - vY * nearPlaneHalf.y;
+		}
+		if (i == 4) {//下
+			a = farPlaneCenter + vX * farPlaneHalf.x + vY * farPlaneHalf.y;
+			b = nearPlaneCenter + vX * nearPlaneHalf.x + vY * nearPlaneHalf.y;
+			c = farPlaneCenter - vX * farPlaneHalf.x + vY * farPlaneHalf.y;
+		}
+		if (i == 5) {//上
+			a = farPlaneCenter - vX * farPlaneHalf.x - vY * farPlaneHalf.y;
+			b = nearPlaneCenter - vX * nearPlaneHalf.x - vY * nearPlaneHalf.y;
+			c = farPlaneCenter + vX * farPlaneHalf.x - vY * farPlaneHalf.y;
+		}
+
+		m_planes[i].m_normal.Cross(b - a, c - a); m_planes[i].m_normal *= -1.0f; m_planes[i].m_normal.Normalize();//法線
+		m_planes[i].m_position = a;//平面上の一点
+	}
+}
+
 //ワールド座標からスクリーン座標を計算する
 CVector3 ICamera::CalcScreenPosFromWorldPosScreenPos(const CVector3& worldPos)  {
 	CVector3 screenPos = CalcScreenPosFromWorldPos(worldPos);

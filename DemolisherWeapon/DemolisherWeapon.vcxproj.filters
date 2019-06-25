@@ -96,6 +96,8 @@
     <ClInclude Include="Graphic\Billboard\CImposter.h" />
     <ClInclude Include="Graphic\Model\SkinModelEffectShader.h" />
     <ClInclude Include="Graphic\FrustumCulling.h" />
+    <ClInclude Include="DWVersion.h" />
+    <ClInclude Include="math\Plane.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -182,6 +184,7 @@
     <ClCompile Include="Graphic\Billboard\CImposter.cpp" />
     <ClCompile Include="Graphic\Model\SkinModelEffectShader.cpp" />
     <ClCompile Include="Graphic\FrustumCulling.cpp" />
+    <ClCompile Include="math\Plane.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

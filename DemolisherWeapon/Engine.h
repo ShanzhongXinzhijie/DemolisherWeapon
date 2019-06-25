@@ -23,8 +23,6 @@
 
 namespace DemolisherWeapon {
 
-static constexpr wchar_t DW_VER[] = L"ImposterF";//エンジンのバージョン
-
 enum EnSplitScreenMode {
 	enNoSplit=0,
 	enVertical_TwoSplit,
