@@ -14,23 +14,23 @@ ICamera::~ICamera() {
 //視錐台の6平面を取得
 void ICamera::CalcFrustum6Planes(){
 	//視錐台の各方向
-	CVector3 vZ = GetMainCamera()->GetFront();
-	CVector3 vX; vX.Cross(GetMainCamera()->GetUp(), vZ);
+	CVector3 vZ = GetFront();
+	CVector3 vX; vX.Cross(GetUp(), vZ);
 	CVector3 vY; vY.Cross(vZ, vX);
 
 	//近平面の高さと幅
 	CVector2 nearPlaneHalf;
-	GetMainCamera()->GetFrustumPlaneSize(GetMainCamera()->GetNear(), nearPlaneHalf);
+	GetFrustumPlaneSize(GetNear(), nearPlaneHalf);
 	nearPlaneHalf *= 0.5f;
 
 	//遠平面の高さと幅
 	CVector2 farPlaneHalf;
-	GetMainCamera()->GetFrustumPlaneSize(GetMainCamera()->GetFar(), farPlaneHalf);
+	GetFrustumPlaneSize(GetFar(), farPlaneHalf);
 	farPlaneHalf *= 0.5f;
 
 	//近・遠平面の中心座標
-	CVector3 nearPlaneCenter = GetMainCamera()->GetPos() + vZ * GetMainCamera()->GetNear();
-	CVector3 farPlaneCenter = GetMainCamera()->GetPos() + vZ * GetMainCamera()->GetFar();
+	CVector3 nearPlaneCenter = GetPos() + vZ * GetNear();
+	CVector3 farPlaneCenter = GetPos() + vZ * GetFar();
 
 	//視錐台の各平面を求める
 	//※法線は内向き
