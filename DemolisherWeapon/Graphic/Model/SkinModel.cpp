@@ -148,9 +148,11 @@ void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& r
 {
 	if (m_isCalcWorldMatrix) {
 		//ワールド行列を計算
-		CalcWorldMatrix(position, rotation, scale, m_worldMatrix);// , m_SRTMatrix);
+		CalcWorldMatrix(position, rotation, scale, m_worldMatrix);
 		//スケルトンの更新。
 		m_skeleton.Update(m_worldMatrix);
+		//バウンディングボックスを更新
+		UpdateBoundingBoxWithWorldMatrix();
 	}
 	else {
 		//スケルトンの更新。
@@ -170,9 +172,10 @@ void SkinModel::UpdateWorldMatrixTranslation(const CVector3& position, bool Refr
 		//ワールド行列の平行移動部分を設定
 		//※この部分以外↑(UpdateWorldMatrix)と同じ
 		m_worldMatrix.SetTranslation(position);
-		//m_SRTMatrix.SetTranslation(position);
 		//スケルトンの更新。
 		m_skeleton.Update(m_worldMatrix);
+		//バウンディングボックスを更新
+		UpdateBoundingBoxWithWorldMatrix();
 	}
 	else {
 		//スケルトンの更新。
@@ -205,6 +208,34 @@ void SkinModel::CalcSRTMatrix(const CVector3& position, const CQuaternion& rotat
 	returnWorldMatrix.SetTranslation(position);		//平行移動を設定
 }
 
+void SkinModel::UpdateBoundingBoxWithWorldMatrix(){
+	static const CVector3 boxOffset[8] =
+	{
+		{ -1.0f, -1.0f,  1.0f },
+		{  1.0f, -1.0f,  1.0f },
+		{  1.0f,  1.0f,  1.0f },
+		{ -1.0f,  1.0f,  1.0f },
+		{ -1.0f, -1.0f, -1.0f },
+		{  1.0f, -1.0f, -1.0f },
+		{  1.0f,  1.0f, -1.0f },
+		{ -1.0f,  1.0f, -1.0f },
+	};
+
+	//AABBを作る
+	CVector3 vertex;
+	for (int i = 0; i < 8; i++) {
+		vertex = m_centerAABB + m_extentsAABB * boxOffset[i];
+		m_worldMatrix.Mul(vertex);
+		if (i == 0) {
+			m_minAABB = vertex; m_maxAABB = vertex;
+		}
+		else {
+			m_minAABB.x = min(m_minAABB.x, vertex.x); m_minAABB.y = min(m_minAABB.y, vertex.y); m_minAABB.z = min(m_minAABB.z, vertex.z);
+			m_maxAABB.x = max(m_maxAABB.x, vertex.x); m_maxAABB.y = max(m_maxAABB.y, vertex.y); m_maxAABB.z = max(m_maxAABB.z, vertex.z);
+		}
+	}
+}
+
 static const float REFERENCE_FRUSTUM_SIZE = (1.0f / tan(3.14f*0.5f / 2.0f));
 
 void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlendState, ID3D11DepthStencilState* pDepthStencilState)
@@ -221,37 +252,8 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	if (instanceNum*m_instanceNum <= 0) { return; }
 
 	//視錐台カリング
-	//※インスタンス数が1のときのみ
-	if (m_isFrustumCull && instanceNum*m_instanceNum == 1) {
-		static const CVector3 boxOffset[8] =
-		{
-			{ -1.0f, -1.0f,  1.0f },
-			{  1.0f, -1.0f,  1.0f },
-			{  1.0f,  1.0f,  1.0f },
-			{ -1.0f,  1.0f,  1.0f },
-			{ -1.0f, -1.0f, -1.0f },
-			{  1.0f, -1.0f, -1.0f },
-			{  1.0f,  1.0f, -1.0f },
-			{ -1.0f,  1.0f, -1.0f },
-		};
-
-		//AABBを作る
-		CVector3 vertex, v_min, v_max;
-		for (int i = 0; i < 8; i++) {
-			vertex = m_centerAABB + m_extentsAABB * boxOffset[i];
-			m_worldMatrix.Mul(vertex); 			
-			if (i == 0) {
-				v_min = vertex; v_max = vertex;
-			}
-			else {
-				v_min.x = min(v_min.x, vertex.x); v_min.y = min(v_min.y, vertex.y); v_min.z = min(v_min.z, vertex.z);
-				v_max.x = max(v_max.x, vertex.x); v_max.y = max(v_max.y, vertex.y); v_max.z = max(v_max.z, vertex.z);
-			}
-		}
-		//TODO ここで毎回やらんでいい
-
-		//視錐台カリング
-		if (!FrustumCulling::AABBTest(GetMainCamera(), v_min, v_max)) { 
+	if (m_isFrustumCull) {
+		if (!FrustumCulling::AABBTest(GetMainCamera(), m_minAABB, m_maxAABB)) {
 			return;
 		}
 	}

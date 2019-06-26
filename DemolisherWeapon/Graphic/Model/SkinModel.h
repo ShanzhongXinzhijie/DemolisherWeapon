@@ -65,13 +65,6 @@ public:
 	const CMatrix& GetWorldMatrix()const {
 		return m_worldMatrix;
 	}
-	/// <summary>
-	/// ワールド行列の設定
-	/// </summary>
-	/// <param name="mat">設定する行列</param>
-	void SetWorldMatrix(const CMatrix& mat) {
-		m_worldMatrix = mat;
-	}
 
 	/*!
 	*@brief	ボーンを検索。
@@ -218,14 +211,15 @@ public:
 
 	//バウンディングボックスを設定
 	void SetBoundingBox(const CVector3& min, const CVector3& max) {
-		m_minAABB = min;
-		m_maxAABB = max;
-		m_centerAABB = m_minAABB + m_maxAABB; m_centerAABB /= 2.0f;
-		m_extentsAABB = m_maxAABB - m_centerAABB;
+		m_minAABB_Origin = min;
+		m_maxAABB_Origin = max;
+		m_centerAABB = m_minAABB_Origin + m_maxAABB_Origin; m_centerAABB /= 2.0f;
+		m_extentsAABB = m_maxAABB_Origin - m_centerAABB;
 	}
+	//ワールド行列等を適応していないバウンディングボックスを取得
 	void GetBoundingBox(CVector3& return_min, CVector3& return_max) {
-		return_min = m_minAABB;
-		return_max = m_maxAABB;
+		return_min = m_minAABB_Origin;
+		return_max = m_maxAABB_Origin;
 	}
 
 	//描画前に行う処理を設定
@@ -251,6 +245,11 @@ private:
 	*@param[in]	filePath		ロードするcmoファイルのファイルパス。
 	*/
 	bool InitSkeleton(const wchar_t* filePath);	
+
+	/// <summary>
+	/// バウンディングボックスをワールド行列で更新
+	/// </summary>
+	void UpdateBoundingBoxWithWorldMatrix();
 	
 private:
 	//定数バッファ。
@@ -283,7 +282,6 @@ private:
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
 	CMatrix m_biasMatrix;
-	//CMatrix m_SRTMatrix;
 	bool m_isFirstWorldMatRef = true;
 
 	//マテリアル個別設定	
@@ -311,8 +309,11 @@ private:
 	bool m_isCalcWorldMatrix = true;//ワールド行列を計算するか?
 
 	bool m_isFrustumCull = false;//視錐台カリングするか?
-	CVector3 m_minAABB, m_maxAABB;//バウンディングボックス
+	
+	//バウンディングボックス
+	CVector3 m_minAABB_Origin, m_maxAABB_Origin;
 	CVector3 m_centerAABB, m_extentsAABB;
+	CVector3 m_minAABB, m_maxAABB;
 
 	std::function<void(SkinModel*)> m_preDrawFunc = nullptr;//ユーザー設定の処理
 

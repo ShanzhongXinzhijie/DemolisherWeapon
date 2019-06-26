@@ -99,7 +99,8 @@ namespace DemolisherWeapon {
 		SkinModel model;
 		model.Init(filepath);
 		model.UpdateWorldMatrix(0.0f, CQuaternion::Identity(), 1.0f);
-		
+		model.SetIsFrustumCulling(false);//視錐台カリングの無効化
+
 		//バイアス行列取得
 		CMatrix mBias, mBiasScr;
 		CoordinateSystemBias::GetBias(mBias, mBiasScr, enFbxUpAxisZ, enFbxRightHanded);
@@ -418,7 +419,7 @@ namespace DemolisherWeapon {
 		//分割数設定
 		m_billboard.GetModel().GetSkinModel().SetImposterPartNum(m_texture->GetPartNumX(), m_texture->GetPartNumY());
 		
-		//SetPreDrawFunctionの設定
+		//描画前処理の設定
 		if (m_billboard.GetIsInstancing()) {
 			m_billboard.GetInstancingModel().GetInstancingModel()->SetPreDrawFunction([this]() { m_texture->VSSetSizeToCameraSRV(); });
 		}
