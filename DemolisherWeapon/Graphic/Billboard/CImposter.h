@@ -11,8 +11,7 @@ namespace DemolisherWeapon {
 	private:
 		void Reset(int instancingMaxNum);
 	public:
-		void PreDrawUpdate()override;
-		void PostLoopPostUpdate()override;
+		void PreDraw(int instanceNum, int drawInstanceNum, const std::unique_ptr<bool[]>& drawInstanceMask)override;
 		void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale)override;
 
 	public:
@@ -29,7 +28,7 @@ namespace DemolisherWeapon {
 	private:
 		ImposterTexRender* m_texture = nullptr;
 
-		std::unique_ptr<float[]>							m_scales;
+		std::unique_ptr<float[]>							m_scales, m_scalesCache;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_scaleSB;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_scaleSRV;
 		int m_instanceMax = 0;

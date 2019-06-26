@@ -56,31 +56,34 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 				size = meshes->boundingBox.Center;
 				size += extents;
 				if (isFirst) {
-					m_maxAABB = size;
+					m_maxAABB_Origin = size;
 				}
 				else {
-					m_maxAABB.x = max(m_maxAABB.x, size.x);
-					m_maxAABB.y = max(m_maxAABB.y, size.y);
-					m_maxAABB.z = max(m_maxAABB.z, size.z);
+					m_maxAABB_Origin.x = max(m_maxAABB_Origin.x, size.x);
+					m_maxAABB_Origin.y = max(m_maxAABB_Origin.y, size.y);
+					m_maxAABB_Origin.z = max(m_maxAABB_Origin.z, size.z);
 				}
 				//最小値
 				size = meshes->boundingBox.Center;
 				size -= extents;
 				if (isFirst) {
-					m_minAABB = size;
+					m_minAABB_Origin = size;
 				}
 				else {
-					m_minAABB.x = min(m_minAABB.x, size.x);
-					m_minAABB.y = min(m_minAABB.y, size.y);
-					m_minAABB.z = min(m_minAABB.z, size.z);
+					m_minAABB_Origin.x = min(m_minAABB_Origin.x, size.x);
+					m_minAABB_Origin.y = min(m_minAABB_Origin.y, size.y);
+					m_minAABB_Origin.z = min(m_minAABB_Origin.z, size.z);
 				}
 
 				isFirst = false;
 			}
 		);
-		m_centerAABB = m_minAABB + m_maxAABB; m_centerAABB /= 2.0f;
-		m_extentsAABB = m_maxAABB - m_centerAABB;
+		m_centerAABB = m_minAABB_Origin + m_maxAABB_Origin; m_centerAABB /= 2.0f;
+		m_extentsAABB = m_maxAABB_Origin - m_centerAABB;
 	}
+
+	//バウンディングボックス初期化
+	UpdateBoundingBoxWithWorldMatrix();
 
 	//ファイル名記録
 	std::experimental::filesystem::path ps = filePath;
@@ -208,7 +211,7 @@ void SkinModel::CalcSRTMatrix(const CVector3& position, const CQuaternion& rotat
 	returnWorldMatrix.SetTranslation(position);		//平行移動を設定
 }
 
-void SkinModel::UpdateBoundingBoxWithWorldMatrix(){
+void SkinModel::CalcBoundingBoxWithWorldMatrix(const CMatrix& worldMatrix, CVector3& return_aabbMin, CVector3& return_aabbMax) {
 	static const CVector3 boxOffset[8] =
 	{
 		{ -1.0f, -1.0f,  1.0f },
@@ -225,15 +228,18 @@ void SkinModel::UpdateBoundingBoxWithWorldMatrix(){
 	CVector3 vertex;
 	for (int i = 0; i < 8; i++) {
 		vertex = m_centerAABB + m_extentsAABB * boxOffset[i];
-		m_worldMatrix.Mul(vertex);
+		worldMatrix.Mul(vertex);
 		if (i == 0) {
-			m_minAABB = vertex; m_maxAABB = vertex;
+			return_aabbMin = vertex; return_aabbMax = vertex;
 		}
 		else {
-			m_minAABB.x = min(m_minAABB.x, vertex.x); m_minAABB.y = min(m_minAABB.y, vertex.y); m_minAABB.z = min(m_minAABB.z, vertex.z);
-			m_maxAABB.x = max(m_maxAABB.x, vertex.x); m_maxAABB.y = max(m_maxAABB.y, vertex.y); m_maxAABB.z = max(m_maxAABB.z, vertex.z);
+			return_aabbMin.x = min(return_aabbMin.x, vertex.x); return_aabbMin.y = min(return_aabbMin.y, vertex.y); return_aabbMin.z = min(return_aabbMin.z, vertex.z);
+			return_aabbMax.x = max(return_aabbMax.x, vertex.x); return_aabbMax.y = max(return_aabbMax.y, vertex.y); return_aabbMax.z = max(return_aabbMax.z, vertex.z);
 		}
 	}
+}
+void SkinModel::UpdateBoundingBoxWithWorldMatrix(){
+	CalcBoundingBoxWithWorldMatrix(m_worldMatrix, m_minAABB, m_maxAABB);
 }
 
 static const float REFERENCE_FRUSTUM_SIZE = (1.0f / tan(3.14f*0.5f / 2.0f));
@@ -247,6 +253,9 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		return;
 	}
 #endif
+
+	//ユーザー設定のカリング前処理実行
+	if (m_preCullingFunc) { m_preCullingFunc(this); }
 
 	//描画インスタンス数が0
 	if (instanceNum*m_instanceNum <= 0) { return; }
@@ -311,7 +320,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		FindMaterial([&](ModelEffect* mat) { mat->SetDefaultMaterialSetting(); });
 	}
 
-	//ユーザー設定の処理実行
+	//ユーザー設定の描画前処理実行
 	if (m_preDrawFunc) { m_preDrawFunc(this); }
 
 	//描画。

@@ -9,8 +9,11 @@ namespace GameObj {
 	public:
 		InstancingModel() = default;
 		~InstancingModel() { Release(); };
-
-		void PostLoopPostUpdate()override;
+						
+		void PreLoopUpdate()override {
+			//ループ前にインスタンス数のリセット
+			m_instanceNum = 0;
+		}
 
 	public:
 		/// <summary>
@@ -33,7 +36,7 @@ namespace GameObj {
 		void Release() {
 			//インスタンシング用リソースの開放
 			m_instanceMax = 0;
-			m_instanceNum = 0;
+			m_instanceNum = 0; m_instanceDrawNum = 0;
 
 			m_instancingWorldMatrix.reset();
 			if (m_worldMatrixSB) { m_worldMatrixSB->Release(); m_worldMatrixSB = nullptr; }
@@ -41,6 +44,13 @@ namespace GameObj {
 			m_instancingWorldMatrixOld.reset();
 			if (m_worldMatrixSBOld) { m_worldMatrixSBOld->Release(); m_worldMatrixSBOld = nullptr; }
 			if (m_worldMatrixSRVOld) { m_worldMatrixSRVOld->Release(); m_worldMatrixSRVOld = nullptr; }
+
+			m_drawInstanceMask.reset();
+			m_minAABB.reset(); m_maxAABB.reset();
+			m_worldMatrixCache.reset();
+			m_worldMatrixOldCache.reset();
+
+			m_instanceData.reset();
 		}
 
 		//初期化
@@ -56,7 +66,7 @@ namespace GameObj {
 		int  GetInstanceMax()const { return m_instanceMax; }
 
 		//描画インスタンス数の取得
-		int GetDrawInstanceNum()const { return m_instanceDrawNum; }
+		//int GetDrawInstanceNum()const { return m_instanceDrawNum; }
 
 		//モデルの取得
 		GameObj::CSkinModelRender& GetModelRender() { return m_model; }
@@ -67,7 +77,7 @@ namespace GameObj {
 		}
 
 		//このフレームに描画するインスタンスの追加
-		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix, const CVector3& scale) {
+		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix, const CVector3& scale, const CVector3& minAABB, const CVector3& maxAABB) {
 			if (m_instanceNum + 1 >= m_instanceMax) {
 #ifndef DW_MASTER
 				char message[256];
@@ -77,8 +87,11 @@ namespace GameObj {
 				return;
 			}
 
-			m_instancingWorldMatrix[m_instanceNum] = woridMatrix;
-			m_instancingWorldMatrixOld[m_instanceNum] = woridMatrixOld;
+			m_worldMatrixCache[m_instanceNum] = woridMatrix;
+			m_worldMatrixOldCache[m_instanceNum] = woridMatrixOld;
+
+			m_minAABB[m_instanceNum] = minAABB;
+			m_maxAABB[m_instanceNum] = maxAABB;
 
 			//IInstanceDataの処理実行
 			if (m_instanceData) { m_instanceData->AddDrawInstance(m_instanceNum, SRTMatrix, scale); }
@@ -86,6 +99,7 @@ namespace GameObj {
 			m_instanceNum++;
 		}
 
+		/*
 		/// <summary>
 		/// ワールド行列の取得
 		/// </summary>
@@ -105,19 +119,29 @@ namespace GameObj {
 				m_worldMatrixSB, 0, NULL, m_instancingWorldMatrix.get(), 0, 0
 			);
 		}
+		*/
+
+		//視錐台カリングを行うか設定
+		void SetIsFrustumCulling(bool enable) {
+			m_isFrustumCull = enable;
+		}
+		bool GetIsFrustumCulling()const {
+			return m_isFrustumCull;
+		}
 
 		//インスタンスごとのデータを扱う用のインターフェイスクラス 
 		class IInstancesData {
 		public:
 			virtual ~IInstancesData() {};
 		public:
-			//描画前に実行する処理
-			//主にSRVの設定をする
-			virtual void PreDrawUpdate() = 0;
-
-			//PostLoopPostUpdateで実行する処理
-			//主にストラクチャーバッファの更新をする
-			virtual void PostLoopPostUpdate() = 0;
+			/// <summary>
+			/// 描画前に実行する処理
+			/// 主にストラクチャーバッファの更新とSRVの設定をする
+			/// </summary>
+			/// <param name="instanceNum">インスタンス総数</param>
+			/// <param name="drawInstanceNum">描画するインスタンスの数(カリングされなかった物の数)</param>
+			/// <param name="drawInstanceMask">カリングされたインスタンスのマスク(falseになってるやつがカリングされた)</param>
+			virtual void PreDraw(int instanceNum, int drawInstanceNum, const std::unique_ptr<bool[]>& drawInstanceMask) = 0;
 
 			//AddDrawInstanceで実行する処理
 			//主にインスタンスごとのデータを追加する
@@ -157,10 +181,12 @@ namespace GameObj {
 
 		//視錐台カリング用
 		std::unique_ptr<bool[]>		m_drawInstanceMask;
+		std::unique_ptr<CVector3[]> m_minAABB, m_maxAABB;
 		std::unique_ptr<CMatrix[]>	m_worldMatrixCache;
 		std::unique_ptr<CMatrix[]>	m_worldMatrixOldCache;
-		//TODO
-
+		bool m_isFrustumCull = false;//視錐台カリングするか?
+		
+		//ユーザー設定の描画前処理
 		std::function<void()> m_preDrawFunc = nullptr;
 
 		std::unique_ptr<IInstancesData> m_instanceData;
@@ -237,6 +263,9 @@ namespace GameObj {
 			}
 			m_playingAnimNum = 0;
 
+			//バウンディングボックスの初期化
+			m_model[m_playingAnimNum]->GetModelRender().GetSkinModel().CalcBoundingBoxWithWorldMatrix(m_worldMatrix, m_minAABB, m_maxAABB);
+
 			m_isInit = true;
 		}
 		
@@ -256,6 +285,8 @@ namespace GameObj {
 					m_worldMatrix.SetTranslation(m_pos);
 					m_SRTMatrix.SetTranslation(m_pos);
 				}
+				//バウンディングボックスの更新
+				m_model[m_playingAnimNum]->GetModelRender().GetSkinModel().CalcBoundingBoxWithWorldMatrix(m_worldMatrix, m_minAABB, m_maxAABB);
 			}
 
 			//最初のワールド座標更新なら...
@@ -267,7 +298,7 @@ namespace GameObj {
 
 			//インスタンシングモデルに送る
 			if (m_isDraw) {
-				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix, m_scale);
+				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix, m_scale, m_minAABB, m_maxAABB);
 			}
 
 			//更新してなければ
@@ -342,6 +373,7 @@ namespace GameObj {
 		CVector3 m_scale = CVector3::One();
 		CMatrix m_worldMatrix, m_worldMatrixOld;
 		CMatrix m_SRTMatrix;
+		CVector3 m_minAABB, m_maxAABB;
 
 	public:
 		static InstancingModelManager& GetInstancingModelManager() { return m_s_instancingModelManager; }

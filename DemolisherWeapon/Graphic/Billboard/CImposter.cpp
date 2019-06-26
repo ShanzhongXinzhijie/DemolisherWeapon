@@ -11,6 +11,7 @@ namespace DemolisherWeapon {
 
 		//インデックス配列の確保
 		m_scales = std::make_unique<float[]>(instancingMaxNum);
+		m_scalesCache = std::make_unique<float[]>(instancingMaxNum);
 
 		//StructuredBufferの確保
 		D3D11_BUFFER_DESC desc;
@@ -34,20 +35,26 @@ namespace DemolisherWeapon {
 	InstancingImposterScale::InstancingImposterScale(int instancingMaxNum, ImposterTexRender* tex) : m_texture(tex) {
 		Reset(instancingMaxNum);
 	}
-	void InstancingImposterScale::PreDrawUpdate() {
+	void InstancingImposterScale::PreDraw(int instanceNum, int drawInstanceNum, const std::unique_ptr<bool[]>& drawInstanceMask) {
+		//カリングされてないもののみコピー
+		int drawNum = 0;
+		for (int i = 0; i < instanceNum; i++) {
+			if (drawInstanceMask[i]) {
+				m_scales[drawNum] = m_scalesCache[i];
+				drawNum++;
+			}
+		}
+		//StructuredBufferを更新
+		GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
+			m_scaleSB.Get(), 0, NULL, m_scales.get(), 0, 0
+		);
 		//シェーダーリソースにセット
 		GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(
 			enSkinModelSRVReg_InstancingImposterScale, 1, m_scaleSRV.GetAddressOf()
 		);
 	}
-	void InstancingImposterScale::PostLoopPostUpdate() {
-		//StructuredBufferを更新
-		GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-			m_scaleSB.Get(), 0, NULL, m_scales.get(), 0, 0
-		);
-	}
 	void InstancingImposterScale::AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale) {
-		m_scales[instanceNum] = scale.x / (m_texture->GetModelSize()*2.0f);
+		m_scalesCache[instanceNum] = scale.x / (m_texture->GetModelSize()*2.0f);
 	}
 	void InstancingImposterScale::SetInstanceMax(int instanceMax) {
 		if (instanceMax > m_instanceMax) {
@@ -99,7 +106,7 @@ namespace DemolisherWeapon {
 		SkinModel model;
 		model.Init(filepath);
 		model.UpdateWorldMatrix(0.0f, CQuaternion::Identity(), 1.0f);
-		model.SetIsFrustumCulling(false);//視錐台カリングの無効化
+		model.SetIsFrustumCulling(false);//視錐台カリングの無効化//なぜかこれがいる
 
 		//バイアス行列取得
 		CMatrix mBias, mBiasScr;

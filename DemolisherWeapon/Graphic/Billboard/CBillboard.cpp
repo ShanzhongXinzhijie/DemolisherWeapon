@@ -70,6 +70,9 @@ namespace DemolisherWeapon {
 				mat->SetVSZ(&m_vsZShader);
 			}
 		);
+		//バウンディングボックスの設定
+		float size = sqrt(CMath::Square(0.5f) + CMath::Square(0.5f));
+		modelPtr->GetSkinModel().SetBoundingBox({ -size,-size,-size }, { size,size,size });
 
 		//シャドウマップの描画時に面を反転させない
 		modelPtr->SetIsShadowDrawReverse(false);

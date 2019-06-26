@@ -61,10 +61,17 @@ public:
 	/// <summary>
 	/// ワールド行列の取得
 	/// </summary>
-	/// <returns>ワールド行列</returns>
 	const CMatrix& GetWorldMatrix()const {
 		return m_worldMatrix;
 	}
+
+	/// <summary>
+	/// バウンディングボックスを計算(ワールド行列を適応)
+	/// </summary>
+	/// <param name="worldMatrix">ワールド行列</param>
+	/// <param name="return_aabbMin">バウンディングボックスの最小値側が返ってくる</param>
+	/// <param name="return_aabbMax">バウンディングボックスの最大値側が返ってくる</param>
+	void CalcBoundingBoxWithWorldMatrix(const CMatrix& worldMatrix, CVector3& return_aabbMin, CVector3& return_aabbMax);
 
 	/*!
 	*@brief	ボーンを検索。
@@ -208,6 +215,9 @@ public:
 	void SetIsFrustumCulling(bool enable) {
 		m_isFrustumCull = enable;
 	}
+	bool GetIsFrustumCulling()const {
+		return m_isFrustumCull;
+	}
 
 	//バウンディングボックスを設定
 	void SetBoundingBox(const CVector3& min, const CVector3& max) {
@@ -215,13 +225,19 @@ public:
 		m_maxAABB_Origin = max;
 		m_centerAABB = m_minAABB_Origin + m_maxAABB_Origin; m_centerAABB /= 2.0f;
 		m_extentsAABB = m_maxAABB_Origin - m_centerAABB;
+		//バウンディングボックス初期化
+		UpdateBoundingBoxWithWorldMatrix();
 	}
 	//ワールド行列等を適応していないバウンディングボックスを取得
-	void GetBoundingBox(CVector3& return_min, CVector3& return_max) {
+	void GetBoundingBox(CVector3& return_min, CVector3& return_max)const {
 		return_min = m_minAABB_Origin;
 		return_max = m_maxAABB_Origin;
 	}
 
+	//カリング前に行う処理を設定
+	void SetPreCullingFunction(std::function<void(SkinModel*)> func) {
+		m_preCullingFunc = func;
+	}
 	//描画前に行う処理を設定
 	void SetPreDrawFunction(std::function<void(SkinModel*)> func) {
 		m_preDrawFunc = func;
@@ -315,7 +331,9 @@ private:
 	CVector3 m_centerAABB, m_extentsAABB;
 	CVector3 m_minAABB, m_maxAABB;
 
-	std::function<void(SkinModel*)> m_preDrawFunc = nullptr;//ユーザー設定の処理
+	//ユーザー設定の処理
+	std::function<void(SkinModel*)> m_preCullingFunc = nullptr;//カリング前に実行
+	std::function<void(SkinModel*)> m_preDrawFunc = nullptr;//描画前に実行
 
 	static SkinModelDataManager m_skinModelDataManager;
 };
