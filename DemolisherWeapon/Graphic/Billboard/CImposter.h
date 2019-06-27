@@ -5,14 +5,19 @@ namespace DemolisherWeapon {
 	class ImposterTexRender;
 
 	/// <summary>
-	/// インポスターのインスタンシング描画における拡大率を扱うクラス
+	/// インポスターのインスタンシング描画におけるパラメータを扱うクラス
 	/// </summary>
-	class InstancingImposterScale : public GameObj::InstancingModel::IInstancesData {
+	class InstancingImposterParamManager : public GameObj::InstancingModel::IInstancesData {
 	private:
+		//再確保
 		void Reset(int instancingMaxNum);
+		//角度を追加
+		void AddRotY(int instanceNum, float rad);
+
 	public:
 		void PreDraw(int instanceNum, int drawInstanceNum, const std::unique_ptr<bool[]>& drawInstanceMask)override;
-		void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale)override;
+		void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale, void *param)override;
+		void SetInstanceMax(int instanceMax)override;
 
 	public:
 		/// <summary>
@@ -20,17 +25,16 @@ namespace DemolisherWeapon {
 		/// </summary>
 		/// <param name="instancingMaxNum">インスタンス最大数</param>
 		/// <param name="tex">インポスターテクスチャ</param>
-		InstancingImposterScale(int instancingMaxNum, ImposterTexRender* tex);
-
-		//インスタンス最大数を設定
-		void SetInstanceMax(int instanceMax)override;
+		InstancingImposterParamManager(int instancingMaxNum, ImposterTexRender* tex);		
 
 	private:
 		ImposterTexRender* m_texture = nullptr;
 
-		std::unique_ptr<float[]>							m_scales, m_scalesCache;
-		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_scaleSB;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_scaleSRV;
+		//パラメータ(x:スケール,y:Y軸回転
+		std::unique_ptr<float[][2]>							m_params, m_paramsCache;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_paramsSB;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_paramsSRV;
+
 		int m_instanceMax = 0;
 	};
 
@@ -190,7 +194,12 @@ namespace DemolisherWeapon {
 		void SetScale(float scale) {
 			m_scale = scale;
 			m_billboard.SetScale(m_scale * m_texture->GetModelSize()*2.0f);
-			m_billboard.GetModel().GetSkinModel().SetImposterScale(m_scale);
+			m_billboard.GetModel().GetSkinModel().SetImposterParameter(m_scale, m_rotYrad);
+		}
+		//Y軸回転角度
+		void SetRotY(float rad) {
+			m_rotYrad = rad;
+			m_billboard.GetModel().GetSkinModel().SetImposterParameter(m_scale, m_rotYrad);			
 		}
 
 		//座標・拡大の取得
@@ -212,10 +221,11 @@ namespace DemolisherWeapon {
 		ImposterTexRender* m_texture = nullptr;
 		//ビルボード
 		CBillboard m_billboard;
-		SkinModelEffectShader m_billboardPS;
+		SkinModelEffectShader m_imposterPS;
 		Shader m_zShader, m_vsShader, m_vsZShader;
+
 		CVector3 m_pos;
-		float m_scale = 1.0f;
+		float m_scale = 1.0f, m_rotYrad = 0.0f;
 	};
 	
 }

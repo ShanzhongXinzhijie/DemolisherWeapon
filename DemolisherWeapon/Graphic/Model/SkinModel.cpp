@@ -292,8 +292,9 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	//インポスター分割数
 	vsCb.imposterPartNum[0] = m_imposterPartNum[0];
 	vsCb.imposterPartNum[1] = m_imposterPartNum[1];
-	//インポスタースケール
-	vsCb.imposterScale = m_imposterScale;
+	//インポスターParameter
+	vsCb.imposterParameter[0] = m_imposterScale;//スケール
+	vsCb.imposterParameter[1] = m_imposterRotY;//Y軸回転
 
 	//定数バッファ更新
 	d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);

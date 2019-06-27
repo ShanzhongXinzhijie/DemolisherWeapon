@@ -6,12 +6,12 @@ namespace DemolisherWeapon {
 	ImposterTexBank* ImposterTexBank::instance = nullptr;
 
 //インポスターのインスタンシング描画における拡大率を扱うクラス
-	void InstancingImposterScale::Reset(int instancingMaxNum) {
+	void InstancingImposterParamManager::Reset(int instancingMaxNum) {
 		m_instanceMax = instancingMaxNum;
 
 		//インデックス配列の確保
-		m_scales = std::make_unique<float[]>(instancingMaxNum);
-		m_scalesCache = std::make_unique<float[]>(instancingMaxNum);
+		m_params = std::make_unique<float[][2]>(instancingMaxNum);
+		m_paramsCache = std::make_unique<float[][2]>(instancingMaxNum);
 
 		//StructuredBufferの確保
 		D3D11_BUFFER_DESC desc;
@@ -21,7 +21,7 @@ namespace DemolisherWeapon {
 		desc.ByteWidth = static_cast<UINT>(stride * instancingMaxNum);
 		desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 		desc.StructureByteStride = stride;
-		GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, m_scaleSB.ReleaseAndGetAddressOf());
+		GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, m_paramsSB.ReleaseAndGetAddressOf());
 
 		//ShaderResourceViewの確保
 		D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
@@ -30,33 +30,38 @@ namespace DemolisherWeapon {
 		descSRV.BufferEx.FirstElement = 0;
 		descSRV.Format = DXGI_FORMAT_UNKNOWN;
 		descSRV.BufferEx.NumElements = desc.ByteWidth / desc.StructureByteStride;
-		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_scaleSB.Get(), &descSRV, m_scaleSRV.ReleaseAndGetAddressOf());
+		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_paramsSB.Get(), &descSRV, m_paramsSRV.ReleaseAndGetAddressOf());
 	}
-	InstancingImposterScale::InstancingImposterScale(int instancingMaxNum, ImposterTexRender* tex) : m_texture(tex) {
+	InstancingImposterParamManager::InstancingImposterParamManager(int instancingMaxNum, ImposterTexRender* tex) : m_texture(tex) {
 		Reset(instancingMaxNum);
 	}
-	void InstancingImposterScale::PreDraw(int instanceNum, int drawInstanceNum, const std::unique_ptr<bool[]>& drawInstanceMask) {
+	void InstancingImposterParamManager::PreDraw(int instanceNum, int drawInstanceNum, const std::unique_ptr<bool[]>& drawInstanceMask) {
 		//カリングされてないもののみコピー
 		int drawNum = 0;
 		for (int i = 0; i < instanceNum; i++) {
 			if (drawInstanceMask[i]) {
-				m_scales[drawNum] = m_scalesCache[i];
+				m_params[drawNum][0] = m_paramsCache[i][0];
+				m_params[drawNum][1] = m_paramsCache[i][1];
 				drawNum++;
 			}
 		}
 		//StructuredBufferを更新
 		GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-			m_scaleSB.Get(), 0, NULL, m_scales.get(), 0, 0
+			m_paramsSB.Get(), 0, NULL, m_params.get(), 0, 0
 		);
 		//シェーダーリソースにセット
 		GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(
-			enSkinModelSRVReg_InstancingImposterScale, 1, m_scaleSRV.GetAddressOf()
+			enSkinModelSRVReg_InstancingImposterScale, 1, m_paramsSRV.GetAddressOf()
 		);
 	}
-	void InstancingImposterScale::AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale) {
-		m_scalesCache[instanceNum] = scale.x / (m_texture->GetModelSize()*2.0f);
+	void InstancingImposterParamManager::AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale, void *param) {
+		m_paramsCache[instanceNum][0] = scale.x / (m_texture->GetModelSize()*2.0f);
+		AddRotY(instanceNum, *(float*)param);
 	}
-	void InstancingImposterScale::SetInstanceMax(int instanceMax) {
+	void InstancingImposterParamManager::AddRotY(int instanceNum, float rad) {
+		m_paramsCache[instanceNum][1] = rad;
+	}
+	void InstancingImposterParamManager::SetInstanceMax(int instanceMax) {
 		if (instanceMax > m_instanceMax) {
 			Reset(instanceMax);
 		}
@@ -395,7 +400,7 @@ namespace DemolisherWeapon {
 				"INSTANCING", "1",
 				NULL, NULL
 			};
-			m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS, "INSTANCING", macros);
+			m_imposterPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS, "INSTANCING", macros);
 			
 			D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1","INSTANCING", "1", NULL, NULL };
 			m_zShader.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderZ", Shader::EnType::PS, "TEXTURE_INSTANCING", macrosZ);
@@ -405,7 +410,7 @@ namespace DemolisherWeapon {
 			m_vsShader.Load("Preset/shader/Imposter.fx", "VSMain_Imposter", Shader::EnType::VS, "NORMAL", macrosVS);
 			m_vsZShader.Load("Preset/shader/Imposter.fx", "VSMain_RenderZ_Imposter", Shader::EnType::VS, "NORMAL", macrosVS);
 
-			m_billboardPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
+			m_imposterPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
 			
 			D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1", NULL, NULL };
 			m_zShader.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderZ", Shader::EnType::PS, "TEXTURE", macrosZ);
@@ -418,7 +423,7 @@ namespace DemolisherWeapon {
 				mat->SetLightingTexture(m_texture->GetSRV(ImposterTexRender::enGBufferLightParam));
 				mat->SetVS(&m_vsShader);
 				mat->SetVSZ(&m_vsZShader);
-				mat->SetPS(&m_billboardPS);
+				mat->SetPS(&m_imposterPS);
 				mat->SetPSZ(&m_zShader);
 			}
 		);
@@ -434,11 +439,16 @@ namespace DemolisherWeapon {
 			m_billboard.GetModel().GetSkinModel().SetPreDrawFunction([this](SkinModel*) { m_texture->VSSetSizeToCameraSRV(); });
 		}
 
-		//IInstanceDataを設定
+		//インスタンシング
 		if (m_billboard.GetIsInstancing()) {
+			//IInstanceDataを設定
 			if (!m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData()) {
 				//新規作成
-				m_billboard.GetInstancingModel().GetInstancingModel()->SetIInstanceData(std::make_unique<InstancingImposterScale>(m_billboard.GetInstancingModel().GetInstancingModel()->GetInstanceMax(), m_texture));
+				m_billboard.GetInstancingModel().GetInstancingModel()->SetIInstanceData(std::make_unique<InstancingImposterParamManager>(m_billboard.GetInstancingModel().GetInstancingModel()->GetInstanceMax(), m_texture));
+			}
+			//Y軸回転値のポインタを設定
+			if (m_billboard.GetIsInstancing()) {
+				m_billboard.GetInstancingModel().SetParamPtr(&m_rotYrad);
 			}
 		}
 
@@ -447,7 +457,6 @@ namespace DemolisherWeapon {
 
 		m_isInit = true;
 	}
-	//TODO Y軸オフセット(ラジアンで)(インポスター) 
 
 	/*
 	void CImposter::CalcWorldMatrixAndIndex(bool isShadowDrawMode, const SkinModel& model, const ImposterTexRender& texture, const CVector3& pos, float scale, CVector3& position_return, CQuaternion& rotation_return, float& scale_return, int& index_x, int& index_y) {

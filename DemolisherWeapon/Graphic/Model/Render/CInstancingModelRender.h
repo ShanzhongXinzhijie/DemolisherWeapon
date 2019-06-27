@@ -77,7 +77,7 @@ namespace GameObj {
 		}
 
 		//このフレームに描画するインスタンスの追加
-		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix, const CVector3& scale, const CVector3& minAABB, const CVector3& maxAABB) {
+		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix, const CVector3& scale, const CVector3& minAABB, const CVector3& maxAABB, void *param_ptr) {
 			if (m_instanceNum + 1 >= m_instanceMax) {
 #ifndef DW_MASTER
 				char message[256];
@@ -94,7 +94,7 @@ namespace GameObj {
 			m_maxAABB[m_instanceNum] = maxAABB;
 
 			//IInstanceDataの処理実行
-			if (m_instanceData) { m_instanceData->AddDrawInstance(m_instanceNum, SRTMatrix, scale); }
+			if (m_instanceData) { m_instanceData->AddDrawInstance(m_instanceNum, SRTMatrix, scale, param_ptr); }
 
 			m_instanceNum++;
 		}
@@ -145,7 +145,7 @@ namespace GameObj {
 
 			//AddDrawInstanceで実行する処理
 			//主にインスタンスごとのデータを追加する
-			virtual void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale) {}
+			virtual void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale, void *param) {}
 
 			//SetInstanceMaxで実行する処理
 			//インスタンス最大数を設定
@@ -298,7 +298,7 @@ namespace GameObj {
 
 			//インスタンシングモデルに送る
 			if (m_isDraw) {
-				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix, m_scale, m_minAABB, m_maxAABB);
+				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix, m_scale, m_minAABB, m_maxAABB, m_ptrParam);
 			}
 
 			//更新してなければ
@@ -358,6 +358,11 @@ namespace GameObj {
 		InstancingModel* GetInstancingModel(int num) { return m_model[num]; }
 		InstancingModel* GetInstancingModel() { return GetInstancingModel(m_playingAnimNum); }
 
+		//パラメータのポインタ設定
+		void SetParamPtr(void* ptrParam) {
+			m_ptrParam = ptrParam;
+		}
+
 	private:
 		bool m_isInit = false;
 		bool m_isDraw = true;
@@ -374,6 +379,8 @@ namespace GameObj {
 		CMatrix m_worldMatrix, m_worldMatrixOld;
 		CMatrix m_SRTMatrix;
 		CVector3 m_minAABB, m_maxAABB;
+
+		void* m_ptrParam = nullptr;
 
 	public:
 		static InstancingModelManager& GetInstancingModelManager() { return m_s_instancingModelManager; }

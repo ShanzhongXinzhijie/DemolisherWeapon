@@ -79,7 +79,7 @@ cbuffer VSPSCb : register(b0){
 
 	//インポスター用
 	int2 imposterPartNum;//分割数
-	float imposterScale;//スケール
+	float2 imposterParameter;//x:スケール,y:Y軸回転
 };
 
 //定数バッファ　[MaterialSetting.h:MaterialParam]
