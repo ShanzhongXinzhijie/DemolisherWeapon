@@ -43,7 +43,7 @@ public:
 	bool GetUp(enXInputButton button) const;//このフレームに離された？
 
 	//スティック入力値取得
-	CVector2 GetStick(enLR lr) const{
+	const CVector2& GetStick(enLR lr) const{
 		if (!m_state.isConnect) { return CVector2::Zero(); }
 		return m_state.m_stick[lr];
 	}

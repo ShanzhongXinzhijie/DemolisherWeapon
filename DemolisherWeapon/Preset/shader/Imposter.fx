@@ -71,7 +71,7 @@ void CalcImposter(out int2 out_index, out float4x4 out_rotMat, out float3 out_of
 	float XRot = atan2(axisDir.y, axisDir.x);
 
 	//アーティファクト軽減
-	XRot += PI / imposterPartNum.y * antiArtifact;
+	XRot += PI / 17.0f * antiArtifact;
 
 	out_index.y = (int)round(XRot / PI * imposterPartNum.y) - (int)(imposterPartNum.y / 2.0f - 0.5f);
 
@@ -79,7 +79,7 @@ void CalcImposter(out int2 out_index, out float4x4 out_rotMat, out float3 out_of
 	float YRot = atan2(polyDir.x, polyDir.z);	
 
 	//アーティファクト軽減
-	YRot += PI2 / imposterPartNum.x * antiArtifact;
+	YRot += PI2 / 34.0f * antiArtifact;
 //#if defined(INSTANCING)
 //	YRot += PI2 / imposterPartNum.x * InstancingImposterParam[instanceID].y*0.07f;
 //#else

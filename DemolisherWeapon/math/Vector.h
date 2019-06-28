@@ -200,12 +200,12 @@ public:
 		x = v0.x + (v1.x - v0.x) * t;
 		y = v0.y + (v1.y - v0.y) * t;
 	}
-	static CVector2 Zero()
+	static const CVector2& Zero()
 	{
 		static const CVector2 zero = { 0.0f,  0.0f };
 		return zero;
 	}
-	static CVector2 One()
+	static const CVector2& One()
 	{
 		static const CVector2 one = { 1.0f,  1.0f };
 		return one;
@@ -573,57 +573,57 @@ public:
 		return *this;
 	}
 public:
-	static CVector3 Zero()
+	static const CVector3& Zero()
 	{
 		static const CVector3 zero = { 0.0f,  0.0f,  0.0f };
 		return zero;
 	}
-	static CVector3 Right()
+	static const CVector3& Right()
 	{
 		static const CVector3 right = { 1.0f,  0.0f,  0.0f };
 		return right;
 	}
-	static CVector3 Left()
+	static const CVector3& Left()
 	{
 		static const CVector3 left = { -1.0f,  0.0f,  0.0f };
 		return left;
 	}
-	static CVector3 Up()
+	static const CVector3& Up()
 	{
 		static const CVector3 up = { 0.0f,  1.0f,  0.0f };
 		return up;
 	}
-	static CVector3 Down()
+	static const CVector3& Down()
 	{
 		static const CVector3 down = { 0.0f, -1.0f,  0.0f };
 		return down;
 	}
-	static CVector3 Front()
+	static const CVector3& Front()
 	{
 		static const CVector3 front = { 0.0f,   0.0f,  1.0f };
 		return front;
 	}
-	static CVector3 Back()
+	static const CVector3& Back()
 	{
 		static const CVector3 back = { 0.0f,   0.0f, -1.0f };
 		return back;
 	}
-	static CVector3 AxisX()
+	static const CVector3& AxisX()
 	{
 		static const CVector3 axisX = { 1.0f,  0.0f,  0.0f };
 		return axisX;
 	}
-	static CVector3 AxisY()
+	static const CVector3& AxisY()
 	{
 		static const CVector3 axisY = { 0.0f,  1.0f,  0.0f };
 		return axisY;
 	}
-	static CVector3 AxisZ()
+	static const CVector3& AxisZ()
 	{
 		static const CVector3 axisZ = { 0.0f,  0.0f,  1.0f };
 		return axisZ;
 	}
-	static CVector3 One()
+	static const CVector3& One()
 	{
 		static const CVector3 one = { 1.0f, 1.0f, 1.0f };
 		return one;
@@ -864,15 +864,15 @@ public:
 		return *this;
 	}
 
-	static CVector4 White()
+	static const CVector4& White()
 	{
 		static const CVector4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
 		return white;
 	}
-	static inline CVector4 One() {
+	static inline const CVector4& One() {
 		return White();
 	}
-	static CVector4 Zero()
+	static const CVector4& Zero()
 	{
 		static const CVector4 zero = { 0.0f,  0.0f,  0.0f ,  0.0f };
 		return zero;
@@ -1055,7 +1055,7 @@ public:
 		return *this;
 	}
 
-	static CQuaternion Identity()
+	static const CQuaternion& Identity()
 	{
 		static const CQuaternion identity = { 0.0f,  0.0f, 0.0f, 1.0f };
 		return identity;
