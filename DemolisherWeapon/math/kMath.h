@@ -12,7 +12,8 @@ class CMath{
 public:
 	//‰~ü—¦
 	static constexpr float PI = 3.14159265358979323846f;
-	static constexpr float PI2 = PI*2.0f;
+	static constexpr float PI_HALF = PI / 2.0f;
+	static constexpr float PI2 = PI * 2.0f;
 
 	/*!
 	 * @brief	degree‚©‚çradian‚É•ÏŠ·B
