@@ -208,4 +208,7 @@
     <CustomBuild Include="Preset\shader\Imposter.fx" />
     <CustomBuild Include="Preset\shader\billboard.fx" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Preset\sprite\ditherTex.png" />
+  </ItemGroup>
 </Project>

@@ -234,6 +234,11 @@ public:
 		return_min = m_minAABB_Origin;
 		return_max = m_maxAABB_Origin;
 	}
+	//ワールド行列等適応したバウンディングボックスを取得
+	void GetUpdatedBoundingBox(CVector3& return_min, CVector3& return_max)const {
+		return_min = m_minAABB;
+		return_max = m_maxAABB;
+	}
 
 	//カリング前に行う処理を設定
 	void SetPreCullingFunction(std::function<void(SkinModel*)> func) {

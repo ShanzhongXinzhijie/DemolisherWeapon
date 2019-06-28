@@ -118,21 +118,13 @@ public:
 	}
 
 	//描画を行うか設定
-	void SetIsDraw(bool flag) {
-		m_isDraw = flag;
-	}
-	bool GetIsDraw() const{
-		return m_isDraw;
-	}
+	void SetIsDraw(bool flag) { m_isDraw = flag; }
+	bool GetIsDraw() const { return m_isDraw; }
 
 	//シャドウマップへの描画を行うか設定
-	void SetIsShadowCaster(bool flag){
-		m_isShadowCaster = flag;
-	}
+	void SetIsShadowCaster(bool flag) { m_isShadowCaster = flag; }
 	//シャドウマップの描画時に面を反転させるか設定
-	void SetIsShadowDrawReverse(bool flag) {
-		m_isShadowDrawReverse = flag;
-	}
+	void SetIsShadowDrawReverse(bool flag) { m_isShadowDrawReverse = flag; }
 	//シャドウマップ描画前後で行う処理を設定
 	/*void SetShadowMapPrePost(std::unique_ptr<ShadowMapRender::IPrePost>&& prepost) {
 		m_shadowMapPrePost = std::move(prepost);
@@ -140,6 +132,9 @@ public:
 	ShadowMapRender::IPrePost* GetShadowMapPrePost()const {
 		return m_shadowMapPrePost.get();
 	}*/
+
+	//バウンディングボックスを表示するか設定
+	void SetIsDrawBoundingBox(bool enable) { m_isDrawBoundingBox = enable; }
 
 	//一番奥に描画するか設定
 	void SetIsMostDepth(bool enable) {
@@ -201,6 +196,7 @@ private:
 	bool m_isDraw = true;				//表示するか
 	bool m_isShadowCaster = true;		//シャドウマップに書き込むか
 	bool m_isShadowDrawReverse = true;	//シャドウマップ描画時に面を反転させるか?
+	bool m_isDrawBoundingBox = false;	//バウンディングボックスを表示するか?
 
 	bool m_isUpdated = false;			//アップデート済みか?
 	bool m_isUpdatedWorldMatrix = false;//ワールド行列更新済みか?
