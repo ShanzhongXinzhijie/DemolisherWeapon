@@ -15,8 +15,8 @@ ICamera::~ICamera() {
 void ICamera::CalcFrustum6Planes(){
 	//‹‘ä‚ÌŠe•ûŒü
 	CVector3 vZ = GetFront();
-	CVector3 vX; vX.Cross(GetUp(), vZ);
-	CVector3 vY; vY.Cross(vZ, vX);
+	CVector3 vX; vX.Cross(GetUp(), vZ);//‰E•ûŒü
+	CVector3 vY; vY.Cross(vZ, vX);//ã•ûŒü
 
 	//‹ß•½–Ê‚Ì‚‚³‚Æ•
 	CVector2 nearPlaneHalf;
@@ -56,12 +56,12 @@ void ICamera::CalcFrustum6Planes(){
 			b = farPlaneCenter - vX * farPlaneHalf.x + vY * farPlaneHalf.y;
 			c = nearPlaneCenter - vX * nearPlaneHalf.x - vY * nearPlaneHalf.y;
 		}
-		if (i == 4) {//‰º
+		if (i == 5) {//ã
 			a = farPlaneCenter + vX * farPlaneHalf.x + vY * farPlaneHalf.y;
 			b = nearPlaneCenter + vX * nearPlaneHalf.x + vY * nearPlaneHalf.y;
 			c = farPlaneCenter - vX * farPlaneHalf.x + vY * farPlaneHalf.y;
 		}
-		if (i == 5) {//ã
+		if (i == 4) {//‰º
 			a = farPlaneCenter - vX * farPlaneHalf.x - vY * farPlaneHalf.y;
 			b = nearPlaneCenter - vX * nearPlaneHalf.x - vY * nearPlaneHalf.y;
 			c = farPlaneCenter + vX * farPlaneHalf.x - vY * farPlaneHalf.y;
