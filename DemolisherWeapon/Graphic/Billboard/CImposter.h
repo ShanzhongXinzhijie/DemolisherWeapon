@@ -198,7 +198,9 @@ namespace DemolisherWeapon {
 		}
 		//YŽ²‰ñ“]Šp“x
 		void SetRotY(float rad) {
-			m_rotYrad = rad;
+			m_rotYrad = rad; 
+			if (m_rotYrad < -CMath::PI2) { m_rotYrad += CMath::PI2; }
+			if (m_rotYrad > CMath::PI2) { m_rotYrad -= CMath::PI2; }
 			m_billboard.GetModel().GetSkinModel().SetImposterParameter(m_scale, m_rotYrad);			
 		}
 

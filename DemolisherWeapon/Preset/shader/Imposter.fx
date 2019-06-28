@@ -60,16 +60,32 @@ void CalcImposter(out int2 out_index, out float4x4 out_rotMat, out float3 out_of
 	float3 pos = float3(mWorld._m03, mWorld._m13, mWorld._m23);
 #endif
 
+	//アーティファクト軽減
+	float antiArtifact = (int)(pos.x + pos.y + pos.z)%100*0.005f;
+
 	//インポスター用インデックス計算
 	float3 polyDir = normalize(camWorldPos - pos);
 
 	//X軸回転
 	float3 axisDir = polyDir; axisDir.x = length(float2(polyDir.x, polyDir.z));
 	float XRot = atan2(axisDir.y, axisDir.x);
+
+	//アーティファクト軽減
+	XRot += PI / imposterPartNum.y * antiArtifact;
+
 	out_index.y = (int)round(XRot / PI * imposterPartNum.y) - (int)(imposterPartNum.y / 2.0f - 0.5f);
 
 	//Y軸回転		
 	float YRot = atan2(polyDir.x, polyDir.z);	
+
+	//アーティファクト軽減
+	YRot += PI2 / imposterPartNum.x * antiArtifact;
+//#if defined(INSTANCING)
+//	YRot += PI2 / imposterPartNum.x * InstancingImposterParam[instanceID].y*0.07f;
+//#else
+//	YRot += PI2 / imposterPartNum.x * imposterParameter.y*0.07f;
+//#endif
+
 	out_index.x = (int)round(-YRot / PI2 * imposterPartNum.x) + (int)(imposterPartNum.x / 2.0f - 0.5f);
 
 	//回転		
