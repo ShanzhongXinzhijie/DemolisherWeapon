@@ -66,7 +66,7 @@ LRESULT CALLBACK Engine::MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 ///////////////////////////////////////////////////////////////////
 // ウィンドウの初期化。
 ///////////////////////////////////////////////////////////////////
-void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, int winSizeW, int winSizeH)
+void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, const InitEngineParameter& initParam)
 {
 	//ウィンドウクラスのパラメータを設定(単なる構造体の変数の初期化です。)
 	WNDCLASSEX wc =
@@ -98,19 +98,35 @@ void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpC
 		appName,									//使用するウィンドウクラスの名前。
 													//先ほど作成したウィンドウクラスと同じ名前にする。
 		appName,									//ウィンドウの名前。ウィンドウクラスの名前と別名でもよい。
-		WS_OVERLAPPEDWINDOW,						//ウィンドウスタイル。ゲームでは基本的にWS_OVERLAPPEDWINDOWでいい、
-		(rect.left + rect.right) / 2 - winSizeW / 2,//ウィンドウの初期X座標。
-		(rect.top + rect.bottom) / 2 - winSizeH / 2,//ウィンドウの初期Y座標。
-		winSizeW,									//ウィンドウの幅。
-		winSizeH,									//ウィンドウの高さ。
+		initParam.windowStyle,						//ウィンドウスタイル。ゲームでは基本的にWS_OVERLAPPEDWINDOWでいい、
+		(rect.left + rect.right) / 2 - initParam.screenWidth / 2,	//ウィンドウの初期X座標。
+		(rect.top + rect.bottom) / 2 - initParam.screenHeight / 2,	//ウィンドウの初期Y座標。
+		initParam.screenWidth,						//ウィンドウの幅。
+		initParam.screenHeight,						//ウィンドウの高さ。
 		NULL,										//親ウィンドウ。ゲームでは基本的にNULLでいい。
 		NULL,										//メニュー。今はNULLでいい。
 		hInstance,									//アプリケーションのインスタンス。
 		NULL
 	);
 
+	//タイトルバーを含んだウィンドウサイズ算出
+	RECT rx; //ウィンドウ領域
+	RECT cx; //クライアント領域
+	GetWindowRect(m_hWnd, &rx);
+	GetClientRect(m_hWnd, &cx);
+	const int new_width = initParam.screenWidth + (rx.right - rx.left) - (cx.right - cx.left);
+	const int new_height = initParam.screenHeight + (rx.bottom - rx.top) - (cx.bottom - cx.top);
+	
+	//ウィンドウ位置・サイズ再設定
+	SetWindowPos(m_hWnd, NULL, 
+		(rect.left + rect.right) / 2 - new_width / 2,
+		(rect.top + rect.bottom) / 2 - new_height / 2,
+		new_width, new_height, NULL);
+
+	//ウィンドウ表示
 	ShowWindow(m_hWnd, nCmdShow);
 
+	//ウィンドウ情報の更新
 	UpdateWindow();
 }
 
@@ -119,7 +135,7 @@ void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpC
 void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, InitEngineParameter initParam)
 {
 	//ウィンドウを初期化。
-	InitWindow(hInstance, hPrevInstance, lpCmdLine, nCmdShow, appName, initParam.screenWidth, initParam.screenHeight);
+	InitWindow(hInstance, hPrevInstance, lpCmdLine, nCmdShow, appName, initParam);
 
 	//Bulletの初期化
 	m_physics.Init();

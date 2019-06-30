@@ -31,10 +31,13 @@ enum EnSplitScreenMode {
 
 struct InitEngineParameter {
 	float SDUnityChanScale = 1.0f;	//SDユニティちゃんの大きさ(距離の基準値になる)
-	//メモ: 1m = 78.74fくらい?(Unityちゃんが全長1.5mくらいになる
+									//メモ: 1m = 78.74fくらい?(Unityちゃんが全長1.5mくらいになる
+
 	int limitFps = 60;				//フレームレート上限
 	int standardFps = 60;			//動作フレームレート
 	float variableFpsMaxSec = 1.0f;	//1描画フレームあたりの処理時間がこの秒数を超えると、可変フレームレート無効化(-FLT_EPSILON以下で無効化無効)
+	
+	DWORD windowStyle = WS_OVERLAPPEDWINDOW;//ウィンドウスタイル
 	int	screenWidth = 1280;			//ウィンドウの幅
 	int	screenHeight = 720;			//ウィンドウの高さ
 	int frameBufferWidth = 1280;	//フレームバッファの幅。これが内部解像度。
@@ -298,7 +301,7 @@ private:
 	static LRESULT CALLBACK MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);	
 
 	//ウインドウの初期化
-	void InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, int winSizeW, int winSizeH);
+	void InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, const InitEngineParameter& initParam);
 
 	HWND m_hWnd;//ウィンドウハンドル
 	RECT m_rect;
