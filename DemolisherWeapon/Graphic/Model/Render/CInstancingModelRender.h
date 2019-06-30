@@ -12,7 +12,7 @@ namespace GameObj {
 						
 		void PreLoopUpdate()override {
 			//ループ前にインスタンス数のリセット
-			m_instanceNum = 0;
+			m_instanceIndex = 0;
 		}
 
 	public:
@@ -36,7 +36,7 @@ namespace GameObj {
 		void Release() {
 			//インスタンシング用リソースの開放
 			m_instanceMax = 0;
-			m_instanceNum = 0; m_instanceDrawNum = 0;
+			m_instanceIndex = 0; m_instanceDrawNum = 0;
 
 			m_instancingWorldMatrix.reset();
 			if (m_worldMatrixSB) { m_worldMatrixSB->Release(); m_worldMatrixSB = nullptr; }
@@ -78,7 +78,7 @@ namespace GameObj {
 
 		//このフレームに描画するインスタンスの追加
 		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix, const CVector3& scale, const CVector3& minAABB, const CVector3& maxAABB, void *param_ptr) {
-			if (m_instanceNum + 1 >= m_instanceMax) {
+			if (m_instanceIndex >= m_instanceMax) {
 #ifndef DW_MASTER
 				char message[256];
 				sprintf_s(message, "【InstancingModel】インスタンスの最大数に達しています！\nモデル名:%ls\nインスタンス最大数:%d\n", m_model.GetSkinModel().GetModelName(), m_instanceMax);
@@ -87,16 +87,16 @@ namespace GameObj {
 				return;
 			}
 
-			m_worldMatrixCache[m_instanceNum] = woridMatrix;
-			m_worldMatrixOldCache[m_instanceNum] = woridMatrixOld;
+			m_worldMatrixCache[m_instanceIndex] = woridMatrix;
+			m_worldMatrixOldCache[m_instanceIndex] = woridMatrixOld;
 
-			m_minAABB[m_instanceNum] = minAABB;
-			m_maxAABB[m_instanceNum] = maxAABB;
+			m_minAABB[m_instanceIndex] = minAABB;
+			m_maxAABB[m_instanceIndex] = maxAABB;
 
 			//IInstanceDataの処理実行
-			if (m_instanceData) { m_instanceData->AddDrawInstance(m_instanceNum, SRTMatrix, scale, param_ptr); }
+			if (m_instanceData) { m_instanceData->AddDrawInstance(m_instanceIndex, SRTMatrix, scale, param_ptr); }
 
-			m_instanceNum++;
+			m_instanceIndex++;
 		}
 
 		/*
@@ -145,7 +145,7 @@ namespace GameObj {
 
 			//AddDrawInstanceで実行する処理
 			//主にインスタンスごとのデータを追加する
-			virtual void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale, void *param) {}
+			virtual void AddDrawInstance(int instanceIndex, const CMatrix& SRTMatrix, const CVector3& scale, void *param) {}
 
 			//SetInstanceMaxで実行する処理
 			//インスタンス最大数を設定
@@ -165,7 +165,7 @@ namespace GameObj {
 		}
 
 	private:
-		int m_instanceNum = 0, m_instanceDrawNum = 0;
+		int m_instanceIndex = 0, m_instanceDrawNum = 0;
 		int m_instanceMax = 0;
 
 		GameObj::CSkinModelRender m_model;

@@ -93,11 +93,11 @@ namespace GameObj {
 		//カリング前にやる処理を設定
 		m_model.GetSkinModel().SetPreCullingFunction(
 			[&](SkinModel*) {
-				m_instanceNum = max(0, m_instanceNum);
+				m_instanceIndex = max(0, m_instanceIndex);
 
 				//視錐台カリング
 				int drawNum = 0;
-				for (int i = 0; i < m_instanceNum; i++) {
+				for (int i = 0; i < m_instanceIndex; i++) {
 					if (m_isFrustumCull) {
 						if (!FrustumCulling::AABBTest(GetMainCamera(), m_minAABB[i], m_maxAABB[i])) {
 							//描画しない
@@ -133,7 +133,7 @@ namespace GameObj {
 				GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, &m_worldMatrixSRVOld);
 
 				//IInstanceDataの処理実行
-				if (m_instanceData) { m_instanceData->PreDraw(m_instanceNum, m_instanceDrawNum, m_drawInstanceMask); }
+				if (m_instanceData) { m_instanceData->PreDraw(m_instanceIndex, m_instanceDrawNum, m_drawInstanceMask); }
 
 				//設定されている処理実行
 				if (m_preDrawFunc) { m_preDrawFunc(); }

@@ -10,8 +10,8 @@ namespace DemolisherWeapon {
 		m_instanceMax = instancingMaxNum;
 
 		//インデックス配列の確保
-		m_params = std::make_unique<float[][2]>(instancingMaxNum);
-		m_paramsCache = std::make_unique<float[][2]>(instancingMaxNum);
+		m_params = std::make_unique<ImposterParam[]>(instancingMaxNum);
+		m_paramsCache = std::make_unique<ImposterParam[]>(instancingMaxNum);
 
 		//StructuredBufferの確保
 		D3D11_BUFFER_DESC desc;
@@ -40,8 +40,7 @@ namespace DemolisherWeapon {
 		int drawNum = 0;
 		for (int i = 0; i < instanceNum; i++) {
 			if (drawInstanceMask[i]) {
-				m_params[drawNum][0] = m_paramsCache[i][0];
-				m_params[drawNum][1] = m_paramsCache[i][1];
+				m_params[drawNum] = m_paramsCache[i];
 				drawNum++;
 			}
 		}
@@ -54,12 +53,12 @@ namespace DemolisherWeapon {
 			enSkinModelSRVReg_InstancingImposterScale, 1, m_paramsSRV.GetAddressOf()
 		);
 	}
-	void InstancingImposterParamManager::AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale, void *param) {
-		m_paramsCache[instanceNum][0] = scale.x / (m_texture->GetModelSize()*2.0f);
-		AddRotY(instanceNum, *(float*)param);
+	void InstancingImposterParamManager::AddDrawInstance(int instanceIndex, const CMatrix& SRTMatrix, const CVector3& scale, void *param) {
+		m_paramsCache[instanceIndex].scale = scale.x / (m_texture->GetModelSize()*2.0f);
+		AddRotY(instanceIndex, *(float*)param);
 	}
-	void InstancingImposterParamManager::AddRotY(int instanceNum, float rad) {
-		m_paramsCache[instanceNum][1] = rad;
+	void InstancingImposterParamManager::AddRotY(int instanceIndex, float rad) {
+		m_paramsCache[instanceIndex].rotY = rad;
 	}
 	void InstancingImposterParamManager::SetInstanceMax(int instanceMax) {
 		if (instanceMax > m_instanceMax) {

@@ -7,7 +7,12 @@
 StructuredBuffer<float> ImposterSizeToCamera : register(t7);
 #if defined(INSTANCING)
 //インスタンシング用インポスターパラメータ
-StructuredBuffer<float2> InstancingImposterParam : register(t8);
+//[CInposter.h] InstancingImposterParamManager::ImposterParam
+struct ImposterParam {
+	float scale;
+	float rotY;
+};
+StructuredBuffer<ImposterParam> InstancingImposterParam : register(t8);
 #endif
 
 static const float PI = 3.14159265359f;
@@ -80,11 +85,6 @@ void CalcImposter(out int2 out_index, out float4x4 out_rotMat, out float3 out_of
 
 	//アーティファクト軽減
 	YRot += PI2 / 34.0f * antiArtifact;
-//#if defined(INSTANCING)
-//	YRot += PI2 / imposterPartNum.x * InstancingImposterParam[instanceID].y*0.07f;
-//#else
-//	YRot += PI2 / imposterPartNum.x * imposterParameter.y*0.07f;
-//#endif
 
 	out_index.x = (int)round(-YRot / PI2 * imposterPartNum.x) + (int)(imposterPartNum.x / 2.0f - 0.5f);
 
@@ -114,14 +114,14 @@ void CalcImposter(out int2 out_index, out float4x4 out_rotMat, out float3 out_of
 	//カメラ方向にモデルサイズ分座標ずらす
 	//※埋まり防止
 #if defined(INSTANCING)	
-	out_offsetPos = polyDir * (InstancingImposterParam[instanceID].x * ImposterSizeToCamera[(imposterPartNum.y - 1 + out_index.y)*imposterPartNum.x + out_index.x]);
+	out_offsetPos = polyDir * (InstancingImposterParam[instanceID].scale * ImposterSizeToCamera[(imposterPartNum.y - 1 + out_index.y)*imposterPartNum.x + out_index.x]);
 #else
 	out_offsetPos = polyDir * (imposterParameter.x * ImposterSizeToCamera[(imposterPartNum.y - 1 + out_index.y)*imposterPartNum.x + out_index.x]);
 #endif
 
 	//オフセット
 #if defined(INSTANCING)
-	YRot -= InstancingImposterParam[instanceID].y;
+	YRot -= InstancingImposterParam[instanceID].rotY;
 #else
 	YRot -= imposterParameter.y;
 #endif

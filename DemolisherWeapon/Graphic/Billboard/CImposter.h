@@ -12,11 +12,11 @@ namespace DemolisherWeapon {
 		//再確保
 		void Reset(int instancingMaxNum);
 		//角度を追加
-		void AddRotY(int instanceNum, float rad);
+		void AddRotY(int instanceIndex, float rad);
 
 	public:
 		void PreDraw(int instanceNum, int drawInstanceNum, const std::unique_ptr<bool[]>& drawInstanceMask)override;
-		void AddDrawInstance(int instanceNum, const CMatrix& SRTMatrix, const CVector3& scale, void *param)override;
+		void AddDrawInstance(int instanceIndex, const CMatrix& SRTMatrix, const CVector3& scale, void *param)override;
 		void SetInstanceMax(int instanceMax)override;
 
 	public:
@@ -30,8 +30,12 @@ namespace DemolisherWeapon {
 	private:
 		ImposterTexRender* m_texture = nullptr;
 
-		//パラメータ(x:スケール,y:Y軸回転
-		std::unique_ptr<float[][2]>							m_params, m_paramsCache;
+		//パラメータ
+		struct ImposterParam {
+			float scale = 0.0f;
+			float rotY = 0.0f;
+		};
+		std::unique_ptr<ImposterParam[]>					m_params, m_paramsCache;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_paramsSB;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_paramsSRV;
 
