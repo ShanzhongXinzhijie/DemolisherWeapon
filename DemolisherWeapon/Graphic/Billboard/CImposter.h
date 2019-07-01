@@ -31,11 +31,7 @@ namespace DemolisherWeapon {
 		ImposterTexRender* m_texture = nullptr;
 
 		//ƒpƒ‰ƒ[ƒ^
-		struct ImposterParam {
-			float scale = 0.0f;
-			float rotY = 0.0f;
-		};
-		std::unique_ptr<ImposterParam[]>					m_params, m_paramsCache;
+		std::unique_ptr<CVector2[]>							m_params, m_paramsCache;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_paramsSB;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_paramsSRV;
 

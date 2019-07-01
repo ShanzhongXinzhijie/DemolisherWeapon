@@ -10,13 +10,15 @@ namespace DemolisherWeapon {
 		m_instanceMax = instancingMaxNum;
 
 		//インデックス配列の確保
-		m_params = std::make_unique<ImposterParam[]>(instancingMaxNum);
-		m_paramsCache = std::make_unique<ImposterParam[]>(instancingMaxNum);
+		m_params = std::make_unique<CVector2[]>(instancingMaxNum);
+		m_paramsCache = std::make_unique<CVector2[]>(instancingMaxNum);
 
+		//TODO
+		int stride = sizeof(CVector2);
+		
 		//StructuredBufferの確保
 		D3D11_BUFFER_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));
-		int stride = sizeof(float);
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		desc.ByteWidth = static_cast<UINT>(stride * instancingMaxNum);
 		desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
@@ -54,11 +56,11 @@ namespace DemolisherWeapon {
 		);
 	}
 	void InstancingImposterParamManager::AddDrawInstance(int instanceIndex, const CMatrix& SRTMatrix, const CVector3& scale, void *param) {
-		m_paramsCache[instanceIndex].scale = scale.x / (m_texture->GetModelSize()*2.0f);
+		m_paramsCache[instanceIndex].x = scale.x / (m_texture->GetModelSize()*2.0f);
 		AddRotY(instanceIndex, *(float*)param);
 	}
 	void InstancingImposterParamManager::AddRotY(int instanceIndex, float rad) {
-		m_paramsCache[instanceIndex].rotY = rad;
+		m_paramsCache[instanceIndex].y = rad;
 	}
 	void InstancingImposterParamManager::SetInstanceMax(int instanceMax) {
 		if (instanceMax > m_instanceMax) {
