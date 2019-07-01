@@ -133,11 +133,15 @@ namespace DemolisherWeapon {
 				mBias.Mul3x3(size);//バイアスの適応
 				if (isFirst) {
 					m_boundingBoxMaxSize = size;
+					m_boundingBoxMinSize = size;
 				}
 				else {
 					m_boundingBoxMaxSize.x = max(m_boundingBoxMaxSize.x, size.x);
 					m_boundingBoxMaxSize.y = max(m_boundingBoxMaxSize.y, size.y);
 					m_boundingBoxMaxSize.z = max(m_boundingBoxMaxSize.z, size.z);
+					m_boundingBoxMinSize.x = min(m_boundingBoxMinSize.x, size.x);
+					m_boundingBoxMinSize.y = min(m_boundingBoxMinSize.y, size.y);
+					m_boundingBoxMinSize.z = min(m_boundingBoxMinSize.z, size.z);
 				}
 				size.Abs();
 				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y, max(size.x, size.z)));
@@ -147,9 +151,13 @@ namespace DemolisherWeapon {
 				size -= extents;
 				mBias.Mul3x3(size);//バイアスの適応
 				if (isFirst) {
+					m_boundingBoxMaxSize = size;
 					m_boundingBoxMinSize = size;
 				}
 				else {
+					m_boundingBoxMaxSize.x = max(m_boundingBoxMaxSize.x, size.x);
+					m_boundingBoxMaxSize.y = max(m_boundingBoxMaxSize.y, size.y);
+					m_boundingBoxMaxSize.z = max(m_boundingBoxMaxSize.z, size.z);
 					m_boundingBoxMinSize.x = min(m_boundingBoxMinSize.x, size.x);
 					m_boundingBoxMinSize.y = min(m_boundingBoxMinSize.y, size.y);
 					m_boundingBoxMinSize.z = min(m_boundingBoxMinSize.z, size.z);
@@ -316,12 +324,15 @@ namespace DemolisherWeapon {
 			//モデルのカメラ方向の大きさを記録
 			float toCamDirMaxSize = 0.0f;
 			CVector3 toCamDir;
+			
 			toCamDir = m_boundingBoxMinSize;
 			rotM.Multiply(toCamDir);
 			toCamDirMaxSize = CVector3::AxisZ().Dot(toCamDir);
+
 			toCamDir = m_boundingBoxMaxSize;
 			rotM.Multiply(toCamDir);
 			toCamDirMaxSize = max(toCamDirMaxSize, CVector3::AxisZ().Dot(toCamDir));
+
 			m_toCamDirSize[indY*m_partNumX + i%m_partNumX] = toCamDirMaxSize;
 			
 			//ビューポート横にずらす
