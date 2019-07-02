@@ -38,6 +38,10 @@ namespace DemolisherWeapon {
 			GetGraphicsEngine().GetGBufferRender().GetDSV()
 		);
 		
+		//ƒ‚ƒfƒ‹•`‰æ(‰ÁŽZƒuƒŒƒ“ƒh)		
+		for (auto& model : m_drawModelList_Add) {
+			model->Draw();
+		}
 		//ƒ‚ƒfƒ‹•`‰æ
 		for (auto& list : m_drawModelList) {
 			for (auto& model : list) {
@@ -62,5 +66,6 @@ namespace DemolisherWeapon {
 		for (auto& list : m_drawModelList) {
 			list.clear();
 		}
+		m_drawModelList_Add.clear();
 	}
 }
