@@ -38,7 +38,7 @@ void ConvertLinearToSRGBRender::Render() {
 	GetEngine().GetGraphicsEngine().GetFRT().Swap();
 
 	//描画先を最終レンダーターゲットにする
-	GetEngine().GetGraphicsEngine().SetFinalRenderTarget();
+	GetEngine().GetGraphicsEngine().SetFinalRenderTarget_NonDepth();
 
 	//シェーダーを設定
 	rc->VSSetShader((ID3D11VertexShader*)m_vs.GetBody(), NULL, 0);

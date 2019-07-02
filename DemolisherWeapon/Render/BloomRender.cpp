@@ -2,14 +2,6 @@
 #include "BloomRender.h"
 
 namespace DemolisherWeapon {
-	BloomRender::BloomRender()
-	{
-	}
-	BloomRender::~BloomRender()
-	{
-		Release();
-	}
-
 	void BloomRender::Init(float texScale)
 	{
 		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
@@ -172,7 +164,7 @@ namespace DemolisherWeapon {
 		rc->PSSetShaderResources(0, 1, &m_gaussBlur.GetSRV());
 		
 		//描画先を最終レンダーターゲットにする
-		GetEngine().GetGraphicsEngine().SetFinalRenderTarget();		
+		GetEngine().GetGraphicsEngine().SetFinalRenderTarget_NonDepth();
 
 		//シェーダーを設定
 		rc->VSSetShader((ID3D11VertexShader*)m_vs.GetBody(), NULL, 0);

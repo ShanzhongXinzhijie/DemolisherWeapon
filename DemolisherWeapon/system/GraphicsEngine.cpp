@@ -261,42 +261,54 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	FinalRender::SetIsLensDistortion(initParam.isLensDistortion);
 
 	//レンダーをセット	
+
+	//シャドウマップ描画
 	m_renderManager.AddRender(-1, &m_shadowMapRender);
 
 	int screencnt = 1, oneloopOffset = 5000;
 	if (initParam.isSplitScreen) {
 		screencnt = 2;
 	}
+	//画面分割数分実行
 	for (int i = 0; i < screencnt; i++) {
 
 		int offset = oneloopOffset * i;		
 
 		if (initParam.isSplitScreen) {
+			//画面分割ならカメラ切り替え
 			m_renderManager.AddRender(0 + offset, m_cameraSwitchRender[i].get());
 		}
 
+		//Gバッファ描画
 		m_renderManager.AddRender(1 + offset, &m_gbufferRender);
 
+		//AOマップ作成
 		m_renderManager.AddRender(3 + offset, &m_ambientOcclusionRender);
 
+		//ディファードレンダリング
 		m_renderManager.AddRender(4 + offset, &m_defferdRender);
+
+		//ポストプロセス
 		m_renderManager.AddRender(5 + offset, &m_DOFRender);
 		m_renderManager.AddRender(6 + offset, &m_motionBlurRender);
 		m_renderManager.AddRender(7 + offset, &m_bloomRender);
 
+		//SRGBに変換
 		m_renderManager.AddRender(8 + offset, &m_ConvertLinearToSRGB);
 
+		//Effekseerの描画
 		m_renderManager.AddRender(9 + offset, &m_effekseerRender);
+		
+		m_freeRenderPriority = 10;//ここから↓まで未使用
 
-		m_freeRenderPriority = 10;
-
-
+		//プリミティブ描画
 		m_renderManager.AddRender(998 + offset, &m_primitiveRender);
 
 #ifndef DW_MASTER
+		//BUlletPhysicsのデバッグ描画
 		m_renderManager.AddRender(999 + offset, &m_physicsDebugDrawRender);
 #endif
-		
+		//最終描画
 		m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());		
 	}
 
@@ -308,7 +320,11 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 
 //描画先を最終レンダーターゲットにする
 void GraphicsEngine::SetFinalRenderTarget() {
-	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &m_FRT.GetRTV(), m_FRT.GetDSV());
+	GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &m_FRT.GetRTV(), m_FRT.GetDSV());
+}
+//デプス未使用版
+void GraphicsEngine::SetFinalRenderTarget_NonDepth() {
+	GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &m_FRT.GetRTV(), nullptr);
 }
 
 }

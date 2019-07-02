@@ -140,7 +140,7 @@ namespace DemolisherWeapon {
 			GetEngine().GetGraphicsEngine().GetFRT().Swap();
 
 			//描画先を最終レンダーターゲットにする
-			GetEngine().GetGraphicsEngine().SetFinalRenderTarget();
+			GetEngine().GetGraphicsEngine().SetFinalRenderTarget_NonDepth();
 
 			//シェーダーを設定
 			rc->VSSetShader((ID3D11VertexShader*)m_vsCompo.GetBody(), NULL, 0);

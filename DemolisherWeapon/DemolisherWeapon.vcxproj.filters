@@ -98,6 +98,7 @@
     <ClInclude Include="Graphic\FrustumCulling.h" />
     <ClInclude Include="DWVersion.h" />
     <ClInclude Include="math\Plane.h" />
+    <ClInclude Include="Render\PostDrawModelRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -185,6 +186,7 @@
     <ClCompile Include="Graphic\Model\SkinModelEffectShader.cpp" />
     <ClCompile Include="Graphic\FrustumCulling.cpp" />
     <ClCompile Include="math\Plane.cpp" />
+    <ClCompile Include="Render\PostDrawModelRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
@@ -207,8 +209,6 @@
     <CustomBuild Include="Preset\modelData\billboard.cmo" />
     <CustomBuild Include="Preset\shader\Imposter.fx" />
     <CustomBuild Include="Preset\shader\billboard.fx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Preset\sprite\ditherTex.png" />
+    <CustomBuild Include="Preset\sprite\ditherTex.png" />
   </ItemGroup>
 </Project>

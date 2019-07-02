@@ -19,8 +19,8 @@ public:
 	};
 
 public:
-	GBufferRender();
-	~GBufferRender();
+	GBufferRender() = default;
+	~GBufferRender() { Release(); }
 
 	void Init();
 	void Release();
@@ -44,7 +44,6 @@ public:
 	};
 
 private:
-
 	std::list<SkinModel*> m_drawModelList[DRAW_PRIORITY_MAX];
 
 	ID3D11Texture2D*		m_GBufferTex[enGBufferNum] = { nullptr };	//GBufferテクスチャ

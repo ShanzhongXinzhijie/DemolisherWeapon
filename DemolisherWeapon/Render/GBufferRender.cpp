@@ -3,15 +3,6 @@
 
 namespace DemolisherWeapon {
 
-GBufferRender::GBufferRender()
-{
-	
-}
-GBufferRender::~GBufferRender()
-{
-	Release();
-}
-
 void GBufferRender::Init() {
 	GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
 

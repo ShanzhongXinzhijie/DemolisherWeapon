@@ -106,7 +106,7 @@ void MotionBlurRender::PSBlur(ID3D11DeviceContext* rc){
 	GetEngine().GetGraphicsEngine().GetFRT().SetNow(0);// Swap();
 	//描画先を最終レンダーターゲットにする
 	//GetEngine().GetGraphicsEngine().GetFRT().Clear(0);
-	GetEngine().GetGraphicsEngine().SetFinalRenderTarget();
+	GetEngine().GetGraphicsEngine().SetFinalRenderTarget_NonDepth();
 
 	//定数バッファ
 	SPSConstantBuffer psCb;

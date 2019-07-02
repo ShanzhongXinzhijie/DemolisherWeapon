@@ -6,8 +6,8 @@ namespace DemolisherWeapon {
 	class BloomRender : public IRander
 	{
 	public:
-		BloomRender();
-		~BloomRender();
+		BloomRender() = default;
+		~BloomRender() { Release(); }
 
 		/// <summary>
 		/// ‰Šú‰»

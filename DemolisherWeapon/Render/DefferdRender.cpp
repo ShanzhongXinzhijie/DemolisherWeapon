@@ -70,7 +70,7 @@ void DefferdRender::Render() {
 #endif
 
 	//描画先を最終レンダーターゲットにする
-	GetEngine().GetGraphicsEngine().SetFinalRenderTarget();
+	GetEngine().GetGraphicsEngine().SetFinalRenderTarget_NonDepth();
 
 	//SRVをセット	
 	rc->PSSetShaderResources(0, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferAlbedo));

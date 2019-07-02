@@ -188,6 +188,8 @@ public:
 
 	//描画先を最終レンダーターゲットに
 	void SetFinalRenderTarget();
+	//デプス未使用版
+	void SetFinalRenderTarget_NonDepth();
 	//最終レンダーターゲット取得
 	CFinalRenderTarget& GetFRT() { return m_FRT; }
 
