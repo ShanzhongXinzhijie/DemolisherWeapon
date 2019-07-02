@@ -1025,24 +1025,24 @@ public:
 	*@brief	ベクトルにクォータニオンを適用する。
 	*@param[in,out] v	ベクトル。
 	*/
-	void Multiply(CVector4& _v)
+	void Multiply(CVector4& _v)const
 	{
 		DirectX::XMVECTOR xmv = DirectX::XMVector3Rotate(_v, *this);
 		DirectX::XMStoreFloat4(&_v.vec, xmv);
 	}
-	void Multiply(CVector3& _v)
+	void Multiply(CVector3& _v)const
 	{
 		DirectX::XMVECTOR xmv = DirectX::XMVector3Rotate(_v, *this);
 		DirectX::XMStoreFloat3(&_v.vec, xmv);
 	}
 
 	//ベクトルを逆回転
-	void InverseMultiply(CVector4& _v)
+	void InverseMultiply(CVector4& _v)const
 	{
 		DirectX::XMVECTOR xmv = DirectX::XMVector3InverseRotate(_v, *this);
 		DirectX::XMStoreFloat4(&_v.vec, xmv);
 	}
-	void InverseMultiply(CVector3& _v)
+	void InverseMultiply(CVector3& _v)const
 	{
 		DirectX::XMVECTOR xmv = DirectX::XMVector3InverseRotate(_v, *this);
 		DirectX::XMStoreFloat3(&_v.vec, xmv);
