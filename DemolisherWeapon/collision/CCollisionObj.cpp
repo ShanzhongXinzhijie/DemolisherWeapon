@@ -208,6 +208,11 @@ namespace Suicider {
 
 			ObjA->SetHanteing(false);//”»’èI‚í‚è
 		}
+		for (auto& reg : m_colObjList) {
+			if (reg.m_isEnable) {
+				reg.m_CObj->NonReg();
+			}
+		}
 		m_colObjList.clear();
 	}
 

@@ -15,9 +15,10 @@ static const int CCollisionObjFilter = 64;
 
 namespace GameObj {
 namespace Suicider {
-	class CCollisionObj;
+class CCollisionObj;
 }
 }
+
 struct RegColObj
 {
 	RegColObj(GameObj::Suicider::CCollisionObj* p, int index) : m_CObj(p), m_index(index) {}
@@ -31,9 +32,7 @@ namespace GameObj{
 namespace Suicider{
 
 class CCollisionObj : public PhysicsBaseObject , public IGameObject {
-
 public:
-
 	//コールバック関数の引数
 	struct SCallbackParam {
 		//あたった相手の情報
@@ -67,7 +66,7 @@ public:
 	};	
 
 public:
-
+	//コンストラクタ
 	CCollisionObj(int lifespanFrame = enNoTimer, const wchar_t* name = nullptr, IDW_Class* classPtr = nullptr, std::function<void(SCallbackParam&)> callbackFunction = nullptr, unsigned int group = 1, unsigned int mask = 0xFFFFFFFF)
 	:
 	m_group(group),m_mask(mask)
@@ -79,6 +78,7 @@ public:
 		Register(true);
 	};
 
+	//デストラクタ
 	~CCollisionObj() {
 #ifndef DW_MASTER
 		if (m_isHanteing) {
@@ -94,8 +94,14 @@ public:
 		Release();
 	};
 
-public:
+	//マネージャーに未登録フラグを設定(CollisionObjManager用)
+	//※ユーザーは使用しないでください
+	void NonReg() {
+		m_isregistered = false;
+		m_register = nullptr;
+	}
 
+public:
 	//削除する
 	void Delete() {
 		m_isDeath = true;
@@ -273,7 +279,7 @@ public:
 	}
 
 private:
-
+	//開放処理
 	void Release()override;
 
 	/*!
@@ -318,17 +324,16 @@ private:
 
 class CollisionObjManager : public IGameObject{
 public:
-
 	//判定処理やる
 	void PostUpdate()override final;
 
+	//コリジョンを登録
 	RegColObj* AddCollisionObj(Suicider::CCollisionObj* obj) {
 		m_colObjList.emplace_back(obj, (int)m_colObjList.size());
 		return &m_colObjList.back();
 	};
 
 private:
-
 	std::list<RegColObj> m_colObjList;
 };
 
