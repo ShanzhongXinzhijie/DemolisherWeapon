@@ -199,6 +199,7 @@ bool Skeleton::Load(const wchar_t* filePath)
 	InitBoneMatrixArrayStructuredBuffer();
 	//ボーン行列のSRVを初期化。
 	InitBoneMatrixArrayShaderResourceView();
+
 	return true;
 }
 
@@ -237,6 +238,8 @@ void Skeleton::InitBoneMatrixArrayShaderResourceView()
 }
 void Skeleton::Update(const CMatrix& mWorld)
 {
+	if (m_bones.empty()) { return; }
+
 	//ここがワールド行列を計算しているところ！！！
 	for (int boneNo = 0; boneNo < m_bones.size(); boneNo++) {
 		Bone* bone = m_bones[boneNo];
@@ -259,7 +262,10 @@ void Skeleton::Update(const CMatrix& mWorld)
 		m_boneMatrixs[boneNo] = mBone;
 	}
 }
-void Skeleton::UpdateBoneMatrixOld() {
+void Skeleton::UpdateBoneMatrixOld() 
+{
+	if (m_bones.empty()) { return; }
+
 	for (int boneNo = 0; boneNo < m_bones.size(); boneNo++) {
 		m_boneMatrixs_Old[boneNo] = m_boneMatrixs[boneNo];
 	}
@@ -269,9 +275,8 @@ void Skeleton::UpdateBoneMatrixOld() {
 */
 void Skeleton::SendBoneMatrixArrayToGPU()
 {
-	if (m_bones.empty()) {
-		return;
-	}
+	if (m_bones.empty()) { return; }
+
 	//StructuredBufferを更新。
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
 		m_boneMatrixSB, 0, NULL, &m_boneMatrixs.front(), 0, 0

@@ -28,9 +28,10 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	m_biasMatrix.Mul(mBiasScr, m_biasMatrix);
 
 	//スケルトンのデータを読み込む。
-	if (!InitSkeleton(filePath)) {
-		m_isFrustumCull = true;//スケルトンなければ視錐台カリングする
-	}
+	bool hasSkeleton = InitSkeleton(filePath);
+
+	//視錐台カリングする
+	m_isFrustumCull = true;
 
 	//定数バッファの作成。
 	InitConstantBuffer();
@@ -45,6 +46,7 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 			m_materialSetting.emplace_back();
 		}
 		);
+
 		//バウンディングボックスの取得・生成
 		bool isFirst = true;
 		FindMeshes(
@@ -78,8 +80,19 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 				isFirst = false;
 			}
 		);
+		//中心と端までのベクトルを保存
 		m_centerAABB = m_minAABB_Origin + m_maxAABB_Origin; m_centerAABB /= 2.0f;
 		m_extentsAABB = m_maxAABB_Origin - m_centerAABB;
+		//モデル本来のバウンディングボックスを保存
+		m_modelBoxCenter = m_centerAABB, m_modelBoxExtents = m_extentsAABB;
+
+		//スキンモデルなら
+		if (hasSkeleton) {
+			//大きさを二倍に(アニメーションしても収まるサイズ)(ホントに収まるかはしらん)
+			CVector3 minBox = m_centerAABB - m_extentsAABB * 2.0f;
+			CVector3 maxBox = m_centerAABB + m_extentsAABB * 2.0f;
+			SetBoundingBox(minBox, maxBox);//設定
+		}
 	}
 
 	//バウンディングボックス初期化

@@ -220,7 +220,11 @@ public:
 		return m_isFrustumCull;
 	}
 
-	//バウンディングボックスを設定
+	/// <summary>
+	/// バウンディングボックス(AABB)を設定
+	/// </summary>
+	/// <param name="min">ボックスの最小座標</param>
+	/// <param name="max">ボックスの最大座標</param>
 	void SetBoundingBox(const CVector3& min, const CVector3& max) {
 		m_minAABB_Origin = min;
 		m_maxAABB_Origin = max;
@@ -229,15 +233,31 @@ public:
 		//バウンディングボックス初期化
 		UpdateBoundingBoxWithWorldMatrix();
 	}
-	//ワールド行列等を適応していないバウンディングボックスを取得
+	/// <summary>
+	/// ワールド行列等を適応していないバウンディングボックス(AABB)を取得
+	/// </summary>
+	/// <param name="return_min">(戻り値)ボックスの最小座標</param>
+	/// <param name="return_max">(戻り値)ボックスの最大座標</param>
 	void GetBoundingBox(CVector3& return_min, CVector3& return_max)const {
 		return_min = m_minAABB_Origin;
 		return_max = m_maxAABB_Origin;
 	}
-	//ワールド行列等適応したバウンディングボックスを取得
+	/// <summary>
+	/// ワールド行列等適応したバウンディングボックス(AABB)を取得
+	/// </summary>
+	/// <param name="return_min">(戻り値)ボックスの最小座標</param>
+	/// <param name="return_max">(戻り値)ボックスの最大座標</param>
 	void GetUpdatedBoundingBox(CVector3& return_min, CVector3& return_max)const {
 		return_min = m_minAABB;
 		return_max = m_maxAABB;
+	}
+	/// <summary>
+	/// モデル本来のバウンディングボックス(AABB)を取得
+	/// </summary>
+	/// <param name="return_center">ボックスの中心</param>
+	/// <param name="return_extents">ボックスの中心から端までのベクトル</param>
+	void GetModelOriginalBoundingBox(CVector3& return_center, CVector3& return_extents)const {
+		return_center = m_modelBoxCenter, return_extents = m_modelBoxExtents;
 	}
 
 	//カリング前に行う処理を設定
@@ -312,7 +332,7 @@ private:
 	std::vector<MaterialSetting> m_materialSetting;
 
 	EnFbxUpAxis			m_enFbxUpAxis = enFbxUpAxisZ;			//!<FBXの上方向。
-	EnFbxCoordinateSystem m_enFbxCoordinate = enFbxRightHanded;	//FBXの座標系
+	EnFbxCoordinateSystem m_enFbxCoordinate = enFbxRightHanded;	//!<FBXの座標系
 	ID3D11Buffer*		m_cb = nullptr;							//!<定数バッファ。
 	Skeleton			m_skeleton;								//!<スケルトン。
 	DirectX::Model*		m_modelDx;								//!<DirectXTKが提供するモデルクラス。
@@ -336,6 +356,7 @@ private:
 	CVector3 m_minAABB_Origin, m_maxAABB_Origin;
 	CVector3 m_centerAABB, m_extentsAABB;
 	CVector3 m_minAABB, m_maxAABB;
+	CVector3 m_modelBoxCenter, m_modelBoxExtents;
 
 	//ユーザー設定の処理
 	std::function<void(SkinModel*)> m_preCullingFunc = nullptr;//カリング前に実行

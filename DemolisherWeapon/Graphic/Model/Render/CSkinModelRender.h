@@ -10,7 +10,6 @@ class CSkinModelRender : public IQSGameObject{
 
 public:
 	CSkinModelRender();
-	~CSkinModelRender();
 
 private:
 	void PreLoopUpdate()override final;

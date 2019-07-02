@@ -32,9 +32,6 @@ CSkinModelRender::CSkinModelRender()
 		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, &m_mostDepthRSCCw);
 	}
 }
-CSkinModelRender::~CSkinModelRender()
-{
-}
 
 void CSkinModelRender::PreLoopUpdate() {
 	if (!m_isInit) { return; }
