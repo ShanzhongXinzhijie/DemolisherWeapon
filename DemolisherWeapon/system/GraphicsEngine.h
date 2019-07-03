@@ -9,6 +9,7 @@
 #include"Render/BloomRender.h"
 #include"Render/DepthOfFieldRender.h"
 #include"Render/MotionBlurRender.h"
+#include"Render/PostDrawModelRender.h"
 #include"Render/PhysicsDebugDrawRender.h"
 #include"Render/CameraSwitchRender.h"
 #include"Render/EffekseerRender.h"
@@ -117,10 +118,13 @@ public:
 	//3Dモデルレンダーに描画するモデルを登録
 	void AddDrawModelToD3Render(SkinModel* sm, int priority) {
 		m_gbufferRender.AddDrawModel(sm, priority);
-	};
+	}
 	void AddDrawModelToShadowMapRender(SkinModel* sm, int priority, bool reverse) {
 		m_shadowMapRender.AddDrawModel(sm, priority, reverse);
 	}
+	void AddDrawModelToPostDrawRender(SkinModel* sm, int priority, PostDrawModelRender::enBlendMode blendmode) {
+		m_postDrawModelRender.AddDrawModel(sm, priority, blendmode);
+	}	
 
 	//レンダーマネージャーの取得
 	RanderManager& GetRenderManager(){
@@ -270,6 +274,7 @@ private:
 	BloomRender m_bloomRender;
 	DepthOfFieldRender m_DOFRender;
 	MotionBlurRender m_motionBlurRender;
+	PostDrawModelRender m_postDrawModelRender;
 	ConvertLinearToSRGBRender m_ConvertLinearToSRGB;
 	PrimitiveRender m_primitiveRender;
 #ifndef DW_MASTER

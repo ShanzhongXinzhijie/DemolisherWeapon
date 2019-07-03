@@ -14,26 +14,30 @@ namespace DemolisherWeapon {
 		void Render()override;
 		void PostRender()override;
 
+		enum enBlendMode {
+			enAlpha,enAdd,
+		};
+
 		/// <summary>
 		/// 描画するモデルを追加
 		/// </summary>
 		/// <param name="sm">描画するモデル</param>
 		/// <param name="priority">描画順(数値が大きいほど後)(0～DRAW_PRIORITY_MAX - 1)</param>
-		/// <param name="isAdd">加算ブレンドか？</param>
-		void AddDrawModel(SkinModel* sm, int priority, bool isAdd = false) {
-			if (isAdd) {
-				m_drawModelList_Add.emplace_back(sm);
+		/// <param name="blendmode">ブレンドモード</param>
+		void AddDrawModel(SkinModel* sm, int priority, enBlendMode blendmode = enAlpha) {
+			if (blendmode == enAdd) {
+				m_drawModelList_Add[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX - 1)].emplace_back(sm);
 			}
-			else {
-				m_drawModelList[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX - 1)].emplace_back(sm);
+			if (blendmode == enAlpha) {
+				m_drawModelList_Alpha[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX - 1)].emplace_back(sm);
 			}
 		};
 
 	private:
 		//描画するモデルのリスト
-		std::list<SkinModel*> m_drawModelList[DRAW_PRIORITY_MAX], m_drawModelList_Add;
-		//加算ブレンドステート
-		Microsoft::WRL::ComPtr<ID3D11BlendState> m_addBlendState;
+		std::list<SkinModel*> m_drawModelList_Alpha[DRAW_PRIORITY_MAX], m_drawModelList_Add[DRAW_PRIORITY_MAX];
+		//ブレンドステート
+		Microsoft::WRL::ComPtr<ID3D11BlendState> m_alphaBlendState, m_addBlendState;
 	};
 
 }

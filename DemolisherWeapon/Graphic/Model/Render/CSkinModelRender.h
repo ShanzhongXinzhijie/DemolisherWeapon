@@ -120,6 +120,11 @@ public:
 	void SetIsDraw(bool flag) { m_isDraw = flag; }
 	bool GetIsDraw() const { return m_isDraw; }
 
+	//ポストドロー描画を行うか設定
+	void SetIsPostDraw(bool enable, PostDrawModelRender::enBlendMode blendMode) {
+		m_isPostDraw = enable; m_postDrawBlendMode = blendMode;
+	}
+
 	//シャドウマップへの描画を行うか設定
 	void SetIsShadowCaster(bool flag) { m_isShadowCaster = flag; }
 	//シャドウマップの描画時に面を反転させるか設定
@@ -196,6 +201,8 @@ private:
 	bool m_isShadowCaster = true;		//シャドウマップに書き込むか
 	bool m_isShadowDrawReverse = true;	//シャドウマップ描画時に面を反転させるか?
 	bool m_isDrawBoundingBox = false;	//バウンディングボックスを表示するか?
+	bool m_isPostDraw = false;			//ポストドローか?
+	PostDrawModelRender::enBlendMode m_postDrawBlendMode = PostDrawModelRender::enBlendMode::enAlpha;//ポストドローのブレンドモード
 
 	bool m_isUpdated = false;			//アップデート済みか?
 	bool m_isUpdatedWorldMatrix = false;//ワールド行列更新済みか?

@@ -228,6 +228,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	//レンダー初期化
 	m_gbufferRender.Init();
 	m_shadowMapRender.Init();									 m_shadowMapRender.SetSetting(initParam.shadowMapSetting);
+	m_postDrawModelRender.Init();
 	m_ambientOcclusionRender.Init(initParam.SSAOBufferScale);	 m_ambientOcclusionRender.SetEnable(initParam.isEnableSSAO);
 	m_defferdRender.Init();
 	m_bloomRender.Init(initParam.bloomBufferScale);				 m_bloomRender.SetEnable(initParam.isEnableBloom);
@@ -293,13 +294,16 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		m_renderManager.AddRender(6 + offset, &m_motionBlurRender);
 		m_renderManager.AddRender(7 + offset, &m_bloomRender);
 
+		//ポストドローモデル
+		m_renderManager.AddRender(8 + offset, &m_postDrawModelRender);
+
 		//SRGBに変換
-		m_renderManager.AddRender(8 + offset, &m_ConvertLinearToSRGB);
+		m_renderManager.AddRender(9 + offset, &m_ConvertLinearToSRGB);
 
 		//Effekseerの描画
-		m_renderManager.AddRender(9 + offset, &m_effekseerRender);
+		m_renderManager.AddRender(10 + offset, &m_effekseerRender);
 		
-		m_freeRenderPriority = 10;//ここから↓まで未使用
+		m_freeRenderPriority = 11;//ここから↓まで未使用
 
 		//プリミティブ描画
 		m_renderManager.AddRender(998 + offset, &m_primitiveRender);

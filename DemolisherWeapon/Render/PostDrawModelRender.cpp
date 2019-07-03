@@ -4,8 +4,18 @@
 namespace DemolisherWeapon {
 
 	void PostDrawModelRender::Init() {
-		//加算ブレンドステート
 		D3D11_BLEND_DESC blendDesc;
+
+		//アルファブレンドステート(乗算済み)
+		ZeroMemory(&blendDesc, sizeof(blendDesc));
+		blendDesc.RenderTarget[0].BlendEnable = true;
+		blendDesc.RenderTarget[0].SrcBlend = blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		blendDesc.RenderTarget[0].DestBlend = blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+		blendDesc.RenderTarget[0].BlendOp = blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		GetGraphicsEngine().GetD3DDevice()->CreateBlendState(&blendDesc, m_alphaBlendState.ReleaseAndGetAddressOf());
+
+		//加算ブレンドステート
 		ZeroMemory(&blendDesc, sizeof(blendDesc));
 		blendDesc.RenderTarget[0].BlendEnable = true;
 		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
@@ -28,8 +38,6 @@ namespace DemolisherWeapon {
 		//ブレンドステート変更
 		ID3D11BlendState* oldBlendState = nullptr; FLOAT oldf[4]; UINT olduint;
 		GetGraphicsEngine().GetD3DDeviceContext()->OMGetBlendState(&oldBlendState, oldf, &olduint);
-		//加算ブレンドに
-		GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(m_addBlendState.Get(), nullptr, 0xFFFFFFFF);
 		
 		//描画先を最終レンダーターゲットにする
 		GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(
@@ -38,14 +46,15 @@ namespace DemolisherWeapon {
 			GetGraphicsEngine().GetGBufferRender().GetDSV()
 		);
 		
-		//モデル描画(加算ブレンド)		
-		for (auto& model : m_drawModelList_Add) {
-			model->Draw();
-		}
 		//モデル描画
-		for (auto& list : m_drawModelList) {
-			for (auto& model : list) {
-				model->Draw();
+		for (int i = 0; i < DRAW_PRIORITY_MAX; i++) {
+			//モデル描画(加算ブレンド)		
+			for (auto& model : m_drawModelList_Add[i]) {
+				model->Draw(false, 1, m_addBlendState.Get());
+			}
+			//モデル描画(アルファブレンド)
+			for (auto& model : m_drawModelList_Alpha[i]) {
+				model->Draw(false, 1, m_alphaBlendState.Get());
 			}
 		}
 
@@ -63,9 +72,12 @@ namespace DemolisherWeapon {
 	}
 
 	void PostDrawModelRender::PostRender() {
-		for (auto& list : m_drawModelList) {
+		//モデル登録の解除
+		for (auto& list : m_drawModelList_Alpha) {
 			list.clear();
 		}
-		m_drawModelList_Add.clear();
+		for (auto& list : m_drawModelList_Add) {
+			list.clear();
+		}
 	}
 }

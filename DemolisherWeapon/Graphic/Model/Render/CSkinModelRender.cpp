@@ -71,8 +71,14 @@ void CSkinModelRender::PostLoopUpdate() {
 		//シャドウマップレンダーにモデル送る
 		AddDrawModelToShadowMapRender(&m_model, m_priority, m_isShadowDrawReverse); 
 	}
-	//3Dモデルレンダーにモデル送る
-	AddDrawModelToD3Render(&m_model, m_priority);
+	if (m_isPostDraw) {
+		//ポストドローレンダーにモデル送る
+		GetGraphicsEngine().AddDrawModelToPostDrawRender(&m_model, m_priority, m_postDrawBlendMode);
+	}
+	else {
+		//3Dモデルレンダーにモデル送る
+		AddDrawModelToD3Render(&m_model, m_priority);
+	}
 
 	//バウンディングボックスの表示
 	if (m_isDrawBoundingBox) {
