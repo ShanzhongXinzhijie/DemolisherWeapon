@@ -9,7 +9,7 @@ namespace DemolisherWeapon {
 		/// </summary>
 		/// <param name="fileName">テクスチャ画像のファイルパス</param>
 		/// <param name="instancingNum">インスタンシング描画数</param>
-		void Init(std::experimental::filesystem::path fileName, int instancingNum = 1);
+		void Init(const wchar_t* fileName, int instancingNum = 1);
 		//SRVから初期化
 		void Init(ID3D11ShaderResourceView* srv, int instancingNum = 1, const wchar_t* identifiers = nullptr);
 

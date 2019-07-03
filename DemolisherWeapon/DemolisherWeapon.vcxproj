@@ -359,6 +359,7 @@
     <ClInclude Include="system\GraphicsEngine.h" />
     <ClInclude Include="DWstdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Graphic\Factory\TextureFactory.h" />
     <ClInclude Include="util\Util.h" />
     <ClInclude Include="Input\XInput.h" />
     <ClInclude Include="Sound\WAVManager.h" />
@@ -453,6 +454,7 @@
     <ClCompile Include="system\GraphicsEngine.cpp" />
     <ClCompile Include="Input\XInput.cpp" />
     <ClCompile Include="Sound\WAVManager.cpp" />
+    <ClCompile Include="Graphic\Factory\TextureFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont">
@@ -527,9 +529,6 @@
     <CustomBuild Include="Preset\shader\billboard.fx">
       <FileType>Document</FileType>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="Preset\sprite\ditherTex.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

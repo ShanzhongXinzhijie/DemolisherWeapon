@@ -586,4 +586,13 @@ float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 }
 #endif
 
+//モデルのアルベドをそのまま出すシェーダ
+float4 PSMain_SozaiNoAzi(ZPSInput In) : SV_Target0{
+#if defined(TEXTURE)
+	return albedoTexture.Sample(Sampler, In.TexCoord + uvOffset) * albedoScale;
+#else
+	return albedoScale;
+#endif
+}
+
 #endif //DW_MODEL_FX

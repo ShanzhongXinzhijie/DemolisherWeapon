@@ -1,34 +1,19 @@
 #include "DWstdafx.h"
 #include "CBillboard.h"
+#include "Graphic/Factory/TextureFactory.h"
 
 namespace DemolisherWeapon {	
 
-	void CBillboard::Init(std::experimental::filesystem::path fileName, int instancingNum) {
-		//テクスチャ読み込み
+	void CBillboard::Init(const wchar_t* fileName, int instancingNum) {
+		//ファクトリでテクスチャ読み込み
 		ID3D11ShaderResourceView* tex = nullptr;
-		HRESULT hr;
-		if (wcscmp(fileName.extension().c_str(), L".dds") == 0) {
-			hr = DirectX::CreateDDSTextureFromFile(GetGraphicsEngine().GetD3DDevice(), fileName.c_str(), nullptr, &tex);
-		}
-		else {
-			hr = DirectX::CreateWICTextureFromFile(GetGraphicsEngine().GetD3DDevice(), fileName.c_str(), nullptr, &tex);
-		}
-		if (FAILED(hr)) {
-#ifndef DW_MASTER
-			char message[256];
-			sprintf_s(message, "CBillboard::Init()の画像読み込みに失敗。\nファイルパスあってますか？\n%ls\n", fileName.c_str());
-			DemolisherWeapon::Error::Box(message);
-#endif
-			return;
-		}
+		TextureFactory::GetInstance().Load(fileName, nullptr, &tex);
 
-		//初期化
-		Init(tex, instancingNum, fileName.c_str());
+		//ビルボード初期化
+		Init(tex, instancingNum, fileName);
 
 		//テクスチャ、リリース
-		if (tex) {
-			tex->Release();
-		}
+		if (tex) { tex->Release(); }
 	}
 	void CBillboard::Init(ID3D11ShaderResourceView* srv, int instancingNum, const wchar_t* identifiers) {
 		//インスタンシング描画か?
