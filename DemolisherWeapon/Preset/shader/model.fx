@@ -587,7 +587,7 @@ float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 #endif
 
 //モデルのアルベドをそのまま出すシェーダ
-float4 PSMain_SozaiNoAzi(ZPSInput In) : SV_Target0{
+float4 PSMain_SozaiNoAzi(PSInput In) : SV_Target0{//TODO 引数
 #if defined(TEXTURE)
 	return albedoTexture.Sample(Sampler, In.TexCoord + uvOffset) * albedoScale;
 #else

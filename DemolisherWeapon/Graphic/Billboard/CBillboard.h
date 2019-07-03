@@ -9,9 +9,10 @@ namespace DemolisherWeapon {
 		/// </summary>
 		/// <param name="fileName">テクスチャ画像のファイルパス</param>
 		/// <param name="instancingNum">インスタンシング描画数</param>
-		void Init(const wchar_t* fileName, int instancingNum = 1);
+		/// <param name="isBillboardShader">ビルボードシェーダ使用するか? (false = ただの板ポリ)</param>
+		void Init(const wchar_t* fileName, int instancingNum = 1, bool isBillboardShader = true);
 		//SRVから初期化
-		void Init(ID3D11ShaderResourceView* srv, int instancingNum = 1, const wchar_t* identifiers = nullptr);
+		void Init(ID3D11ShaderResourceView* srv, int instancingNum = 1, const wchar_t* identifiers = nullptr, bool isBillboardShader = true);
 
 		//座標・回転・拡大の設定
 		void SetPos(const CVector3& pos) {
