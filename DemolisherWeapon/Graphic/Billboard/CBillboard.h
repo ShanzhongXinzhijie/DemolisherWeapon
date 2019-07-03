@@ -36,6 +36,7 @@ namespace DemolisherWeapon {
 			}
 			m_model->SetScale(scale);
 		}
+		//TODO ƒAƒX”ä‚ð•Û‚Á‚½Šg‘å
 		void SetPRS(const CVector3& pos, const CQuaternion& rot, const CVector3& scale) {
 			SetPos(pos);
 			SetRot(rot);

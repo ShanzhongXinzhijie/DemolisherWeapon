@@ -587,12 +587,23 @@ float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 #endif
 
 //モデルのアルベドをそのまま出すシェーダ
-float4 PSMain_SozaiNoAzi(PSInput In) : SV_Target0{//TODO 引数
+float4 PSMain_SozaiNoAzi(ZPSInput In) : SV_Target0{
 #if defined(TEXTURE)
 	return albedoTexture.Sample(Sampler, In.TexCoord + uvOffset) * albedoScale;
 #else
 	return albedoScale;
 #endif
+}
+//乗算済みアルファに変換する版
+float4 PSMain_SozaiNoAzi_ConvertToPMA(ZPSInput In) : SV_Target0{
+	float4 color;
+#if defined(TEXTURE)
+	color = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset) * albedoScale;
+#else
+	color = albedoScale;
+#endif
+	color.rgb *= color.a;
+	return color;
 }
 
 #endif //DW_MODEL_FX

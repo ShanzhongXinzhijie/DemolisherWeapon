@@ -78,17 +78,17 @@ namespace GameObj {
 		//インスタンシング用頂点シェーダをセット
 		m_model.GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
-			if (mat->GetModelEffect()->GetIsSkining()) {
-				//スキンモデル
-				mat->SetVS(&m_vsSkinShader);
-				mat->SetVSZ(&m_vsZSkinShader);
+				if (mat->GetModelEffect()->GetIsSkining()) {
+					//スキンモデル
+					mat->SetVS(&m_vsSkinShader);
+					mat->SetVSZ(&m_vsZSkinShader);
+				}
+				else {
+					//スキンじゃないモデル
+					mat->SetVS(&m_vsShader);
+					mat->SetVSZ(&m_vsZShader);
+				}
 			}
-			else {
-				//スキンじゃないモデル
-				mat->SetVS(&m_vsShader);
-				mat->SetVSZ(&m_vsZShader);
-			}
-		}
 		);
 		//カリング前にやる処理を設定
 		m_model.GetSkinModel().SetPreCullingFunction(
