@@ -13,7 +13,7 @@ namespace DemolisherWeapon {
 		void Release();
 
 		//初期化
-		void Init(std::experimental::filesystem::path fileName);
+		void Init(const wchar_t* fileName);
 
 		//描画する
 		//※layerDepthの第三小数点以下は使わないほうがいいと思う

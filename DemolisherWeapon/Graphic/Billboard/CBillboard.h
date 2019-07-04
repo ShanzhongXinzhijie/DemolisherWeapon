@@ -36,12 +36,17 @@ namespace DemolisherWeapon {
 			}
 			m_model->SetScale(scale);
 		}
-		//TODO アス比を保った拡大
 		void SetPRS(const CVector3& pos, const CQuaternion& rot, const CVector3& scale) {
 			SetPos(pos);
 			SetRot(rot);
 			SetScale(scale);
 		}
+
+		//アスペクト比を保持して拡大
+		void SetScaleHoldAspectRatio(float scale) {
+			SetScale({scale*m_aspect,scale,1.0f});
+		}
+
 		//座標・回転・拡大の取得
 		const CVector3& GetPos() const {
 			if (m_isIns) {
@@ -124,5 +129,7 @@ namespace DemolisherWeapon {
 		std::unique_ptr<GameObj::CInstancingModelRender> m_insModel;
 
 		Shader m_vsShader, m_vsZShader;
+
+		float m_aspect = 1.0f;//アスペクト比(縦に対する横の比率)
 	};
 }

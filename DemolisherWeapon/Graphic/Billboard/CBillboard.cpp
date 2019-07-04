@@ -7,7 +7,14 @@ namespace DemolisherWeapon {
 	void CBillboard::Init(const wchar_t* fileName, int instancingNum, bool isBillboardShader) {
 		//ファクトリでテクスチャ読み込み
 		ID3D11ShaderResourceView* tex = nullptr;
-		TextureFactory::GetInstance().Load(fileName, nullptr, &tex);
+		const TextureFactory::TextueData* texdata = nullptr;
+		if (!TextureFactory::GetInstance().Load(fileName, nullptr, &tex, &texdata)) {
+			//失敗
+			return;
+		}
+
+		//アスペクト比算出
+		m_aspect = (float)texdata->width / texdata->height;
 
 		//ビルボード初期化
 		Init(tex, instancingNum, fileName, isBillboardShader);

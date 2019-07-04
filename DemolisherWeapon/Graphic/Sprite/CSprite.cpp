@@ -1,5 +1,6 @@
 #include "DWstdafx.h"
 #include "CSprite.h"
+#include "Graphic/Factory/TextureFactory.h"
 
 namespace DemolisherWeapon {
 
@@ -13,60 +14,30 @@ namespace DemolisherWeapon {
 		Release();
 	}
 
-	void CSprite::Init(std::experimental::filesystem::path fileName) {
+	void CSprite::Init(const wchar_t* fileName) {
 		Release();
 
-		HRESULT hr;
-		if (wcscmp(fileName.extension().c_str(), L".dds") == 0) {
-			hr = DirectX::CreateDDSTextureFromFile(GetEngine().GetGraphicsEngine().GetD3DDevice(), fileName.c_str(), &m_tex, &m_srv);
+		//ファクトリからテクスチャ読み込み
+		const TextureFactory::TextueData* texdata = nullptr;
+		if (!TextureFactory::GetInstance().Load(fileName, &m_tex, &m_srv, &texdata)) {
+			//失敗
+			Release();
+			return;
+		}
+		//ファイルがDDSかどうかで乗算済みアルファ画像か判断
+		if (texdata->isDDS) {
 			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
 		}
 		else {
-			hr = DirectX::CreateWICTextureFromFile(GetEngine().GetGraphicsEngine().GetD3DDevice(), fileName.c_str(), &m_tex, &m_srv);
 			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatchPMA();
 		}
-		if (FAILED(hr)) {
-#ifndef DW_MASTER
-			char message[256];
-			sprintf_s(message, "CSprite::Init()の画像読み込みに失敗。\nファイルパスあってますか？\n%ls\n", fileName.c_str());
-			MessageBox(NULL, message, "Error", MB_OK);
-			std::abort();
-#endif
-			Release(); 
-			return;
-		}
-
 		//画像サイズの取得
-		D3D11_RESOURCE_DIMENSION resType = D3D11_RESOURCE_DIMENSION_UNKNOWN;
-		m_tex->GetType(&resType);
-		switch (resType){
-		case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
-			{
-				ID3D11Texture2D* tex2d = static_cast<ID3D11Texture2D*>(m_tex);
-				D3D11_TEXTURE2D_DESC desc;
-				tex2d->GetDesc(&desc);
-
-				//画像サイズの取得
-				m_width = desc.Width;
-				m_height = desc.Height;
-				m_sourceRectangle.top = 0;
-				m_sourceRectangle.left = 0;
-				m_sourceRectangle.bottom = desc.Height;
-				m_sourceRectangle.right = desc.Width;
-			}
-			break;
-		default:
-#ifndef DW_MASTER
-			char message[256];
-			sprintf_s(message, "CSprite::Init()「なんかちがう」\n%ls\n", fileName.c_str());
-			MessageBox(NULL, message, "Error", MB_OK);
-			std::abort();
-#endif
-			Release();
-			return;
-
-			break;
-		}
+		m_width = texdata->width;
+		m_height = texdata->height;
+		m_sourceRectangle.top = 0;
+		m_sourceRectangle.left = 0;
+		m_sourceRectangle.bottom = m_height;
+		m_sourceRectangle.right = m_width;
 	}
 	void CSprite::Release() {
 		if (m_tex) { m_tex->Release(); m_tex = nullptr; }
