@@ -120,9 +120,40 @@ public:
 	void SetIsDraw(bool flag) { m_isDraw = flag; }
 	bool GetIsDraw() const { return m_isDraw; }
 
-	//ポストドロー描画を行うか設定
-	void SetIsPostDraw(bool enable, PostDrawModelRender::enBlendMode blendMode) {
-		m_isPostDraw = enable; m_postDrawBlendMode = blendMode;
+	//ポストドロー描画を初期化
+	void InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA = false) {
+		m_isPostDraw = true; m_postDrawBlendMode = blendMode;
+
+		//シェーダ読み込み
+		if (!m_loadedShaderSNA || m_shaderSNAIsConvertPMA != !isPMA) {
+			m_loadedShaderSNA = true; m_shaderSNAIsConvertPMA = !isPMA;
+			if (m_shaderSNAIsConvertPMA) {
+				//乗算済みアルファに変換する
+				D3D_SHADER_MACRO macros[] = { "TEXTURE", "1", NULL, NULL };
+				m_psSozaiNoAzi.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi_ConvertToPMA", Shader::EnType::PS);
+				m_psSozaiNoAziTex.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi_ConvertToPMA", Shader::EnType::PS, "TEXTURE", macros);
+			}
+			else {
+				//通常
+				D3D_SHADER_MACRO macros[] = { "TEXTURE", "1", NULL, NULL };
+				m_psSozaiNoAzi.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi", Shader::EnType::PS);
+				m_psSozaiNoAziTex.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi", Shader::EnType::PS, "TEXTURE", macros);
+			}
+		}
+		//シェーダ設定
+		GetSkinModel().FindMaterialSetting(
+			[&](MaterialSetting* mat) {
+				//ピクセルシェーダ
+				if (mat->GetAlbedoTexture()) {
+					mat->SetPS(&m_psSozaiNoAziTex);//テクスチャあり
+				}
+				else {
+					mat->SetPS(&m_psSozaiNoAzi);//テクスチャなし
+				}
+				//頂点シェーダ
+				mat->SetVS(mat->GetVSZ());//深度値出力のものを使う
+			}
+		);
 	}
 
 	//シャドウマップへの描画を行うか設定
@@ -209,6 +240,11 @@ private:
 	bool m_isSetRotOrScale = true;		//回転または拡大を設定したか?
 
 	bool m_animUpdating = false;
+
+	//素材の味シェーダ
+	Shader m_psSozaiNoAzi, m_psSozaiNoAziTex;
+	bool m_loadedShaderSNA = false;			//素材の味シェーダはロード済みか?
+	bool m_shaderSNAIsConvertPMA = false;	//素材の味シェーダは乗算済みアルファ変換版か?
 
 	//std::unique_ptr<ShadowMapRender::IPrePost> m_shadowMapPrePost;
 
