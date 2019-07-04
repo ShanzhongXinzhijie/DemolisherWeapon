@@ -74,7 +74,7 @@ public:
 		m_psZShader[0].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
 		m_psZShader[1].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS, "TEXTURE", macrosZ);
 		
-		LoadClassInstancePS();
+		//LoadClassInstancePS();
 
 		//デフォルトのシェーダを設定
 		m_pPSShader = &m_psDefaultShader;
@@ -318,8 +318,8 @@ public:
 	
 protected:
 	//動的リンク
-	void LoadClassInstanceVS(){
-		/*
+	/*void LoadClassInstanceVS(){
+		
 		//オフセット取得
 		ID3D11ShaderReflection* pReflector = nullptr;
 		D3DReflect(m_vsDefaultShader.GetByteCode(), m_vsDefaultShader.GetByteCodeSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
@@ -332,10 +332,10 @@ protected:
 		//インスタンス取得
 		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cCalcOldPos", 0, 0, 0, 0, &m_cCalcOldPos);
 		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cNotCalcOldPos", 0, 0, 0, 0, &m_cNoCalcOldPos);
-		*/
-	}
-	void LoadClassInstancePS() {
-		/*
+		
+	}*/
+	/*void LoadClassInstancePS() {
+		
 		//オフセット取得
 		ID3D11ShaderReflection* pReflector = nullptr;
 		D3DReflect(m_psDefaultShader.GetByteCode(), m_psDefaultShader.GetByteCodeSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
@@ -348,8 +348,8 @@ protected:
 		//インスタンス取得
 		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cCalcVelocity", 0, 0, 0, 0, &m_cCalcVelocity);
 		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cNotCalcVelocity", 0, 0, 0, 0, &m_cNoCalcVelocity);
-		*/
-	}
+		
+	}*/
 };
 /*!
 *@brief
@@ -365,7 +365,7 @@ public:
 		//Z値描画シェーダを作成
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS);
 
-		LoadClassInstanceVS();
+		//LoadClassInstanceVS();
 		
 		//デフォルトのシェーダを設定
 		m_pVSShader = &m_vsDefaultShader;
@@ -389,7 +389,7 @@ public:
 		//Z値描画シェーダを作成
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS);
 
-		LoadClassInstanceVS();
+		//LoadClassInstanceVS();
 
 		//デフォルトのシェーダを設定
 		m_pVSShader = &m_vsDefaultShader;
