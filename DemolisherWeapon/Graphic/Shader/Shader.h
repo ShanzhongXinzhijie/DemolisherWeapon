@@ -69,7 +69,12 @@ public:
 		return m_dynamicLinkageArray;
 	}
 
+	//ロード済みか取得
+	bool GetIsLoaded()const { return m_isLoaded; }
+
 private:
+	bool m_isLoaded = false;//ロード済み?
+
 	void*				m_shader = nullptr;					//!<シェーダー。
 	ID3D11InputLayout*	m_inputLayout = nullptr;			//!<入力レイアウト。
 	ID3DBlob*			m_blobOut = nullptr;

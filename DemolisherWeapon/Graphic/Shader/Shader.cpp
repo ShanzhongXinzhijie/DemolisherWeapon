@@ -106,6 +106,12 @@ Shader::~Shader()
 
 void Shader::Release()
 {
+	m_shader = nullptr;					
+	m_inputLayout = nullptr;			
+	m_blobOut = nullptr;
+
+	m_numInterfaces = 0;
+	m_dynamicLinkageArray = nullptr;
 }
 
 bool Shader::Load(const char* filePath, const char* entryFuncName, EnType shaderType, const char* definesIdentifier, const D3D_SHADER_MACRO* pDefines)
@@ -123,6 +129,7 @@ bool Shader::Load(const char* filePath, const char* entryFuncName, EnType shader
 		definesIdentifier,
 		pDefines
 	);
+	m_isLoaded = result;
     return result;
 }
 
