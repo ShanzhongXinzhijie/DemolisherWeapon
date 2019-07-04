@@ -160,9 +160,9 @@ void ModelMesh::PrepareForRendering(
     const CommonStates& states,
     bool alpha,
     bool wireframe,
-	bool reverseCull,
+	D3D11_CULL_MODE reverseCull,
 	ID3D11BlendState* pBlendState,
-	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw,
+	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw, ID3D11RasterizerState* pRasterizerStateNone,
 	ID3D11DepthStencilState* pDepthStencilState) const
 {
     assert(deviceContext != 0);
@@ -196,21 +196,42 @@ void ModelMesh::PrepareForRendering(
     deviceContext->OMSetDepthStencilState(depthStencilState, 0);
 
     // Set the rasterizer state.
-	if (pRasterizerStateCw && pRasterizerStateCCw) {
-		if (!reverseCull) {
+	if (pRasterizerStateCw && pRasterizerStateCCw && pRasterizerStateNone) {
+		switch (reverseCull)
+		{
+		case D3D11_CULL_NONE:
+			deviceContext->RSSetState(pRasterizerStateNone);
+			break;
+		case D3D11_CULL_FRONT:
 			deviceContext->RSSetState(ccw ? pRasterizerStateCCw : pRasterizerStateCw);
-		}
-		else {
+			break;
+		case D3D11_CULL_BACK:
 			deviceContext->RSSetState(!ccw ? pRasterizerStateCCw : pRasterizerStateCw);
+			break;
+		default:
+			break;
 		}
 	}
 	else {
-		if (wireframe)
+		if (wireframe) {
 			deviceContext->RSSetState(states.Wireframe());
-		else if (!reverseCull)
-			deviceContext->RSSetState(ccw ? states.CullCounterClockwise() : states.CullClockwise());
-		else
-			deviceContext->RSSetState(!ccw ? states.CullCounterClockwise() : states.CullClockwise());
+		}
+		else {
+			switch (reverseCull)
+			{
+			case D3D11_CULL_NONE:
+				deviceContext->RSSetState(states.CullNone());
+				break;
+			case D3D11_CULL_FRONT:
+				deviceContext->RSSetState(ccw ? states.CullCounterClockwise() : states.CullClockwise());
+				break;
+			case D3D11_CULL_BACK:
+				deviceContext->RSSetState(!ccw ? states.CullCounterClockwise() : states.CullClockwise());
+				break;
+			default:
+				break;
+			}
+		}
 	}
 
     // Set sampler state.
@@ -277,9 +298,9 @@ void XM_CALLCONV Model::Draw(
     CXMMATRIX view,
     CXMMATRIX projection,
     bool wireframe,
-	bool reverseCull,
+	D3D11_CULL_MODE reverseCull,
 	ID3D11BlendState* blendState,
-	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw,
+	ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw, ID3D11RasterizerState* pRasterizerStateNone,
 	ID3D11DepthStencilState* pDepthStencilState,
 	int instanceNum) const
 {
@@ -291,7 +312,7 @@ void XM_CALLCONV Model::Draw(
         auto mesh = it->get();
         assert(mesh != 0);
 
-        mesh->PrepareForRendering(deviceContext, states, false, wireframe, reverseCull, blendState, pRasterizerStateCw, pRasterizerStateCCw, pDepthStencilState);
+        mesh->PrepareForRendering(deviceContext, states, false, wireframe, reverseCull, blendState, pRasterizerStateCw, pRasterizerStateCCw, pRasterizerStateNone, pDepthStencilState);
 
         mesh->Draw(deviceContext, world, view, projection, false, nullptr, instanceNum);
     }
@@ -302,7 +323,7 @@ void XM_CALLCONV Model::Draw(
         auto mesh = it->get();
         assert(mesh != 0);
 
-        mesh->PrepareForRendering(deviceContext, states, true, wireframe, reverseCull, blendState, pRasterizerStateCw, pRasterizerStateCCw, pDepthStencilState);
+        mesh->PrepareForRendering(deviceContext, states, true, wireframe, reverseCull, blendState, pRasterizerStateCw, pRasterizerStateCCw, pRasterizerStateNone, pDepthStencilState);
 
         mesh->Draw(deviceContext, world, view, projection, true, nullptr, instanceNum);
     }

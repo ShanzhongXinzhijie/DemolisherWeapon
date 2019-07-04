@@ -174,11 +174,11 @@ public:
 	//àÍî‘âúÇ…ï`âÊÇ∑ÇÈÇ©ê›íË
 	void SetIsMostDepth(bool enable) {
 		if (enable) {
-			m_model.SetRasterizerState(m_mostDepthRSCw, m_mostDepthRSCCw);
+			m_model.SetRasterizerState(m_mostDepthRSCw, m_mostDepthRSCCw, m_mostDepthRSNone);
 			m_model.SetDepthBias(1.0f);
 		}
 		else {
-			m_model.SetRasterizerState(nullptr, nullptr);
+			m_model.SetRasterizerState(nullptr, nullptr, nullptr);
 			m_model.SetDepthBias(0.0f);
 		}
 	}
@@ -250,6 +250,7 @@ private:
 
 	static ID3D11RasterizerState* m_mostDepthRSCw;
 	static ID3D11RasterizerState* m_mostDepthRSCCw;
+	static ID3D11RasterizerState* m_mostDepthRSNone;
 };
 
 }

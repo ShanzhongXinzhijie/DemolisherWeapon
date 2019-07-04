@@ -171,13 +171,15 @@ public:
 	}
 
 	//ラスタライザーステートをセット
-	void SetRasterizerState(ID3D11RasterizerState* RSCw, ID3D11RasterizerState* RSCCw) {
+	void SetRasterizerState(ID3D11RasterizerState* RSCw, ID3D11RasterizerState* RSCCw, ID3D11RasterizerState* RSNone) {
 		m_pRasterizerStateCw = RSCw;
 		m_pRasterizerStateCCw = RSCCw;
+		m_pRasterizerStateNone = RSNone;
 	}
-	void GetRasterizerState(ID3D11RasterizerState*& RSCw, ID3D11RasterizerState*& RSCCw) const{
+	void GetRasterizerState(ID3D11RasterizerState*& RSCw, ID3D11RasterizerState*& RSCCw, ID3D11RasterizerState*& RSNone) const{
 		RSCw = m_pRasterizerStateCw;
 		RSCCw = m_pRasterizerStateCCw;
+		RSNone = m_pRasterizerStateNone;
 	}
 	//深度バイアスをセット(シェーダ用)
 	void SetDepthBias(float bias) {
@@ -185,6 +187,11 @@ public:
 	}
 	float GetDepthBias()const {
 		return m_depthBias;
+	}
+
+	//面の向きを設定
+	void SetCullMode(D3D11_CULL_MODE cullMode) {
+		m_cull = cullMode;
 	}
 
 	/// <summary>
@@ -340,7 +347,10 @@ private:
 
 	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;//ラスタライザステート
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
+	ID3D11RasterizerState* m_pRasterizerStateNone = nullptr;
 	float m_depthBias = 0.0f;//深度値バイアス	
+
+	D3D11_CULL_MODE m_cull = D3D11_CULL_FRONT;//面の向き
 	
 	//インポスター用
 	int m_imposterPartNum[2] = {};//分割数

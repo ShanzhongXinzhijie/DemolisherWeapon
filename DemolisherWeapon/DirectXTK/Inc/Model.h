@@ -222,9 +222,10 @@ namespace DirectX
         typedef std::vector<std::shared_ptr<ModelMesh>> Collection;
 
         // Setup states for drawing mesh
-        void __cdecl PrepareForRendering( _In_ ID3D11DeviceContext* deviceContext, const CommonStates& states, bool alpha = false, bool wireframe = false, bool reverseCull = false,
+        void __cdecl PrepareForRendering( _In_ ID3D11DeviceContext* deviceContext, const CommonStates& states, bool alpha = false,
+			bool wireframe = false, D3D11_CULL_MODE reverseCull = D3D11_CULL_FRONT,
 			ID3D11BlendState* pBlendState = nullptr,
-			ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr,
+			ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr, ID3D11RasterizerState* pRasterizerStateNone = nullptr,
 			ID3D11DepthStencilState* pDepthStencilState = nullptr) const;
 
         // Draw the mesh
@@ -246,9 +247,9 @@ namespace DirectX
 
         // Draw all the meshes in the model
         void XM_CALLCONV Draw( _In_ ID3D11DeviceContext* deviceContext, const CommonStates& states, FXMMATRIX world, CXMMATRIX view, CXMMATRIX projection,
-                               bool wireframe = false, bool reverseCull = false, 
+                               bool wireframe = false, D3D11_CULL_MODE reverseCull = D3D11_CULL_FRONT,
 							   ID3D11BlendState* blendState = nullptr,
-							   ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr,
+							   ID3D11RasterizerState* pRasterizerStateCw = nullptr, ID3D11RasterizerState* pRasterizerStateCCw = nullptr, ID3D11RasterizerState* pRasterizerStateNone = nullptr,
 							   ID3D11DepthStencilState* pDepthStencilState = nullptr,
 							   int instanceNum = 1) const;
 

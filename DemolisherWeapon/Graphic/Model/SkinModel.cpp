@@ -337,6 +337,18 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	//ƒ†[ƒU[Ý’è‚Ì•`‰æ‘Oˆ—ŽÀs
 	if (m_preDrawFunc) { m_preDrawFunc(this); }
 
+	//–Ê‚ÌŒü‚«
+	D3D11_CULL_MODE cullMode = m_cull;
+	if ((m_enFbxCoordinate == enFbxRightHanded) != reverseCull) {
+		//”½“]
+		if (cullMode == D3D11_CULL_FRONT) { 
+			cullMode = D3D11_CULL_BACK; 
+		}else
+		if (cullMode == D3D11_CULL_BACK) { 
+			cullMode = D3D11_CULL_FRONT; 
+		}
+	}
+
 	//•`‰æB
 	m_modelDx->Draw(
 		d3dDeviceContext,
@@ -345,9 +357,9 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		GetMainCamera()->GetViewMatrix(),
 		GetMainCamera()->GetProjMatrix(),
 		false,
-		(m_enFbxCoordinate == enFbxRightHanded) != reverseCull,
+		cullMode,
 		pBlendState,
-		m_pRasterizerStateCw, m_pRasterizerStateCCw,
+		m_pRasterizerStateCw, m_pRasterizerStateCCw, m_pRasterizerStateNone,
 		pDepthStencilState,
 		instanceNum*m_instanceNum
 	);

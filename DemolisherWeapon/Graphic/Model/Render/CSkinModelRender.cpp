@@ -6,6 +6,7 @@ namespace GameObj {
 
 ID3D11RasterizerState* CSkinModelRender::m_mostDepthRSCw = nullptr;
 ID3D11RasterizerState* CSkinModelRender::m_mostDepthRSCCw = nullptr;
+ID3D11RasterizerState* CSkinModelRender::m_mostDepthRSNone = nullptr;
 
 CSkinModelRender::CSkinModelRender()
 {
@@ -15,9 +16,7 @@ CSkinModelRender::CSkinModelRender()
 		desc.FillMode = D3D11_FILL_SOLID;
 		desc.DepthClipEnable = true;
 		desc.MultisampleEnable = true;
-
 		desc.DepthBias = (INT)DEPTH_BIAS_D32_FLOAT(1.0f);
-
 		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, &m_mostDepthRSCw);
 	}
 	if (!m_mostDepthRSCCw) {
@@ -26,10 +25,17 @@ CSkinModelRender::CSkinModelRender()
 		desc.FillMode = D3D11_FILL_SOLID;
 		desc.DepthClipEnable = true;
 		desc.MultisampleEnable = true;
-
 		desc.DepthBias = (INT)DEPTH_BIAS_D32_FLOAT(1.0f);
-
 		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, &m_mostDepthRSCCw);
+	}
+	if (!m_mostDepthRSNone) {
+		D3D11_RASTERIZER_DESC desc = {};
+		desc.CullMode = D3D11_CULL_NONE;
+		desc.FillMode = D3D11_FILL_SOLID;
+		desc.DepthClipEnable = true;
+		desc.MultisampleEnable = true;
+		desc.DepthBias = (INT)DEPTH_BIAS_D32_FLOAT(1.0f);
+		GetGraphicsEngine().GetD3DDevice()->CreateRasterizerState(&desc, &m_mostDepthRSNone);
 	}
 }
 
