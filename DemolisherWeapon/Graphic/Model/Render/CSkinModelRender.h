@@ -151,7 +151,7 @@ public:
 					mat->SetPS(&m_psSozaiNoAzi);//テクスチャなし
 				}
 				//頂点シェーダ
-				mat->SetVS(mat->GetVSZ());//深度値出力のものを使う
+				//mat->SetVS(mat->GetVSZ());//深度値出力のものを使う
 			}
 		);
 	}
