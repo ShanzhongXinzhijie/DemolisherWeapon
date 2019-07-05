@@ -100,6 +100,8 @@
     <ClInclude Include="math\Plane.h" />
     <ClInclude Include="Render\PostDrawModelRender.h" />
     <ClInclude Include="Graphic\Factory\TextureFactory.h" />
+    <ClInclude Include="Graphic\Particle\CParticle.h" />
+    <ClInclude Include="Timer\CDeleteTimer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -189,6 +191,8 @@
     <ClCompile Include="math\Plane.cpp" />
     <ClCompile Include="Render\PostDrawModelRender.cpp" />
     <ClCompile Include="Graphic\Factory\TextureFactory.cpp" />
+    <ClCompile Include="Graphic\Particle\CParticle.cpp" />
+    <ClCompile Include="Timer\CDeleteTimer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

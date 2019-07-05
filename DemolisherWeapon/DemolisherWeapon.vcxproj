@@ -270,6 +270,8 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="Timer\CDeleteTimer.h" />
+    <ClInclude Include="Graphic\Particle\CParticle.h" />
     <ClInclude Include="DWVersion.h" />
     <ClInclude Include="Graphic\FrustumCulling.h" />
     <ClInclude Include="Graphic\Billboard\CImposter.h" />
@@ -365,6 +367,8 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Timer\CDeleteTimer.cpp" />
+    <ClCompile Include="Graphic\Particle\CParticle.cpp" />
     <ClCompile Include="Graphic\FrustumCulling.cpp" />
     <ClCompile Include="Graphic\Billboard\CImposter.cpp" />
     <ClCompile Include="Graphic\Billboard\CBillboard.cpp" />
