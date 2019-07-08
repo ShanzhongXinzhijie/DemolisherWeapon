@@ -216,4 +216,7 @@
     <CustomBuild Include="Preset\shader\Imposter.fx" />
     <CustomBuild Include="Preset\shader\billboard.fx" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Preset\shader\modelDisolve.fx" />
+  </ItemGroup>
 </Project>

@@ -12,13 +12,18 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 	switch (m_s_shadermode) {
 	case enZShader: 
 		//Z値の描画
+		
+		//頂点シェーダ
 		deviceContext->VSSetShader((ID3D11VertexShader*)m_pVSZShader->GetBody(), NULL, 0);
+	
+		//ピクセルシェーダ
 		if (m_pPSZShader == &m_psZShader[0]) {
 			deviceContext->PSSetShader((ID3D11PixelShader*)m_psZShader[m_isUseTexZShader ? 1 : 0].GetBody(), NULL, 0);
 		}
 		else {
 			deviceContext->PSSetShader((ID3D11PixelShader*)m_pPSZShader->GetBody(), NULL, 0);
 		}
+
 		break;
 	default:
 		//通常描画

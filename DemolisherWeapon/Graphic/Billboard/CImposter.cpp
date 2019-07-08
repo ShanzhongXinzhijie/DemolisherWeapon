@@ -454,9 +454,9 @@ namespace DemolisherWeapon {
 		//インスタンシング
 		if (m_billboard.GetIsInstancing()) {
 			//IInstanceDataを設定
-			if (!m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData()) {
+			if (!m_billboard.GetInstancingModel().GetInstancingModel()->GetIInstanceData(L"InstancingImposterParamManager")) {
 				//新規作成
-				m_billboard.GetInstancingModel().GetInstancingModel()->SetIInstanceData(std::make_unique<InstancingImposterParamManager>(m_billboard.GetInstancingModel().GetInstancingModel()->GetInstanceMax(), m_texture));
+				m_billboard.GetInstancingModel().GetInstancingModel()->AddIInstanceData(L"InstancingImposterParamManager", std::make_unique<InstancingImposterParamManager>(m_billboard.GetInstancingModel().GetInstancingModel()->GetInstanceMax(), m_texture));
 			}
 			//Y軸回転値のポインタを設定
 			if (m_billboard.GetIsInstancing()) {

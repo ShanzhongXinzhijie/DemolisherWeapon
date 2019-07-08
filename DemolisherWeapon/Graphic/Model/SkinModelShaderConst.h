@@ -27,9 +27,12 @@ enum EnSkinModelSRVReg{
 	enSkinModelSRVReg_InstancingWorldMatrix,	//インスタンシング用ワールド行列
 	enSkinModelSRVReg_InstancingWorldMatrixOld, 
 	
-	enSkinModelSRVReg_Free = 7,								//ここから使ってない
-	enSkinModelSRVReg_ImposterSizeToCamera = 7,				//ただし、インポスター描画で使用する場合アリ	
+	enSkinModelSRVReg_Free = 7,								//ここから((基本))使ってない
+	enSkinModelSRVReg_ImposterSizeToCamera = 7,				//インポスターのインデックスごとのカメラ方向へのモデルサイズ
 	enSkinModelSRVReg_InstancingImposterScale,				//インスタンシング用インポスター拡大率
+
+	enSkinModelSRVReg_DisolveTexture,						//ディゾルブシェーダ、しきい値テクスチャ
+	enSkinModelSRVReg_Disolve_t,							//モデルごとのディゾルブシェーダ用しきい値
 
 	enSkinModelSRVReg_Free2 = 60,							//ここからマジで使ってない
 };

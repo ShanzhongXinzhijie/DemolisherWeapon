@@ -133,7 +133,9 @@ namespace GameObj {
 				GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, &m_worldMatrixSRVOld);
 
 				//IInstanceDataの処理実行
-				if (m_instanceData) { m_instanceData->PreDraw(m_instanceIndex, m_instanceDrawNum, m_drawInstanceMask); }
+				for (auto& IID : m_instanceData) {
+					IID.second->PreDraw(m_instanceIndex, m_instanceDrawNum, m_drawInstanceMask); 
+				}
 
 				//設定されている処理実行
 				if (m_preDrawFunc) { m_preDrawFunc(); }
@@ -146,7 +148,9 @@ namespace GameObj {
 
 	void InstancingModel::SetInstanceMax(int instanceMax) {
 		//IInstanceDataの処理実行
-		if (m_instanceData) { m_instanceData->SetInstanceMax(instanceMax); }
+		for (auto& IID : m_instanceData) {
+			IID.second->SetInstanceMax(instanceMax);
+		}
 
 		//設定最大数が現在以下なら数だけ変更
 		if (m_instanceMax >= instanceMax) {

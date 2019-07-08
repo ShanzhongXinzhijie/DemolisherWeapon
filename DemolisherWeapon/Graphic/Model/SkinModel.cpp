@@ -284,33 +284,35 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	ID3D11DeviceContext* d3dDeviceContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 	//定数バッファの内容を更新。
-	SVSConstantBuffer vsCb;
-	vsCb.mWorld = m_worldMatrix;
-	vsCb.mProj = GetMainCamera()->GetProjMatrix();
-	vsCb.mView = GetMainCamera()->GetViewMatrix();
+	{
+		SVSConstantBuffer vsCb;
+		vsCb.mWorld = m_worldMatrix;
+		vsCb.mProj = GetMainCamera()->GetProjMatrix();
+		vsCb.mView = GetMainCamera()->GetViewMatrix();
 
-	vsCb.mWorld_old = m_worldMatrixOld;
-	vsCb.mProj_old = GetMainCamera()->GetProjMatrixOld();
-	vsCb.mView_old = GetMainCamera()->GetViewMatrixOld();
+		vsCb.mWorld_old = m_worldMatrixOld;
+		vsCb.mProj_old = GetMainCamera()->GetProjMatrixOld();
+		vsCb.mView_old = GetMainCamera()->GetViewMatrixOld();
 
-	vsCb.camMoveVec = (GetMainCamera()->GetPos() - GetMainCamera()->GetPosOld())*MotionBlurScale;
-	vsCb.camMoveVec.w = GetEngine().GetDistanceScale();
+		vsCb.camMoveVec = (GetMainCamera()->GetPos() - GetMainCamera()->GetPosOld())*MotionBlurScale;
+		vsCb.camMoveVec.w = GetEngine().GetDistanceScale();
 
-	vsCb.depthBias.x = m_depthBias;
-	vsCb.depthBias.y = (GetMainCamera()->GetFar() - GetMainCamera()->GetNear())*vsCb.depthBias.x;
-	vsCb.depthBias.z = 50.0f*GetEngine().GetDistanceScale()*( GetMainCamera()->GetProjMatrix().m[1][1] / REFERENCE_FRUSTUM_SIZE);
+		vsCb.depthBias.x = m_depthBias;
+		vsCb.depthBias.y = (GetMainCamera()->GetFar() - GetMainCamera()->GetNear())*vsCb.depthBias.x;
+		vsCb.depthBias.z = 50.0f*GetEngine().GetDistanceScale()*(GetMainCamera()->GetProjMatrix().m[1][1] / REFERENCE_FRUSTUM_SIZE);
 
-	vsCb.camWorldPos = GetMainCamera()->GetPos();
-	
-	//インポスター分割数
-	vsCb.imposterPartNum[0] = m_imposterPartNum[0];
-	vsCb.imposterPartNum[1] = m_imposterPartNum[1];
-	//インポスターParameter
-	vsCb.imposterParameter[0] = m_imposterScale;//スケール
-	vsCb.imposterParameter[1] = m_imposterRotY;//Y軸回転
+		vsCb.camWorldPos = GetMainCamera()->GetPos();
 
-	//定数バッファ更新
-	d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
+		//インポスター分割数
+		vsCb.imposterPartNum[0] = m_imposterPartNum[0];
+		vsCb.imposterPartNum[1] = m_imposterPartNum[1];
+		//インポスターParameter
+		vsCb.imposterParameter[0] = m_imposterScale;//スケール
+		vsCb.imposterParameter[1] = m_imposterRotY;//Y軸回転
+
+		//定数バッファ更新
+		d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
+	}
 
 	//定数バッファをGPUに転送。
 	d3dDeviceContext->VSSetConstantBuffers(enSkinModelCBReg_VSPS, 1, &m_cb);

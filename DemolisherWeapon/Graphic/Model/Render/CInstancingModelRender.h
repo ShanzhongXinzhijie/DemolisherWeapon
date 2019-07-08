@@ -50,7 +50,7 @@ namespace GameObj {
 			m_worldMatrixCache.reset();
 			m_worldMatrixOldCache.reset();
 
-			m_instanceData.reset();
+			m_instanceData.clear();
 		}
 
 		//初期化
@@ -94,7 +94,9 @@ namespace GameObj {
 			m_maxAABB[m_instanceIndex] = maxAABB;
 
 			//IInstanceDataの処理実行
-			if (m_instanceData) { m_instanceData->AddDrawInstance(m_instanceIndex, SRTMatrix, scale, param_ptr); }
+			for (auto& IID : m_instanceData) {
+				IID.second->AddDrawInstance(m_instanceIndex, SRTMatrix, scale, param_ptr);
+			}
 
 			m_instanceIndex++;
 		}
@@ -129,7 +131,9 @@ namespace GameObj {
 			return m_isFrustumCull;
 		}
 
-		//インスタンスごとのデータを扱う用のインターフェイスクラス 
+		/// <summary>
+		/// インスタンスごとのデータを扱う用のインターフェイスクラス 
+		/// </summary>
 		class IInstancesData {
 		public:
 			virtual ~IInstancesData() {};
@@ -151,30 +155,63 @@ namespace GameObj {
 			//インスタンス最大数を設定
 			virtual void SetInstanceMax(int instanceMax) {}
 		};
+
 		/// <summary>
 		/// IInstanceDataをセット
 		/// </summary>
-		void SetIInstanceData(std::unique_ptr<IInstancesData>&& IID) {
-			m_instanceData = std::move(IID);
+		/// <param name="identifier">IInstanceDataの名前</param>
+		void AddIInstanceData(const wchar_t* identifier, std::unique_ptr<IInstancesData>&& IID) {
+			int index = Util::MakeHash(identifier);
+			m_instanceData.emplace(index,std::move(IID));
 		}
 		/// <summary>
 		/// 設定されているIInstanceDataを取得
 		/// </summary>
-		IInstancesData* GetIInstanceData()const {
-			return m_instanceData.get();
+		/// <param name="identifier">IInstanceDataの名前</param>
+		IInstancesData* GetIInstanceData(const wchar_t* identifier)const {
+			int index = Util::MakeHash(identifier);
+			auto IID = m_instanceData.find(index);
+			if (IID == m_instanceData.end()) {
+				return nullptr;
+			}
+			else {
+				return IID->second.get();
+			}
+		}
+		/// <summary>
+		/// 設定されているIInstanceDataを削除
+		/// </summary>
+		/// <param name="identifier">IInstanceDataの名前</param>
+		void DeleteIInstanceData(const wchar_t* identifier) {
+			int index = Util::MakeHash(identifier);
+			auto IID = m_instanceData.find(index);
+			if (IID == m_instanceData.end()) {
+				//要素が見つからない
+#ifndef DW_MASTER
+				char message[256];
+				sprintf_s(message, "【InstancingModel::DeleteIInstanceData】要素が見つかりません。要素名:%s \n", identifier);
+				DW_WARNING_MESSAGE(true, message);
+#endif
+				return;
+			}
+			else {
+				m_instanceData.erase(index);
+			}
 		}
 
 	private:
 		int m_instanceIndex = 0, m_instanceDrawNum = 0;
 		int m_instanceMax = 0;
 
+		//モデル
 		GameObj::CSkinModelRender m_model;
 		AnimationClip m_animationClip;
 
+		//ワールド行列
 		std::unique_ptr<CMatrix[]>	m_instancingWorldMatrix;
 		ID3D11Buffer*				m_worldMatrixSB = nullptr;
 		ID3D11ShaderResourceView*	m_worldMatrixSRV = nullptr;
-
+		//旧ワールド行列
 		std::unique_ptr<CMatrix[]>	m_instancingWorldMatrixOld;
 		ID3D11Buffer*				m_worldMatrixSBOld = nullptr;
 		ID3D11ShaderResourceView*	m_worldMatrixSRVOld = nullptr;
@@ -189,8 +226,10 @@ namespace GameObj {
 		//ユーザー設定の描画前処理
 		std::function<void()> m_preDrawFunc = nullptr;
 
-		std::unique_ptr<IInstancesData> m_instanceData;
+		//インスタンスごとのデータを扱う用のクラス
+		std::unordered_map<int,std::unique_ptr<IInstancesData>> m_instanceData;
 
+		//シェーダ
 		Shader m_vsShader, m_vsZShader;
 		Shader m_vsSkinShader, m_vsZSkinShader;
 	};

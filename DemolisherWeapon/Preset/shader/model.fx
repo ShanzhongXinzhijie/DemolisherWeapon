@@ -15,9 +15,12 @@
 // Shader Resource View
 // [SkinModelShaderConst.h:EnSkinModelSRVReg]
 /////////////////////////////////////////////////////////////
+
+//テクスチャ
+
 #if ALBEDO_MAP || defined(TEXTURE) || defined(SKY_CUBE)
 #if !defined(SKY_CUBE)
-//アルベドテクスチャ。
+//アルベドテクスチャ
 Texture2D<float4> albedoTexture : register(t0);	
 #else
 //スカイボックス用キューブマップ
@@ -32,6 +35,8 @@ Texture2D<float3> NormalTexture : register(t1);
 //ライティングパラメータマップ
 Texture2D<float4> LightingTexture : register(t2);
 #endif
+
+//ストラクチャーバッファ
 
 //ボーン行列
 StructuredBuffer<float4x4> boneMatrix : register(t3);
@@ -126,12 +131,14 @@ struct VSInputNmTxWeights
  * @brief	ピクセルシェーダーの入力。
  */
 struct PSInput{
+	//基本情報
 	float4 Position 	: SV_POSITION;
 	float3 Normal		: NORMAL;
 	float3 Tangent		: TANGENT;
 	float3 Binormal		: BINORMAL;
 	float2 TexCoord 	: TEXCOORD0;
 
+	//座標
 	float3 Viewpos		: TEXCOORD1;
 	float3 Worldpos		: TEXCOORD2;
 
@@ -139,24 +146,38 @@ struct PSInput{
 	float4 lastPos		: LAST_POSITION;//過去座標
 	bool isWorldMove	: IS_WORLD_BLUR;//ワールド空間で移動しているか?
 
-	uint instanceID		: InstanceID;
+	uint instanceID		: InstanceID;//インスタンスID
 
-	float3 cubemapPos	: CUBE_POS;
+	float3 cubemapPos	: CUBE_POS;//スカイボックスのテクスチャ取得用
 
-	int2 imposterIndex : IMPOSTER_INDEX;
+	int2 imposterIndex	: IMPOSTER_INDEX;//インポスター用インデックス
 };
 
 //Z値書き込みピクセルシェーダーの入力
 struct ZPSInput {
+	//基本情報
 	float4 Position 	: SV_POSITION;
 	float2 TexCoord 	: TEXCOORD0;
 	float4 posInProj	: TEXCOORD1;
 
-	uint instanceID		: InstanceID;
+	uint instanceID		: InstanceID;//インスタンスID
 
-	int2 imposterIndex : IMPOSTER_INDEX;
+	int2 imposterIndex	: IMPOSTER_INDEX;//インポスター用インデックス
 };
 
+//G-Buffer出力
+struct PSOutput_RenderGBuffer {
+	float4 albedo		: SV_Target0;		//アルベド
+	float3 normal		: SV_Target1;		//法線
+	float4 viewpos		: SV_Target2;		//ビュー座標
+	float4 velocity		: SV_Target3;		//速度
+	float4 velocityPS	: SV_Target4;		//速度(ピクセルシェーダ)
+	float4 lightingParam: SV_Target5;		//ライティング用パラメーター
+};
+
+/////////////////////////////////////////////////////////////
+// 関数
+/////////////////////////////////////////////////////////////
 //スキンなしモデルの頂点シェーダ用関数
 PSInput VSModel( VSInputNmTxVcTangent In, float4x4 worldMat, float4x4 worldMatOld
 #if defined(INSTANCING)
@@ -166,7 +187,8 @@ PSInput VSModel( VSInputNmTxVcTangent In, float4x4 worldMat, float4x4 worldMatOl
 	PSInput psInput = (PSInput)0;
 
 #if defined(INSTANCING)
-	psInput.instanceID = instanceID;//インスタンスID保存
+	//インスタンスID記録
+	psInput.instanceID = instanceID;
 #endif
 
 	//ワールド行列適応
@@ -252,6 +274,7 @@ ZPSInput VSModel_RenderZ(VSInputNmTxVcTangent In, float4x4 worldMat
 	ZPSInput psInput = (ZPSInput)0;
 
 #if defined(INSTANCING)
+	//インスタンスID記録
 	psInput.instanceID = instanceID;
 #endif
 
@@ -309,9 +332,11 @@ PSInput VSMainSkin( VSInputNmTxWeights In
 	    //最後のボーンを計算する。
 	    skinning += boneMatrix[In.Indices[3]] * (1.0f - w);	  	
 	}
+
 #if defined(INSTANCING)
+	//インスタンスID記録
 	psInput.instanceID = instanceID;
-	//インスタンシング
+	//スキン行列とワールド行列を乗算
 	skinning = mul(InstancingWorldMatrix[instanceID], skinning);
 #endif
 	
@@ -410,9 +435,11 @@ ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In
 		//最後のボーンを計算する。
 		skinning += boneMatrix[In.Indices[3]] * (1.0f - w);		
 	}
+
 #if defined(INSTANCING)
+	//インスタンスID記録
 	psInput.instanceID = instanceID;
-	//インスタンシング
+	//スキン行列とワールド行列を乗算
 	skinning = mul(InstancingWorldMatrix[instanceID], skinning);
 #endif
 
@@ -428,16 +455,6 @@ ZPSInput VSMainSkin_RenderZ(VSInputNmTxWeights In
 
 	return psInput;
 }
-
-//G-Buffer出力
-struct PSOutput_RenderGBuffer {
-	float4 albedo		: SV_Target0;		//アルベド
-	float3 normal		: SV_Target1;		//法線
-	float4 viewpos		: SV_Target2;		//ビュー座標
-	float4 velocity		: SV_Target3;		//速度
-	float4 velocityPS	: SV_Target4;		//速度(ピクセルシェーダ)
-	float4 lightingParam: SV_Target5;		//ライティング用パラメーター
-};
 
 void AlbedoRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 	//アルベド
@@ -541,6 +558,7 @@ void MotionRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 #endif
 }
 
+//GBuffer出力
 PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 {
 	PSOutput_RenderGBuffer Out = (PSOutput_RenderGBuffer)0;
