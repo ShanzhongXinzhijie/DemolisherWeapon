@@ -59,7 +59,9 @@ void DefferdRender::Release() {
 }
 
 void DefferdRender::Render() {
-	
+	//GPUイベントの開始
+	GetGraphicsEngine().BeginGPUEvent(L"DefferdRender");
+
 	ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 #ifndef DW_MASTER
@@ -172,6 +174,9 @@ void DefferdRender::Render() {
 
 	//レンダーターゲット解除
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+
+	//GPUイベントの終了
+	GetGraphicsEngine().EndGPUEvent();
 }
 
 void DefferdRender::SetAmbientCubeMap(const wchar_t* filePass) {

@@ -89,7 +89,9 @@ void GBufferRender::Release() {
 }
 
 void GBufferRender::Render() {
-	
+	//GPUイベントの開始
+	GetGraphicsEngine().BeginGPUEvent(L"GBufferRender");
+
 #ifndef DW_MASTER
 	if (!GetMainCamera()) {
 		MessageBox(NULL, "カメラが設定されていません!!", "Error", MB_OK);
@@ -132,6 +134,9 @@ void GBufferRender::Render() {
 
 	//レンダーターゲット解除
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+
+	//GPUイベントの終了
+	GetGraphicsEngine().EndGPUEvent();
 }
 void GBufferRender::PostRender() {
 	for (auto& list : m_drawModelList) {
