@@ -4,17 +4,9 @@
 
 namespace DemolisherWeapon {
 
-ShadowMapRender::ShadowMapRender()
-{
-}
-
-
 ShadowMapRender::~ShadowMapRender()
 {
 	Release();
-}
-
-void ShadowMapRender::Init() {
 }
 
 void ShadowMapRender::Release() {
@@ -40,7 +32,7 @@ void ShadowMapRender::Render() {
 	
 	for (int i = 0; i < SHADOWMAP_NUM; i++) {		
 
-		if (!GetShadowMapEnable(i) || !m_shadowMaps[i].GetIsRenderAndUpdateInterval()) { continue; }
+		if (!GetShadowMapEnable(i) || !m_shadowMaps[i].GetIsRenderAndUpdateInterval() || !m_shadowMaps[i].GetIsUpdate()) { continue; }
 
 		//•`‰æ€”õ
 		m_shadowMaps[i].PreparePreDraw();

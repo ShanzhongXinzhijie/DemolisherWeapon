@@ -5,7 +5,7 @@ namespace DemolisherWeapon {
 	class ShadowMapHandler
 	{
 	public:
-		ShadowMapHandler();
+		ShadowMapHandler() = default;
 		~ShadowMapHandler();
 
 		void ShadowMapUpdate();
@@ -47,6 +47,9 @@ namespace DemolisherWeapon {
 
 		//更新間隔を設定
 		void SetInterval(int interval) { m_shadowMap->SetRenderInterval(interval); }
+
+		//更新するか設定
+		void SetIsUpdate(bool isUpdate) { m_shadowMap->SetIsUpdate(isUpdate); }
 
 	private:
 		CShadowMap* m_shadowMap = nullptr;

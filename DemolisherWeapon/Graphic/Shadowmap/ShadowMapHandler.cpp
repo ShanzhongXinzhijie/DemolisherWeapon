@@ -3,9 +3,6 @@
 
 namespace DemolisherWeapon {
 
-	ShadowMapHandler::ShadowMapHandler()
-	{
-	}
 	ShadowMapHandler::~ShadowMapHandler()
 	{
 		Release();
@@ -19,6 +16,8 @@ namespace DemolisherWeapon {
 	}
 
 	void ShadowMapHandler::Init(UINT width, UINT height, const CVector3& direction, const CVector3& target, const CVector3& area, float Near, const CVector3& dir_y) {
+		Release();
+		
 		m_shadowMap = CreateShadowMap(width, height);
 
 		m_direction = direction; m_direction.Normalize();		

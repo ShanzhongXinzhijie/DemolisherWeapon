@@ -216,7 +216,11 @@ namespace DemolisherWeapon {
 		void SetIsDraw(bool flag) {
 			m_billboard.SetIsDraw(flag);
 		}
-		
+		//シャドウマップに描画するか設定
+		void SetIsShadowCaster(bool flag) {
+			m_billboard.GetModel().SetIsShadowCaster(flag);
+		}
+
 	private:
 		bool m_isInit = false;
 		//テクスチャ

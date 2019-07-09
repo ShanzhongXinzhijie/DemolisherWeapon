@@ -160,6 +160,7 @@ public:
 	void SetIsShadowCaster(bool flag) { m_isShadowCaster = flag; }
 	//シャドウマップの描画時に面を反転させるか設定
 	void SetIsShadowDrawReverse(bool flag) { m_isShadowDrawReverse = flag; }
+	bool GetIsShadowDrawReverse()const { return m_isShadowDrawReverse; }
 	//シャドウマップ描画前後で行う処理を設定
 	/*void SetShadowMapPrePost(std::unique_ptr<ShadowMapRender::IPrePost>&& prepost) {
 		m_shadowMapPrePost = std::move(prepost);
@@ -184,12 +185,8 @@ public:
 	}
 
 	//描画順を設定(数値が大きいほど後に描画される)
-	void SetDrawPriority(int prio) {
-		m_priority = prio;
-	}
-	int GetDrawPriority()const {
-		return m_priority;
-	}
+	void SetDrawPriority(int prio) { m_priority = prio; }
+	int GetDrawPriority()const { return m_priority; }
 
 	//ワールド行列を更新(スケルトンも更新される)
 	void UpdateWorldMatrix(bool refreshOldPos = false) {

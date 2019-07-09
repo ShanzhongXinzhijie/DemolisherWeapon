@@ -15,7 +15,7 @@ class ShadowMapRender :
 	public IRander
 {
 public:
-	ShadowMapRender();
+	ShadowMapRender() = default;
 	~ShadowMapRender();
 
 	void Render()override;
@@ -34,8 +34,7 @@ public:
 	};*/
 
 public:
-	//初期化
-	void Init();
+	//開放
 	void Release();
 
 	//シャドウマップ全体の有効・無効を設定
@@ -114,7 +113,7 @@ public:
 	}
 
 	//シャドウマップの最大数
-	static const int SHADOWMAP_NUM = ShadowMapResource::SHADOWMAP_NUM;
+	static constexpr int SHADOWMAP_NUM = ShadowMapResource::SHADOWMAP_NUM;
 
 private:
 	EnShadowMapMode m_setting = enPCSS;
@@ -122,7 +121,7 @@ private:
 	std::list<std::pair<SkinModel*,bool>> m_drawModelList[DRAW_PRIORITY_MAX];
 	//std::list<IPrePost*> m_prePostActionList;
 
-	CShadowMap m_shadowMaps[SHADOWMAP_NUM];
+	CShadowMap m_shadowMaps[SHADOWMAP_NUM];//シャドウマップ
 };
 
 }

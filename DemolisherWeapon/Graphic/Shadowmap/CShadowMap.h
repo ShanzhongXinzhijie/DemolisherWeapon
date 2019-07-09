@@ -22,10 +22,10 @@ public:
 	}
 
 	//シャドウマップの最大数
-	static const int SHADOWMAP_NUM = DemolisherWeapon::SHADOWMAP_NUM;
+	static constexpr int SHADOWMAP_NUM = DemolisherWeapon::SHADOWMAP_NUM;
 
-	static const int MAX_WIDTH  = SHADOW_MAX_WIDTH;
-	static const int MAX_HEIGHT = SHADOW_MAX_HEIGHT;
+	static constexpr int MAX_WIDTH  = SHADOW_MAX_WIDTH;
+	static constexpr int MAX_HEIGHT = SHADOW_MAX_HEIGHT;
 
 private:
 	bool m_isInit = false;
@@ -58,6 +58,9 @@ public:
 		if (m_isRenderCnt == 0 || m_isRenderCnt > m_renderInterval) { m_isRenderCnt = m_renderInterval; }
 		return Out;
 	}
+
+	//シャドウマップを更新していいか取得
+	bool GetIsUpdate()const { return m_isUpdate; }
 
 	float GetSizeX()const { return m_viewport.Width; }
 	float GetSizeY()const { return m_viewport.Height; }
@@ -138,11 +141,17 @@ public:
 		m_renderInterval = interval;
 	}
 
+	//シャドウを更新するか設定
+	void SetIsUpdate(bool isUpdate) {
+		m_isUpdate = isUpdate;
+	}
+
 private:
 	bool m_isInit = false;
 	bool m_enable = true;
 	bool m_enablePCSS = true;
-	int m_isRenderCnt = 0, m_renderInterval = 0;
+	int  m_isRenderCnt = 0, m_renderInterval = 0;
+	bool m_isUpdate = true;
 
 	static ShadowMapResource m_resource;
 	//static bool m_usedIndexs[ShadowMapResource::SHADOWMAP_NUM];

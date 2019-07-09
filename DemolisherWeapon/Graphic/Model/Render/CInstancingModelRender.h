@@ -189,7 +189,7 @@ namespace GameObj {
 				//—v‘f‚ªŒ©‚Â‚©‚ç‚È‚¢
 #ifndef DW_MASTER
 				char message[256];
-				sprintf_s(message, "yInstancingModel::DeleteIInstanceDataz—v‘f‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB—v‘f–¼:%s \n", identifier);
+				sprintf_s(message, "yInstancingModel::DeleteIInstanceDataz—v‘f‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB—v‘f–¼:%ls \n", identifier);
 				DW_WARNING_MESSAGE(true, message);
 #endif
 				return;

@@ -227,7 +227,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 
 	//ƒŒƒ“ƒ_[‰Šú‰»
 	m_gbufferRender.Init();
-	m_shadowMapRender.Init();									 m_shadowMapRender.SetSetting(initParam.shadowMapSetting);
+	m_shadowMapRender.SetSetting(initParam.shadowMapSetting);
 	m_postDrawModelRender.Init();
 	m_ambientOcclusionRender.Init(initParam.SSAOBufferScale);	 m_ambientOcclusionRender.SetEnable(initParam.isEnableSSAO);
 	m_defferdRender.Init();
