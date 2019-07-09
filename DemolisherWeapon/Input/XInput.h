@@ -21,6 +21,8 @@ enum enXInputButton {
 	enButtonLSB,		//!<LSBボタン。
 	enButtonNum,		//!<ボタンの数。
 };
+constexpr inline auto enButtonRB = enButtonRB1;
+constexpr inline auto enButtonLB = enButtonLB1;
 
 enum enLR {
 	L, R, enLRNUM,
