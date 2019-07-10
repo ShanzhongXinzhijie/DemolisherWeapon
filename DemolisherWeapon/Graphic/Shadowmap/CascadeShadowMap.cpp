@@ -86,7 +86,13 @@ namespace GameObj {
 
 		m_lightCam->SetPos( GetMainCamera()->GetPos() + vZ * midv + m_lightDir*-m_far*0.5f + m_lightDir*(-midv*max(vZ.Dot(m_lightDir),0.0f)) );
 		m_lightCam->SetTarget(GetMainCamera()->GetPos() + vZ * midv);
-		m_lightCam->SetUp(CVector3::AxisY());
+		{
+			//ã•ûŒü‹‚ß‚é
+			CVector3 vZ = m_lightCam->GetFront();
+			CVector3 vX; vX.Cross(m_lightCam->GetUp(), vZ);//‰E•ûŒü
+			CVector3 vY; vY.Cross(vZ, vX);//ã•ûŒü
+			m_lightCam->SetUp(vY);
+		}
 		m_lightCam->SetNear(m_near);
 		m_lightCam->SetFar(m_far);
 
