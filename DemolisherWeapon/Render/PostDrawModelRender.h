@@ -38,6 +38,8 @@ namespace DemolisherWeapon {
 		std::list<SkinModel*> m_drawModelList_Alpha[DRAW_PRIORITY_MAX], m_drawModelList_Add[DRAW_PRIORITY_MAX];
 		//ブレンドステート
 		Microsoft::WRL::ComPtr<ID3D11BlendState> m_alphaBlendState, m_addBlendState;
+		//デプスステンシルステート
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilState;
 	};
 
 }

@@ -5,6 +5,7 @@ namespace DemolisherWeapon {
 
 	void PostDrawModelRender::Init() {
 		D3D11_BLEND_DESC blendDesc;
+		D3D11_DEPTH_STENCIL_DESC depthDesc;
 
 		//アルファブレンドステート(乗算済み)
 		ZeroMemory(&blendDesc, sizeof(blendDesc));
@@ -26,6 +27,22 @@ namespace DemolisherWeapon {
 		blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_BLUE | D3D11_COLOR_WRITE_ENABLE_GREEN;
 		GetGraphicsEngine().GetD3DDevice()->CreateBlendState(&blendDesc, m_addBlendState.ReleaseAndGetAddressOf());
+	
+		//デプスステンシルステート		
+		ZeroMemory(&depthDesc, sizeof(depthDesc));
+		depthDesc.DepthEnable = true;
+		depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		depthDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+		depthDesc.StencilEnable = false;
+		depthDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		depthDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+		depthDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		depthDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		depthDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		depthDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+		depthDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		depthDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		GetGraphicsEngine().GetD3DDevice()->CreateDepthStencilState(&depthDesc, &m_depthStencilState);
 	}
 
 	void PostDrawModelRender::Render() {
@@ -50,11 +67,11 @@ namespace DemolisherWeapon {
 		for (int i = 0; i < DRAW_PRIORITY_MAX; i++) {
 			//モデル描画(加算ブレンド)		
 			for (auto& model : m_drawModelList_Add[i]) {
-				model->Draw(false, 1, m_addBlendState.Get());
+				model->Draw(false, 1, m_addBlendState.Get(), m_depthStencilState.Get());
 			}
 			//モデル描画(アルファブレンド)
 			for (auto& model : m_drawModelList_Alpha[i]) {
-				model->Draw(false, 1, m_alphaBlendState.Get());
+				model->Draw(false, 1, m_alphaBlendState.Get(), m_depthStencilState.Get());
 			}
 		}
 
