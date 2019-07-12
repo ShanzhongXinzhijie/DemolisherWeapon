@@ -1,9 +1,6 @@
 #pragma once
 
 #include "../physics/PhysicsBaseObject.h"
-#include "../util/Util.h"
-
-#define BIT(x) (1<<(x))
 
 namespace DemolisherWeapon{
 
@@ -11,7 +8,7 @@ enum EnCollisionTimer {
 	enNoTimer = -1,
 };
 
-static const int CCollisionObjFilter = 64;
+static constexpr int CCollisionObjFilter = 64;
 
 namespace GameObj {
 namespace Suicider {

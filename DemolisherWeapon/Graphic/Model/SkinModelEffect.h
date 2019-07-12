@@ -8,8 +8,6 @@
 
 #include "MaterialSetting.h"
 
-#define BIT(x) (1<<(x))
-
 namespace DemolisherWeapon {
 
 #include "Preset/Shader/ShadowMapHeader.h"
