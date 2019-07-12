@@ -957,6 +957,9 @@ public:
 	//方向と上方向からZ軸を指定の方向へ向けるクォータニオンを作成	
 	void MakeLookTo(const CVector3& direction, const CVector3& up = CVector3::Up());
 
+	//X・Y軸回転を使って、Z軸を指定の方向に向けるクォータニオンを作成
+	void MakeLookToUseXYAxis(const CVector3& direction);
+
 	/*!
 	 *@brief	球面線形補完。
 	 */

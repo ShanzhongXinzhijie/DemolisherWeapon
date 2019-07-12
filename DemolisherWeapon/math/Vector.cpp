@@ -25,5 +25,16 @@ void CQuaternion::MakeLookTo(const CVector3& direction, const CVector3& up)
 	SetRotation(mat);
 }
 
+void CQuaternion::MakeLookToUseXYAxis(const CVector3& direction) {
+	//X軸回転
+	CVector3 axisDir = direction*-1.0f; axisDir.x = CVector2(axisDir.x, axisDir.z).Length();
+	float XRot = -atan2(axisDir.y, axisDir.x);
+	//Y軸回転		
+	float YRot = atan2(direction.x*-1.0f, direction.z*-1.0f);
+	//クォータニオン作成
+	SetRotation(CVector3::AxisX(), XRot);
+	Concatenate(CQuaternion(CVector3::AxisY(), YRot));
+}
+
 }
 
