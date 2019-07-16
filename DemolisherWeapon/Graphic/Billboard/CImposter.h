@@ -156,11 +156,10 @@ namespace DemolisherWeapon {
 	public:
 		/// <summary>
 		/// インポスターテクスチャのロード
-		/// ※現状、同じモデルの解像度・分割数違いを作成できない
 		/// </summary>
 		/// <param name="filepath">3Dモデルのファイルパス</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
-		/// <param name="partNum">インポスターテクスチャの分割数</param>
+		/// <param name="partNum">インポスターテクスチャの分割数 ※奇数を推奨?</param>
 		/// <returns>インポスターテクスチャ</returns>
 		ImposterTexRender* Load(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum);
 
@@ -178,7 +177,6 @@ namespace DemolisherWeapon {
 	public:
 		/// <summary>
 		/// 初期化
-		/// ※現状、同じモデルの解像度・分割数違いを作成できない 
 		/// </summary>
 		/// <param name="filepath">3Dモデルのファイルパス</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
