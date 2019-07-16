@@ -383,7 +383,7 @@ namespace DemolisherWeapon {
 		string += L"X";
 		string += std::to_wstring((int)partNum.y);
 		//文字列からハッシュ作成→さっきのハッシュと合成
-		index = Util::HashCombine(index, Util::MakeHash(string.c_str()));
+		index = (int)Util::HashCombine(index, Util::MakeHash(string.c_str()));
 
 		//ハッシュをmapのkeyとして使用
 		if (m_impTexMap.count(index) > 0) {

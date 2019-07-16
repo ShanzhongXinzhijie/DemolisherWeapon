@@ -508,6 +508,15 @@ public:
 		return acos(CMath::ClampFromNegOneToPosOne(A.Dot(B)));
 	}
 
+	//Å‘å’l‚ğæ“¾
+	float GetMax()const {
+		return max(max(vec.x, vec.y), vec.z);
+	}
+	//Å¬’l‚ğæ“¾
+	float GetMin()const {
+		return min(min(vec.x, vec.y), vec.z);
+	}
+
 	/*!
 	* @brief	œZB
 	*/
