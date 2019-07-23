@@ -91,7 +91,7 @@ void FinalRender::Init(const CVector2 screen_min, const CVector2 screen_max) {
 	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;// LINEAR;
 	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
 	
 	//定数バッファ
