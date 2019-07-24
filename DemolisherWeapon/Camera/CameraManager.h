@@ -97,7 +97,7 @@ public:
 		return m_front; 
 	}
 	CVector3 GetLeft() {
-		return GetFront().GetCross(GetUp());
+		return GetFront().GetCross(GetUp()).GetNorm();
 	}
 	float GetNear() const { return m_near; }
 	float GetFar() const{ return m_far; }

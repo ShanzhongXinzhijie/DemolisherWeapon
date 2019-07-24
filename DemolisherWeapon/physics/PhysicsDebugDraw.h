@@ -17,7 +17,7 @@ namespace DemolisherWeapon {
 		Shader m_vs;	//頂点シェーダー。
 		Shader m_ps;	//ピクセルシェーダー。
 		ID3D11Buffer* m_cb = nullptr;
-		static const int VERTEX_MAX = 1000000;
+		static constexpr int VERTEX_MAX = 10000000;
 		std::array<CPrimitive::SVertex, VERTEX_MAX> m_vertexBuffer;
 
 		int m_numLine = 0;
