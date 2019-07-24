@@ -15,8 +15,8 @@ ICamera::~ICamera() {
 void ICamera::CalcFrustum6Planes(){
 	//‹‘ä‚ÌŠe•ûŒü
 	CVector3 vZ = GetFront();
-	CVector3 vX; vX.Cross(GetUp(), vZ);//‰E•ûŒü
-	CVector3 vY; vY.Cross(vZ, vX);//ã•ûŒü
+	CVector3 vX; vX.Cross(GetUp(), vZ); vX.Normalize();//‰E•ûŒü
+	CVector3 vY; vY.Cross(vZ, vX); vY.Normalize();//ã•ûŒü
 
 	//‹ß•½–Ê‚Ì‚‚³‚Æ•
 	CVector2 nearPlaneHalf;

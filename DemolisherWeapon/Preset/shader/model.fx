@@ -213,7 +213,7 @@ PSInput VSModel( VSInputNmTxVcTangent In, float4x4 worldMat, float4x4 worldMatOl
 	psInput.Normal = normalize(mul(worldMat, In.Normal));
 #if NORMAL_MAP
 	psInput.Tangent = normalize(mul(worldMat, In.Tangent));
-	psInput.Binormal = cross(psInput.Normal, psInput.Tangent);// normalize(mul(worldMat, In.Binormal));
+	psInput.Binormal = normalize(cross(psInput.Normal, psInput.Tangent));// normalize(mul(worldMat, In.Binormal));
 #endif
 
 	//ïœä∑å„ç¿ïW
@@ -346,7 +346,7 @@ PSInput VSMainSkin( VSInputNmTxWeights In
 	psInput.Normal = normalize( mul(skinning, In.Normal) );
 #if NORMAL_MAP
 	psInput.Tangent = normalize( mul(skinning, In.Tangent) );
-	psInput.Binormal = cross(psInput.Normal, psInput.Tangent);//normalize( mul(skinning, In.Binormal) );
+	psInput.Binormal = normalize(cross(psInput.Normal, psInput.Tangent));//normalize( mul(skinning, In.Binormal) );
 #endif
 
 	float3 posW = pos.xyz; 
