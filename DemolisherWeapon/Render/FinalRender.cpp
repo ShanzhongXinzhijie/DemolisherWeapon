@@ -67,6 +67,7 @@ void CFinalRenderTarget::Copy() {
 
 //ファイナルレンダー
 bool FinalRender::m_isLensDistortion = true;
+bool FinalRender::m_isAntiAliasing = true;
 
 FinalRender::~FinalRender()
 {
@@ -79,19 +80,42 @@ void FinalRender::Release() {
 
 	if (m_gridTex) { m_gridTex->Release(); m_gridTex = nullptr; }
 }
-void FinalRender::Init(const CVector2 screen_min, const CVector2 screen_max) {
+void FinalRender::Init(const CVector2 screen_min, const CVector2 screen_max, bool isLinearSample) {
 	//m_FRT.Init();
 
+	//頂点シェーダ
 	m_vs.Load("Preset/shader/LensDistortion.fx", "VSMain", Shader::EnType::VS);
-	m_ps.Load("Preset/shader/LensDistortion.fx", "PSMain", Shader::EnType::PS);
-	m_psNormal.Load("Preset/shader/primitive.fx", "PSMain", Shader::EnType::PS);
+	
+	//ピクセルシェーダ
+	char macroName[32];
+	D3D_SHADER_MACRO macros[MACRO_NUM + 1] = {
+			"LENS_DISTORTION", "0",
+			"ANTI_ALIASING", "0",
+			NULL, NULL
+	};
+	//マクロごとにシェーダを作成
+	for (int i = 0; i < ShaderTypeMask::enNum; i++) {
+		sprintf_s(macroName, "LensDistortion_PSMain:%d", i);
 
+		for (int mask = 0; mask < MACRO_NUM; mask++) {
+			if (i & BIT(mask)) { macros[mask].Definition = "1"; }else{ macros[mask].Definition = "0"; }			
+		}
+	
+		m_ps[i].Load("Preset/shader/LensDistortion.fx", "PSMain", Shader::EnType::PS, macroName, macros);
+	}
+
+	//サンプラー
 	D3D11_SAMPLER_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
 	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;// LINEAR;
+	if (isLinearSample) {
+		desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	}
+	else {
+		desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	}
 	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
 	
 	//定数バッファ
@@ -103,6 +127,7 @@ void FinalRender::Init(const CVector2 screen_min, const CVector2 screen_max) {
 	bufferDesc.CPUAccessFlags = 0;
 	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cb);
 
+	//描画図形
 	CPrimitive::SVertex vertex[4] = {
 		{
 			{screen_min.x*2.0f - 1.0f, screen_min.y*2.0f - 1.0f, 0.0f, 1.0f},
@@ -146,14 +171,16 @@ void FinalRender::Render() {
 		rc->PSSetShaderResources(0, 1, &GetEngine().GetGraphicsEngine().GetFRT().GetSRV());
 	}
 
-	//シェーダーを設定
+	//頂点シェーダーを設定
 	rc->VSSetShader((ID3D11VertexShader*)m_vs.GetBody(), NULL, 0);
-	if (!m_isLensDistortion) {
-		rc->PSSetShader((ID3D11PixelShader*)m_psNormal.GetBody(), NULL, 0);
-	}
-	else {
-		rc->PSSetShader((ID3D11PixelShader*)m_ps.GetBody(), NULL, 0);
-	}
+	
+	//ピクセルシェーダのマクロを切り替える
+	int macroind = 0;
+	if (m_isLensDistortion) { macroind |= enLensDistortion; }
+	if (m_isAntiAliasing) { macroind |= enAntialiasing; }
+	//ピクセルシェーダーを設定
+	rc->PSSetShader((ID3D11PixelShader*)m_ps[macroind].GetBody(), NULL, 0);
+	
 	//入力レイアウトを設定。
 	rc->IASetInputLayout(m_vs.GetInputLayout());
 	//サンプラステートを設定。
@@ -194,6 +221,10 @@ void FinalRender::Render() {
 	//アス比
 	psCb.ASPECT_RATIO = GetMainCamera()->GetAspect();
 	psCb.INV_ASPECT_RATIO = 1.0f / GetMainCamera()->GetAspect();
+
+	//解像度
+	psCb.resolution[0] = GetEngine().GetGraphicsEngine().GetFrameBuffer_W();
+	psCb.resolution[1] = GetEngine().GetGraphicsEngine().GetFrameBuffer_H();
 
 	rc->UpdateSubresource(m_cb, 0, nullptr, &psCb, 0, 0);
 	rc->PSSetConstantBuffers(0, 1, &m_cb);

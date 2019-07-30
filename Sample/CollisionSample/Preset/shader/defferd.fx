@@ -212,6 +212,7 @@ Texture2D<float > depthMap		: register(t2);
 Texture2D<float4> PosMap		: register(t3);
 Texture2D<float > AoMap			: register(t4);
 Texture2D<float4> lightParamTex	: register(t5);
+Texture2D<float > AoMapBlur		: register(t7);
 //環境キューブマップ
 TextureCube<float3> AmbientCubeMap: register(t6);
 
@@ -247,19 +248,61 @@ float3 CalcWorldPosFromUVZ(float2 uv, float zInScreen)//, float4x4 mViewProjInv)
 static const float PI = 3.14f;
 
 //スペキュラ
-float3 NormalizedPhong(float3 specular, float power, float3 lightDir, float3 viewDir, float3 normal)
+/*float3 NormalizedPhong(float3 specular, float power, float3 lightDir, float3 viewDir, float3 normal)
 {
 	float3 R = -viewDir + (2.0f * dot(normal, viewDir) * normal);
 	return specular * pow(max(dot(lightDir, R), 0.0f), power) * ((power + 1.0f) / (2.0f * PI));	
-}
-float3 NormalizedBlinnPhong(float3 specular, float power, float3 lightDir, float3 viewDir, float3 normal)
+}*/
+//マイクロファセットの分布関数
+//Blinn-Phong NDF
+float3 NormalizedBlinnPhong(float power, float3 halfVec, float3 normal)
 {
-	//float3 lightDir = normalize(lightPosition - P);
-	//float3 viewDir = normalize(eyePosition - P);
-	float3 halfVec = normalize(lightDir + viewDir);
-	float norm_factor = (power + 2.0f) / (2.0f * PI);
-	return specular * norm_factor * pow(max(0.0f, dot(normal, halfVec)), power);
+	return ((power + 2.0f) / (2.0f * PI)) * pow(max(0.0f, dot(normal, halfVec)), power);
 }
+//幾何減衰率
+float G1(float3 v, float roughness, float3 normal) {
+	float k = (roughness + 1.0f)*(roughness + 1.0f) / 8.0f;
+	return dot(normal, v) / (dot(normal, v)*(1.0f - k) + k);
+}
+float G(float3 lightDir, float3 viewDir, float3 normal, float roughness){
+	return G1(lightDir, roughness, normal)*G1(viewDir, roughness, normal);
+}
+//幾何減衰率(IBL)
+//float G1_IBL(float3 v, float roughness, float3 normal) {
+//	float a = (0.5f + roughness) / 2.0f;
+//	float k = a*a / 2.0f;
+//	return dot(normal, v) / (dot(normal, v)*(1.0f - k) + k);
+//}
+//float G_IBL(float3 lightDir, float3 viewDir, float3 normal, float roughness) {
+//	return G1_IBL(lightDir, roughness, normal)*G1_IBL(viewDir, roughness, normal);
+//}
+//フレネル項
+float3 Fresnel(in float3 specAlbedo, in float3 h, in float3 l) { 
+	return specAlbedo + (1.0f - specAlbedo) * pow((1.0f - dot(l, h)), 5.0f);
+}
+//Cook-Torrance?
+float3 CookTorrance(float3 lightDir, float3 viewDir, float3 normal, float3 baseColor, float shininess) {
+	float3 halfVec = normalize(lightDir + viewDir);
+	
+	return  Fresnel(baseColor, halfVec, lightDir)
+			*NormalizedBlinnPhong(pow(2.0f, 11.0f*shininess), halfVec, normal)
+			*G(lightDir, viewDir, normal, 1.0f - shininess)
+			/(PI*dot(normal, viewDir)*dot(normal, lightDir));
+}
+//IBLを用いたスペキュラ
+float3 IBL_Specular(float3 lightDir, float3 viewDir, float3 normal, float3 baseColor, float shininess, float3 ibl) {
+	float3 halfVec = normalize(lightDir + viewDir);
+
+	return  shininess * shininess //lerp(baseColor, float3(1.0f, 1.0f, 1.0f), shininess*shininess)
+			* Fresnel(baseColor, halfVec, lightDir)
+			* ibl
+			// * min(1, min(2 * dot(normal, halfVec)*dot(normal, viewDir) / dot(viewDir, halfVec), 2 * dot(normal, halfVec)*dot(normal, lightDir) / dot(viewDir, halfVec)))
+			// *G_IBL(lightDir, viewDir, normal, 1.0f - shininess)
+			// / dot(normal, viewDir)
+			// / (PI*dot(normal, viewDir)*dot(normal, lightDir))
+		;
+}
+
 //ディフューズ
 float3 NormalizedLambert(float3 diffuse, float3 lightDir, float3 normal)
 {
@@ -279,12 +322,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	float4 viewpos = PosMap.Sample(Sampler, In.uv);
 	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w);
 	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
-	float3 emissive;
-	//unpack
-	emissive.b = floor(lightParam.x / 65536.0f);
-	emissive.g = floor((lightParam.x - emissive.b * 65536.0f) / 256.0f);
-	emissive.r = floor(lightParam.x - emissive.b * 65536.0f - emissive.g * 256.0f);
-	emissive /= 256.0f;
+	float3 emissive = albedo.rgb*lightParam.x;
 
 	//ライティング無効
 	if (!lightParam.y) {
@@ -324,7 +362,6 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	//ディレクションライト
 	[unroll]
 	for (int i = 0; i < 4; i++) {
-
 		if (numDirectionLight == i) { break; }
 
 		//シャドウマップの遮蔽適応
@@ -334,50 +371,66 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 			nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 		}
 
-		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), directionLight[i].direction, normal) * directionLight[i].color * nothide;
-		Out += NormalizedBlinnPhong(lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), pow(2.0f, 13.0f*lightParam.w), directionLight[i].direction, viewDir, normal)* directionLight[i].color * nothide;
+		//ディフューズ
+		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), directionLight[i].direction, normal) * directionLight[i].color * nothide;		
+		//スペキュラ
+		Out += max(0.0f,
+			CookTorrance(directionLight[i].direction, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w)
+			* directionLight[i].color * saturate(dot(normal, directionLight[i].direction))*nothide
+			);	
 	}
 	//ポイントライト
 	[unroll]
 	for (int i = 0; i < 12; i++) {
-
 		if (numPointLight == i) { break; }
 
+		//方向と距離求める
 		float3 dir = pointLightList[i].position - worldpos;
-		float len = length(dir);
-		//if (len < pointLightList[i].range) {
-			
-			dir = normalize(dir);
+		float len = length(dir);			
+		dir = normalize(dir);
 
-			//減衰を計算する。
-			float	litRate = len / pointLightList[i].range;
-			float	attn = max(1.0 - litRate * litRate, 0.0);
+		//減衰を計算する
+		float	litRate = len / pointLightList[i].range;
+		float	attn = max(1.0 - litRate * litRate, 0.0);
 
-			Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
-			Out += NormalizedBlinnPhong(lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), pow(2.0f, 13.0f*lightParam.w), dir, viewDir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
-		//}
+		//ディフューズ
+		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
+		//スペキュラ
+		Out += max(0.0f,
+			CookTorrance(dir, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w)
+			* pointLightList[i].color * saturate(dot(normal, dir)) * pow(attn, pointLightList[i].attenuation)
+			);	
 	}	
 
 	//AO
 	float ambientOcclusion = 1.0f;
 	if (boolAO) {
-		ambientOcclusion = AoMap.Sample(Sampler, In.uv);
+		ambientOcclusion = AoMapBlur.Sample(Sampler, In.uv);
+		ambientOcclusion *= saturate(ambientOcclusion*1.5f);//ガウスブラーで薄くなってるので濃くする
 	}
-	ambientOcclusion *= (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
-
+	
 	//アンビエント
 	if (boolAmbientCube) {
-		Out += albedo.xyz * AmbientCubeMap.SampleLevel(Sampler, normal, 9) * ambientLight * ambientOcclusion;
+		//ディフューズ
+		Out += albedo.xyz * AmbientCubeMap.SampleLevel(Sampler, normal, 9) * ambientLight * ambientOcclusion * (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
+		//スペキュラ
+		float3 refvec = reflect(viewDir*-1.0f, normal);
+		Out += max(0.0f,
+			IBL_Specular(refvec, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, AmbientCubeMap.SampleLevel(Sampler, refvec, 9.0f * (1.0f - lightParam.w)) * ambientLight)
+		)* ambientOcclusion;
 	}
 	else {
-		Out += albedo.xyz * ambientLight * ambientOcclusion;
+		//ディフューズ
+		Out += albedo.xyz * ambientLight * ambientOcclusion * (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
+		//スペキュラ
+		float3 refvec = reflect(viewDir*-1.0f, normal);
+		Out += max(0.0f,
+			IBL_Specular(refvec, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, ambientLight)//*(normal.y / 2.0f + 0.5f))
+		)* ambientOcclusion;
 	}
 
 	//エミッシブを加算
 	Out += emissive;
 
-	//0.0~1.0で出力
-	//Out = saturate(Out);
-	return float4(Out, albedo.w);
-	
+	return float4(Out, albedo.w);	
 }

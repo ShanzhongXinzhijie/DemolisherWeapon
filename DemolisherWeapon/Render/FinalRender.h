@@ -46,7 +46,7 @@ class FinalRender : public IRander
 public:
 	~FinalRender();
 
-	void Init(const CVector2 screen_min = { 0.0f,0.0f }, const CVector2 screen_max = { 1.0f,1.0f });
+	void Init(const CVector2 screen_min = { 0.0f,0.0f }, const CVector2 screen_max = { 1.0f,1.0f }, bool isLinearSample = true);
 	void Release();
 
 	void Render()override;
@@ -64,11 +64,25 @@ public:
 	static void SetIsLensDistortion(bool enable) {
 		m_isLensDistortion = enable;
 	}
+	//アンチエイリアスの有効・無効を設定
+	static void SetIsAntiAliasing(bool enable) {
+		m_isAntiAliasing = enable;
+	}
 
 private:
-	//CFinalRenderTarget m_FRT;
+	//シェーダーマクロ
+	enum ShaderTypeMask {
+		enOFF = 0b00,			//全て無効
+		enLensDistortion = 0b01,
+		enAntialiasing = 0b10,
+		enALL = 0b11,			//全て有効
+		enNum,					//全パターンの数
+	};
+	//マクロの数
+	static constexpr int MACRO_NUM = 2;
+
 	Shader m_vs;
-	Shader m_ps, m_psNormal;
+	Shader m_ps[ShaderTypeMask::enNum];
 	ID3D11SamplerState* m_samplerState = nullptr;
 	ID3D11Buffer* m_cb = nullptr;
 
@@ -77,13 +91,17 @@ private:
 		float LENS_DISTORTION_UV_MAGNIFICATION;
 		float ASPECT_RATIO;
 		float INV_ASPECT_RATIO;
+
+		float resolution[2];
 	};
 
 	CPrimitive m_drawSpace;
 
 	ID3D11ShaderResourceView* m_gridTex = nullptr;
 
+	//ピクセルシェーダ設定
 	static bool m_isLensDistortion;
+	static bool m_isAntiAliasing;
 };
 
 }

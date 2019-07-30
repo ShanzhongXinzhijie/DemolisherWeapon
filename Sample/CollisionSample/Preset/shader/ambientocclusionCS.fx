@@ -21,6 +21,19 @@ RWTexture2D<float> rwOutputTex		: register(u0);
 
 static const float AO_RANGE = 5000.0f;
 static const float AO_FAR_RANGE = 22.36f;// 06797749979f;// 500.0f;
+//static const uint offset = 2;// 1.0f + 3.0f*((float)i2 / (maxcnt - 1.0f));// +1.0f*(maxcnt / 7.0f);
+static const int2 offset_2[4] = {
+	int2(-2,-2),
+	int2(-2, 2),
+	int2(-2, 0),
+	int2(0,-2),
+};
+static const int2 offset_22[4] = {
+	int2(2, 2),
+	int2(2,-2),
+	int2(2, 0),
+	int2(0, 2),
+};
 
 //Z値からワールド座標を復元
 float3 CalcWorldPosFromUVZ(float2 uv, float zInScreen, float4x4 mViewProjInv)
@@ -50,31 +63,16 @@ void CSmain(uint3 run_xy : SV_DispatchThreadID)
 
 	int maxcnt = 7 * saturate(1.0f - viewpos.z / (AO_RANGE*distanceScale)) + 0.5f;
 	float ao = 0.0f;
+	float2 uvScale = float2(win_x / 1280.0f, win_y / 720.0f);
 	[unroll]
 	for (int i2 = 1; i2 < maxcnt; i2++) {
 		[unroll]
 		for (int i = 0; i < 2; i++) {
 			uint2 uv2 = sampuv, uv22 = sampuv;
-			const uint offset = 2;// 1.0f + 3.0f*((float)i2 / (maxcnt - 1.0f));// +1.0f*(maxcnt / 7.0f);
-			if (i2 % 2 != 0) {
-				if (i == 0) {
-					uv2.x -= (offset*i2)*(win_x / 1280.0f); uv22.x += (offset*i2)*(win_x / 1280.0f);
-					uv2.y -= (offset*i2)*(win_y / 720.0f); uv22.y += (offset*i2)*(win_y / 720.0f);
-				}
-				if (i == 1) {
-					uv2.x -= (offset*i2)*(win_x / 1280.0f); uv22.x += (offset*i2)*(win_x / 1280.0f);
-					uv2.y += (offset*i2)*(win_y / 720.0f); uv22.y -= (offset*i2)*(win_y / 720.0f);
-				}
-			}
-			else {
-				if (i == 0) {
-					uv2.x -= (offset*i2)*(win_x / 1280.0f); uv22.x += (offset*i2)*(win_x / 1280.0f);
-				}
-				if (i == 1) {
-					uv2.y -= (offset*i2)*(win_y / 720.0f); uv22.y += (offset*i2)*(win_y / 720.0f);
-				}
-			}
 
+			uv2  += offset_2[i + 2 * (i2 % 2)] * i2 * uvScale;
+			uv22 += offset_22[i + 2 * (i2 % 2)] * i2 * uvScale;
+			
 			if (uv2.x  < 0 || uv2.y  < 0 || uv2.x  > win_x || uv2.y  > win_y) { continue; }
 			if (uv22.x < 0 || uv22.y < 0 || uv22.x > win_x || uv22.y > win_y) { continue; }
 

@@ -260,6 +260,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		m_finalRender[0]->Init();
 	}
 	FinalRender::SetIsLensDistortion(initParam.isLensDistortion);
+	FinalRender::SetIsAntiAliasing(initParam.isAntiAliasing);
 
 	//レンダーをセット	
 

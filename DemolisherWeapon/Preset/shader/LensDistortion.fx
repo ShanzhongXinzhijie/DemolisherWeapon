@@ -25,6 +25,8 @@ cbuffer PSCb : register(b0) {
 	float LENS_DISTORTION_UV_MAGNIFICATION;
 	float ASPECT_RATIO;
 	float INV_ASPECT_RATIO;
+
+    float2 resolution;
 };
 
 //ビネット(周辺減光)が始まる位置
@@ -35,6 +37,7 @@ static const float VIGNETTE_END_MIN = -0.006f;
 
 /// @brief レンズ歪みを適用したUVを取得
 //http://hikita12312.hatenablog.com/entry/2018/04/07/142219
+//※ FinalRender::CalcLensDistortionと連動
 float2 GetLensDistortionUV(in float2 uv)
 {
 	// Aspect比を考慮した空間上での,光軸中心からの距離ベクトル
@@ -112,12 +115,12 @@ float4 FlipTriAntialiasing(in float2 uv)
     float2 b = float2(0.0, yOdd ? 0.5 : -0.5);
     float2 c = float2(xOdd ? 0.5 : -0.5, 0.0);
 
-    a.x /= 1280.0f;//TODO
-    a.y /= 720.0f;
-    b.x /= 1280.0f;
-    b.y /= 720.0f;
-    c.x /= 1280.0f;
-    c.y /= 720.0f;
+    a.x /= resolution.x; 
+    a.y /= resolution.y;
+    b.x /= resolution.x;
+    b.y /= resolution.y;
+    c.x /= resolution.x;
+    c.y /= resolution.y;
         
     output = Texture.Sample(Sampler, uv + a) * 0.2;
     output += Texture.Sample(Sampler, uv + b) * 0.4;
@@ -129,26 +132,33 @@ float4 FlipTriAntialiasing(in float2 uv)
 //4-Rook Antialiasing
 //https://blog.demofox.org/2015/04/23/4-rook-antialiasing-rgss/
 /*
-const float S = 1.0 / 8.0 / 1280.0f;
-const float L = 3.0 / 8.0 / 720.0f;
+const float S = 1.0 / 8.0 / resolution.x;
+const float L = 3.0 / 8.0 / resolution.y;
 output = Texture.Sample(Sampler, In.uv + float2(S, -L)) / 4.0; //GetLensDistortion(In.uv + float2(S, -L)) / 4.0;
 output += Texture.Sample(Sampler, In.uv + float2(L, S)) / 4.0; //GetLensDistortion(In.uv + float2(L, S)) / 4.0;
 output += Texture.Sample(Sampler, In.uv + float2(-S, -L)) / 4.0; //GetLensDistortion(In.uv + float2(-S, -L)) / 4.0;
 output += Texture.Sample(Sampler, In.uv + float2(-L, -S)) / 4.0; //GetLensDistortion(In.uv + float2(-L, -S)) / 4.0;
 */
 
+//ピクセルシェーダ
 float4 PSMain(PSInput In) : SV_Target0
-{
-	//これのコメント外すと面白いことになる
-	//In.uv = GetLensDistortion(In.uv);
-
-	//旧
-	//return GetLensDistortion(In.uv);    
-	
+{	
+#if defined(LENS_DISTORTION)
 	//レンズ歪みを適用した座標を取得
     In.uv = GetLensDistortionUV(In.uv);
+#endif
+	
+#if defined(ANTI_ALIASING)
 	//FlipTriAntialiasingで色を取得
     float4 output = FlipTriAntialiasing(In.uv);
+#else
+    float4 output = Texture.Sample(Sampler, In.uv);
+#endif
+
+#if defined(LENS_DISTORTION)
 	//周辺減光を適用
     return Vignette(output, In.uv);
+#else
+    return output;
+#endif
 }

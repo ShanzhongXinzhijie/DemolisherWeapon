@@ -57,6 +57,7 @@ struct InitEngineParameter {
 	float SSAOBufferScale = 0.5f;				//SSAO解像度(3D描画の解像度に対する倍率)
 	bool isEnableMotionBlur = true;				//モーションブラー有効
 	bool isLensDistortion = true;				//歪曲収差
+	bool isAntiAliasing = true;					//アンチエイリアス
 	bool isEnableBloom = true;					//ブルーム有効
 	float bloomBufferScale = 0.75f;				//ブルーム解像度(3D描画の解像度に対する倍率)
 	bool isEnableDOF = false;					//被写界深度有効
@@ -403,6 +404,11 @@ static inline std::vector<GameObj::ICamera*>& GetCameraList()
 static inline void SetIsLensDistortion(bool enable)
 {
 	FinalRender::SetIsLensDistortion(enable);
+}
+//アンチエイリアスの使用を設定
+static inline void SetIsAntiAliasing(bool enable)
+{
+	FinalRender::SetIsAntiAliasing(enable);
 }
 
 //アンビエントライトを設定
