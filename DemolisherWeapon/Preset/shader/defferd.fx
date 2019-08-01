@@ -1,13 +1,23 @@
+//サンプラー
 sampler Sampler : register(s0);
 sampler NoFillteringSampler : register(s2);
 
 //ライト
+//[Light.h : SLightParam]
 cbuffer lightCb : register(b2)
 {
-	float3 eyePos; 	//		: packoffset(c0);		//カメラの位置。
-	int numDirectionLight;//	: packoffset(c0.w);		//ディレクションライトの数。
-	int numPointLight;	//	: packoffset(c0.x);		//ポイントライトの数。
-	float3 ambientLight;//		: packoffset(c1.yzw);	//アンビエントライト。
+	float3 eyePos;          //カメラの位置。
+	int numDirectionLight;  //ディレクションライトの数。
+	int numPointLight;      //ポイントライトの数。
+	float3 ambientLight;    //アンビエントライト。
+
+    //フォグ
+    float3 fogColor; //float3(0.34f, 0.5f, 0.73f)    
+    float fogFar; // 15000.0f
+    float3 fogLightDir;//lightdir** -1.0f
+    float fogHeightScale;//1.5f
+    float3 fogLightColor; 
+    bool fogEnable;
 };
 struct SDirectionLight {
 	float3 color;
@@ -245,6 +255,7 @@ float3 CalcWorldPosFromUVZ(float2 uv, float zInScreen)//, float4x4 mViewProjInv)
 	return worldPos.xyz;
 }
 
+//円周率(雑)
 static const float PI = 3.14f;
 
 //スペキュラ
@@ -326,8 +337,8 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 	//ライティング無効
 	if (!lightParam.y) {
-		return float4(albedo.rgb + emissive, albedo.w);
-	}
+        return float4(albedo.rgb + emissive, albedo.w);
+    }
 
 	//シャドウマップの範囲に入っているか判定
 	HideInShadow hideInShadow = (HideInShadow)0;
@@ -359,7 +370,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	//視線ベクトル
 	float3 viewDir = normalize(eyePos - worldpos);
 	
-	//ディレクションライト
+   //ディレクションライト
 	[unroll]
 	for (int i = 0; i < 4; i++) {
 		if (numDirectionLight == i) { break; }
@@ -370,7 +381,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		for (int swi = 0; swi < SHADOWMAP_NUM; swi++) {
 			nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, directionLight[i].direction)*-hideInShadow.flag[swi]));
 		}
-
+        
 		//ディフューズ
 		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), directionLight[i].direction, normal) * directionLight[i].color * nothide;		
 		//スペキュラ
@@ -432,5 +443,25 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	//エミッシブを加算
 	Out += emissive;
 
-	return float4(Out, albedo.w);	
+    //フォグ
+    if (fogEnable){
+        //レイリー散乱
+        float diskaku = 1.0f - exp(-(viewpos.z - min(0.0f, worldpos.y - eyePos.y) * fogHeightScale) / fogFar);
+        Out = lerp(Out, fogColor, diskaku);
+        //ミー散乱
+        {    
+            //シャドウマップの遮蔽適応
+            float nothide = 1.0f;
+    	    [unroll]
+            for (int swi = 0; swi < SHADOWMAP_NUM; swi++)
+            {
+                nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, fogLightDir) * -hideInShadow.flag[swi]));
+            }
+            nothide = saturate(dot(normal, fogLightDir)) * nothide;
+
+            Out = lerp(Out, fogLightColor, nothide * diskaku * max(0.0f, dot(fogLightDir, viewDir)));
+        }
+    }
+
+    return float4(Out, albedo.w);
 }

@@ -581,6 +581,10 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 
 	MotionRender(In, Out);
 
+//#if defined(SKY_CUBE)
+//	if(In.cubemapPos.y<0.0f){Out.lightingParam.y=1.0f;}
+//#endif
+
 	return Out;
 }
 

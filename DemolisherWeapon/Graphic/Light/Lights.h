@@ -138,12 +138,26 @@ public:
 		m_pointLights.emplace_back(pl);
 	}
 
+	//フォグの有効無効を設定
+	void SetEnableFog(bool enable) {
+		m_lightParam.fogEnable = enable;
+	}
+
 private:
+	//[defferd.fx : lightCb]
 	struct SLightParam {
 		CVector3 eyePos;			//視線の位置。
 		int numDirectionLight;		//ディレクションライトの数。
 		int numPointLight;			//ポイントライトの数。
 		CVector3 ambientLight;		//アンビエントライト。
+
+		//フォグ
+		CVector3 fogColor = { 0.34f, 0.5f, 0.73f };
+		float fogFar; // 15000.0f
+		CVector3 fogLightDir;//lightdir** -1.0f
+		float fogHeightScale = 1.5f;
+		CVector3 fogLightColor; 
+		bool fogEnable = false;
 	};
 	SLightParam							m_lightParam;
 	ID3D11Buffer*						m_lightParamCB = nullptr;			//!<GPUで使用するライト用のパラメータの定数バッファ。	

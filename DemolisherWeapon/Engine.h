@@ -411,6 +411,11 @@ static inline void SetIsAntiAliasing(bool enable)
 	FinalRender::SetIsAntiAliasing(enable);
 }
 
+//フォグの有効無効を設定
+static inline void SetEnableFog(bool enable) {
+	GetGraphicsEngine().GetLightManager().SetEnableFog(enable);
+}
+
 //アンビエントライトを設定
 static inline void SetAmbientLight(const CVector3& color) {
 	GetEngine().GetGraphicsEngine().GetDefferdRender().SetIsAmbientCubeMap(false);

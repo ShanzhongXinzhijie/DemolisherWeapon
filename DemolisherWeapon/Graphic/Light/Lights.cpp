@@ -164,7 +164,16 @@ void LightManager::UpdateConstantBuffer() {
 	//カメラ位置更新
 	if (GetMainCamera()) {
 		m_lightParam.eyePos = GetMainCamera()->GetPos();
+
+		//フォグ情報更新
+		m_lightParam.fogFar = GetMainCamera()->GetFar();
+		if (m_lightParam.numDirectionLight > 0) {
+			m_lightParam.fogLightDir = m_rawDirectionLights[0].direction * -1.0f;
+			m_lightParam.fogLightColor = m_rawDirectionLights[0].color;
+		}
 	}
+
+	//定数バッファ更新
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(m_lightParamCB, 0, NULL, &m_lightParam, 0, 0);
 }
 
