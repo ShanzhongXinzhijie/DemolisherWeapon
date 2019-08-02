@@ -142,6 +142,10 @@ public:
 	void SetEnableFog(bool enable) {
 		m_lightParam.fogEnable = enable;
 	}
+	//フォグが完全にかかる距離を設定
+	void SetFogDistance(float distance) {
+		m_lightParam.fogFar = distance;
+	}
 
 private:
 	//[defferd.fx : lightCb]
@@ -152,12 +156,12 @@ private:
 		CVector3 ambientLight;		//アンビエントライト。
 
 		//フォグ
-		CVector3 fogColor = { 0.34f, 0.5f, 0.73f };
-		float fogFar; // 15000.0f
-		CVector3 fogLightDir;//lightdir** -1.0f
-		float fogHeightScale = 1.5f;
-		CVector3 fogLightColor; 
-		bool fogEnable = false;
+		CVector3 fogColor = { 0.34f, 0.5f, 0.73f };	//フォグの色
+		float fogFar = 15000.0f;					//フォグが完全にかかる距離
+		CVector3 fogLightDir;						//太陽光の向き
+		float fogHeightScale = 1.5f;				//高さフォグのかかり具合
+		CVector3 fogLightColor;						//太陽光の色
+		bool fogEnable = false;						//有効フラグ
 	};
 	SLightParam							m_lightParam;
 	ID3D11Buffer*						m_lightParamCB = nullptr;			//!<GPUで使用するライト用のパラメータの定数バッファ。	

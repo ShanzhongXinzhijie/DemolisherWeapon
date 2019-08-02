@@ -415,6 +415,10 @@ static inline void SetIsAntiAliasing(bool enable)
 static inline void SetEnableFog(bool enable) {
 	GetGraphicsEngine().GetLightManager().SetEnableFog(enable);
 }
+//フォグが完全にかかる距離を設定
+static inline void SetFogDistance(float distance) {
+	GetGraphicsEngine().GetLightManager().SetFogDistance(distance);
+}
 
 //アンビエントライトを設定
 static inline void SetAmbientLight(const CVector3& color) {
