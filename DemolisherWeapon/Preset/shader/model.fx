@@ -140,7 +140,8 @@ struct PSInput{
 
 	//座標
 	float3 Viewpos		: TEXCOORD1;
-	float3 Worldpos		: TEXCOORD2;
+	float3 Localpos		: TEXCOORD2;
+    float3 Worldpos		: TEXCOORD3;
 
 	float4 curPos		: CUR_POSITION;//現在座標
 	float4 lastPos		: LAST_POSITION;//過去座標
@@ -194,7 +195,8 @@ PSInput VSModel( VSInputNmTxVcTangent In, float4x4 worldMat, float4x4 worldMatOl
 	//ワールド行列適応
 	float4 pos = mul(worldMat, In.Position);
 	float3 posW = pos.xyz;
-	psInput.Worldpos = posW;
+    psInput.Localpos = In.Position;
+    psInput.Worldpos = posW;
 
 	//スカイボックス用情報
 #if defined(SKY_CUBE)
@@ -353,7 +355,8 @@ PSInput VSMainSkin( VSInputNmTxWeights In
 #if defined(SKY_CUBE)
 	psInput.cubemapPos = normalize(posW - camWorldPos);
 #endif
-	psInput.Worldpos = posW;
+    psInput.Localpos = In.Position;
+    psInput.Worldpos = posW;
 
 	pos = mul(mView, pos);  psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
