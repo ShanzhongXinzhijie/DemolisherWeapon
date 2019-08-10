@@ -12,7 +12,7 @@ namespace DemolisherWeapon {
 		m_textureMap.clear();
 	}
 
-	bool TextureFactory::Load(std::experimental::filesystem::path filepath, ID3D11Resource** return_texture, ID3D11ShaderResourceView** return_textureView, const TextueData** return_textureData) {
+	bool TextureFactory::Load(std::experimental::filesystem::path filepath, ID3D11Resource** return_texture, ID3D11ShaderResourceView** return_textureView, const TextueData** return_textureData, bool generateMipmaps) {
 		int index = Util::MakeHash(filepath.c_str());
 		if (m_textureMap.count(index) <= 0) {		
 			//‚Â‚­‚é
@@ -22,11 +22,21 @@ namespace DemolisherWeapon {
 			HRESULT hr;
 			if (wcscmp(filepath.extension().c_str(), L".dds") == 0) {
 				texdata.isDDS = true;
-				hr = DirectX::CreateDDSTextureFromFile(GetGraphicsEngine().GetD3DDevice(), filepath.c_str(), &texdata.texture, &texdata.textureView);
+				if (generateMipmaps) {
+					hr = DirectX::CreateDDSTextureFromFile(GetGraphicsEngine().GetD3DDevice(), GetGraphicsEngine().GetD3DDeviceContext(), filepath.c_str(), &texdata.texture, &texdata.textureView);
+				}
+				else {
+					hr = DirectX::CreateDDSTextureFromFile(GetGraphicsEngine().GetD3DDevice(), filepath.c_str(), &texdata.texture, &texdata.textureView);
+				}
 			}
 			else {
 				texdata.isDDS = false;
-				hr = DirectX::CreateWICTextureFromFile(GetGraphicsEngine().GetD3DDevice(), filepath.c_str(), &texdata.texture, &texdata.textureView);
+				if (generateMipmaps) {
+					hr = DirectX::CreateWICTextureFromFile(GetGraphicsEngine().GetD3DDevice(), GetGraphicsEngine().GetD3DDeviceContext(), filepath.c_str(), &texdata.texture, &texdata.textureView);
+				}
+				else {
+					hr = DirectX::CreateWICTextureFromFile(GetGraphicsEngine().GetD3DDevice(), filepath.c_str(), &texdata.texture, &texdata.textureView);
+				}
 			}
 			if (FAILED(hr)) {
 #ifndef DW_MASTER
