@@ -2,19 +2,11 @@
 #include "GaussianBlurRender.h"
 
 namespace DemolisherWeapon {
-
-	GaussianBlurRender::GaussianBlurRender()
-	{
-	}
-	GaussianBlurRender::~GaussianBlurRender()
-	{
-		Release();
-	}
-
-	void GaussianBlurRender::Init(ID3D11ShaderResourceView*& souce, float dispersion) {
+	
+	void GaussianBlurRender::Init(ID3D11ShaderResourceView*& souce, float dispersion, const CVector2& sampleScale) {
 
 		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
-
+		
 		m_souce = souce;
 
 		//souceのテクスチャ取得
@@ -23,10 +15,12 @@ namespace DemolisherWeapon {
 		souce->GetResource(&pResource);
 		pTex = (ID3D11Texture2D*)pResource;
 		pResource->Release();
+		
 		//desc取得
 		D3D11_TEXTURE2D_DESC texDesc;
 		pTex->GetDesc(&texDesc);
 
+		//出力テクスチャDESC
 		ZeroMemory(&m_texDesc, sizeof(m_texDesc));
 		m_texDesc.Width = texDesc.Width;
 		m_texDesc.Height = texDesc.Height;
@@ -39,6 +33,11 @@ namespace DemolisherWeapon {
 		m_texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 		m_texDesc.CPUAccessFlags = 0;
 		m_texDesc.MiscFlags = 0;
+
+		//サンプル間隔
+		m_sampleScale = sampleScale;
+		if (m_sampleScale.x < 0.0f) { m_sampleScale.x = (float)m_texDesc.Width; }
+		if (m_sampleScale.y < 0.0f) { m_sampleScale.y = (float)m_texDesc.Height; }
 
 		//出力テクスチャの作成
 		ge.GetD3DDevice()->CreateTexture2D(&m_texDesc, NULL, &m_outputX);
@@ -126,10 +125,12 @@ namespace DemolisherWeapon {
 			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(0, 1, &m_souce);
 
 			//定数バッファ
-			m_blurParam.offset.x = 16.0f / m_texDesc.Width;
+			m_blurParam.offset.x = 16.0f / m_sampleScale.x;
 			m_blurParam.offset.y = 0.0f;
+			m_blurParam.sampleScale = m_sampleScale.x;
 			rc->UpdateSubresource(m_cb, 0, nullptr, &m_blurParam, 0, 0);
 			rc->PSSetConstantBuffers(0, 1, &m_cb);
+			rc->VSSetConstantBuffers(0, 1, &m_cb);
 
 			//シェーダーを設定
 			rc->VSSetShader((ID3D11VertexShader*)m_vsx.GetBody(), NULL, 0);
@@ -151,9 +152,11 @@ namespace DemolisherWeapon {
 
 			//定数バッファ
 			m_blurParam.offset.x = 0.0f;
-			m_blurParam.offset.y = 16.0f / m_texDesc.Height;
+			m_blurParam.offset.y = 16.0f / m_sampleScale.y;
+			m_blurParam.sampleScale = m_sampleScale.y;
 			rc->UpdateSubresource(m_cb, 0, nullptr, &m_blurParam, 0, 0);
 			rc->PSSetConstantBuffers(0, 1, &m_cb);
+			rc->VSSetConstantBuffers(0, 1, &m_cb);
 
 			//シェーダーを設定
 			rc->VSSetShader((ID3D11VertexShader*)m_vsy.GetBody(), NULL, 0);

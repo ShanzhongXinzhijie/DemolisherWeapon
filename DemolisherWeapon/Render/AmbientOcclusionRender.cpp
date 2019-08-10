@@ -62,7 +62,7 @@ void AmbientOcclusionRender::Init(float texScale) {
 	ge.GetD3DDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cb);
 
 	//ガウスブラー
-	m_gaussBlur.Init(m_ambientOcclusionSRV,0.25f);
+	m_gaussBlur.Init(m_ambientOcclusionSRV, 0.25f, {1280.0f*0.5f,720.0f*0.5f });
 }
 void AmbientOcclusionRender::Release() {
 	m_ambientOcclusionTex->Release();
