@@ -46,10 +46,10 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// 初期化
 		/// </summary>
-		/// <param name="filepath">3Dモデルのファイルパス</param>
+		/// <param name="model">3Dモデル</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
 		/// <param name="partNum">インポスターテクスチャの分割数</param>
-		void Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum);
+		void Init(SkinModel& model, const CVector2& resolution, const CVector2& partNum);
 
 		/// <summary>
 		/// モデルのサイズを取得
@@ -158,11 +158,18 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// インポスターテクスチャのロード
 		/// </summary>
-		/// <param name="filepath">3Dモデルのファイルパス</param>
+		/// <param name="identifier">識別名</param>
+		/// <param name="model">3dモデル</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
 		/// <param name="partNum">インポスターテクスチャの分割数 ※奇数を推奨?</param>
 		/// <returns>インポスターテクスチャ</returns>
-		ImposterTexRender* Load(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum);
+		ImposterTexRender* Load(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum);
+		
+		/// <summary>
+		/// ロード済みのテクスチャを取得
+		/// </summary>
+		/// <param name="identifier">識別名</param>
+		ImposterTexRender* Get(const wchar_t* identifier);
 
 		/// <summary>
 		/// テクスチャの開放
@@ -175,16 +182,29 @@ namespace DemolisherWeapon {
 	
 	class CImposter
 	{
+	private:
+		/// <summary>
+		/// 初期化で使用する関数
+		/// </summary>
+		void InnerInit(const wchar_t* identifier, int instancingNum);
+
 	public:
 		/// <summary>
-		/// 初期化
+		/// 初期化(リソース新規作成)
 		/// </summary>
-		/// <param name="filepath">3Dモデルのファイルパス</param>
+		/// <param name="identifier">設定する識別名</param>
+		/// <param name="model">3Dモデル</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
 		/// <param name="partNum">インポスターテクスチャの分割数 ※奇数を推奨?</param>
 		/// <param name="instancingNum">インスタンシング描画数</param>
-		void Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum, int instancingNum = 1);
-		
+		bool Init(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum, int instancingNum = 1);
+		/// <summary>
+		/// 初期化(読み込み済みのリソースを使用)
+		/// </summary>
+		/// <param name="identifier">リソースの識別名</param>
+		/// <param name="instancingNum">インスタンシング描画数</param>
+		bool Init(const wchar_t* identifier, int instancingNum = 1);
+
 		//座標・拡大の設定
 		void SetPos(const CVector3& pos) {
 			m_pos = pos;

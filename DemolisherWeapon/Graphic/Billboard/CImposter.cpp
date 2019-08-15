@@ -69,7 +69,7 @@ namespace DemolisherWeapon {
 	}
 	
 //インポスターテクスチャ
-	void ImposterTexRender::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
+	void ImposterTexRender::Init(SkinModel& model, const CVector2& resolution, const CVector2& partNum) {
 		//解像度・分割数設定
 		m_gbufferSizeX = (UINT)resolution.x; m_gbufferSizeY = (UINT)resolution.y;
 		m_partNumX = (UINT)partNum.x; m_partNumY = (UINT)partNum.y;
@@ -113,16 +113,14 @@ namespace DemolisherWeapon {
 		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, m_GBufferTex[enGBufferTranslucent].ReleaseAndGetAddressOf());
 		ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferTranslucent].Get(), nullptr, m_GBufferView[enGBufferTranslucent].ReleaseAndGetAddressOf());//レンダーターゲット
 		ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferTranslucent].Get(), nullptr, m_GBufferSRV[enGBufferTranslucent].ReleaseAndGetAddressOf());//シェーダーリソースビュー
-
-		//モデル読み込み
-		SkinModel model;
-		model.Init(filepath);
-		model.UpdateWorldMatrix(0.0f, CQuaternion::Identity(), 1.0f);
-		model.SetIsFrustumCulling(false);//視錐台カリングの無効化//なぜかこれがいる
+		
+		//ワールド行列の初期化
+		CMatrix beforeWorldMatrix = model.GetWorldMatrix();//元を記録しておく
+		model.UpdateWorldMatrix(0.0f, CQuaternion::Identity(), 1.0f);//ワールド行列の初期化
 
 		//バイアス行列取得
 		CMatrix mBias, mBiasScr;
-		CoordinateSystemBias::GetBias(mBias, mBiasScr, enFbxUpAxisZ, enFbxRightHanded);
+		CoordinateSystemBias::GetBias(mBias, mBiasScr, model.GetFBXUpAxis(), model.GetFBXCoordinateSystem());
 		mBias.Mul(mBiasScr, mBias);
 
 		//バウンディングボックスからモデルのサイズを求める
@@ -199,6 +197,9 @@ namespace DemolisherWeapon {
 
 		//インポスタテクスチャの作成
 		Render(model);
+
+		//モデルのワールド行列を戻す
+		model.SetWorldMatrix(beforeWorldMatrix, true);
 
 		//StructuredBufferを更新
 		GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
@@ -378,7 +379,8 @@ namespace DemolisherWeapon {
 	}
 
 //インポスターテクスチャバンク
-	ImposterTexRender* ImposterTexBank::Load(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum) {
+	ImposterTexRender* ImposterTexBank::Load(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum) {
+		/*
 		//ファイルパスからハッシュ作成
 		int index = Util::MakeHash(filepath);
 		//設定を文字列化
@@ -391,6 +393,10 @@ namespace DemolisherWeapon {
 		string += std::to_wstring((int)partNum.y);
 		//文字列からハッシュ作成→さっきのハッシュと合成
 		index = (int)Util::HashCombine(index, Util::MakeHash(string.c_str()));
+		*/
+
+		//ハッシュ作成
+		int index = Util::MakeHash(identifier);
 
 		//ハッシュをmapのkeyとして使用
 		if (m_impTexMap.count(index) > 0) {
@@ -400,9 +406,24 @@ namespace DemolisherWeapon {
 		else {
 			//つくる
 			ImposterTexRender* ptr = new ImposterTexRender;
-			ptr->Init(filepath, resolution, partNum);
+			ptr->Init(model, resolution, partNum);
 			m_impTexMap.emplace(index, ptr);
 			return ptr;
+		}
+	}
+
+	ImposterTexRender* ImposterTexBank::Get(const wchar_t* identifier) {
+		//ハッシュ作成
+		int index = Util::MakeHash(identifier);
+
+		//ハッシュをmapのkeyとして使用
+		if (m_impTexMap.count(index) > 0) {
+			//ある
+			return m_impTexMap[index];
+		}
+		else {
+			//ない
+			return nullptr;
 		}
 	}
 
@@ -414,12 +435,30 @@ namespace DemolisherWeapon {
 	}
 	
 //インポスター
-	void CImposter::Init(const wchar_t* filepath, const CVector2& resolution, const CVector2& partNum, int instancingNum) {
-		//テクスチャ生成
-		m_texture = ImposterTexBank::GetInstance().Load(filepath, resolution, partNum);
+	bool CImposter::Init(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum, int instancingNum) {
+		//テクスチャ読み込み
+		m_texture = nullptr;
+		m_texture = ImposterTexBank::GetInstance().Load(identifier, model, resolution, partNum);
+		if (!m_texture) { return false; }
+		//初期化
+		InnerInit(identifier, instancingNum);
+		return true;
+	}
+	bool CImposter::Init(const wchar_t* identifier, int instancingNum) {
+		//テクスチャ読み込み
+		m_texture = nullptr;
+		m_texture = ImposterTexBank::GetInstance().Get(identifier);
+		if (!m_texture) { return false; }
+		//初期化
+		InnerInit(identifier, instancingNum);
+		return true;
+	}
+	void CImposter::InnerInit(const wchar_t* identifier, int instancingNum){
+		std::wstring moji = L"CImposter-";
+		moji += identifier; moji += L"-CImposter";
 
 		//ビルボード
-		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo), instancingNum, filepath);
+		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo), instancingNum, moji.c_str());
 
 		//シェーダ読み込み
 		if (m_billboard.GetIsInstancing()) {

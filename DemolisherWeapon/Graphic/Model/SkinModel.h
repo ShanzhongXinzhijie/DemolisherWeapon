@@ -41,6 +41,14 @@ public:
 	//平行移動部分のみ更新
 	void UpdateWorldMatrixTranslation(const CVector3& position, bool RefreshOldPos = false);
 
+	/// <summary>
+	/// ワールド行列を設定
+	/// そして色々更新される
+	/// </summary>
+	/// <param name="worldMatrix">設定するワールド行列</param>
+	/// <param name="RefreshOldPos">旧行列をリフレッシュするか</param>
+	void SetWorldMatrix(const CMatrix& worldMatrix, bool RefreshOldPos = false);
+
 	//ワールド行列を計算する
 	void CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix, CMatrix& returnSRTMatrix)const;
 	void CalcWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, CMatrix& returnWorldMatrix)const {
@@ -61,6 +69,7 @@ public:
 	/// <summary>
 	/// ワールド行列の取得
 	/// </summary>
+	[[nodiscard]]
 	const CMatrix& GetWorldMatrix()const {
 		return m_worldMatrix;
 	}
@@ -78,6 +87,7 @@ public:
 	*@param[in]		boneName	ボーンの名前。
 	*@return	見つかったボーン。見つからなかった場合はnullptrを返します。
 	*/
+	[[nodiscard]]
 	Bone* FindBone(const wchar_t* boneName)
 	{
 		int boneId = m_skeleton.FindBoneID(boneName);
@@ -92,11 +102,13 @@ public:
 	void Draw(bool reverseCull = false, int instanceNum = 1, ID3D11BlendState* pBlendState = nullptr, ID3D11DepthStencilState* pDepthStencilState = nullptr);
 
 	//モデルの名前を取得
+	[[nodiscard]]
 	const wchar_t* GetModelName()const
 	{
 		return m_modelName.c_str();
 	}
 	//モデルの名前の一致を判定
+	[[nodiscard]]
 	bool EqualModelName(const wchar_t* name) const
 	{
 		return wcscmp(name, m_modelName.c_str()) == 0;
@@ -105,6 +117,7 @@ public:
 	/*!
 	*@brief	スケルトンの取得。
 	*/
+	[[nodiscard]]
 	Skeleton& GetSkeleton()
 	{
 		return m_skeleton;
@@ -277,9 +290,11 @@ public:
 	}
 
 	//FBXの設定取得
+	[[nodiscard]]
 	const EnFbxUpAxis& GetFBXUpAxis()const {
 		return m_enFbxUpAxis;
 	}
+	[[nodiscard]]
 	const EnFbxCoordinateSystem& GetFBXCoordinateSystem()const {
 		return m_enFbxCoordinate;
 	}
@@ -299,6 +314,13 @@ private:
 	/// バウンディングボックスをワールド行列で更新
 	/// </summary>
 	void UpdateBoundingBoxWithWorldMatrix();
+
+	/// <summary>
+	/// ワールド行列更新後の処理
+	/// </summary>
+	/// <param name="isUpdatedWorldMatrix">ワールド行列が更新されたか?</param>
+	/// <param name="RefreshOldPos">旧行列を更新するか?</param>
+	void InnerUpdateWorldMatrix(bool isUpdatedWorldMatrix, bool RefreshOldPos);
 	
 private:
 	//定数バッファ。

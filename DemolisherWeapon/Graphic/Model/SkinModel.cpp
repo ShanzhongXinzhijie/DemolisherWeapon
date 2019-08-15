@@ -165,29 +165,25 @@ void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& r
 	if (m_isCalcWorldMatrix) {
 		//ワールド行列を計算
 		CalcWorldMatrix(position, rotation, scale, m_worldMatrix);
-		//スケルトンの更新。
-		m_skeleton.Update(m_worldMatrix);
-		//バウンディングボックスを更新
-		UpdateBoundingBoxWithWorldMatrix();
 	}
-	else {
-		//スケルトンの更新。
-		m_skeleton.Update(CMatrix::Identity());
-	}
-
-	//最初のワールド座標更新なら...
-	if (m_isFirstWorldMatRef || RefreshOldPos) {
-		m_isFirstWorldMatRef = false;
-		//旧座標の更新
-		UpdateOldMatrix();
-	}
+	InnerUpdateWorldMatrix(m_isCalcWorldMatrix, RefreshOldPos);
 }
 void SkinModel::UpdateWorldMatrixTranslation(const CVector3& position, bool RefreshOldPos) 
 {
 	if (m_isCalcWorldMatrix) {
 		//ワールド行列の平行移動部分を設定
-		//※この部分以外↑(UpdateWorldMatrix)と同じ
 		m_worldMatrix.SetTranslation(position);
+	}
+	InnerUpdateWorldMatrix(m_isCalcWorldMatrix, RefreshOldPos);
+}
+
+void SkinModel::SetWorldMatrix(const CMatrix& worldMatrix, bool RefreshOldPos) {
+	m_worldMatrix = worldMatrix;
+	InnerUpdateWorldMatrix(true, RefreshOldPos);
+}
+
+void SkinModel::InnerUpdateWorldMatrix(bool isUpdatedWorldMatrix, bool RefreshOldPos) {
+	if (isUpdatedWorldMatrix) {
 		//スケルトンの更新。
 		m_skeleton.Update(m_worldMatrix);
 		//バウンディングボックスを更新
