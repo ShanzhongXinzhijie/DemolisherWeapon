@@ -4,7 +4,9 @@
 namespace DemolisherWeapon {
 
 	void MaterialSetting::Init(ModelEffect* modeleffect) {
-		m_isInit = modeleffect;
+		m_isInit = modeleffect;//元となるモデルエフェクトを記録
+
+		//初期化
 		SetDefaultVS();
 		SetDefaultVSZ();
 		SetDefaultPS();
@@ -25,6 +27,7 @@ namespace DemolisherWeapon {
 		SetAlbedoTexture(modeleffect->GetDefaultMaterialSetting().GetAlbedoTexture());
 		SetNormalTexture(modeleffect->GetDefaultMaterialSetting().GetNormalTexture());
 		SetLightingTexture(modeleffect->GetDefaultMaterialSetting().GetLightingTexture());
+		SetTranslucentTexture(modeleffect->GetDefaultMaterialSetting().GetTranslucentTexture());
 
 		SetIsMotionBlur(modeleffect->GetDefaultMaterialSetting().GetIsMotionBlur());
 		SetIsUseTexZShader(modeleffect->GetDefaultMaterialSetting().GetIsUseTexZShader());
@@ -51,52 +54,16 @@ namespace DemolisherWeapon {
 	//アルベドテクスチャをデフォに戻す
 	void MaterialSetting::SetDefaultAlbedoTexture() {
 		ID3D11ShaderResourceView* DT = m_isInit->GetDefaultAlbedoTexture();
-
-		if (m_pAlbedoTex == DT) { return; }//既にデフォルトテクスチャ
-
-		if (m_pAlbedoTex) { 
-			m_pAlbedoTex->Release();
-		}
-		else {
-			SetAlbedoScale(CVector4::One());//アルベドスケールを初期化
-		}
-		m_pAlbedoTex = DT;
-		if (m_pAlbedoTex) {
-			m_pAlbedoTex->AddRef();
-		}
+		SetAlbedoTexture(DT);
 	}
 	//ノーマルマップをデフォに戻す
 	void MaterialSetting::SetDefaultNormalTexture() {
 		ID3D11ShaderResourceView* DT = m_isInit->GetDefaultNormalTexture();
-
-		if (m_pNormalTex == DT) { return; }//既にデフォルトテクスチャ
-
-		if (m_pNormalTex) {
-			m_pNormalTex->Release();
-		}
-		m_pNormalTex = DT;
-		if (m_pNormalTex) {
-			m_pNormalTex->AddRef();
-		}
+		SetNormalTexture(DT);
 	}
 	//ライティングパラメータマップをデフォに戻す
 	void MaterialSetting::SetDefaultLightingTexture() {
 		ID3D11ShaderResourceView* DT = m_isInit->GetDefaultLightingTexture();
-
-		if (m_pLightingTex == DT) { return; }//既にデフォルトテクスチャ
-
-		if (m_pLightingTex) {
-			m_pLightingTex->Release();
-		}
-		else {
-			//初期化(これらのパラメータはテクスチャにかけるスケールとして使う)
-			SetEmissive(1.0f);
-			SetMetallic(1.0f);
-			SetShininess(1.0f);
-		}
-		m_pLightingTex = DT;
-		if (m_pLightingTex) {
-			m_pLightingTex->AddRef();
-		}
+		SetLightingTexture(DT);
 	}
 }

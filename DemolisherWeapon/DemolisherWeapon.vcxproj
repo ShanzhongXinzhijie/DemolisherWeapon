@@ -271,6 +271,7 @@
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
     <ClInclude Include="Graphic\IDrawer.h" />
+    <ClInclude Include="Render\InitRender.h" />
     <ClInclude Include="Timer\CDeleteTimer.h" />
     <ClInclude Include="Graphic\Particle\CParticle.h" />
     <ClInclude Include="DWVersion.h" />
@@ -369,6 +370,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Graphic\IDrawer.cpp" />
+    <ClCompile Include="Render\InitRender.cpp" />
     <ClCompile Include="Timer\CDeleteTimer.cpp" />
     <ClCompile Include="Graphic\Particle\CParticle.cpp" />
     <ClCompile Include="Graphic\FrustumCulling.cpp" />

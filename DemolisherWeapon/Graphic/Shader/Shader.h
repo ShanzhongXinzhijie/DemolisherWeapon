@@ -39,22 +39,22 @@ public:
 	/*!
 	* @brief	
 	*/
-	void* GetBody()
+	void* GetBody()const
 	{
 		return m_shader;
 	}
 	/*!
 	* @brief	インプットレイアウトを取得。
 	*/
-	ID3D11InputLayout* GetInputLayout()
+	ID3D11InputLayout* GetInputLayout()const
 	{
 		return m_inputLayout;
 	}
-	void* GetByteCode()
+	void* GetByteCode()const
 	{
 		return m_blobOut->GetBufferPointer();
 	}
-	size_t GetByteCodeSize()
+	size_t GetByteCodeSize()const
 	{
 		return m_blobOut->GetBufferSize();
 	}

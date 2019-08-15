@@ -26,6 +26,9 @@ void ShadowMapRender::Render() {
 	GameObj::ICamera* oldcam = GetMainCamera();
 	D3D11_VIEWPORT oldviewport; UINT kaz = 1;
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSGetViewports(&kaz, &oldviewport);
+	//現在のブレンドステートを保存
+	ID3D11BlendState* oldBlendState = nullptr; FLOAT oldf[4]; UINT olduint;
+	GetGraphicsEngine().GetD3DDeviceContext()->OMGetBlendState(&oldBlendState, oldf, &olduint);
 
 	//シェーダーをZ値書き込み様に
 	ModelEffect::SetShaderMode(ModelEffect::enZShader);	
@@ -61,6 +64,12 @@ void ShadowMapRender::Render() {
 
 	//ビューポート戻す
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &oldviewport);
+
+	//ブレンドステート戻す
+	if (oldBlendState) {
+		GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(oldBlendState, oldf, olduint);
+		oldBlendState->Release();
+	}
 
 	//レンダーターゲット解除
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);

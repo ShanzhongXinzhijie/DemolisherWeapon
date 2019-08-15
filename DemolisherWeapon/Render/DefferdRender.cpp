@@ -79,9 +79,10 @@ void DefferdRender::Render() {
 	rc->PSSetShaderResources(1, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferNormal));
 	rc->PSSetShaderResources(2, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetDepthStencilSRV());
 	rc->PSSetShaderResources(3, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferPosition));
-	rc->PSSetShaderResources(4, 1, &GetEngine().GetGraphicsEngine().GetAmbientOcclusionRender().GetAmbientOcclusionSRV());
+	//rc->PSSetShaderResources(4, 1, &GetEngine().GetGraphicsEngine().GetAmbientOcclusionRender().GetAmbientOcclusionSRV());
 	rc->PSSetShaderResources(5, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferLightParam));
 	rc->PSSetShaderResources(7, 1, &GetEngine().GetGraphicsEngine().GetAmbientOcclusionRender().GetAmbientOcclusionBlurSRV());
+	rc->PSSetShaderResources(8, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGbufferTranslucent));
 
 	//ライト関係をセット
 	rc->PSSetShaderResources(100, 1, &GetEngine().GetGraphicsEngine().GetLightManager().GetDirectionLightSRV());
@@ -164,13 +165,12 @@ void DefferdRender::Render() {
 	rc->PSSetShaderResources(5, 1, view);
 	rc->PSSetShaderResources(6, 1, view);
 	rc->PSSetShaderResources(7, 1, view);
+	rc->PSSetShaderResources(8, 1, view);
 
 	rc->PSSetShaderResources(100, 1, view);
 	rc->PSSetShaderResources(101, 1, view);
 
-	for (int i = 0; i < ShadowMapRender::SHADOWMAP_NUM; i++) {
-		rc->PSSetShaderResources(60 + i, 1, view);
-	}
+	rc->PSSetShaderResources(60, 1, view);	
 
 	//レンダーターゲット解除
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);

@@ -1,3 +1,14 @@
+//二乗する
+float square(in float f)
+{
+    return f * f;
+}
+//四乗する
+float fourth(in float f)
+{
+    return f * f * f * f;
+}
+
 //サンプラー
 sampler Sampler : register(s0);
 sampler NoFillteringSampler : register(s2);
@@ -220,9 +231,10 @@ Texture2D<float4> albedoTexture : register(t0);
 Texture2D<float4> normalMap		: register(t1);
 Texture2D<float > depthMap		: register(t2);
 Texture2D<float4> PosMap		: register(t3);
-Texture2D<float > AoMap			: register(t4);
+//Texture2D<float > AoMap			: register(t4);
 Texture2D<float4> lightParamTex	: register(t5);
 Texture2D<float > AoMapBlur		: register(t7);
+Texture2D<float > TranslucentMap : register(t8);
 //環境キューブマップ
 TextureCube<float3> AmbientCubeMap: register(t6);
 
@@ -369,8 +381,11 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
 	//視線ベクトル
 	float3 viewDir = normalize(eyePos - worldpos);
+
+	//トランスルーセント
+    float translucent = TranslucentMap.Sample(Sampler, In.uv);
 	
-   //ディレクションライト
+	//ディレクションライト
 	[unroll]
 	for (int i = 0; i < 4; i++) {
 		if (numDirectionLight == i) { break; }
@@ -383,7 +398,11 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		}
         
 		//ディフューズ
-		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), directionLight[i].direction, normal) * directionLight[i].color * nothide;		
+		float3 lambertColor = NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), directionLight[i].direction, normal) * directionLight[i].color * nothide;		
+		//トランスルーセントと補間
+        Out += lerp(lambertColor, albedo.xyz * directionLight[i].color, translucent * fourth(saturate(dot(viewDir * -1.0f, directionLight[i].direction))));
+		// * (1.0f / PI)
+
 		//スペキュラ
 		Out += max(0.0f,
 			CookTorrance(directionLight[i].direction, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w)
@@ -403,13 +422,18 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		//減衰を計算する
 		float	litRate = len / pointLightList[i].range;
 		float	attn = max(1.0 - litRate * litRate, 0.0);
+        attn = pow(attn, pointLightList[i].attenuation);
 
 		//ディフューズ
-		Out += NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), dir, normal) * pointLightList[i].color * pow(attn, pointLightList[i].attenuation);
+        float3 lambertColor = NormalizedLambert(albedo.xyz * (1.0f - lightParam.z), dir, normal) * pointLightList[i].color * attn;
+		//トランスルーセントと補間
+        Out += lerp(lambertColor, albedo.xyz * pointLightList[i].color * attn, translucent * fourth(saturate(dot(viewDir * -1.0f, dir))));
+		// * (1.0f / PI)
+
 		//スペキュラ
 		Out += max(0.0f,
 			CookTorrance(dir, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w)
-			* pointLightList[i].color * saturate(dot(normal, dir)) * pow(attn, pointLightList[i].attenuation)
+			* pointLightList[i].color * saturate(dot(normal, dir)) * attn
 			);	
 	}	
 

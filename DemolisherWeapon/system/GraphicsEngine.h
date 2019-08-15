@@ -15,6 +15,7 @@
 #include"Render/EffekseerRender.h"
 #include"Render/ConvertLinearToSRGBRender.h"
 #include"Render/PrimitiveRender.h"
+#include"Render/InitRender.h"
 
 #include"Camera/CameraManager.h"
 #include"Graphic/Light/Lights.h"
@@ -210,6 +211,13 @@ public:
 	}
 
 	/// <summary>
+	/// コモンステートの取得
+	/// </summary>
+	const DirectX::CommonStates& GetCommonStates()const {
+		return *m_commonStates.get();
+	}
+
+	/// <summary>
 	/// GPUイベントの開始
 	/// </summary>
 	/// <param name="eventName">イベント名</param>
@@ -240,7 +248,6 @@ private:
 	float FRAME_BUFFER_3D_W = 1280.0f;			//フレームバッファの幅(3D描画)
 	float FRAME_BUFFER_3D_H = 720.0f;			//フレームバッファの高さ(3D描画)
 
-
 	bool m_useVSync = false;//垂直同期するか
 
 	D3D_FEATURE_LEVEL		m_featureLevel;				//Direct3D デバイスのターゲットとなる機能セット。
@@ -253,7 +260,9 @@ private:
 	ID3D11DepthStencilView* m_depthStencilView = NULL;	//デプスステンシルビュー。
 	ID3D11DepthStencilState* m_depthStencilState = nullptr;
 
-	D3D11_VIEWPORT m_viewport;
+	D3D11_VIEWPORT m_viewport;//ビューポート
+
+	std::unique_ptr<DirectX::CommonStates> m_commonStates;//コモンステート
 
 	//Sprite
 	std::unique_ptr<DirectX::SpriteFont> m_spriteFont;
@@ -267,6 +276,7 @@ private:
 	//レンダー
 	int m_freeRenderPriority = -1;
 	RanderManager m_renderManager;
+	InitRender m_initRender;
 	GBufferRender m_gbufferRender;
 	ShadowMapRender m_shadowMapRender;
 	AmbientOcclusionRender m_ambientOcclusionRender;

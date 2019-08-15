@@ -22,6 +22,7 @@ void GBufferRender::Init() {
 	texDesc.MiscFlags = 0;
 
 	//アルベド
+	texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;	
 	ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_GBufferTex[enGBufferAlbedo]);
 	ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferAlbedo], nullptr, &m_GBufferView[enGBufferAlbedo]);//レンダーターゲット
 	ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferAlbedo], nullptr, &m_GBufferSRV[enGBufferAlbedo]);//シェーダーリソースビュー
@@ -32,6 +33,12 @@ void GBufferRender::Init() {
 	ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferLightParam], nullptr, &m_GBufferView[enGBufferLightParam]);//レンダーターゲット
 	ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferLightParam], nullptr, &m_GBufferSRV[enGBufferLightParam]);//シェーダーリソースビュー
 
+	//トランスルーセント
+	texDesc.Format = DXGI_FORMAT_R8_UNORM;
+	ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_GBufferTex[enGbufferTranslucent]);
+	ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGbufferTranslucent], nullptr, &m_GBufferView[enGbufferTranslucent]);//レンダーターゲット
+	ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGbufferTranslucent], nullptr, &m_GBufferSRV[enGbufferTranslucent]);//シェーダーリソースビュー
+	
 	//法線
 	texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_GBufferTex[enGBufferNormal]);
@@ -76,6 +83,42 @@ void GBufferRender::Init() {
 	SRVDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
 	SRVDesc.Texture2D.MipLevels = texDesc.MipLevels;
 	ge.GetD3DDevice()->CreateShaderResourceView(m_depthStencilTex, &SRVDesc, &m_depthStencilSRV);
+
+	//ブレンドステート
+	//D3D11_BLEND_DESC desc = {};
+
+	//レンダーターゲットごとにブレンドステート変える
+	//desc.IndependentBlendEnable = true;
+
+	//ノーマルブレンド(ブレンドしない)
+	/*D3D11_BLEND srcBlend = D3D11_BLEND_ONE, destBlend = D3D11_BLEND_ZERO;
+	for (auto& rt : desc.RenderTarget) {
+		rt.BlendEnable = (srcBlend != D3D11_BLEND_ONE) || (destBlend != D3D11_BLEND_ZERO);
+		rt.SrcBlend = rt.SrcBlendAlpha = srcBlend;
+		rt.DestBlend = rt.DestBlendAlpha = destBlend;
+		rt.BlendOp = rt.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		rt.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	}*/
+
+	//加算ブレンド(トランスルーセント用)
+	/*desc.RenderTarget[enGbufferTranslucent].BlendEnable = true;
+	desc.RenderTarget[enGbufferTranslucent].SrcBlend = desc.RenderTarget[enGbufferTranslucent].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	desc.RenderTarget[enGbufferTranslucent].DestBlend = desc.RenderTarget[enGbufferTranslucent].DestBlendAlpha = D3D11_BLEND_ONE;
+	desc.RenderTarget[enGbufferTranslucent].BlendOp = desc.RenderTarget[enGbufferTranslucent].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	desc.RenderTarget[enGbufferTranslucent].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;*/
+
+	//乗算ブレンド(トランスルーセント用)
+	/*desc.RenderTarget[enGbufferTranslucent].BlendEnable = TRUE;
+	desc.RenderTarget[enGbufferTranslucent].SrcBlend = D3D11_BLEND_ZERO;
+	desc.RenderTarget[enGbufferTranslucent].DestBlend = D3D11_BLEND_SRC_COLOR;
+	desc.RenderTarget[enGbufferTranslucent].BlendOp = D3D11_BLEND_OP_ADD;
+	desc.RenderTarget[enGbufferTranslucent].SrcBlendAlpha = D3D11_BLEND_ONE;
+	desc.RenderTarget[enGbufferTranslucent].DestBlendAlpha = D3D11_BLEND_ZERO;
+	desc.RenderTarget[enGbufferTranslucent].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	desc.RenderTarget[enGbufferTranslucent].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;*/
+
+	//ブレンドステート作成
+	//ge.GetD3DDevice()->CreateBlendState(&desc, m_blendState.ReleaseAndGetAddressOf());
 }
 void GBufferRender::Release() {
 	for (int i = 0; i < enGBufferNum; i++) {
@@ -98,6 +141,10 @@ void GBufferRender::Render() {
 		std::abort();
 	}
 #endif
+
+	//現在のブレンドステートを保存
+	ID3D11BlendState* oldBlendState = nullptr; FLOAT oldf[4]; UINT olduint;
+	GetGraphicsEngine().GetD3DDeviceContext()->OMGetBlendState(&oldBlendState, oldf, &olduint);
 	
 	//Gバッファをクリア
 	float clearColor[enGBufferNum][4] = {
@@ -107,6 +154,7 @@ void GBufferRender::Render() {
 		{ 0.0f, 0.0f, GetMainCamera()->GetFar(), GetMainCamera()->GetFar() }, //enGBufferVelocity
 		{ 0.0f, 0.0f, GetMainCamera()->GetFar(), GetMainCamera()->GetFar() }, //enGBufferVelocityPS
 		{ 0.0f, 0.0f, 0.0f, 1.0f }, //enGBufferLightParam
+		{ 1.0f, 1.0f, 1.0f, 1.0f }, //enGbufferTranslucent
 	};
 	for (int i = 0; i < enGBufferNum; i++) {
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->ClearRenderTargetView(m_GBufferView[i], clearColor[i]);
@@ -125,7 +173,7 @@ void GBufferRender::Render() {
 	//モデル描画
 	for (auto& list : m_drawModelList) {
 		for (auto& model : list) {
-			model->Draw();
+			model->Draw();// false, 1, m_blendState.Get());
 		}
 	}
 
@@ -134,6 +182,12 @@ void GBufferRender::Render() {
 
 	//レンダーターゲット解除
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+
+	//ブレンドステート戻す
+	if (oldBlendState) {
+		GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(oldBlendState, oldf, olduint);
+		oldBlendState->Release();
+	}
 
 	//GPUイベントの終了
 	GetGraphicsEngine().EndGPUEvent();

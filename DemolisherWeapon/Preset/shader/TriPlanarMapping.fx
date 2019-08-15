@@ -35,9 +35,10 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 		//視線ベクトル
 		float3 eveDir = normalize(In.Worldpos - camWorldPos);
 		//視線に法線が直交するほど輪郭
-		Z *= 1.0f - abs(dot(In.Normal, eveDir));
+		Z += 1.0f - abs(dot(In.Normal, eveDir));
+		Z*=Z;
 		//しきい値でピクセル破棄
-		if (Z > 0.4f){
+		if (Z > 0.9f){
 			discard;
 		}
 	}
@@ -90,6 +91,7 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
     PosRender(In, Out);
     ParamRender(In, Out);
     MotionRender(In, Out);
+    TranslucentRender(In, Out);
 
 	return Out;
 }

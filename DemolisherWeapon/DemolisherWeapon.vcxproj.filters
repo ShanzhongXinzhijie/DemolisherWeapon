@@ -103,6 +103,7 @@
     <ClInclude Include="Graphic\Particle\CParticle.h" />
     <ClInclude Include="Timer\CDeleteTimer.h" />
     <ClInclude Include="Graphic\IDrawer.h" />
+    <ClInclude Include="Render\InitRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -195,6 +196,7 @@
     <ClCompile Include="Graphic\Particle\CParticle.cpp" />
     <ClCompile Include="Timer\CDeleteTimer.cpp" />
     <ClCompile Include="Graphic\IDrawer.cpp" />
+    <ClCompile Include="Render\InitRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

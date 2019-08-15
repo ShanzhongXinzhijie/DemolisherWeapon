@@ -108,6 +108,12 @@ namespace DemolisherWeapon {
 		ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferNormal].Get(), nullptr, m_GBufferView[enGBufferNormal].ReleaseAndGetAddressOf());//レンダーターゲット
 		ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferNormal].Get(), nullptr, m_GBufferSRV[enGBufferNormal].ReleaseAndGetAddressOf());//シェーダーリソースビュー
 
+		//トランスルーセント
+		texDesc.Format = DXGI_FORMAT_R8_UNORM;
+		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, m_GBufferTex[enGBufferTranslucent].ReleaseAndGetAddressOf());
+		ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferTranslucent].Get(), nullptr, m_GBufferView[enGBufferTranslucent].ReleaseAndGetAddressOf());//レンダーターゲット
+		ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferTranslucent].Get(), nullptr, m_GBufferSRV[enGBufferTranslucent].ReleaseAndGetAddressOf());//シェーダーリソースビュー
+
 		//モデル読み込み
 		SkinModel model;
 		model.Init(filepath);
@@ -259,6 +265,7 @@ namespace DemolisherWeapon {
 			{ 0.0f, 0.0f, 0.0f, 0.0f }, //enGBufferAlbedo
 			{ 0.5f, 0.5f, 1.0f, 1.0f }, //enGBufferNormal
 			{ 0.0f, 0.0f, 0.0f, 1.0f }, //enGBufferLightParam
+			{ 1.0f, 1.0f, 1.0f, 1.0f }, //enGBufferTranslucent
 		};
 		for (int i = 0; i < enGBufferNum; i++) {
 			DC->ClearRenderTargetView(m_GBufferView[i].Get(), clearColor[i]);
@@ -444,8 +451,11 @@ namespace DemolisherWeapon {
 		//いろいろ設定
 		m_billboard.GetModel().GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
+				//テクスチャ
 				mat->SetNormalTexture(m_texture->GetSRV(ImposterTexRender::enGBufferNormal));
 				mat->SetLightingTexture(m_texture->GetSRV(ImposterTexRender::enGBufferLightParam));
+				mat->SetTranslucentTexture(m_texture->GetSRV(ImposterTexRender::enGBufferTranslucent));
+				//シェーダ
 				mat->SetVS(&m_vsShader);
 				mat->SetVSZ(&m_vsZShader);
 				mat->SetPS(&m_imposterPS);

@@ -161,6 +161,10 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	//ビューポートを初期化。
 	SetViewport(0.0f, 0.0f, FRAME_BUFFER_W, FRAME_BUFFER_H);
 
+	//ブレンドステート初期化
+	m_commonStates = std::make_unique<DirectX::CommonStates>(m_pd3dDevice);
+	m_pd3dDeviceContext->OMSetBlendState(m_commonStates->NonPremultiplied(), nullptr, 0xFFFFFFFF);
+
 	{
 		D3D11_DEPTH_STENCIL_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));
@@ -264,6 +268,8 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 
 	//レンダーをセット	
 
+	//初期化レンダー
+	m_renderManager.AddRender(-2, &m_initRender);
 	//シャドウマップ描画
 	m_renderManager.AddRender(-1, &m_shadowMapRender);
 

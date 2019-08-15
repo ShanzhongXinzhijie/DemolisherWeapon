@@ -280,7 +280,6 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		}
 	}
 
-	DirectX::CommonStates state(GetEngine().GetGraphicsEngine().GetD3DDevice());
 	ID3D11DeviceContext* d3dDeviceContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 	//定数バッファの内容を更新。
@@ -354,7 +353,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	//描画。
 	m_modelDx->Draw(
 		d3dDeviceContext,
-		state,
+		GetGraphicsEngine().GetCommonStates(),
 		m_worldMatrix,
 		GetMainCamera()->GetViewMatrix(),
 		GetMainCamera()->GetProjMatrix(),

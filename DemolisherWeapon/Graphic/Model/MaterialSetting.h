@@ -14,6 +14,7 @@ namespace DemolisherWeapon {
 		float shininess = 0.38f;				//シャイネス(ラフネスの逆)
 		float uvOffset[2] = { 0.0f,0.0f };		//UV座標オフセット
 		float triPlanarMapUVScale = 0.005f;		//TriPlanarMapping時のUV座標へのスケール
+		float translucent = 0.0f;				//トランスルーセント(光の透過具合)
 	};
 
 	class MaterialSetting
@@ -24,6 +25,7 @@ namespace DemolisherWeapon {
 			if (m_pAlbedoTex) { m_pAlbedoTex->Release(); m_pAlbedoTex = nullptr; }
 			if (m_pNormalTex) { m_pNormalTex->Release(); m_pNormalTex = nullptr; }
 			if (m_pLightingTex) { m_pLightingTex->Release(); m_pLightingTex = nullptr; }
+			if (m_pTranslucentTex) { m_pTranslucentTex->Release(); m_pTranslucentTex = nullptr; }			
 		}
 
 		void Init(ModelEffect* modeleffect);
@@ -78,6 +80,14 @@ namespace DemolisherWeapon {
 			m_materialParam.uvOffset[1] = uv.y;
 		}
 
+		/// <summary>
+		/// トランスルーセントを設定
+		/// </summary>
+		/// <param name="translucent">0.0f～1.0f 値が高いほど光を透過する</param>
+		void SetTranslucent(float translucent) {
+			m_materialParam.translucent = translucent;
+		}
+
 		//マテリアルパラメータ取得
 		const MaterialParam& GetMaterialParam()const {
 			return m_materialParam;
@@ -130,6 +140,9 @@ namespace DemolisherWeapon {
 		ID3D11ShaderResourceView* GetAlbedoTexture()const {
 			return m_pAlbedoTex;
 		}
+		ID3D11ShaderResourceView* const * GetAddressOfAlbedoTexture()const {
+			return &m_pAlbedoTex;
+		}
 		//アルベドテクスチャを設定
 		void SetAlbedoTexture(ID3D11ShaderResourceView* tex){
 
@@ -153,6 +166,9 @@ namespace DemolisherWeapon {
 		ID3D11ShaderResourceView* GetNormalTexture()const {
 			return m_pNormalTex;
 		}
+		ID3D11ShaderResourceView* const * GetAddressOfNormalTexture()const {
+			return &m_pNormalTex;
+		}
 		//ノーマルマップを設定
 		void SetNormalTexture(ID3D11ShaderResourceView* tex) {
 
@@ -172,6 +188,9 @@ namespace DemolisherWeapon {
 		//ライティングパラメータマップを取得
 		ID3D11ShaderResourceView* GetLightingTexture()const {
 			return m_pLightingTex;
+		}
+		ID3D11ShaderResourceView* const * GetAddressOfLightingTexture()const {
+			return &m_pLightingTex;
 		}
 		//ライティングパラメータマップを設定
 		void SetLightingTexture(ID3D11ShaderResourceView* tex) {
@@ -194,6 +213,31 @@ namespace DemolisherWeapon {
 		}
 		//ライティングパラメータマップをデフォに戻す
 		void SetDefaultLightingTexture();
+
+		//トランスルーセントマップを取得
+		ID3D11ShaderResourceView* GetTranslucentTexture()const {
+			return m_pTranslucentTex;
+		}
+		ID3D11ShaderResourceView* const * GetAddressOfTranslucentTexture()const {
+			return &m_pTranslucentTex;
+		}
+		//トランスルーセントマップを設定
+		void SetTranslucentTexture(ID3D11ShaderResourceView* tex) {
+
+			if (m_pTranslucentTex == tex) { return; }//既に
+
+			if (m_pTranslucentTex) {
+				m_pTranslucentTex->Release();
+			}
+			else {
+				//初期化(これらのパラメータはテクスチャにかけるスケールとして使う)
+				SetTranslucent(1.0f);
+			}
+			m_pTranslucentTex = tex;
+			if (m_pTranslucentTex) {
+				m_pTranslucentTex->AddRef();
+			}
+		}
 
 		//モーションブラー有効かを設定
 		void SetIsMotionBlur(bool enable) {
@@ -233,6 +277,7 @@ namespace DemolisherWeapon {
 		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;		
 		ID3D11ShaderResourceView* m_pNormalTex = nullptr;
 		ID3D11ShaderResourceView* m_pLightingTex = nullptr;
+		ID3D11ShaderResourceView* m_pTranslucentTex = nullptr;
 
 		//設定
 		bool m_enableMotionBlur = true;

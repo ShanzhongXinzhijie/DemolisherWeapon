@@ -15,6 +15,7 @@ public:
 		enGBufferVelocity,
 		enGBufferVelocityPS,
 		enGBufferLightParam,
+		enGbufferTranslucent,
 		enGBufferNum,
 	};
 
@@ -52,6 +53,8 @@ private:
 	ID3D11Texture2D*		m_depthStencilTex = nullptr;				//デプスステンシルテクスチャ
 	ID3D11DepthStencilView* m_depthStencilView = nullptr;				//デプスステンシルビュー
 	ID3D11ShaderResourceView* m_depthStencilSRV = nullptr;				//デプスステンシルSRV
+
+	//Microsoft::WRL::ComPtr<ID3D11BlendState> m_blendState;//ブレンドステート	
 };
 
 }

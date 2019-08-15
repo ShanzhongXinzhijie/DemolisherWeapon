@@ -88,6 +88,7 @@ namespace DemolisherWeapon {
 			enGBufferAlbedo,
 			enGBufferNormal,
 			enGBufferLightParam,
+			enGBufferTranslucent,
 			enGBufferNum,
 		};
 

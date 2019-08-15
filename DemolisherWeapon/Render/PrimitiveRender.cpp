@@ -13,9 +13,7 @@ namespace DemolisherWeapon {
 	}
 
 	void PrimitiveRender::Init() {
-		ID3D11Device* d3dDevice = GetEngine().GetGraphicsEngine().GetD3DDevice();
-
-		m_states = std::make_unique<DirectX::CommonStates>(d3dDevice);
+		ID3D11Device* d3dDevice = GetEngine().GetGraphicsEngine().GetD3DDevice();		
 
 		m_effect = std::make_unique<DirectX::BasicEffect>(d3dDevice);
 		m_effect->SetVertexColorEnabled(true);

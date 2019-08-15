@@ -17,49 +17,49 @@ namespace DemolisherWeapon {
 */
 class ModelEffect : public DirectX::IEffect {
 public:
+	//シェーダーモード
 	enum enShaderMode {
 		enNormalShader,
 		enZShader,
 	};
 
-	//使用するシェーダーモードを設定
+	//シェーダーモードを設定
 	static void SetShaderMode(enShaderMode sm) {
 		m_s_shadermode = sm;
 	}
 
 private:
-	static enShaderMode m_s_shadermode ;
+	static enShaderMode m_s_shadermode ;//シェーダーモード
+
 protected:
 	//使用中のシェーダーのポインタ
-	SKEShaderPtr m_pVSShader; Shader* m_pVSZShader = nullptr;
-	SKEShaderPtr m_pPSShader; Shader* m_pPSZShader = nullptr;
+	//SKEShaderPtr m_pVSShader; Shader* m_pVSZShader = nullptr;
+	//SKEShaderPtr m_pPSShader; Shader* m_pPSZShader = nullptr;
 
 	//デフォルトバーテックスシェーダ
 	SkinModelEffectShader m_vsDefaultShader;
 	Shader m_vsZShader;//Z値出力用
-	//int m_clacOldPosOffset = 0;
-	//ID3D11ClassInstance* m_cCalcOldPos = nullptr, *m_cNoCalcOldPos = nullptr;
 
 	//デフォルトピクセルシェーダ
-	bool m_isUseTexZShader = false;
+	//bool m_isUseTexZShader = false;
 	SkinModelEffectShader m_psDefaultShader;
 	Shader m_psZShader[2];//Z値出力用
 	SkinModelEffectShader m_psTriPlanarMapShader;//TriPlanarMapping用のシェーダ
-	//int m_clacVelocityOffset = 0;
-	//ID3D11ClassInstance* m_cCalcVelocity = nullptr, *m_cNoCalcVelocity = nullptr;	
 
 	bool isSkining;//スキンモデルか？
 
 	//テクスチャ
-	ID3D11ShaderResourceView* m_defaultAlbedoTex = nullptr, *m_pAlbedoTex = nullptr;
-	ID3D11ShaderResourceView* m_defaultNormalTex = nullptr, *m_pNormalTex = nullptr;
-	ID3D11ShaderResourceView* m_defaultLightingTex = nullptr, *m_pLightingTex = nullptr;
+	ID3D11ShaderResourceView* m_defaultAlbedoTex = nullptr;// , *m_pAlbedoTex = nullptr;
+	ID3D11ShaderResourceView* m_defaultNormalTex = nullptr;//, *m_pNormalTex = nullptr;
+	ID3D11ShaderResourceView* m_defaultLightingTex = nullptr;//, *m_pLightingTex = nullptr;
 	
-	MaterialSetting m_defaultMaterialSetting;	//マテリアル設定
-	MaterialParam m_materialParam;				//マテリアルパラメータ
+	MaterialSetting* m_ptrUseMaterialSetting = nullptr;	//使用するマテリアル設定
+	MaterialSetting m_defaultMaterialSetting;	//マテリアル設定(デフォルト)
+	//MaterialParam m_materialParam;			//マテリアルパラメータ
 	ID3D11Buffer* m_materialParamCB = nullptr;	//マテリアルパラメータ用の定数バッファ
 
-	bool m_enableMotionBlur = true;
+	//bool m_enableMotionBlur = true;//モーションブラー有効か？
+
 public:
 	ModelEffect()
 	{
@@ -72,14 +72,15 @@ public:
 		m_psZShader[0].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
 		m_psZShader[1].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS, "TEXTURE", macrosZ);
 		
-		//LoadClassInstancePS();
-
 		//デフォルトのシェーダを設定
-		m_pPSShader = &m_psDefaultShader;
-		m_pPSZShader = &m_psZShader[0];
+		//m_pPSShader = &m_psDefaultShader;
+		//m_pPSZShader = &m_psZShader[0];
 
 		//マテリアル設定(m_defaultMaterialSetting)を初期化してやる
 		MaterialSettingInit(m_defaultMaterialSetting);
+
+		//使用するマテリアル設定をセット
+		SetDefaultMaterialSetting();
 
 		//マテリアルパラメーターの定数バッファ
 		ShaderUtil::CreateConstantBuffer(sizeof(MaterialParam), &m_materialParamCB);
@@ -98,19 +99,6 @@ public:
 		if (m_materialParamCB) {
 			m_materialParamCB->Release();
 		}
-
-		/*if (m_cCalcOldPos) {
-			m_cCalcOldPos->Release();
-		}
-		if (m_cNoCalcOldPos) {
-			m_cNoCalcOldPos->Release();
-		}
-		if (m_cCalcVelocity) {
-			m_cCalcVelocity->Release();
-		}
-		if (m_cNoCalcVelocity) {
-			m_cNoCalcVelocity->Release();
-		}*/
 	}
 	void __cdecl Apply(ID3D11DeviceContext* deviceContext) override;
 
@@ -144,7 +132,7 @@ public:
 		if (!m_defaultAlbedoTex && defaultTex) {
 			//デフォルトテクスチャ
 			m_defaultAlbedoTex = tex;
-			m_pAlbedoTex = m_defaultAlbedoTex;
+			//m_pAlbedoTex = m_defaultAlbedoTex;
 		}
 		//テクスチャ変更
 		m_defaultMaterialSetting.SetAlbedoTexture(tex);		
@@ -167,7 +155,7 @@ public:
 		if (!m_defaultNormalTex && defaultTex) {
 			//デフォルトテクスチャ
 			m_defaultNormalTex = tex;
-			m_pNormalTex = m_defaultNormalTex;
+			//m_pNormalTex = m_defaultNormalTex;
 		}
 		//テクスチャ変更
 		m_defaultMaterialSetting.SetNormalTexture(tex);
@@ -190,7 +178,7 @@ public:
 		if (!m_defaultLightingTex && defaultTex) {
 			//デフォルトテクスチャ
 			m_defaultLightingTex = tex;
-			m_pLightingTex = m_defaultLightingTex;
+			//m_pLightingTex = m_defaultLightingTex;
 		}
 		//テクスチャ変更
 		m_defaultMaterialSetting.SetLightingTexture(tex);
@@ -202,6 +190,14 @@ public:
 	//デフォルトのライティングパラメータマップを取得
 	ID3D11ShaderResourceView* GetDefaultLightingTexture() const {
 		return m_defaultLightingTex;
+	}
+
+	/// <summary>
+	/// トランスルーセントマップを設定
+	/// </summary>
+	/// <param name="tex">設定するテクスチャ</param>
+	void SetTranslucentTexture(ID3D11ShaderResourceView* tex) {
+		m_defaultMaterialSetting.SetTranslucentTexture(tex);
 	}
 
 	//シェーダを設定
@@ -275,7 +271,8 @@ public:
 
 	//使うマテリアル設定を適応
 	void SetUseMaterialSetting(MaterialSetting& matset) {
-		m_materialParam = matset.GetMaterialParam();
+		m_ptrUseMaterialSetting = &matset;
+		/*m_materialParam = matset.GetMaterialParam();
 		
 		m_pVSShader = matset.GetVS();
 		m_pVSZShader = matset.GetVSZ(); 
@@ -287,67 +284,11 @@ public:
 		m_pLightingTex = matset.GetLightingTexture();
 
 		m_enableMotionBlur = matset.GetIsMotionBlur();
-		m_isUseTexZShader = matset.GetIsUseTexZShader();
-
-		/*if (m_pVSShader == &m_vsDefaultShader) {
-			if (matset.GetIsMotionBlur()) {
-				ID3D11ClassInstance** array = m_vsDefaultShader.GetClassInstanceArray();
-				array[m_clacOldPosOffset] = m_cCalcOldPos;
-			}
-			else {
-				ID3D11ClassInstance** array = m_vsDefaultShader.GetClassInstanceArray();
-				array[m_clacOldPosOffset] = m_cNoCalcOldPos;
-			}
-		}
-		if (m_pPSShader == &m_psDefaultShader) {
-			if (matset.GetIsMotionBlur()) {
-				ID3D11ClassInstance** array = m_psDefaultShader.GetClassInstanceArray();
-				array[m_clacVelocityOffset] = m_cCalcVelocity;
-			}
-			else {
-				ID3D11ClassInstance** array = m_psDefaultShader.GetClassInstanceArray();
-				array[m_clacVelocityOffset] = m_cNoCalcVelocity;
-			}
-		}*/
+		m_isUseTexZShader = matset.GetIsUseTexZShader();*/		
 	}
 	void SetDefaultMaterialSetting() {
 		SetUseMaterialSetting(m_defaultMaterialSetting);
 	}
-	
-protected:
-	//動的リンク
-	/*void LoadClassInstanceVS(){
-		
-		//オフセット取得
-		ID3D11ShaderReflection* pReflector = nullptr;
-		D3DReflect(m_vsDefaultShader.GetByteCode(), m_vsDefaultShader.GetByteCodeSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
-
-		ID3D11ShaderReflectionVariable* pAmbientLightingVar = pReflector->GetVariableByName("g_calcOldPos");
-		m_clacOldPosOffset = pAmbientLightingVar->GetInterfaceSlot(0);
-
-		pReflector->Release();
-
-		//インスタンス取得
-		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cCalcOldPos", 0, 0, 0, 0, &m_cCalcOldPos);
-		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cNotCalcOldPos", 0, 0, 0, 0, &m_cNoCalcOldPos);
-		
-	}*/
-	/*void LoadClassInstancePS() {
-		
-		//オフセット取得
-		ID3D11ShaderReflection* pReflector = nullptr;
-		D3DReflect(m_psDefaultShader.GetByteCode(), m_psDefaultShader.GetByteCodeSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
-
-		ID3D11ShaderReflectionVariable* pAmbientLightingVar = pReflector->GetVariableByName("g_calcVelocity");
-		m_clacVelocityOffset = pAmbientLightingVar->GetInterfaceSlot(0);
-
-		pReflector->Release();
-
-		//インスタンス取得
-		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cCalcVelocity", 0, 0, 0, 0, &m_cCalcVelocity);
-		ShaderResources::GetInstance().GetClassLinkage()->CreateClassInstance("cNotCalcVelocity", 0, 0, 0, 0, &m_cNoCalcVelocity);
-		
-	}*/
 };
 /*!
 *@brief
@@ -363,11 +304,9 @@ public:
 		//Z値描画シェーダを作成
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS);
 
-		//LoadClassInstanceVS();
-		
 		//デフォルトのシェーダを設定
-		m_pVSShader = &m_vsDefaultShader;
-		m_pVSZShader = &m_vsZShader;
+		//m_pVSShader = &m_vsDefaultShader;
+		//m_pVSZShader = &m_vsZShader;
 
 		//スキンモデルじゃない
 		isSkining = false;
@@ -387,11 +326,9 @@ public:
 		//Z値描画シェーダを作成
 		m_vsZShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS);
 
-		//LoadClassInstanceVS();
-
 		//デフォルトのシェーダを設定
-		m_pVSShader = &m_vsDefaultShader;
-		m_pVSZShader = &m_vsZShader;
+		//m_pVSShader = &m_vsDefaultShader;
+		//m_pVSZShader = &m_vsZShader;
 
 		//スキンモデルである
 		isSkining = true;
