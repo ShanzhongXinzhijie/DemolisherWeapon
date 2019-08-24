@@ -15,7 +15,6 @@ public:
 		enGBufferVelocity,
 		enGBufferVelocityPS,
 		enGBufferLightParam,
-		enGbufferTranslucent,
 		enGBufferNum,
 	};
 

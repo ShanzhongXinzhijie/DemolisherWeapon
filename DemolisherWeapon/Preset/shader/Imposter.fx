@@ -45,12 +45,12 @@ PSOutput_RenderImposter PSMain_RenderImposter(PSInput In)
 
 	//出力構造体にコピー
 	finalOut.albedo = Out.albedo;
-	finalOut.normal = Out.normal; finalOut.normal.xy *= -1.0f; finalOut.normal *= 0.5f; finalOut.normal += 0.5f;
+	finalOut.normal = Out.normal.xyz; finalOut.normal.xy *= -1.0f; finalOut.normal *= 0.5f; finalOut.normal += 0.5f;
 	finalOut.lightingParam.x = Out.lightingParam.x*0.05f; //エミッシブ
 	finalOut.lightingParam.w = Out.lightingParam.y;	//ライティングするか?
 	finalOut.lightingParam.y = Out.lightingParam.z;	//メタリック
 	finalOut.lightingParam.z = Out.lightingParam.w;	//シャイニネス
-    finalOut.translucent = Out.translucent; //トランスルーセント
+    finalOut.translucent = Out.normal.a; //トランスルーセント
 
 	return finalOut;
 }
