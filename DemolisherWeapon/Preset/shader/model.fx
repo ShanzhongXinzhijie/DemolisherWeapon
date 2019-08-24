@@ -176,12 +176,11 @@ struct ZPSInput {
 //G-Buffer出力
 struct PSOutput_RenderGBuffer {
 	float4 albedo		: SV_Target0;		//アルベド
-	float3 normal		: SV_Target1;		//法線
+	float4 normal		: SV_Target1;		//法線
 	float4 viewpos		: SV_Target2;		//ビュー座標
 	float4 velocity		: SV_Target3;		//速度
 	float4 velocityPS	: SV_Target4;		//速度(ピクセルシェーダ)
 	float4 lightingParam: SV_Target5;		//ライティング用パラメーター
-    float  translucent	: SV_Target6;		//トランスルーセント
 };
 
 /////////////////////////////////////////////////////////////
@@ -487,12 +486,12 @@ void AlbedoRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 void NormalRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 	//法線
 #if NORMAL_MAP
-	Out.normal = NormalTexture.Sample(Sampler, In.TexCoord + uvOffset);
-	Out.normal = Out.normal * 2.0f - 1.0f;
-	Out.normal = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
-	Out.normal = normalize(Out.normal);
+	Out.normal.xyz = NormalTexture.Sample(Sampler, In.TexCoord + uvOffset);
+	Out.normal.xyz = Out.normal.xyz * 2.0f - 1.0f;
+	Out.normal.xyz = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
+	Out.normal.xyz = normalize(Out.normal.xyz);
 #else
-	Out.normal = In.Normal;
+	Out.normal.xyz = In.Normal;
 #endif
 }
 void PosRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
@@ -571,9 +570,9 @@ void MotionRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 void TranslucentRender(in PSInput In, inout PSOutput_RenderGBuffer Out)
 {
 #if TRANSLUCENT_MAP
-    Out.translucent = TranslucentTexture.Sample(Sampler, In.TexCoord + uvOffset) * translucent;
+    Out.normal.a = TranslucentTexture.Sample(Sampler, In.TexCoord + uvOffset) * translucent;
 #else
-    Out.translucent = translucent;
+    Out.normal.a = translucent;
 #endif
 }
 

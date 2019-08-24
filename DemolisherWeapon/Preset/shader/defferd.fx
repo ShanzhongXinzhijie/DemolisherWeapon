@@ -231,10 +231,8 @@ Texture2D<float4> albedoTexture : register(t0);
 Texture2D<float4> normalMap		: register(t1);
 Texture2D<float > depthMap		: register(t2);
 Texture2D<float4> PosMap		: register(t3);
-//Texture2D<float > AoMap			: register(t4);
 Texture2D<float4> lightParamTex	: register(t5);
 Texture2D<float > AoMapBlur		: register(t7);
-Texture2D<float > TranslucentMap : register(t8);
 //環境キューブマップ
 TextureCube<float3> AmbientCubeMap: register(t6);
 
@@ -341,7 +339,9 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		discard;
 	}
 
-	float3 normal = normalMap.Sample(Sampler, In.uv).xyz;
+    float4 normalmapRGBA = normalMap.Sample(Sampler, In.uv);
+
+    float3 normal = normalmapRGBA.xyz;
 	float4 viewpos = PosMap.Sample(Sampler, In.uv);
 	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w);
 	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
@@ -383,7 +383,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	float3 viewDir = normalize(eyePos - worldpos);
 
 	//トランスルーセント
-    float translucent = TranslucentMap.Sample(Sampler, In.uv);
+    float translucent = normalmapRGBA.a;
 	
 	//ディレクションライト
 	[unroll]

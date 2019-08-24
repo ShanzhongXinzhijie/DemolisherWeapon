@@ -76,15 +76,15 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	float3 nY = NormalTexture.Sample(Sampler, uv.zx + uvOffset);
 	float3 nZ = NormalTexture.Sample(Sampler, uv.xy + uvOffset);
 
-	Out.normal = nZ;
-	Out.normal = lerp(Out.normal, nX, blendNormal.x);
-	Out.normal = lerp(Out.normal, nY, blendNormal.y);
+	Out.normal.xyz = nZ;
+	Out.normal.xyz = lerp(Out.normal.xyz, nX, blendNormal.x);
+	Out.normal.xyz = lerp(Out.normal.xyz, nY, blendNormal.y);
 
-	Out.normal = Out.normal * 2.0f - 1.0f;
-	Out.normal = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
-	Out.normal = normalize(Out.normal);
+	Out.normal.xyz = Out.normal.xyz * 2.0f - 1.0f;
+	Out.normal.xyz = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
+	Out.normal.xyz = normalize(Out.normal.xyz);
 #else
-    Out.normal = In.Normal;
+    Out.normal.xyz = In.Normal;
 #endif
 
 	//ÇªÇÃëºèoóÕ
