@@ -140,7 +140,10 @@ public:
 
 	//フォグの有効無効を設定
 	void SetEnableFog(bool enable) {
-		m_lightParam.fogEnable = enable;
+		m_lightParam.fogEnable = enable ? 1 : 0;
+	}
+	bool GetEnableFog()const {
+		return m_lightParam.fogEnable;
 	}
 	//フォグが完全にかかる距離を設定
 	void SetFogDistance(float distance) {
@@ -161,7 +164,7 @@ private:
 		CVector3 fogLightDir;						//太陽光の向き
 		float fogHeightScale = 1.5f;				//高さフォグのかかり具合
 		CVector3 fogLightColor;						//太陽光の色
-		bool fogEnable = false;						//有効フラグ
+		int fogEnable = 0;							//有効フラグ
 	};
 	SLightParam							m_lightParam;
 	ID3D11Buffer*						m_lightParamCB = nullptr;			//!<GPUで使用するライト用のパラメータの定数バッファ。	

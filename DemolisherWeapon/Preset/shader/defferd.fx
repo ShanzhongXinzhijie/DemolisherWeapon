@@ -28,7 +28,7 @@ cbuffer lightCb : register(b2)
     float3 fogLightDir;//lightdir** -1.0f
     float fogHeightScale;//1.5f
     float3 fogLightColor; 
-    bool fogEnable;
+    int fogEnable;
 };
 struct SDirectionLight {
 	float3 color;
@@ -441,51 +441,47 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	float ambientOcclusion = 1.0f;
 	if (boolAO) {
 		ambientOcclusion = AoMapBlur.Sample(Sampler, In.uv);
-		ambientOcclusion *= saturate(ambientOcclusion*1.5f);//ガウスブラーで薄くなってるので濃くする
 	}
+    ambientOcclusion *= saturate(ambientOcclusion * 1.5f); //ガウスブラーで薄くなってるので濃くする
 	
 	//アンビエント
+    float3 ambientdiffuse = { 1, 1, 1 }, ambientspecular = { 1, 1, 1 };
+    float3 refvec = reflect(viewDir * -1.0f, normal);
 	if (boolAmbientCube) {
 		//ディフューズ
-		Out += albedo.xyz * AmbientCubeMap.SampleLevel(Sampler, normal, 9) * ambientLight * ambientOcclusion * (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
+        ambientdiffuse = AmbientCubeMap.SampleLevel(Sampler, normal, 9);
 		//スペキュラ
-		float3 refvec = reflect(viewDir*-1.0f, normal);
-		Out += max(0.0f,
-			IBL_Specular(refvec, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, AmbientCubeMap.SampleLevel(Sampler, refvec, 9.0f * (1.0f - lightParam.w)) * ambientLight)
-		)* ambientOcclusion;
-	}
-	else {
-		//ディフューズ
-		Out += albedo.xyz * ambientLight * ambientOcclusion * (1.0f - lightParam.z);//金属なら環境光(デュフューズ)なし
-		//スペキュラ
-		float3 refvec = reflect(viewDir*-1.0f, normal);
-		Out += max(0.0f,
-			IBL_Specular(refvec, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, ambientLight)//*(normal.y / 2.0f + 0.5f))
-		)* ambientOcclusion;
-	}
+        ambientspecular = AmbientCubeMap.SampleLevel(Sampler, refvec, 9.0f * (1.0f - lightParam.w));
+    }	
+	//ディフューズ
+    Out += albedo.xyz * ambientdiffuse * ambientLight * ambientOcclusion * (1.0f - lightParam.z); //金属なら環境光(デュフューズ)なし
+	//スペキュラ
+	Out += max(0.0f,
+		IBL_Specular(refvec, viewDir, normal, lerp(float3(0.03f, 0.03f, 0.03f), albedo.xyz, lightParam.z), lightParam.w, ambientspecular * ambientLight) //*(normal.y / 2.0f + 0.5f))
+	)* ambientOcclusion;	
 
 	//エミッシブを加算
 	Out += emissive;
 
     //フォグ
-    if (fogEnable){
+    //if (fogEnable){
         //レイリー散乱
         float diskaku = 1.0f - exp(-(viewpos.z - min(0.0f, worldpos.y - eyePos.y) * fogHeightScale) / fogFar);
-        Out = lerp(Out, fogColor, diskaku);
+        Out = lerp(Out, fogColor, fogEnable * diskaku);
         //ミー散乱
         {    
             //シャドウマップの遮蔽適応
             float nothide = 1.0f;
     	    [unroll]
-            for (int swi = 0; swi < SHADOWMAP_NUM; swi++)
+            for (int swi = 0; swi < fogEnable * SHADOWMAP_NUM; swi++)
             {
                 nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, fogLightDir) * -hideInShadow.flag[swi]));
             }
             nothide = saturate(dot(normal, fogLightDir)) * nothide;
 
-            Out = lerp(Out, fogLightColor, nothide * diskaku * max(0.0f, dot(fogLightDir, viewDir)));
+            Out = lerp(Out, fogLightColor, fogEnable * nothide * diskaku * max(0.0f, dot(fogLightDir, viewDir)));
         }
-    }
+    //}
 
     return float4(Out, albedo.w);
 }
