@@ -193,17 +193,17 @@ namespace DemolisherWeapon {
 		/// 初期化(リソース新規作成)
 		/// </summary>
 		/// <param name="identifier">設定する識別名</param>
-		/// <param name="model">3Dモデル</param>
+		/// <param name="model">テクスチャにする3Dモデル</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
 		/// <param name="partNum">インポスターテクスチャの分割数 ※奇数を推奨?</param>
 		/// <param name="instancingNum">インスタンシング描画数</param>
-		bool Init(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum, int instancingNum = 1);
+		bool Init(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum, int instancingNum);
 		/// <summary>
 		/// 初期化(読み込み済みのリソースを使用)
 		/// </summary>
 		/// <param name="identifier">リソースの識別名</param>
 		/// <param name="instancingNum">インスタンシング描画数</param>
-		bool Init(const wchar_t* identifier, int instancingNum = 1);
+		bool Init(const wchar_t* identifier, int instancingNum);
 
 		//座標・拡大の設定
 		void SetPos(const CVector3& pos) {
