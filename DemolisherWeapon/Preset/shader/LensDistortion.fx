@@ -143,19 +143,19 @@ output += Texture.Sample(Sampler, In.uv + float2(-L, -S)) / 4.0; //GetLensDistor
 //ピクセルシェーダ
 float4 PSMain(PSInput In) : SV_Target0
 {	
-#if defined(LENS_DISTORTION)
+#if LENS_DISTORTION
 	//レンズ歪みを適用した座標を取得
     In.uv = GetLensDistortionUV(In.uv);
 #endif
 	
-#if defined(ANTI_ALIASING)
+#if ANTI_ALIASING
 	//FlipTriAntialiasingで色を取得
     float4 output = FlipTriAntialiasing(In.uv);
 #else
     float4 output = Texture.Sample(Sampler, In.uv);
 #endif
 
-#if defined(LENS_DISTORTION)
+#if LENS_DISTORTION
 	//周辺減光を適用
     return Vignette(output, In.uv);
 #else
