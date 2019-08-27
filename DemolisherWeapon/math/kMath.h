@@ -13,6 +13,7 @@ public:
 	//‰~Žü—¦
 	static constexpr float PI = 3.14159265358979323846f;
 	static constexpr float PI_HALF = PI / 2.0f;
+	static constexpr float PI_QUARTER = PI / 4.0f;
 	static constexpr float PI2 = PI * 2.0f;
 
 	/*!
