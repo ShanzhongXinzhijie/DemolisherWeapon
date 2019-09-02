@@ -42,7 +42,7 @@ private:
 
 		m_projMatOld = m_projMat, m_viewMatOld = m_viewMat;
 		
-		isFirstMatrixUpdate = false;
+		m_isFirstMatrixUpdate = false;
 	}
 	virtual void UpdateOldProjParameter() = 0;
 
@@ -71,12 +71,14 @@ public:
 		m_change = false;
 		UpdateViewMatrix();
 		UpdateProjMatrix();
-		if (isFirstMatrixUpdate) {
+		if (m_isFirstMatrixUpdate) {
 			UpdateOldMatrix();
 		}
 		//8平面の更新
 		CalcFrustum6Planes();
 	};
+	//旧行列をリセットする
+	void ResetIsFirstMatrixUpdate() { m_isFirstMatrixUpdate = true; }
 
 	//行列の取得
 	const CMatrix& GetProjMatrix() const { return m_projMat; };
@@ -186,7 +188,7 @@ protected:
 
 	CMatrix m_projMat, m_viewMat;
 	CMatrix m_projMatOld, m_viewMatOld;
-	bool isFirstMatrixUpdate = true;
+	bool m_isFirstMatrixUpdate = true;
 
 	Plane m_planes[6];//視錐台の6平面
 
