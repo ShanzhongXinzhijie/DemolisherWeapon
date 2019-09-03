@@ -117,14 +117,14 @@ public:
 	}
 
 	//3Dモデルレンダーに描画するモデルを登録
-	void AddDrawModelToD3Render(SkinModel* sm, int priority) {
-		m_gbufferRender.AddDrawModel(sm, priority);
+	void AddDrawModelToD3Render(SkinModel* sm, int priority, bool reverse) {
+		m_gbufferRender.AddDrawModel(sm, priority, reverse);
 	}
 	void AddDrawModelToShadowMapRender(SkinModel* sm, int priority, bool reverse) {
 		m_shadowMapRender.AddDrawModel(sm, priority, reverse);
 	}
-	void AddDrawModelToPostDrawRender(SkinModel* sm, int priority, PostDrawModelRender::enBlendMode blendmode) {
-		m_postDrawModelRender.AddDrawModel(sm, priority, blendmode);
+	void AddDrawModelToPostDrawRender(SkinModel* sm, int priority, PostDrawModelRender::enBlendMode blendmode, bool reverse = false) {
+		m_postDrawModelRender.AddDrawModel(sm, priority, blendmode, reverse);
 	}	
 
 	//レンダーマネージャーの取得

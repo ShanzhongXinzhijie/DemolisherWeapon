@@ -361,9 +361,9 @@ static inline WAVSettingManager& GetWAVSettingManager() {
 }
 
 //3Dモデルレンダーに描画するモデルを登録
-static inline void AddDrawModelToD3Render(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT)
+static inline void AddDrawModelToD3Render(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT, bool reverse = false)
 {
-	GetEngine().GetGraphicsEngine().AddDrawModelToD3Render(sm, priority);
+	GetEngine().GetGraphicsEngine().AddDrawModelToD3Render(sm, priority, reverse);
 }
 /// <summary>
 /// シャドウマップレンダーに描画するモデルを登録

@@ -24,18 +24,18 @@ namespace DemolisherWeapon {
 		/// <param name="sm">描画するモデル</param>
 		/// <param name="priority">描画順(数値が大きいほど後)(0～DRAW_PRIORITY_MAX - 1)</param>
 		/// <param name="blendmode">ブレンドモード</param>
-		void AddDrawModel(SkinModel* sm, int priority, enBlendMode blendmode = enAlpha) {
+		void AddDrawModel(SkinModel* sm, int priority, enBlendMode blendmode = enAlpha, bool reverse = false) {
 			if (blendmode == enAdd) {
-				m_drawModelList_Add[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX - 1)].emplace_back(sm);
+				m_drawModelList_Add[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX - 1)].emplace_back( sm,reverse );
 			}
 			if (blendmode == enAlpha) {
-				m_drawModelList_Alpha[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX - 1)].emplace_back(sm);
+				m_drawModelList_Alpha[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX - 1)].emplace_back( sm,reverse );
 			}
 		};
 
 	private:
 		//描画するモデルのリスト
-		std::list<SkinModel*> m_drawModelList_Alpha[DRAW_PRIORITY_MAX], m_drawModelList_Add[DRAW_PRIORITY_MAX];
+		std::list<std::pair<SkinModel*, bool>> m_drawModelList_Alpha[DRAW_PRIORITY_MAX], m_drawModelList_Add[DRAW_PRIORITY_MAX];
 		//ブレンドステート
 		Microsoft::WRL::ComPtr<ID3D11BlendState> m_alphaBlendState, m_addBlendState;
 		//デプスステンシルステート

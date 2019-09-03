@@ -166,7 +166,7 @@ void GBufferRender::Render() {
 	//ƒ‚ƒfƒ‹•`‰æ
 	for (auto& list : m_drawModelList) {
 		for (auto& model : list) {
-			model->Draw();// false, 1, m_blendState.Get());
+			model.first->Draw(model.second);// false, 1, m_blendState.Get());
 		}
 	}
 

@@ -75,15 +75,15 @@ void CSkinModelRender::PostLoopUpdate() {
 		//シャドウマップ描画前後で実行する処理を送る
 		//if (m_shadowMapPrePost) { GetGraphicsEngine().GetShadowMapRender().AddPrePostAction(m_shadowMapPrePost.get()); }
 		//シャドウマップレンダーにモデル送る
-		AddDrawModelToShadowMapRender(&m_model, m_priority, m_isShadowDrawReverse); 
+		AddDrawModelToShadowMapRender(&m_model, m_priority, (m_isDrawReverse != m_isShadowDrawReverse));
 	}
 	if (m_isPostDraw) {
 		//ポストドローレンダーにモデル送る
-		GetGraphicsEngine().AddDrawModelToPostDrawRender(&m_model, m_priority, m_postDrawBlendMode);
+		GetGraphicsEngine().AddDrawModelToPostDrawRender(&m_model, m_priority, m_postDrawBlendMode, m_isDrawReverse);
 	}
 	else {
 		//3Dモデルレンダーにモデル送る
-		AddDrawModelToD3Render(&m_model, m_priority);
+		AddDrawModelToD3Render(&m_model, m_priority, m_isDrawReverse);
 	}
 
 	//バウンディングボックスの表示

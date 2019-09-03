@@ -39,12 +39,12 @@ public:
 	void Render()override;
 	void PostRender()override;
 
-	void AddDrawModel(SkinModel* sm, int priority) {
-		m_drawModelList[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX-1)].emplace_back(sm);
+	void AddDrawModel(SkinModel* sm, int priority, bool reverse) {
+		m_drawModelList[CMath::Clamp(priority, 0, DRAW_PRIORITY_MAX - 1)].emplace_back( sm,reverse );
 	};
 
 private:
-	std::list<SkinModel*> m_drawModelList[DRAW_PRIORITY_MAX];
+	std::list<std::pair<SkinModel*, bool>> m_drawModelList[DRAW_PRIORITY_MAX];
 
 	ID3D11Texture2D*		m_GBufferTex[enGBufferNum] = { nullptr };	//GBufferテクスチャ
 	ID3D11RenderTargetView* m_GBufferView[enGBufferNum] = { nullptr };	//GBufferビュー

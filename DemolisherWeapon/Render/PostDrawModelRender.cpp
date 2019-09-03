@@ -67,11 +67,11 @@ namespace DemolisherWeapon {
 		for (int i = 0; i < DRAW_PRIORITY_MAX; i++) {
 			//モデル描画(加算ブレンド)		
 			for (auto& model : m_drawModelList_Add[i]) {
-				model->Draw(false, 1, m_addBlendState.Get(), m_depthStencilState.Get());
+				model.first->Draw(model.second, 1, m_addBlendState.Get(), m_depthStencilState.Get());
 			}
 			//モデル描画(アルファブレンド)
 			for (auto& model : m_drawModelList_Alpha[i]) {
-				model->Draw(false, 1, m_alphaBlendState.Get(), m_depthStencilState.Get());
+				model.first->Draw(model.second, 1, m_alphaBlendState.Get(), m_depthStencilState.Get());
 			}
 		}
 

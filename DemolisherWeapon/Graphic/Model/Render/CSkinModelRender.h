@@ -120,6 +120,10 @@ public:
 	void SetIsDraw(bool flag) { m_isDraw = flag; }
 	bool GetIsDraw() const { return m_isDraw; }
 
+	//面を反転させるか設定
+	void SetIsDrawReverse(bool flag) { m_isDrawReverse = flag; }
+	bool GetIsDrawReverse()const { return m_isDrawReverse; }
+
 	//ポストドロー描画を初期化
 	void InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA = false) {
 		m_isPostDraw = true; m_postDrawBlendMode = blendMode;
@@ -226,6 +230,7 @@ private:
 	bool m_isEnableUpdate = true;//Updateを実行するか?
 
 	bool m_isDraw = true;				//表示するか
+	bool m_isDrawReverse = false;		//面を反転して描画するか
 	bool m_isShadowCaster = true;		//シャドウマップに書き込むか
 	bool m_isShadowDrawReverse = true;	//シャドウマップ描画時に面を反転させるか?
 	bool m_isDrawBoundingBox = false;	//バウンディングボックスを表示するか?
