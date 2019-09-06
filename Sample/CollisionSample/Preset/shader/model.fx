@@ -17,7 +17,6 @@
 /////////////////////////////////////////////////////////////
 
 //テクスチャ
-
 #if ALBEDO_MAP || defined(TEXTURE) || defined(SKY_CUBE)
 #if !defined(SKY_CUBE)
 //アルベドテクスチャ
@@ -27,13 +26,20 @@ Texture2D<float4> albedoTexture : register(t0);
 TextureCube<float4> skyCubeMap : register(t0);
 #endif
 #endif
+
 #if NORMAL_MAP
 //ノーマルマップ
 Texture2D<float3> NormalTexture : register(t1);
 #endif
+
 #if LIGHTING_MAP
 //ライティングパラメータマップ
 Texture2D<float4> LightingTexture : register(t2);
+#endif
+
+#if TRANSLUCENT_MAP
+//トランスルーセントマップ
+Texture2D<float> TranslucentTexture : register(t11);
 #endif
 
 //ストラクチャーバッファ
@@ -97,6 +103,7 @@ cbuffer MaterialCb : register(b1) {
 	float  shininess;	//シャイネス(ラフネスの逆)
 	float2 uvOffset;	//UV座標オフセット
 	float  triPlanarMapUVScale;//TriPlanarMapping時のUV座標へのスケール
+    float  translucent; //トランスルーセント(光の透過具合)
 }
 
 /////////////////////////////////////////////////////////////
@@ -140,7 +147,8 @@ struct PSInput{
 
 	//座標
 	float3 Viewpos		: TEXCOORD1;
-	float3 Worldpos		: TEXCOORD2;
+	float3 Localpos		: TEXCOORD2;
+    float3 Worldpos		: TEXCOORD3;
 
 	float4 curPos		: CUR_POSITION;//現在座標
 	float4 lastPos		: LAST_POSITION;//過去座標
@@ -168,7 +176,7 @@ struct ZPSInput {
 //G-Buffer出力
 struct PSOutput_RenderGBuffer {
 	float4 albedo		: SV_Target0;		//アルベド
-	float3 normal		: SV_Target1;		//法線
+	float4 normal		: SV_Target1;		//法線
 	float4 viewpos		: SV_Target2;		//ビュー座標
 	float4 velocity		: SV_Target3;		//速度
 	float4 velocityPS	: SV_Target4;		//速度(ピクセルシェーダ)
@@ -194,7 +202,8 @@ PSInput VSModel( VSInputNmTxVcTangent In, float4x4 worldMat, float4x4 worldMatOl
 	//ワールド行列適応
 	float4 pos = mul(worldMat, In.Position);
 	float3 posW = pos.xyz;
-	psInput.Worldpos = posW;
+    psInput.Localpos = In.Position;
+    psInput.Worldpos = posW;
 
 	//スカイボックス用情報
 #if defined(SKY_CUBE)
@@ -353,7 +362,8 @@ PSInput VSMainSkin( VSInputNmTxWeights In
 #if defined(SKY_CUBE)
 	psInput.cubemapPos = normalize(posW - camWorldPos);
 #endif
-	psInput.Worldpos = posW;
+    psInput.Localpos = In.Position;
+    psInput.Worldpos = posW;
 
 	pos = mul(mView, pos);  psInput.Viewpos = pos.xyz;
 	pos = mul(mProj, pos);
@@ -476,12 +486,12 @@ void AlbedoRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 void NormalRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 	//法線
 #if NORMAL_MAP
-	Out.normal = NormalTexture.Sample(Sampler, In.TexCoord + uvOffset);
-	Out.normal = Out.normal * 2.0f - 1.0f;
-	Out.normal = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
-	Out.normal = normalize(Out.normal);
+	Out.normal.xyz = NormalTexture.Sample(Sampler, In.TexCoord + uvOffset);
+	Out.normal.xyz = Out.normal.xyz * 2.0f - 1.0f;
+	Out.normal.xyz = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
+	Out.normal.xyz = normalize(Out.normal.xyz);
 #else
-	Out.normal = In.Normal;
+	Out.normal.xyz = In.Normal;
 #endif
 }
 void PosRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
@@ -557,6 +567,14 @@ void MotionRender(in PSInput In, inout PSOutput_RenderGBuffer Out) {
 	Out.velocityPS.w = -1.0f;// In.curPos.z + depthBias.y;
 #endif
 }
+void TranslucentRender(in PSInput In, inout PSOutput_RenderGBuffer Out)
+{
+#if TRANSLUCENT_MAP
+    Out.normal.a = TranslucentTexture.Sample(Sampler, In.TexCoord + uvOffset) * translucent;
+#else
+    Out.normal.a = translucent;
+#endif
+}
 
 //GBuffer出力
 PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
@@ -580,6 +598,12 @@ PSOutput_RenderGBuffer PSMain_RenderGBuffer(PSInput In)
 	ParamRender(In, Out);
 
 	MotionRender(In, Out);
+
+    TranslucentRender(In, Out);
+
+//#if defined(SKY_CUBE)
+//	if(In.cubemapPos.y<0.0f){Out.lightingParam.y=1.0f;}
+//#endif
 
 	return Out;
 }

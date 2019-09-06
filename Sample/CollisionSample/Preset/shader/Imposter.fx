@@ -17,9 +17,10 @@ static const float PI2 = PI * 2.0f;
 
 //インポスターテクスチャの出力
 struct PSOutput_RenderImposter {
-	float4 albedo		: SV_Target0;		//アルベド
-	float3 normal		: SV_Target1;		//法線
-	float4 lightingParam: SV_Target2;		//ライティング用パラメーター
+	float4 albedo		: SV_Target0;//アルベド
+	float3 normal		: SV_Target1;//法線
+	float4 lightingParam: SV_Target2;//ライティング用パラメーター
+    float  translucent  : SV_Target3;//トランスルーセント
 };
 PSOutput_RenderImposter PSMain_RenderImposter(PSInput In)
 {
@@ -40,12 +41,17 @@ PSOutput_RenderImposter PSMain_RenderImposter(PSInput In)
 
 	ParamRender(In, Out);
 
+    TranslucentRender(In, Out);
+
+	//出力構造体にコピー
 	finalOut.albedo = Out.albedo;
-	finalOut.normal = Out.normal; finalOut.normal.xy *= -1.0f; finalOut.normal *= 0.5f; finalOut.normal += 0.5f;
-	finalOut.lightingParam.x = Out.lightingParam.x*0.05f;	//エミッシブ
+	finalOut.normal = Out.normal.xyz; finalOut.normal.xy *= -1.0f; finalOut.normal *= 0.5f; finalOut.normal += 0.5f;
+	finalOut.lightingParam.x = Out.lightingParam.x*0.05f; //エミッシブ
 	finalOut.lightingParam.w = Out.lightingParam.y;	//ライティングするか?
 	finalOut.lightingParam.y = Out.lightingParam.z;	//メタリック
 	finalOut.lightingParam.z = Out.lightingParam.w;	//シャイニネス
+    finalOut.translucent = Out.normal.a; //トランスルーセント
+
 	return finalOut;
 }
 
@@ -262,6 +268,8 @@ PSOutput_RenderGBuffer PSMain_ImposterRenderGBuffer(PSInput In)
 #endif
 
 	MotionRender(In, Out);
+
+    TranslucentRender(In, Out);
 
 	return Out;
 }
