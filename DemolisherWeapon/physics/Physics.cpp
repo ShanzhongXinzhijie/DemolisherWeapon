@@ -5,6 +5,8 @@
 
 #include "BulletCollision/CollisionDispatch/btInternalEdgeUtility.h"
 
+#include "BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h"
+
 namespace DemolisherWeapon {
 
 namespace {
@@ -38,17 +40,21 @@ CPhysicsWorld::~CPhysicsWorld()
 }
 void CPhysicsWorld::Release()
 {
+	if (softBodyWorldInfo) { softBodyWorldInfo->m_sparsesdf.Reset(); }
+
 	delete dynamicWorld;
 	delete constraintSolver;
 	delete overlappingPairCache;
 	delete collisionDispatcher;
 	delete collisionConfig;
+	delete softBodyWorldInfo;
 
 	dynamicWorld = nullptr;
 	constraintSolver = nullptr;
 	overlappingPairCache = nullptr;
 	collisionDispatcher = nullptr;
 	collisionConfig = nullptr;
+	softBodyWorldInfo = nullptr;
 }
 void CPhysicsWorld::Init()
 {
@@ -59,7 +65,7 @@ void CPhysicsWorld::Init()
 
 	//物理エンジンを初期化。
 	///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
-	collisionConfig = new btDefaultCollisionConfiguration();
+	collisionConfig = new btSoftBodyRigidBodyCollisionConfiguration();// btDefaultCollisionConfiguration();
 
 	///use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
 	collisionDispatcher = new	btCollisionDispatcher(collisionConfig);
@@ -70,14 +76,24 @@ void CPhysicsWorld::Init()
 	///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
 	constraintSolver = new btSequentialImpulseConstraintSolver;
 
-	dynamicWorld = new btDiscreteDynamicsWorld(
+	//ダイナミックワールドを初期化
+	dynamicWorld = new btSoftRigidDynamicsWorld(
 		collisionDispatcher,
 		overlappingPairCache,
 		constraintSolver,
 		collisionConfig
 		);
 
+	//重力を設定
 	dynamicWorld->setGravity(btVector3(0, -10, 0));
+
+	// ソフトボディー管理情報
+	// align16 SIMD計算 
+	softBodyWorldInfo = new(_aligned_malloc(sizeof(btSoftBodyWorldInfo), __alignof(btSoftBodyWorldInfo))) btSoftBodyWorldInfo;
+	softBodyWorldInfo->m_dispatcher = collisionDispatcher;
+	softBodyWorldInfo->m_broadphase = overlappingPairCache;
+	softBodyWorldInfo->m_gravity = dynamicWorld->getGravity();
+	softBodyWorldInfo->m_sparsesdf.Initialize();
 }
 void CPhysicsWorld::Update()
 {

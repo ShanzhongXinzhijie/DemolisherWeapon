@@ -11,7 +11,8 @@ class CPhysicsWorld
 	btCollisionDispatcher*					collisionDispatcher = nullptr;	//!<衝突解決処理。
 	btBroadphaseInterface*					overlappingPairCache = nullptr;	//!<ブロードフェーズ。衝突判定の枝切り。
 	btSequentialImpulseConstraintSolver*	constraintSolver = nullptr;		//!<コンストレイントソルバー。拘束条件の解決処理。
-	btDiscreteDynamicsWorld*				dynamicWorld = nullptr;			//!<ワールド。
+	btSoftRigidDynamicsWorld*				dynamicWorld = nullptr;			//!<ワールド。
+	btSoftBodyWorldInfo*					softBodyWorldInfo = nullptr;	//ソフトボディー管理情報
 public:
 	~CPhysicsWorld();
 	void Init();
@@ -27,9 +28,16 @@ public:
 	/*!
 	* @brief	ダイナミックワールドを取得。
 	*/
-	btDiscreteDynamicsWorld* GetDynamicWorld()
+	btSoftRigidDynamicsWorld* GetDynamicWorld()
 	{
 		return dynamicWorld;
+	}
+	/// <summary>
+	/// ソフトボディの管理情報を取得
+	/// </summary>
+	btSoftBodyWorldInfo* GetSoftBodyWorldInfo()
+	{
+		return softBodyWorldInfo;
 	}
 	/*!
 	* @brief	剛体を登録。
