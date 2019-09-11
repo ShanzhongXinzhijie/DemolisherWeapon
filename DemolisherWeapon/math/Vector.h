@@ -290,10 +290,10 @@ public:
 		return *this;
 	}
 
-	CVector3() { x = y = z = 0.0f; }
 	/*!
 	* @brief	コンストラクタ。
 	*/
+	CVector3() { x = y = z = 0.0f; }
 	CVector3(float x, float y, float z)
 	{
 		Set(x, y, z);
@@ -306,6 +306,9 @@ public:
 	//コピーコンストラクタ
 	CVector3(const btVector3& _v) {
 		Set(_v);
+	}
+	CVector3(const DirectX::XMFLOAT3& _v) {
+		vec = _v;
 	}
 
 	/*!
@@ -873,6 +876,11 @@ public:
 		return *this;
 	}
 
+	static const CVector4& Black()
+	{
+		static const CVector4 black = { 0.0f, 0.0f, 0.0f, 1.0f };
+		return black;
+	}
 	static const CVector4& White()
 	{
 		static const CVector4 white = { 1.0f, 1.0f, 1.0f, 1.0f };

@@ -3,15 +3,7 @@
 #include "DirectXTK/Src/PlatformHelpers.h"
 
 namespace DemolisherWeapon {
-
-	PrimitiveRender::PrimitiveRender()
-	{
-	}
 	
-	PrimitiveRender::~PrimitiveRender()
-	{
-	}
-
 	void PrimitiveRender::Init() {
 		ID3D11Device* d3dDevice = GetEngine().GetGraphicsEngine().GetD3DDevice();		
 
@@ -32,10 +24,17 @@ namespace DemolisherWeapon {
 		);
 
 		m_batch = std::make_unique<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>>(GetEngine().GetGraphicsEngine().GetD3DDeviceContext());
+	
+		//2Dカメラ初期化
+		m_2dCamera.SetPos({ GetGraphicsEngine().GetFrameBuffer_W() / 2.0f,-GetGraphicsEngine().GetFrameBuffer_H() / 2.0f,-(m_2dCamera.GetNear() + m_2dCamera.GetFar()) / 2.0f });
+		m_2dCamera.SetTarget({ GetGraphicsEngine().GetFrameBuffer_W() / 2.0f,-GetGraphicsEngine().GetFrameBuffer_H() / 2.0f,0.0f });
+		m_2dCamera.SetWidth(GetGraphicsEngine().GetFrameBuffer_W());
+		m_2dCamera.SetHeight(GetGraphicsEngine().GetFrameBuffer_H());
+		m_2dCamera.UpdateMatrix();
 	}
 
 	void PrimitiveRender::Render() {
-		if (!m_isDraw) { return; }
+		if (!m_isDraw3D) { return; }
 
 		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
@@ -61,7 +60,7 @@ namespace DemolisherWeapon {
 		m_batch->Begin();
 
 		//線分描画
-		for (auto& L : m_ilneList) {
+		for (auto& L : m_ilneList3D) {
 			m_batch->DrawLine(DirectX::VertexPositionColor(L.start, L.color), DirectX::VertexPositionColor(L.end, L.color));
 		}
 
@@ -69,10 +68,54 @@ namespace DemolisherWeapon {
 		m_batch->End();
 
 		//レンダーターゲット解除
-		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+		d3dContext->OMSetRenderTargets(0, NULL, NULL);
 	}
 	void PrimitiveRender::PostRender() {
-		m_ilneList.clear();
-		m_isDraw = false;
+		//描画リストのクリア
+		m_ilneList3D.clear();
+		m_isDraw3D = false;
+	}
+
+	void PrimitiveRender::Render2D() {
+		if (!m_isDraw2D) { return; }
+
+		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();		
+
+		d3dContext->OMSetBlendState(GetGraphicsEngine().GetCommonStates().Opaque(), nullptr, 0xFFFFFFFF);
+		d3dContext->OMSetDepthStencilState(GetGraphicsEngine().GetCommonStates().DepthNone(), 0);
+		d3dContext->RSSetState(GetGraphicsEngine().GetCommonStates().CullNone());
+
+		//行列設定
+		m_effect->SetView(m_2dCamera.GetViewMatrix());
+		m_effect->SetProjection(m_2dCamera.GetProjMatrix());
+
+		m_effect->Apply(d3dContext);
+		d3dContext->IASetInputLayout(m_inputLayout.Get());
+
+		//描画開始
+		m_batch->Begin();
+
+		//線分描画
+		for (auto& L : m_ilneList2D) {
+			m_batch->DrawLine(DirectX::VertexPositionColor(L.start, L.color), DirectX::VertexPositionColor(L.end, L.color));
+		}
+		//四角形描画
+		for (auto& Q : m_quadList2D) {
+			m_batch->DrawQuad(
+				DirectX::VertexPositionColor(CVector3(Q.start.x, -Q.start.y, 0.f), Q.color),
+				DirectX::VertexPositionColor(CVector3(Q.end.x, -Q.start.y, 0.f), Q.color),
+				DirectX::VertexPositionColor(CVector3(Q.end.x, -Q.end.y, 0.f), Q.color),
+				DirectX::VertexPositionColor(CVector3(Q.start.x, -Q.end.y, 0.f), Q.color)
+			);
+		}
+
+		//描画終了
+		m_batch->End();
+	}
+	void PrimitiveRender::PostRender2D() {
+		//描画リストのクリア
+		m_ilneList2D.clear();
+		m_quadList2D.clear();
+		m_isDraw2D = false;
 	}
 }

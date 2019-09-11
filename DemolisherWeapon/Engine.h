@@ -569,8 +569,12 @@ static inline float GetMasterVolume() {
 }
 
 //ü•ª‚Ì•`‰æ
-static inline void DrawLine(const CVector3& start, const CVector3& end, const CVector4& color) {
-	GetGraphicsEngine().GetPrimitiveRender().AddLine(start, end, color);
+static inline void DrawLine(const CVector3& start, const CVector3& end, const CVector4& color, bool is3D = true) {
+	GetGraphicsEngine().GetPrimitiveRender().AddLine(start, end, color, is3D);
+}
+//lŠpŒ`‚Ì•`‰æ(2D)
+static inline void DrawQuad(const CVector3& min, const CVector3& max, const CVector4& color) {
+	GetGraphicsEngine().GetPrimitiveRender().AddQuad(min, max, color);
 }
 
 //ƒfƒoƒbƒOî•ñ‚ğ•`‰æ‚·‚é‚©İ’è

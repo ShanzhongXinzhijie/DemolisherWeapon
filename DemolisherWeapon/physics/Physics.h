@@ -24,6 +24,7 @@ public:
 	void SetGravity(CVector3 g)
 	{
 		dynamicWorld->setGravity(btVector3(g.x, g.y, g.z));
+		softBodyWorldInfo->m_gravity = dynamicWorld->getGravity();
 	}
 	/*!
 	* @brief	ダイナミックワールドを取得。

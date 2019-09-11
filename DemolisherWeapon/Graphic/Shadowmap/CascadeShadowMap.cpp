@@ -89,7 +89,7 @@ namespace GameObj {
 		{
 			//ã•ûŒü‹‚ß‚é
 			CVector3 vZ = m_lightCam->GetFront();
-			CVector3 vX; vX.Cross(m_lightCam->GetUp(), vZ); vX.Normalize();//‰E•ûŒü
+			CVector3 vX; vX.Cross(abs(vZ.y) > 0.5f ? CVector3::AxisZ() : CVector3::AxisY(), vZ); vX.Normalize();//‰E•ûŒü
 			CVector3 vY; vY.Cross(vZ, vX); vY.Normalize();//ã•ûŒü
 			m_lightCam->SetUp(vY);
 		}

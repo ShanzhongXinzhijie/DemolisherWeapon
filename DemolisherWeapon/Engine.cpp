@@ -266,9 +266,13 @@ void GameLoop::Run() {
 		//2D用の設定にする
 		GetEngine().GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().GetFrameBuffer_W(), GetEngine().GetGraphicsEngine().GetFrameBuffer_H());
 
+		//2Dプリミティブの描画
+		GetGraphicsEngine().GetPrimitiveRender().Render2D();
+		GetGraphicsEngine().GetPrimitiveRender().PostRender2D();
+
 		//ゲームオブジェクトによるポスト描画
 		m_gameObjectManager_Ptr->PostRender();
-
+		
 		//FPS表示		
 		m_fpscounter->Draw();
 
