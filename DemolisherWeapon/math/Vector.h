@@ -13,6 +13,7 @@
 namespace DemolisherWeapon{
 
 class CMatrix;
+class CVector3;
 
 class CVector2 {
 public:
@@ -30,6 +31,8 @@ public:
 		struct { float x, y; };
 		float v[2];
 	};
+
+	operator CVector3() const;
 
 	/*!
 	*@brief	‘ã“ü‰‰ZqB

@@ -10,6 +10,10 @@ namespace DemolisherWeapon {
 
 //const CVector3 CVector3::Zero = { 0.0f,  0.0f,  0.0f };
 
+CVector2::operator DemolisherWeapon::CVector3()const {
+	return CVector3(x, y, 0.0f);
+}
+
 /*!
 *@brief	行列からクォータニオンを作成。
 */
