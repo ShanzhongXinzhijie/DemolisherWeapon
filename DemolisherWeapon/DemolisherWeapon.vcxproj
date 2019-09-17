@@ -271,6 +271,7 @@
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
     <ClInclude Include="Graphic\IDrawer.h" />
+    <ClInclude Include="Macro\Accessor.h" />
     <ClInclude Include="Render\InitRender.h" />
     <ClInclude Include="Timer\CDeleteTimer.h" />
     <ClInclude Include="Graphic\Particle\CParticle.h" />
