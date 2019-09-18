@@ -27,14 +27,19 @@ class RigidBody
 	std::unique_ptr<btRigidBody>			m_rigidBody;		//剛体。
 	std::unique_ptr<btDefaultMotionState>	m_myMotionState;	//モーションステート。
 	bool m_isAddPhysicsWorld = false;			//物理ワールドに追加されている？
+
 public:
-	~RigidBody();
-	void Release();
+	RigidBody() = default;
+	~RigidBody() { Release(); }
+	void Release(){}
+	
 	void Create(RigidBodyInfo& rbInfo);
+	
 	btRigidBody* GetBody()
 	{
 		return m_rigidBody.get();
 	}
+	
 	//物理ワールドに登録中の印をつける。
 	void SetMarkAddPhysicsWorld()
 	{
@@ -50,6 +55,7 @@ public:
 	{
 		return m_isAddPhysicsWorld;
 	}
+
 	/*!
 	* @brief	物理オブジェクトの座標と回転を取得
 	*@param[out]	pos			座標。
@@ -78,6 +84,7 @@ public:
 		trans.setRotation(btRot);
 		m_rigidBody->setWorldTransform(trans);
 	}
+
 	/*!
 	* @brief	力を加える。
 	*@param[out]	force		力。

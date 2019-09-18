@@ -3,15 +3,7 @@
 #include "Physics/ICollider.h"
 
 namespace DemolisherWeapon {
-
-
-	RigidBody::~RigidBody()
-	{
-		Release();
-	}
-	void RigidBody::Release()
-	{
-	}
+	
 	void RigidBody::Create(RigidBodyInfo& rbInfo)
 	{
 		Release();
