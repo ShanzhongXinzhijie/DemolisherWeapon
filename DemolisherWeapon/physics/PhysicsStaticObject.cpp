@@ -15,7 +15,7 @@ namespace DemolisherWeapon {
 			m_isAdd = false;
 		}
 	}
-	void PhysicsStaticObject::CreateCommon(CVector3 pos, CQuaternion rot)
+	void PhysicsStaticObject::CreateCommon(const CVector3& pos, const CQuaternion& rot)
 	{
 		RigidBodyInfo rbInfo;
 		rbInfo.collider = m_collider.get();

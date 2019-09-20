@@ -303,15 +303,30 @@ public:
 	void SetName(const wchar_t* objectName);
 
 public:
+	//仮想関数
 
+	//処理開始時に実行
+	//戻り値がfalseだと処理開始しない
 	virtual bool Start() { return true; };
+
+	//ゲームループ前に実行
 	virtual void PreLoopUpdate() {};
+	
+	//ゲームループ内で実行
 	virtual void PreUpdate() {};
 	virtual void Update() {};
 	virtual void PostUpdate() {};
+
+	//ゲームループ後に実行
 	virtual void PostLoopUpdate() {};
 	virtual void PostLoopPostUpdate() {};
 
+	//この関数内でHUDに2Dグラフィックを描画
+	//int HUDNum 描画対象のHUDの番号
+	virtual void HUDRender(int HUDNum) {};
+
+	//2Dグラフィックをこの関数内で描画してください
+	//※CFont,CSpriteなど
 	virtual void PostRender() {};
 
 private:

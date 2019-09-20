@@ -282,7 +282,7 @@ private:
 	/*!
 	* @brief	ゴースト作成処理の共通処理。
 	*/
-	void CreateCommon(CVector3 pos, CQuaternion rot) override;
+	void CreateCommon(const CVector3& pos, const CQuaternion& rot) override;
 
 	//マネージャーに登録する
 	void Register(bool compulsion = false);

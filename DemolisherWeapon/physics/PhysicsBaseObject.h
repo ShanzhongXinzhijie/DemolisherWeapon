@@ -21,7 +21,7 @@ namespace DemolisherWeapon {
 		/*!
 		* @brief	静的物理オブジェクト作成処理の共通処理。
 		*/
-		virtual void CreateCommon(CVector3 pos, CQuaternion rot) = 0;
+		virtual void CreateCommon(const CVector3& pos, const CQuaternion& rot) = 0;
 
 	public:
 		/*!
@@ -30,7 +30,7 @@ namespace DemolisherWeapon {
 		 *@param[in]	rot			回転。
 		 *@param[in]	size		サイズ。
 		 */
-		void CreateBox(CVector3 pos, CQuaternion rot, CVector3 size);
+		void CreateBox(const CVector3& pos, const CQuaternion& rot, const CVector3& size);
 		/*!
 		 * @brief	カプセル形状のゴーストオブジェクトを作成。
 		 *@param[in]	pos			座標。
@@ -38,14 +38,14 @@ namespace DemolisherWeapon {
 		 *@param[in]	radius		カプセルの半径。
 		 *@param[in]	height		カプセルの高さ。
 		 */
-		void CreateCapsule(CVector3 pos, CQuaternion rot, float radius, float height);
+		void CreateCapsule(const CVector3& pos, const CQuaternion& rot, float radius, float height);
 		/*!
 		* @brief	球体形状のゴーストオブジェクトを作成。
 		*@param[in]	pos			座標。
 		*@param[in]	rot			回転。
 		*@param[in]	radius		球体の半径。
 		*/
-		void CreateSphere(CVector3 pos, CQuaternion rot, float radius);
+		void CreateSphere(const CVector3& pos, const CQuaternion& rot, float radius);
 		/*!
 		* @brief	メッシュ形状のゴーストオブジェクトを作成。
 		*@param[in]	pos					座標。
@@ -53,7 +53,7 @@ namespace DemolisherWeapon {
 		*@param[in]	skinModelData		スキンモデルデータ。
 		*/
 		//void CreateMesh(CVector3 pos, CQuaternion rot, const SkinModelData& skinModelData);
-		void CreateMesh(CVector3 pos, CQuaternion rot, CVector3 scale, const SkinModel& skinModel);
+		void CreateMesh(const CVector3& pos, const CQuaternion& rot, const CVector3& scale, const SkinModel& skinModel);
 		void CreateMesh(const GameObj::CSkinModelRender& skinModelRender);
 
 	protected:

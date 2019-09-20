@@ -9,7 +9,7 @@ namespace DemolisherWeapon {
 			m_isRegistPhysicsWorld = false;
 		}
 	}
-	void PhysicsGhostObject::CreateCommon(CVector3 pos, CQuaternion rot)
+	void PhysicsGhostObject::CreateCommon(const CVector3& pos, const CQuaternion& rot)
 	{
 		m_ghostObject.setCollisionShape(m_collider->GetBody());
 		m_ghostObject.setCollisionFlags(m_ghostObject.getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);

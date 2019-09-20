@@ -7,7 +7,7 @@
 
 namespace DemolisherWeapon {
 
-	void PhysicsBaseObject::CreateBox(CVector3 pos, CQuaternion rot, CVector3 size)
+	void PhysicsBaseObject::CreateBox(const CVector3& pos, const CQuaternion& rot, const CVector3& size)
 	{
 		Release();
 		auto boxCollider = std::make_unique<BoxCollider>();
@@ -15,7 +15,7 @@ namespace DemolisherWeapon {
 		m_collider = std::move(boxCollider);
 		CreateCommon(pos, rot);
 	}
-	void PhysicsBaseObject::CreateCapsule(CVector3 pos, CQuaternion rot, float radius, float height)
+	void PhysicsBaseObject::CreateCapsule(const CVector3& pos, const CQuaternion& rot, float radius, float height)
 	{
 		Release();
 		auto capusuleCollider = std::make_unique<CapsuleCollider>();
@@ -24,7 +24,7 @@ namespace DemolisherWeapon {
 		CreateCommon(pos, rot);
 	}
 
-	void PhysicsBaseObject::CreateSphere(CVector3 pos, CQuaternion rot, float radius)
+	void PhysicsBaseObject::CreateSphere(const CVector3& pos, const CQuaternion& rot, float radius)
 	{
 		Release();
 		auto sphereCollider = std::make_unique<SphereCollider>();
@@ -32,20 +32,11 @@ namespace DemolisherWeapon {
 		m_collider = std::move(sphereCollider);
 		CreateCommon(pos, rot);
 	}
-
-	/*void PhysicsBaseObject::CreateMesh(CVector3 pos, CQuaternion rot, const CSkinModelData& skinModelData)
-	{
-		Release();
-		auto meshCollider = make_unique<CMeshCollider>();
-		meshCollider->CreateFromSkinModel(skinModelData, nullptr);
-		m_collider = move(meshCollider);
-		CreateCommon(pos, rot);
-	}*/
 	void PhysicsBaseObject::CreateMesh(const GameObj::CSkinModelRender& skinModelRender)
 	{
 		CreateMesh(skinModelRender.GetPos(), skinModelRender.GetRot(), skinModelRender.GetScale(), skinModelRender.GetSkinModel());
 	}
-	void PhysicsBaseObject::CreateMesh(CVector3 pos, CQuaternion rot, CVector3 scale, const SkinModel& skinModel)
+	void PhysicsBaseObject::CreateMesh(const CVector3& pos, const CQuaternion& rot, const CVector3& scale, const SkinModel& skinModel)
 	{
 		Release();
 		CMatrix mScale;

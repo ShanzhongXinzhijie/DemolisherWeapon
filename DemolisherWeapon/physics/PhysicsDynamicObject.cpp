@@ -7,7 +7,7 @@ namespace DemolisherWeapon {
 	{
 		GetEngine().GetPhysicsWorld().RemoveRigidBody(m_rigidBody);
 	}
-	void PhysicsDynamicObject::CreateCommon(CVector3 pos, CQuaternion rot)
+	void PhysicsDynamicObject::CreateCommon(const CVector3& pos, const CQuaternion& rot)
 	{
 		RigidBodyInfo rbInfo;
 		rbInfo.collider = m_collider.get();
