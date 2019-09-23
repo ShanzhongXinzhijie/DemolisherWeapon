@@ -5,6 +5,8 @@
 
 namespace DemolisherWeapon {
 
+	class MeshCollider;
+
 	class PhysicsBaseObject
 	{
 	public:
@@ -55,6 +57,12 @@ namespace DemolisherWeapon {
 		//void CreateMesh(CVector3 pos, CQuaternion rot, const SkinModelData& skinModelData);
 		void CreateMesh(const CVector3& pos, const CQuaternion& rot, const CVector3& scale, const SkinModel& skinModel);
 		void CreateMesh(const GameObj::CSkinModelRender& skinModelRender);
+
+		/// <summary>
+		/// メッシュコライダーを取得
+		/// ※m_colliderがメッシュコライダーでないとnullptrが返る
+		/// </summary>
+		MeshCollider* GetMeshCollider();
 
 	protected:
 		std::unique_ptr<ICollider> m_collider;

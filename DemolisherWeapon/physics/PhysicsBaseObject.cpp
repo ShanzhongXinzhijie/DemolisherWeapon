@@ -51,4 +51,15 @@ namespace DemolisherWeapon {
 
 	}
 
+	MeshCollider* PhysicsBaseObject::GetMeshCollider() {
+		MeshCollider* p = dynamic_cast<MeshCollider*>(m_collider.get());
+		if (p == nullptr) {
+#ifndef DW_MASTER
+			MessageBox(NULL, "PhysicsBaseObject::GetMeshCollider()\nm_colliderはメッシュコライダーではありません", "Error", MB_OK);
+			std::abort();
+#endif
+		}
+		return p;
+	}
+
 }
