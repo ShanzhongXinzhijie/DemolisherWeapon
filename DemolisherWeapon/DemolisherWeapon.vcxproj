@@ -273,6 +273,7 @@
     <ClInclude Include="Graphic\IDrawer.h" />
     <ClInclude Include="Macro\Accessor.h" />
     <ClInclude Include="Render\InitRender.h" />
+    <ClInclude Include="Graphic\Shader\StructuredBuffer.h" />
     <ClInclude Include="Timer\CDeleteTimer.h" />
     <ClInclude Include="Graphic\Particle\CParticle.h" />
     <ClInclude Include="DWVersion.h" />
@@ -372,6 +373,7 @@
   <ItemGroup>
     <ClCompile Include="Graphic\IDrawer.cpp" />
     <ClCompile Include="Render\InitRender.cpp" />
+    <ClCompile Include="Graphic\Shader\StructuredBuffer.cpp" />
     <ClCompile Include="Timer\CDeleteTimer.cpp" />
     <ClCompile Include="Graphic\Particle\CParticle.cpp" />
     <ClCompile Include="Graphic\FrustumCulling.cpp" />

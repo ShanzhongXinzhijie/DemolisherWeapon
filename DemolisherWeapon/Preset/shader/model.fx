@@ -86,7 +86,8 @@ cbuffer VSPSCb : register(b0){
 	//カメラのワールド座標
 	float3 camWorldPos;
 
-	//4 bytes auto padding.
+	//なんか
+    float cb_t;
 
 	//インポスター用
 	int2 imposterPartNum;//分割数

@@ -207,6 +207,9 @@ public:
 		m_cull = cullMode;
 	}
 
+	//シェーダー用変数tを設定
+	void Set_t(float t) { m_cb_t = t; }
+
 	/// <summary>
 	/// インポスターの枚数を設定
 	/// </summary>
@@ -344,7 +347,8 @@ private:
 		//カメラのワールド座標
 		CVector3 camWorldPos;
 
-		float padding = 0.0f;
+		//なんか
+		float cb_t = 0.0f;
 
 		//インポスター用
 		int imposterPartNum[2];//分割数
@@ -373,6 +377,9 @@ private:
 	float m_depthBias = 0.0f;//深度値バイアス	
 
 	D3D11_CULL_MODE m_cull = D3D11_CULL_FRONT;//面の向き
+
+	//シェーダー用なんか
+	float m_cb_t = 0.0f;
 	
 	//インポスター用
 	int m_imposterPartNum[2] = {};//分割数

@@ -38,8 +38,9 @@ public:
 		void* m_voidPtr;
 		const btGhostObject&  m_ghostObject;
 		IDW_Class* m_classPtr;		
-		const bool m_isA;
-		//const btManifoldPoint& m_contactPoint;//ÚG“_‚Æ‚©î•ñ
+		const bool m_isA;//‚ ‚½‚Á‚½‘Šè‚ªA‚©?
+
+		const btManifoldPoint* m_contactPoint = nullptr;//ÚG“_‚Æ‚©î•ñ
 
 		//–¼‘O‚ªˆê’v‚·‚é‚©”»’è
 		bool EqualName(const wchar_t* name) {
