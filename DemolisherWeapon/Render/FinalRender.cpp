@@ -129,27 +129,24 @@ void FinalRender::Init(const CVector2 screen_min, const CVector2 screen_max, boo
 	bufferDesc.CPUAccessFlags = 0;
 	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cb);
 
-	//描画図形
-	CPrimitive::SVertex vertex[4] = {
-		{
-			{screen_min.x*2.0f - 1.0f, screen_min.y*2.0f - 1.0f, 0.0f, 1.0f},
-			{0.0f, 1.0f}
-		},
-		{
-			{screen_max.x*2.0f - 1.0f, screen_min.y*2.0f - 1.0f, 0.0f, 1.0f},
-			{1.0f, 1.0f}
-		},
-		{
-			{screen_min.x*2.0f - 1.0f, screen_max.y*2.0f - 1.0f, 0.0f, 1.0f},
-			{0.0f, 0.0f}
-		},
-		{
-			{screen_max.x*2.0f - 1.0f, screen_max.y*2.0f - 1.0f, 0.0f, 1.0f},
-			{1.0f, 0.0f}
-		},
+	//描画図形	
+	m_vertex[0] = {
+		{screen_min.x*2.0f - 1.0f, screen_min.y*2.0f - 1.0f, 0.0f, 1.0f},
+		{0.0f, 1.0f}
+	};	
+	m_vertex[1] = {
+		{screen_max.x*2.0f - 1.0f, screen_min.y*2.0f - 1.0f, 0.0f, 1.0f},
+		{1.0f, 1.0f}
 	};
-	int index[4] = { 0,1,2,3 };
-	m_drawSpace.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, 4, index);
+	m_vertex[2] = {
+		{screen_min.x*2.0f - 1.0f, screen_max.y*2.0f - 1.0f, 0.0f, 1.0f},
+		{0.0f, 0.0f}
+	};
+	m_vertex[3] = {
+		{screen_max.x*2.0f - 1.0f, screen_max.y*2.0f - 1.0f, 0.0f, 1.0f},
+		{1.0f, 0.0f}
+	};
+	m_drawSpace.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, m_vertex, 4, m_index);
 }
 void FinalRender::Render() {
 	//描画先をバックバッファにする

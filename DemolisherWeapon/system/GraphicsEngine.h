@@ -62,7 +62,7 @@ public:
 	}
 
 	//フレームバッファサイズの変更
-	void ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBuffer3DWidth, int frameBuffer3DHeight);
+	void ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBuffer3DWidth, int frameBuffer3DHeight, EnSplitScreenMode screenMode);
 
 	//フレームバッファの取得
 	float GetFrameBuffer_W()const {
@@ -76,6 +76,11 @@ public:
 	}
 	float Get3DFrameBuffer_H()const {
 		return FRAME_BUFFER_3D_H;
+	}
+
+	//画面分割設定を取得
+	EnSplitScreenMode GetSplitScreenMode()const {
+		return m_isSplitScreen;
 	}
 
 	//垂直同期待つかを設定
@@ -283,6 +288,25 @@ private:
 
 	//フルスクリーン描画プリミティブ
 	CPrimitive m_fullscreen;
+	CPrimitive::SVertex m_vertex[4] = {
+		{
+			{-1.0f, -1.0f, 0.0f, 1.0f},
+			{0.0f, 1.0f}
+		},
+		{
+			{1.0f, -1.0f, 0.0f, 1.0f},
+			{1.0f, 1.0f}
+		},
+		{
+			{-1.0f, 1.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f}
+		},
+		{
+			{1.0f, 1.0f, 0.0f, 1.0f},
+			{1.0f, 0.0f}
+		},
+	};
+	int m_index[4] = { 0,1,2,3 };
 
 	//レンダー
 	int m_freeRenderPriority = -1;

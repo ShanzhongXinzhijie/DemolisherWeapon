@@ -3,6 +3,10 @@
 
 namespace DemolisherWeapon {
 
+	namespace {
+		static constexpr int oneloopOffset = 5000;
+	}
+
 GraphicsEngine::GraphicsEngine()
 {
 	
@@ -202,27 +206,8 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(m_pd3dDeviceContext);
 	m_spriteBatchPMA = std::make_unique<DirectX::SpriteBatch>(m_pd3dDeviceContext);
 
-	//フルスクリーン描画プリミティブ初期化
-	CPrimitive::SVertex vertex[4] = {
-		{
-			{-1.0f, -1.0f, 0.0f, 1.0f},
-			{0.0f, 1.0f}
-		},
-		{
-			{1.0f, -1.0f, 0.0f, 1.0f},
-			{1.0f, 1.0f}
-		},
-		{
-			{-1.0f, 1.0f, 0.0f, 1.0f},
-			{0.0f, 0.0f}
-		},
-		{
-			{1.0f, 1.0f, 0.0f, 1.0f},
-			{1.0f, 0.0f}
-		},
-	};
-	int index[4] = { 0,1,2,3 };
-	m_fullscreen.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, 4, index);
+	//フルスクリーン描画プリミティブ初期化	
+	m_fullscreen.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, m_vertex, 4, m_index);
 
 	//ライトマネージャー
 	m_lightManager.Init();
@@ -274,11 +259,8 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	//シャドウマップ描画
 	m_renderManager.AddRender(-1, &m_shadowMapRender);
 
-	int screencnt = 1, oneloopOffset = 5000;
-	if (initParam.isSplitScreen) {
-		screencnt = 2;
-	}
 	//画面分割数分実行
+	int screencnt = m_isSplitScreen ? 2 : 1;
 	for (int i = 0; i < screencnt; i++) {
 
 		int offset = oneloopOffset * i;		
@@ -330,7 +312,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 #endif
 }
 
-void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBufferWidth3D, int frameBufferHeight3D) {
+void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBufferWidth3D, int frameBufferHeight3D, EnSplitScreenMode screenMode) {
 	//サイズ変更
 	FRAME_BUFFER_W = (float)frameBufferWidth;
 	FRAME_BUFFER_H = (float)frameBufferHeight;
@@ -371,6 +353,13 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 	//ビューポートを初期化。
 	SetViewport(0.0f, 0.0f, FRAME_BUFFER_W, FRAME_BUFFER_H);
 
+	//画面分割に変更あるか?
+	bool isChangeSplitScreen = false;
+	if (m_isSplitScreen == enNoSplit && screenMode != enNoSplit || m_isSplitScreen != enNoSplit && screenMode == enNoSplit) {
+		isChangeSplitScreen = true;
+	}
+	m_isSplitScreen = screenMode;
+
 	//画面分割用の比率に
 	FRAME_BUFFER_3D_W = (float)frameBufferWidth3D;
 	FRAME_BUFFER_3D_H = (float)frameBufferHeight3D;
@@ -394,6 +383,133 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 	m_motionBlurRender.Resize();	
 	m_ConvertLinearToSRGB.Resize();
 	m_primitiveRender.Resize();		
+
+	//画面分割変更
+	if (isChangeSplitScreen) {
+		m_finalRender[0].reset();
+		m_finalRender[1].reset();
+		m_cameraSwitchRender[0].reset();
+		m_cameraSwitchRender[1].reset();
+
+		if (m_isSplitScreen) {
+			m_finalRender[0] = std::make_unique<FinalRender>();
+			m_finalRender[1] = std::make_unique<FinalRender>();
+
+			if (m_isSplitScreen == enVertical_TwoSplit) {
+				m_finalRender[1]->Init({ 0.0f,0.0f }, { 1.0f,0.5f });
+				m_finalRender[0]->Init({ 0.0f,0.5f }, { 1.0f,1.0f });
+			}
+			if (m_isSplitScreen == enSide_TwoSplit) {
+				m_finalRender[0]->Init({ 0.0f,0.0f }, { 0.5f,1.0f });
+				m_finalRender[1]->Init({ 0.5f,0.0f }, { 1.0f,1.0f });
+			}
+
+			m_cameraSwitchRender[0] = std::make_unique<CameraSwitchRender>();
+			m_cameraSwitchRender[1] = std::make_unique<CameraSwitchRender>();
+			m_cameraSwitchRender[0]->Init(0);
+			m_cameraSwitchRender[1]->Init(1);
+		}
+		else {
+			m_finalRender[0] = std::make_unique<FinalRender>();
+			m_finalRender[0]->Init();
+		}
+
+		//画面分割数分実行
+		int screencnt = 2;// m_isSplitScreen ? 2 : 1;
+		for (int i = 0; i < screencnt; i++) {
+
+			int offset = oneloopOffset * i;
+
+			if (m_isSplitScreen) {
+				//画面分割ならカメラ切り替え
+				m_renderManager.AddRender(0 + offset, m_cameraSwitchRender[i].get());
+			}
+			else {
+				m_renderManager.DeleteRender(0 + offset);
+			}
+
+			if (i == 0) { 
+				continue;//この先は一週目は実行しない
+			}
+
+			if (m_isSplitScreen) {
+				//追加
+
+				//Gバッファ描画
+				m_renderManager.AddRender(1 + offset, &m_gbufferRender);
+
+				//AOマップ作成
+				m_renderManager.AddRender(3 + offset, &m_ambientOcclusionRender);
+
+				//ディファードレンダリング
+				m_renderManager.AddRender(4 + offset, &m_defferdRender);
+
+				//ポストプロセス
+				m_renderManager.AddRender(5 + offset, &m_DOFRender);
+				m_renderManager.AddRender(6 + offset, &m_motionBlurRender);
+				m_renderManager.AddRender(7 + offset, &m_bloomRender);
+
+				//ポストドローモデル
+				m_renderManager.AddRender(8 + offset, &m_postDrawModelRender);
+
+				//SRGBに変換
+				m_renderManager.AddRender(9 + offset, &m_ConvertLinearToSRGB);
+
+				//Effekseerの描画
+				m_renderManager.AddRender(10 + offset, &m_effekseerRender);
+
+				//m_freeRenderPriority = 11;//ここから↓まで未使用
+
+				//プリミティブ描画
+				m_renderManager.AddRender(998 + offset, &m_primitiveRender);
+
+#ifndef DW_MASTER
+				//BUlletPhysicsのデバッグ描画
+				m_renderManager.AddRender(999 + offset, &m_physicsDebugDrawRender);
+#endif
+				//最終描画
+				m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());
+			}
+			else {
+				//削除
+
+				//Gバッファ描画
+				m_renderManager.DeleteRender(1 + offset);
+
+				//AOマップ作成
+				m_renderManager.DeleteRender(3 + offset);
+
+				//ディファードレンダリング
+				m_renderManager.DeleteRender(4 + offset);
+
+				//ポストプロセス
+				m_renderManager.DeleteRender(5 + offset);
+				m_renderManager.DeleteRender(6 + offset);
+				m_renderManager.DeleteRender(7 + offset);
+
+				//ポストドローモデル
+				m_renderManager.DeleteRender(8 + offset);
+
+				//SRGBに変換
+				m_renderManager.DeleteRender(9 + offset);
+
+				//Effekseerの描画
+				m_renderManager.DeleteRender(10 + offset);
+
+				//m_freeRenderPriority = 11;//ここから↓まで未使用
+
+				//プリミティブ描画
+				m_renderManager.DeleteRender(998 + offset);
+
+#ifndef DW_MASTER
+				//BUlletPhysicsのデバッグ描画
+				m_renderManager.DeleteRender(999 + offset);
+#endif
+				//最終描画
+				m_renderManager.DeleteRender(1000 + offset);
+			}
+		}
+	}
 }
 
 //描画先を最終レンダーターゲットにする

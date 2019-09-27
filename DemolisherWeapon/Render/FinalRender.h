@@ -96,6 +96,8 @@ private:
 	};
 
 	CPrimitive m_drawSpace;
+	CPrimitive::SVertex m_vertex[4];
+	int m_index[4] = { 0,1,2,3 };
 
 	ID3D11ShaderResourceView* m_gridTex = nullptr;
 
