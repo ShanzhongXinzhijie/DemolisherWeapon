@@ -21,6 +21,8 @@ public:
 	void Render()override;
 	void PostRender()override;
 
+	void Resize()override {};
+
 public:
 	//描画前後に行う処理を設定するためのクラス
 	/*class IPrePost {

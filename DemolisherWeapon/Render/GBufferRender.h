@@ -24,6 +24,8 @@ public:
 
 	void Init();
 	void Release();
+
+	void Resize()override;
 	
 	ID3D11Texture2D* GetGBufferTex(EnGBuffer num) {
 		return m_GBufferTex[num];

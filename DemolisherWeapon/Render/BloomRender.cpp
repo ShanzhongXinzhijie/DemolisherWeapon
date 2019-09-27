@@ -10,6 +10,7 @@ namespace DemolisherWeapon {
 		m_cs.Load("Preset/shader/Bloom.fx", "CSmain", Shader::EnType::CS);
 
 		//テクスチャサイズ算出
+		m_texScale = texScale;
 		m_textureSizeX = (UINT)(ge.Get3DFrameBuffer_W() * texScale), m_textureSizeY = (UINT)(ge.Get3DFrameBuffer_H() * texScale);
 
 		//出力テクスチャ作成
@@ -82,7 +83,7 @@ namespace DemolisherWeapon {
 		desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 		desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 		desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
+		ge.GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
 	}
 
 	void BloomRender::Release() {
@@ -94,6 +95,35 @@ namespace DemolisherWeapon {
 		if (m_interferenceFringesSRV) { m_interferenceFringesSRV->Release(); m_interferenceFringesSRV = nullptr; }
 		if (m_blendState) { m_blendState->Release(); m_blendState = nullptr; }
 		if (m_samplerState) { m_samplerState->Release(); m_samplerState = nullptr; }
+	}
+
+	void BloomRender::Resize() {
+		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
+
+		//テクスチャサイズ算出
+		m_textureSizeX = (UINT)(ge.Get3DFrameBuffer_W() * m_texScale);
+		m_textureSizeY = (UINT)(ge.Get3DFrameBuffer_H() * m_texScale);
+
+		//出力テクスチャ作成
+		D3D11_TEXTURE2D_DESC texDesc;
+		m_tex->GetDesc(&texDesc);
+		texDesc.Width = m_textureSizeX;
+		texDesc.Height = m_textureSizeY;
+		m_tex->Release(); m_tex = nullptr;
+		m_SRV->Release(); m_SRV = nullptr;
+		m_RTV->Release(); m_RTV = nullptr;		
+		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_tex);
+		ge.GetD3DDevice()->CreateShaderResourceView(m_tex, nullptr, &m_SRV);
+		ge.GetD3DDevice()->CreateRenderTargetView(m_tex, nullptr, &m_RTV);
+
+		//OutPutUAV
+		D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+		m_outputUAV->GetDesc(&uavDesc);
+		m_outputUAV->Release(); m_outputUAV = nullptr;
+		ge.GetD3DDevice()->CreateUnorderedAccessView(m_tex, &uavDesc, &m_outputUAV);		
+
+		//ガウスブラー
+		m_gaussBlur.ResetSource(m_SRV);
 	}
 
 	void BloomRender::Render()

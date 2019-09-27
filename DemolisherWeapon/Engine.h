@@ -23,12 +23,6 @@
 
 namespace DemolisherWeapon {
 
-enum EnSplitScreenMode {
-	enNoSplit=0,
-	enVertical_TwoSplit,
-	enSide_TwoSplit,
-};
-
 struct InitEngineParameter {
 	float SDUnityChanScale = 1.0f;	//SDユニティちゃんの大きさ(距離の基準値になる)
 									//メモ: 1m = 78.74fくらい?(Unityちゃんが全長1.5mくらいになる
@@ -212,6 +206,9 @@ public:
 		//Sleepの精度をもとに戻すため
 		m_gameLoop.Release();
 	}
+
+	//ウィンドウサイズ変更
+	void ChangeWindowSize(int screenWidth, int screenHeight);
 
 	//ウインドウ更新
 	void UpdateWindow() {
@@ -496,6 +493,7 @@ static inline T* FindGO() {
 	return GetEngine().GetGameObjectManager().FindGO<T>();
 }
 //ゲームオブジェクトの検索(複数)
+//funcの戻り値=falseで検索終了
 template<class T>
 static inline void QueryGOs(const wchar_t* objectName, std::function<bool(T* go)> func) {
 	GetEngine().GetGameObjectManager().QueryGOs<T>(objectName, func);

@@ -12,7 +12,6 @@ MotionBlurRender::~MotionBlurRender()
 }
 
 void MotionBlurRender::Init() {
-
 	GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
 
 	//コンピュートシェーダ
@@ -35,21 +34,6 @@ void MotionBlurRender::Init() {
 		HRESULT	hr;
 		hr = ge.GetD3DDevice()->CreateUnorderedAccessView(ge.GetFRT().GetTex(0), &uavDesc, &m_outputUAV);
 	}
-
-	//MaskUAV
-	/*{
-		D3D11_UNORDERED_ACCESS_VIEW_DESC	uavDesc;
-		ZeroMemory(&uavDesc, sizeof(uavDesc));
-
-		D3D11_TEXTURE2D_DESC texDesc;
-		ge.GetGBufferRender().GetGBufferTex(GBufferRender::enGBufferVelocity)->GetDesc(&texDesc);
-
-		uavDesc.Format = texDesc.Format;
-		uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-		uavDesc.Texture2D.MipSlice = 0;
-		HRESULT	hr;
-		hr = ge.GetD3DDevice()->CreateUnorderedAccessView(ge.GetGBufferRender().GetGBufferTex(GBufferRender::enGBufferVelocity), &uavDesc, &m_maskUAV);
-	}*/
 
 	//サンプラー
 	D3D11_SAMPLER_DESC desc;
@@ -77,11 +61,23 @@ void MotionBlurRender::Init() {
 	ge.GetD3DDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cbPS);
 }
 void MotionBlurRender::Release() {
-	m_outputUAV->Release();
-	//m_maskUAV->Release();
-	m_cb->Release();
-	m_cbPS->Release();
-	m_samplerState->Release();
+	m_outputUAV->Release(); m_outputUAV = nullptr;
+	m_cb->Release(); m_cb = nullptr;
+	m_cbPS->Release(); m_cbPS = nullptr;
+	m_samplerState->Release(); m_samplerState = nullptr;
+}
+
+void MotionBlurRender::Resize() {
+	GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
+	
+	//OutPutUAV	
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;	
+	m_outputUAV->GetDesc(&uavDesc);
+	D3D11_TEXTURE2D_DESC texDesc;
+	ge.GetFRT().GetTex(0)->GetDesc(&texDesc);
+	uavDesc.Format = texDesc.Format;
+	m_outputUAV->Release(); m_outputUAV = nullptr;
+	ge.GetD3DDevice()->CreateUnorderedAccessView(ge.GetFRT().GetTex(0), &uavDesc, &m_outputUAV);	
 }
 
 void MotionBlurRender::Render() {

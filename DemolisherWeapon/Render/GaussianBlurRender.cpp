@@ -14,11 +14,12 @@ namespace DemolisherWeapon {
 		ID3D11Texture2D* pTex = nullptr;
 		souce->GetResource(&pResource);
 		pTex = (ID3D11Texture2D*)pResource;
-		pResource->Release();
 		
 		//desc取得
 		D3D11_TEXTURE2D_DESC texDesc;
 		pTex->GetDesc(&texDesc);
+
+		pResource->Release(); pResource = nullptr; pTex = nullptr;
 
 		//出力テクスチャDESC
 		ZeroMemory(&m_texDesc, sizeof(m_texDesc));
@@ -35,6 +36,7 @@ namespace DemolisherWeapon {
 		m_texDesc.MiscFlags = 0;
 
 		//サンプル間隔
+		m_sampleScaleSetting = sampleScale;
 		m_sampleScale = sampleScale;
 		if (m_sampleScale.x < 0.0f) { m_sampleScale.x = (float)m_texDesc.Width; }
 		if (m_sampleScale.y < 0.0f) { m_sampleScale.y = (float)m_texDesc.Height; }
@@ -94,6 +96,52 @@ namespace DemolisherWeapon {
 
 		m_cb->Release();
 		m_samplerState->Release();
+	}
+
+	void GaussianBlurRender::ResetSource(ID3D11ShaderResourceView*& souce) {
+		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
+
+		m_souce = souce;
+
+		//souceのテクスチャ取得
+		ID3D11Resource* pResource = nullptr;
+		ID3D11Texture2D* pTex = nullptr;
+		souce->GetResource(&pResource);
+		pTex = (ID3D11Texture2D*)pResource;
+
+		//desc取得
+		D3D11_TEXTURE2D_DESC texDesc;
+		pTex->GetDesc(&texDesc);
+
+		pResource->Release(); pResource = nullptr; pTex = nullptr;
+		
+		//出力テクスチャDESC
+		m_texDesc.Width = texDesc.Width;
+		m_texDesc.Height = texDesc.Height;
+		m_texDesc.Format = texDesc.Format;
+
+		//サンプル間隔
+		m_sampleScale = m_sampleScaleSetting;
+		if (m_sampleScale.x < 0.0f) { m_sampleScale.x = (float)m_texDesc.Width; }
+		if (m_sampleScale.y < 0.0f) { m_sampleScale.y = (float)m_texDesc.Height; }
+
+		//出力テクスチャの作成
+		m_outputX->Release(); m_outputX = nullptr;
+		m_outputXRTV->Release(); m_outputXRTV = nullptr;
+		m_outputXSRV->Release(); m_outputXSRV = nullptr;
+		ge.GetD3DDevice()->CreateTexture2D(&m_texDesc, NULL, &m_outputX);
+		ge.GetD3DDevice()->CreateRenderTargetView(m_outputX, nullptr, &m_outputXRTV);//レンダーターゲット
+		ge.GetD3DDevice()->CreateShaderResourceView(m_outputX, nullptr, &m_outputXSRV);//シェーダーリソースビュー
+		m_outputY->Release(); m_outputY = nullptr;
+		m_outputYRTV->Release(); m_outputYRTV = nullptr;
+		m_outputYSRV->Release(); m_outputYSRV = nullptr;
+		ge.GetD3DDevice()->CreateTexture2D(&m_texDesc, NULL, &m_outputY);
+		ge.GetD3DDevice()->CreateRenderTargetView(m_outputY, nullptr, &m_outputYRTV);//レンダーターゲット
+		ge.GetD3DDevice()->CreateShaderResourceView(m_outputY, nullptr, &m_outputYSRV);//シェーダーリソースビュー
+
+		//ビューポート
+		m_viewport.Width = (float)texDesc.Width;
+		m_viewport.Height = (float)texDesc.Height;
 	}
 
 	void GaussianBlurRender::Blur() {

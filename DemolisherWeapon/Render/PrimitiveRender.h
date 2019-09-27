@@ -12,6 +12,8 @@ namespace DemolisherWeapon {
 
 		void Init();
 
+		void Resize()override;
+
 		//3D•`‰æ
 		void Render()override;
 		void PostRender()override;

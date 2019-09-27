@@ -25,6 +25,12 @@ namespace DemolisherWeapon {
 
 struct InitEngineParameter;
 
+enum EnSplitScreenMode {
+	enNoSplit = 0,
+	enVertical_TwoSplit,
+	enSide_TwoSplit,
+};
+
 class GraphicsEngine
 {
 public:
@@ -54,6 +60,9 @@ public:
 	{
 		return m_pd3dDeviceContext;
 	}
+
+	//フレームバッファサイズの変更
+	void ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBuffer3DWidth, int frameBuffer3DHeight);
 
 	//フレームバッファの取得
 	float GetFrameBuffer_W()const {
@@ -247,6 +256,8 @@ private:
 	float FRAME_BUFFER_H = 720.0f;				//フレームバッファの高さ。
 	float FRAME_BUFFER_3D_W = 1280.0f;			//フレームバッファの幅(3D描画)
 	float FRAME_BUFFER_3D_H = 720.0f;			//フレームバッファの高さ(3D描画)
+
+	EnSplitScreenMode m_isSplitScreen = enNoSplit;//画面分割設定
 
 	bool m_useVSync = false;//垂直同期するか
 

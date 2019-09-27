@@ -27,6 +27,8 @@ namespace DemolisherWeapon {
 		void Init(float texScale = 0.5f);
 		void Release();
 
+		void Resize()override;
+
 		void Render() override;
 
 		//有効無効の設定
@@ -50,6 +52,7 @@ namespace DemolisherWeapon {
 		ID3D11ShaderResourceView* m_SRV = nullptr;
 		ID3D11RenderTargetView* m_RTV = nullptr;
 		UINT m_textureSizeX = 0, m_textureSizeY = 0;
+		float m_texScale = 1.0f;
 		Shader m_vsResize, m_psResize;
 		D3D11_VIEWPORT m_viewport;//ビューポート
 

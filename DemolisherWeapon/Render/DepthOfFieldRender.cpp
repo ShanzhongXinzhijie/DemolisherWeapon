@@ -24,6 +24,7 @@ namespace DemolisherWeapon {
 		ge.GetD3DDevice()->CreateSamplerState(&desc, &m_samplerState);
 
 		//縮小テクスチャサイズ算出
+		m_texScale = texScale;
 		m_textureSizeX = (UINT)(ge.Get3DFrameBuffer_W() * texScale), m_textureSizeY = (UINT)(ge.Get3DFrameBuffer_H() * texScale);
 
 		//縮小テクスチャ作成
@@ -72,6 +73,30 @@ namespace DemolisherWeapon {
 		if (m_RTV) { m_RTV->Release(); m_RTV = nullptr; }
 		if (m_cb) { m_cb->Release(); m_cb = nullptr; }
 		if (m_samplerState) { m_samplerState->Release(); m_samplerState = nullptr; }
+	}
+
+	void DepthOfFieldRender::Resize() {
+		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
+
+		//縮小テクスチャサイズ算出
+		m_textureSizeX = (UINT)(ge.Get3DFrameBuffer_W() * m_texScale);
+		m_textureSizeY = (UINT)(ge.Get3DFrameBuffer_H() * m_texScale);
+
+		//縮小テクスチャ作成
+		D3D11_TEXTURE2D_DESC texDesc;
+		m_tex->GetDesc(&texDesc);
+		texDesc.Width = m_textureSizeX;
+		texDesc.Height = m_textureSizeY;
+		m_tex->Release(); m_tex = nullptr;
+		m_SRV->Release(); m_SRV = nullptr;
+		m_RTV->Release(); m_RTV = nullptr;
+		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_tex);
+		ge.GetD3DDevice()->CreateShaderResourceView(m_tex, nullptr, &m_SRV);
+		ge.GetD3DDevice()->CreateRenderTargetView(m_tex, nullptr, &m_RTV);
+
+		//ビューポート
+		m_viewport.Width = (float)texDesc.Width;
+		m_viewport.Height = (float)texDesc.Height;
 	}
 
 	void DepthOfFieldRender::Render() {

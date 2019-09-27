@@ -13,6 +13,8 @@ public:
 	void Init(float texScale = 0.5f);
 	void Release();
 
+	void Resize()override;
+
 	void Render()override;
 
 	//シェーダーリソースビューの取得
@@ -27,6 +29,7 @@ private:
 	bool m_enable = true;
 
 	UINT m_textureSizeX=0, m_textureSizeY=0;
+	float m_texScale = 1.0f;
 
 	Shader m_cs;
 	ID3D11Texture2D* m_ambientOcclusionTex = nullptr;

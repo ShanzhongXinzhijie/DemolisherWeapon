@@ -12,9 +12,9 @@ AmbientOcclusionRender::~AmbientOcclusionRender()
 }
 
 void AmbientOcclusionRender::Init(float texScale) {
-
 	GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
 
+	m_texScale = texScale;
 	m_textureSizeX = (UINT)(ge.Get3DFrameBuffer_W()*texScale);
 	m_textureSizeY = (UINT)(ge.Get3DFrameBuffer_H()*texScale);
 
@@ -68,6 +68,32 @@ void AmbientOcclusionRender::Release() {
 	m_ambientOcclusionTex->Release();
 	m_outputUAV->Release();
 	m_cb->Release();
+}
+
+void AmbientOcclusionRender::Resize() {
+	GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
+
+	m_textureSizeX = (UINT)(ge.Get3DFrameBuffer_W()*m_texScale);
+	m_textureSizeY = (UINT)(ge.Get3DFrameBuffer_H()*m_texScale);
+
+	//テクスチャ再作成
+	D3D11_TEXTURE2D_DESC texDesc;
+	m_ambientOcclusionTex->GetDesc(&texDesc);
+	texDesc.Width = m_textureSizeX;
+	texDesc.Height = m_textureSizeY;
+	m_ambientOcclusionTex->Release(); m_ambientOcclusionTex = nullptr;
+	m_ambientOcclusionSRV->Release(); m_ambientOcclusionSRV = nullptr;
+	ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, &m_ambientOcclusionTex);
+	ge.GetD3DDevice()->CreateShaderResourceView(m_ambientOcclusionTex, nullptr, &m_ambientOcclusionSRV);
+
+	//OutPutUAV再作成
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+	m_outputUAV->GetDesc(&uavDesc);
+	m_outputUAV->Release(); m_outputUAV = nullptr;
+	ge.GetD3DDevice()->CreateUnorderedAccessView(m_ambientOcclusionTex, &uavDesc, &m_outputUAV);	
+
+	//ガウスブラー
+	m_gaussBlur.ResetSource(m_ambientOcclusionSRV);
 }
 
 void AmbientOcclusionRender::Render() {

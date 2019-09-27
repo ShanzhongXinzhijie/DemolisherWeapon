@@ -6,6 +6,8 @@ public:
 
 	virtual void Render()=0;
 	virtual void PostRender() {};
+
+	virtual void Resize() {};
 };
 
 class RanderManager {

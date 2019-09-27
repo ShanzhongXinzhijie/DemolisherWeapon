@@ -33,6 +33,15 @@ namespace DemolisherWeapon {
 		m_2dCamera.UpdateMatrix();
 	}
 
+	void PrimitiveRender::Resize() {
+		//2DƒJƒƒ‰Ä‰Šú‰»
+		m_2dCamera.SetPos({ GetGraphicsEngine().GetFrameBuffer_W() / 2.0f,-GetGraphicsEngine().GetFrameBuffer_H() / 2.0f,-(m_2dCamera.GetNear() + m_2dCamera.GetFar()) / 2.0f });
+		m_2dCamera.SetTarget({ GetGraphicsEngine().GetFrameBuffer_W() / 2.0f,-GetGraphicsEngine().GetFrameBuffer_H() / 2.0f,0.0f });
+		m_2dCamera.SetWidth(GetGraphicsEngine().GetFrameBuffer_W());
+		m_2dCamera.SetHeight(GetGraphicsEngine().GetFrameBuffer_H());
+		m_2dCamera.UpdateMatrix();
+	}
+
 	void PrimitiveRender::Render() {
 		if (!m_isDraw3D) { return; }
 

@@ -15,6 +15,8 @@ public:
 	void Init();
 	void Release();
 
+	void Resize();
+
 	void SetEnable(bool enable) {
 		m_isEnable = enable;
 	}

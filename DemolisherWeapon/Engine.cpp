@@ -162,6 +162,29 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	SetAmbientLight(initParam.defaultAmbientLight);
 }
 
+void Engine::ChangeWindowSize(int screenWidth, int screenHeight) {
+	//タイトルバーを含んだウィンドウサイズ算出
+	RECT rx; //ウィンドウ領域
+	RECT cx; //クライアント領域
+	GetWindowRect(m_hWnd, &rx);
+	GetClientRect(m_hWnd, &cx);
+	const int new_width = screenWidth + (rx.right - rx.left) - (cx.right - cx.left);
+	const int new_height = screenHeight + (rx.bottom - rx.top) - (cx.bottom - cx.top);
+
+	//プライマリモニタの作業領域の取得
+	RECT rect;
+	SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
+
+	//ウィンドウ位置・サイズ再設定
+	SetWindowPos(m_hWnd, NULL,
+		(rect.left + rect.right) / 2 - new_width / 2,
+		(rect.top + rect.bottom) / 2 - new_height / 2,
+		new_width, new_height, NULL);
+
+	//ウィンドウ情報の更新
+	UpdateWindow();
+}
+
 //Photonの初期化
 void Engine::InitPhoton(const ExitGames::Common::JString& appID, const ExitGames::Common::JString& appVersion, PhotonNetworkLogic::EventActionFunc eventAction) {
 	m_photon = std::make_unique<PhotonNetworkLogic>(appID, appVersion, eventAction);

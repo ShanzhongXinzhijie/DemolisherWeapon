@@ -7,6 +7,8 @@ CFinalRenderTarget::~CFinalRenderTarget() {
 	Release();
 }
 void CFinalRenderTarget::Init() {
+	Release();
+
 	//テクスチャ作成
 	D3D11_TEXTURE2D_DESC texDesc;
 	ZeroMemory(&texDesc, sizeof(texDesc));

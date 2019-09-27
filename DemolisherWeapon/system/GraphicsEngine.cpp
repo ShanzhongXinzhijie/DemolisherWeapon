@@ -83,13 +83,13 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	sd.BufferDesc.Width = (UINT)FRAME_BUFFER_W;			//フレームバッファの幅。
 	sd.BufferDesc.Height = (UINT)FRAME_BUFFER_H;		//フレームバッファの高さ。
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	//フレームバッファのフォーマット。R8G8B8A8の32bit。
-	sd.BufferDesc.RefreshRate.Numerator = initParam.refleshRate;	//モニタのリフレッシュレート。(バックバッファとフロントバッファを入れ替えるタイミングとなる。)
+	sd.BufferDesc.RefreshRate.Numerator = initParam.refleshRate;//モニタのリフレッシュレート。(バックバッファとフロントバッファを入れ替えるタイミングとなる。)
 	sd.BufferDesc.RefreshRate.Denominator = 1;			//２にしたら30fpsになる。1でいい。
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	//サーフェスまたはリソースを出力レンダー ターゲットとして使用します。
 	sd.OutputWindow = hWnd;								//出力先のウィンドウハンドル。
 	sd.SampleDesc.Count = 1;							//1でいい。
 	sd.SampleDesc.Quality = 0;							//MSAAなし。0でいい。
-	sd.Windowed = initParam.isWindowMode ? TRUE : FALSE;			//ウィンドウモード。TRUEでよい。
+	sd.Windowed = initParam.isWindowMode ? TRUE : FALSE;//ウィンドウモード。TRUEでよい。
 
 	//利用するDirectXの機能セット。
 	//この配列はD3D11CreateDeviceAndSwapChainの引数として使う。
@@ -189,6 +189,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	//画面分割用の比率に
 	FRAME_BUFFER_3D_W = (float)initParam.frameBufferWidth3D;
 	FRAME_BUFFER_3D_H = (float)initParam.frameBufferHeight3D;
+	m_isSplitScreen = initParam.isSplitScreen;
 	if (initParam.isSplitScreen == enVertical_TwoSplit) {
 		FRAME_BUFFER_3D_H *= 0.5f;
 	}
@@ -327,6 +328,72 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 #ifndef DW_MASTER
 	m_pd3dDeviceContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&m_pUserAnotation);
 #endif
+}
+
+void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBufferWidth3D, int frameBufferHeight3D) {
+	//サイズ変更
+	FRAME_BUFFER_W = (float)frameBufferWidth;
+	FRAME_BUFFER_H = (float)frameBufferHeight;
+	
+	//※スワップチェインを参照しているオブジェクトを削除してないとm_pSwapChain->ResizeBuffersができない
+	//バックバッファ死亡!!!死!!
+	if (m_backBuffer) { m_backBuffer->Release(); m_backBuffer = NULL; }
+
+	//スワップチェインサイズ変更
+	DXGI_SWAP_CHAIN_DESC sd;
+	m_pSwapChain->GetDesc(&sd);
+	HRESULT hr = m_pSwapChain->ResizeBuffers(0, (UINT)FRAME_BUFFER_W, (UINT)FRAME_BUFFER_H, sd.BufferDesc.Format, sd.Flags);
+
+	//バックバッファ再作成
+	ID3D11Texture2D* pBackBuffer = NULL;
+	m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
+	m_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_backBuffer);
+	pBackBuffer->Release();
+
+	//深度ステンシルの設定コピー
+	D3D11_TEXTURE2D_DESC texDesc;
+	m_depthStencil->GetDesc(&texDesc);
+	texDesc.Width = (UINT)FRAME_BUFFER_W;
+	texDesc.Height = (UINT)FRAME_BUFFER_H;	
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+	m_depthStencilView->GetDesc(&descDSV);
+	descDSV.Format = texDesc.Format;
+
+	//深度ステンシル死亡!!!死!!
+	if (m_depthStencil) { m_depthStencil->Release(); m_depthStencil = NULL; }
+	if (m_depthStencilView) { m_depthStencilView->Release(); m_depthStencilView = NULL; }
+	
+	//深度テクスチャ再作成
+	m_pd3dDevice->CreateTexture2D(&texDesc, NULL, &m_depthStencil);
+	//深度ステンシルビュー再作成
+	m_pd3dDevice->CreateDepthStencilView(m_depthStencil, &descDSV, &m_depthStencilView);
+
+	//ビューポートを初期化。
+	SetViewport(0.0f, 0.0f, FRAME_BUFFER_W, FRAME_BUFFER_H);
+
+	//画面分割用の比率に
+	FRAME_BUFFER_3D_W = (float)frameBufferWidth3D;
+	FRAME_BUFFER_3D_H = (float)frameBufferHeight3D;
+	if (m_isSplitScreen == enVertical_TwoSplit) {
+		FRAME_BUFFER_3D_H *= 0.5f;
+	}
+	if (m_isSplitScreen == enSide_TwoSplit) {
+		FRAME_BUFFER_3D_W *= 0.5f;
+	}
+	
+	//最終レンダーターゲット再初期化
+	m_FRT.Init();
+
+	//レンダーリサイズ
+	m_gbufferRender.Resize();
+	m_postDrawModelRender.Resize();
+	m_ambientOcclusionRender.Resize();
+	m_defferdRender.Resize();
+	m_bloomRender.Resize();	
+	m_DOFRender.Resize();	
+	m_motionBlurRender.Resize();	
+	m_ConvertLinearToSRGB.Resize();
+	m_primitiveRender.Resize();		
 }
 
 //描画先を最終レンダーターゲットにする

@@ -125,6 +125,11 @@ void GBufferRender::Release() {
 	m_depthStencilSRV->Release();
 }
 
+void GBufferRender::Resize() {
+	Release();
+	Init();
+}
+
 void GBufferRender::Render() {
 	//GPUイベントの開始
 	GetGraphicsEngine().BeginGPUEvent(L"GBufferRender");

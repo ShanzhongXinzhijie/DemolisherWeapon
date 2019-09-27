@@ -18,6 +18,12 @@ namespace DemolisherWeapon {
 		void Init(ID3D11ShaderResourceView*& souce, float dispersion, const CVector2& sampleScale = {-1.0f,-1.0f});
 
 		/// <summary>
+		/// ぼかし元を再設定
+		/// </summary>
+		/// <param name="souce">ぼかすシェーダーリソースビュー</param>
+		void ResetSource(ID3D11ShaderResourceView*& souce);
+
+		/// <summary>
 		/// 解放
 		/// </summary>
 		void Release();
@@ -62,6 +68,7 @@ namespace DemolisherWeapon {
 		SBlurParam m_blurParam;
 		ID3D11Buffer* m_cb = nullptr;
 		CVector2 m_sampleScale = { -1.0f,-1.0f };
+		CVector2 m_sampleScaleSetting = { -1.0f,-1.0f };
 
 		//サンプラー
 		ID3D11SamplerState* m_samplerState = nullptr;

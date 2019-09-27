@@ -10,6 +10,8 @@ namespace DemolisherWeapon {
 		InitRender() = default;
 
 		void Render()override;
+
+		void Resize()override {};
 	};
 
 }
