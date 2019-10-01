@@ -312,7 +312,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 #endif
 }
 
-void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBufferWidth3D, int frameBufferHeight3D, EnSplitScreenMode screenMode) {
+void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBufferWidth3D, int frameBufferHeight3D, EnSplitScreenMode screenMode, float* splitScreenSize) {
 	//サイズ変更
 	FRAME_BUFFER_W = (float)frameBufferWidth;
 	FRAME_BUFFER_H = (float)frameBufferHeight;
@@ -386,30 +386,42 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 
 	//画面分割変更
 	if (isChangeSplitScreen) {
+		
+		//再確保
 		m_finalRender[0].reset();
 		m_finalRender[1].reset();
 		m_cameraSwitchRender[0].reset();
 		m_cameraSwitchRender[1].reset();
 
 		if (m_isSplitScreen) {
+			//最終レンダーの確保
 			m_finalRender[0] = std::make_unique<FinalRender>();
 			m_finalRender[1] = std::make_unique<FinalRender>();
 
-			if (m_isSplitScreen == enVertical_TwoSplit) {
-				m_finalRender[1]->Init({ 0.0f,0.0f }, { 1.0f,0.5f });
-				m_finalRender[0]->Init({ 0.0f,0.5f }, { 1.0f,1.0f });
+			//スクリーンサイズ設定
+			if (splitScreenSize) {
+				m_finalRender[0]->Init({ splitScreenSize[0],splitScreenSize[1] }, { splitScreenSize[2],splitScreenSize[3] });
+				m_finalRender[1]->Init({ splitScreenSize[4],splitScreenSize[5] }, { splitScreenSize[6],splitScreenSize[7] });
 			}
-			if (m_isSplitScreen == enSide_TwoSplit) {
-				m_finalRender[0]->Init({ 0.0f,0.0f }, { 0.5f,1.0f });
-				m_finalRender[1]->Init({ 0.5f,0.0f }, { 1.0f,1.0f });
+			else {
+				if (m_isSplitScreen == enVertical_TwoSplit) {
+					m_finalRender[1]->Init({ 0.0f,0.0f }, { 1.0f,0.5f });
+					m_finalRender[0]->Init({ 0.0f,0.5f }, { 1.0f,1.0f });
+				}
+				if (m_isSplitScreen == enSide_TwoSplit) {
+					m_finalRender[0]->Init({ 0.0f,0.0f }, { 0.5f,1.0f });
+					m_finalRender[1]->Init({ 0.5f,0.0f }, { 1.0f,1.0f });
+				}
 			}
 
+			//カメラ切り替えレンダーの初期化
 			m_cameraSwitchRender[0] = std::make_unique<CameraSwitchRender>();
 			m_cameraSwitchRender[1] = std::make_unique<CameraSwitchRender>();
 			m_cameraSwitchRender[0]->Init(0);
 			m_cameraSwitchRender[1]->Init(1);
 		}
 		else {
+			//最終レンダーの初期化
 			m_finalRender[0] = std::make_unique<FinalRender>();
 			m_finalRender[0]->Init();
 		}
@@ -420,12 +432,22 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 
 			int offset = oneloopOffset * i;
 
-			if (m_isSplitScreen) {
-				//画面分割ならカメラ切り替え
-				m_renderManager.AddRender(0 + offset, m_cameraSwitchRender[i].get());
-			}
-			else {
+			//再確保組の再登録
+			{
+				//レンダーリストから削除
 				m_renderManager.DeleteRender(0 + offset);
+				m_renderManager.DeleteRender(1000 + offset);
+
+				//登録
+				if (m_isSplitScreen) {
+					//カメラ切り替え
+					m_renderManager.AddRender(0 + offset, m_cameraSwitchRender[i].get());
+				}
+				if (m_isSplitScreen || i == 0) {
+					//最終描画
+					m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());
+				}
+				
 			}
 
 			if (i == 0) { 
@@ -467,8 +489,6 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 				//BUlletPhysicsのデバッグ描画
 				m_renderManager.AddRender(999 + offset, &m_physicsDebugDrawRender);
 #endif
-				//最終描画
-				m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());
 			}
 			else {
 				//削除
@@ -505,8 +525,6 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 				//BUlletPhysicsのデバッグ描画
 				m_renderManager.DeleteRender(999 + offset);
 #endif
-				//最終描画
-				m_renderManager.DeleteRender(1000 + offset);
 			}
 		}
 	}
