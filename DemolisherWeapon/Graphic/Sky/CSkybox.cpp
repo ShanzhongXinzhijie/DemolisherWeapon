@@ -54,16 +54,15 @@ namespace GameObj {
 		if (size < 0.0f) { size = std::floor(GetMainCamera()->GetFar() * (1.0f/sqrt(3.0f))); }
 		m_skyModel.SetScale({ size / 50.0f, size / 50.0f, size / 50.0f });
 
+		//•`‰æ‘Oˆ—‚ðÝ’è
+		m_skyModel.GetSkinModel().SetPreCullingFunction(
+			[&](SkinModel* model) {
+				m_skyModel.SetPos(GetMainCamera()->GetPos());
+				m_skyModel.RefreshWorldMatrix();
+			}
+		);
+
 		m_isInit = true;
-	}
-
-	CSkybox::~CSkybox()
-	{
-	}
-
-	void CSkybox::Update() {
-		if (!m_isInit) { return; }
-		m_skyModel.SetPos(GetMainCamera()->GetPos());
 	}
 }
 }

@@ -47,16 +47,16 @@ private:
 	virtual void UpdateOldProjParameter() = 0;
 
 	//モーションブラー用の情報を計算
-	void CalcMBlurParameter() {
-		m_posOld.Lerp(MotionBlurScale, m_pos, m_posOld);
-		m_targetOld.Lerp(MotionBlurScale, m_target, m_targetOld);
-		m_upOld.Lerp(MotionBlurScale, m_up, m_upOld);
-		m_nearOld = CMath::Lerp(MotionBlurScale, m_near, m_nearOld);
-		m_farOld = CMath::Lerp(MotionBlurScale, m_far, m_farOld);
+	//void CalcMBlurParameter() {
+	//	m_posOld.Lerp(MotionBlurScale, m_pos, m_posOld);
+	//	m_targetOld.Lerp(MotionBlurScale, m_target, m_targetOld);
+	//	m_upOld.Lerp(MotionBlurScale, m_up, m_upOld);
+	//	m_nearOld = CMath::Lerp(MotionBlurScale, m_near, m_nearOld);
+	//	m_farOld = CMath::Lerp(MotionBlurScale, m_far, m_farOld);
 
-		m_viewMatOld.MakeLookAt(m_posOld, m_targetOld, m_upOld); //m_viewMatOld.Interpolate(m_viewMat, m_viewMatOld, MotionBlurScale, MotionBlurScale, MotionBlurScale);
-		CalcMBlurProjMatrix(m_projMatOld, MotionBlurScale);
-	}
+	//	m_viewMatOld.MakeLookAt(m_posOld, m_targetOld, m_upOld); //m_viewMatOld.Interpolate(m_viewMat, m_viewMatOld, MotionBlurScale, MotionBlurScale, MotionBlurScale);
+	//	CalcMBlurProjMatrix(m_projMatOld, MotionBlurScale);
+	//}
 	virtual void CalcMBlurProjMatrix(CMatrix& projMOld, float rate) = 0;
 
 	//視錐台の6平面の計算
