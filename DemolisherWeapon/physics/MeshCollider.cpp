@@ -82,6 +82,14 @@ namespace DemolisherWeapon {
 				m_indexBufferArray.push_back(std::move(indexBuffer));
 			}
 
+			//この辺使わなくていいのか?
+			//https://social.msdn.microsoft.com/Forums/ja-JP/cb07dac2-67f9-4f4a-b779-c29af14705d4/fbx1239812514124871252312487125401247912398indexbuffer12364274912412?forum=xnagameja
+			//https://github.com/microsoft/DirectXTK/wiki/ModelMeshPart
+			/*mesh->indexCount;
+			mesh->startIndex;
+			mesh->vertexOffset;
+			mesh->vertexStride;*/
+
 			//インデックスメッシュを作成。
 			btIndexedMesh indexedMesh;
 			IndexBuffer* ib = m_indexBufferArray.back().get();
