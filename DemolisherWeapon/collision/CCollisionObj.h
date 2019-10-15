@@ -42,6 +42,8 @@ public:
 
 		const btManifoldPoint* m_contactPoint = nullptr;//接触点とか情報
 
+		bool m_isCCollisionObj = true;
+
 		//名前が一致するか判定
 		bool EqualName(const wchar_t* name) {
 			return m_nameKey == Util::MakeHash(name);
@@ -223,6 +225,15 @@ public:
 		m_mask = 0;
 	}
 
+	//静的オブジェクトと判定するか設定
+	void SetIsCollisionStaticObject(bool isCollision) {
+		m_isCollisionStaticObject = isCollision;
+	}
+	//静的オブジェクトと判定するか取得
+	bool GetIsCollisionStaticObject()const {
+		return m_isCollisionStaticObject; 
+	}
+
 	void PostUpdate()override {
 		//実行順がCollisionObjManagerより遅いからできる処理
 		m_isregistered = false;
@@ -303,9 +314,13 @@ private:
 	
 	int m_lifespan = 0;//寿命
 
+	bool m_isCollisionStaticObject = false; //静的オブジェクトと判定するか
+
+	//判定ビットマスク
 	unsigned int m_group = 0;
 	unsigned int m_mask = 0;// 0xFFFFFFFF;//すべて1
 
+	//名前
 	int m_nameKey = 0;
 	std::wstring m_name;
 
