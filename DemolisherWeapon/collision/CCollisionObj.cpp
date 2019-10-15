@@ -53,10 +53,86 @@ namespace Suicider {
 
 		const btGhostObject dummy;//ダミー用
 
+		bool NeedsCollision(btBroadphaseProxy* proxy0, RegColObj* RegiObjA, short int	m_collisionFilterGroup, short int	m_collisionFilterMask) {
+			//削除されてないか?
+			if (proxy0 == nullptr || !RegiObjA->m_isEnable) {
+				return false;
+			}
+
+			//Bulletのマスク判定
+			bool collides = (proxy0->m_collisionFilterGroup & m_collisionFilterMask) != 0;
+			collides = collides && (m_collisionFilterGroup & proxy0->m_collisionFilterMask);
+			if (!collides) { return false; }
+
+			//CCollisionObjでなければここでtrue
+			if (!(proxy0->m_collisionFilterGroup & CCollisionObjFilter)) {
+				return true;
+			}
+
+			Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)((btCollisionObject*)proxy0->m_clientObject)->getUserPointer();
+
+			//登録無効化されてないか?
+			if (!ObjB->IsEnable() || !RegiObjA->m_CObj->IsEnable()) {
+				return false;
+			}
+
+			//Aがハイスピードじゃなくて…
+			if (!RegiObjA->m_CObj->GetIsHighSpeed()) {
+				//このループで既に実行した組み合わせか?
+				//Bがくらい判定じゃなくて過去に処理実行してたらreturn
+				if (ObjB->GetContactTestEnable() && RegiObjA->m_CObj->GetIndex() > ObjB->GetIndex()) {
+					return false;
+				}
+			}
+
+			//マスク判定
+			if (!(Masking(RegiObjA->m_CObj->GetGroup(), ObjB->GetMask()) && Masking(ObjB->GetGroup(), RegiObjA->m_CObj->GetMask()))) {
+				return false;
+			}
+
+			return true;
+		}
+
+		void AddSingleResult(Suicider::CCollisionObj* ObjA, Suicider::CCollisionObj* ObjB, const CVector3& hitPos){
+			bool old_hanteingA;
+			bool old_hanteingB;
+
+			if (ObjA) {
+				old_hanteingA = ObjA->GetHanteing();
+				ObjA->SetHanteing(true);
+			}
+			if (ObjB) {
+				old_hanteingB = ObjB->GetHanteing();
+				ObjB->SetHanteing(true);
+			}
+
+			if (ObjA && ObjB) {
+				//各々処理実行
+				Suicider::CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false, true, hitPos };
+				ObjA->RunCallback(paramB);
+				Suicider::CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true, true, hitPos };
+				ObjB->RunCallback(paramA);
+			}
+			else {
+				if (ObjA) {
+					Suicider::CCollisionObj::SCallbackParam param = { -1, nullptr, nullptr, dummy, nullptr, false, false, hitPos };
+					ObjA->RunCallback(param);
+				}
+				else if (ObjB) {
+					Suicider::CCollisionObj::SCallbackParam param = { -1, nullptr, nullptr, dummy, nullptr, true, false, hitPos };
+					ObjB->RunCallback(param);
+				}
+			}
+
+			if (ObjA) { ObjA->SetHanteing(old_hanteingA); }
+			if (ObjB) { ObjB->SetHanteing(old_hanteingB); }
+		}
+
 		struct ObjManagerCallback : public btCollisionWorld::ContactResultCallback
 		{
 			RegColObj* RegiObjA = nullptr;
 
+			//コンストラクタ
 			ObjManagerCallback(RegColObj* A, bool isCollisionStaticObject) : RegiObjA(A) {
 				if (isCollisionStaticObject) {
 					m_collisionFilterMask = CCollisionObjFilter | btBroadphaseProxy::StaticFilter;//CCollisionObjと静的オブジェクトのみ判定
@@ -65,95 +141,36 @@ namespace Suicider {
 					m_collisionFilterMask = CCollisionObjFilter;//CCollisionObjとのみ判定
 				}
 				m_collisionFilterGroup = btBroadphaseProxy::StaticFilter | CCollisionObjFilter;
-			};
+			}
 
 			//判定するかどうか判定する
 			bool needsCollision(btBroadphaseProxy* proxy0) const override
 			{
-				//削除されてないか?
-				if (proxy0 == nullptr || !RegiObjA->m_isEnable) {
-					return false;
-				}
-
-				//Bulletのマスク判定
-				bool collides = (proxy0->m_collisionFilterGroup & m_collisionFilterMask) != 0;
-				collides = collides && (m_collisionFilterGroup & proxy0->m_collisionFilterMask);
-				if (!collides) { return false; }
-				
-				//CCollisionObjでなければここでtrue
-				if (!(proxy0->m_collisionFilterGroup & CCollisionObjFilter)) {
-					return true;
-				}
-
-				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)((btCollisionObject*)proxy0->m_clientObject)->getUserPointer();
-				
-				//登録無効化されてないか?
-				if (!ObjB->IsEnable() || !RegiObjA->m_CObj->IsEnable()) {
-					return false;
-				}
-				
-				//このループで既に実行した組み合わせか?
-				if (ObjB->GetContactTestEnable() && RegiObjA->m_CObj->GetIndex() > ObjB->GetIndex()) {
-					return false;
-				}
-
-				//マスク判定
-				if (!(Masking(RegiObjA->m_CObj->GetGroup(), ObjB->GetMask()) && Masking(ObjB->GetGroup(), RegiObjA->m_CObj->GetMask()))) {
-					return false;
-				}
-
-				return true;
-			};
+				return NeedsCollision(proxy0, RegiObjA, m_collisionFilterGroup, m_collisionFilterMask);
+			}
 
 			//接触の数だけ実行される
 			btScalar addSingleResult(btManifoldPoint& cp, const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0, const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1)override
 			{
 				Suicider::CCollisionObj* ObjA = nullptr; 
-				bool old_hanteingA;
-
 				if (colObj0Wrap->getCollisionObject()->getUserIndex() == enCollisionAttr_CCollisionObj) {
 					ObjA = (Suicider::CCollisionObj*)(colObj0Wrap->getCollisionObject()->getUserPointer());
-					old_hanteingA = ObjA->GetHanteing();
-					ObjA->SetHanteing(true);
 				}
-
 				Suicider::CCollisionObj* ObjB = nullptr; 
-				bool old_hanteingB;
-
 				if (colObj1Wrap->getCollisionObject()->getUserIndex() == enCollisionAttr_CCollisionObj) {
 					ObjB = (Suicider::CCollisionObj*)(colObj1Wrap->getCollisionObject()->getUserPointer());
-					old_hanteingB = ObjB->GetHanteing();
-					ObjB->SetHanteing(true);
 				}
 				
-				if (ObjA && ObjB) {
-					//各々処理実行
-					Suicider::CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false, &cp, true };
-					ObjA->RunCallback(paramB);
-					Suicider::CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true, &cp, true };
-					ObjB->RunCallback(paramA);
-				}
-				else {
-					if (ObjA) {
-						Suicider::CCollisionObj::SCallbackParam param = { -1, nullptr, nullptr, dummy, nullptr, false, &cp, false };
-						ObjA->RunCallback(param);
-					}
-					else if (ObjB) {
-						Suicider::CCollisionObj::SCallbackParam param = { -1, nullptr, nullptr, dummy, nullptr, true, &cp, false };
-						ObjB->RunCallback(param);
-					}
-				}
-				
-				if (ObjA) { ObjA->SetHanteing(old_hanteingA); }
-				if (ObjB) { ObjB->SetHanteing(old_hanteingB); }
+				AddSingleResult(ObjA, ObjB, (cp.getPositionWorldOnA()+cp.getPositionWorldOnB())/2.0f);
 
 				return 0.0f;
-			};
+			}
 		};
 		struct ObjManagerConvexCallback : public btCollisionWorld::ConvexResultCallback
 		{
 			RegColObj* RegiObjA = nullptr;
 
+			//コンストラクタ
 			ObjManagerConvexCallback(RegColObj* A, bool isCollisionStaticObject) : RegiObjA(A) {
 				if (isCollisionStaticObject) {
 					m_collisionFilterMask = CCollisionObjFilter | btBroadphaseProxy::StaticFilter;//CCollisionObjと静的オブジェクトのみ判定
@@ -167,61 +184,23 @@ namespace Suicider {
 			//判定するかどうか判定する
 			bool needsCollision(btBroadphaseProxy* proxy0) const override
 			{
-				//削除されてないか?
-				if (proxy0 == nullptr || !RegiObjA->m_isEnable) {
+				//じぶんでない
+				if ((btCollisionObject*)proxy0->m_clientObject == (btCollisionObject*)&(RegiObjA->m_CObj->GetCollisionObject())) {
 					return false;
 				}
-
-				//Bulletのマスク判定
-				bool collides = (proxy0->m_collisionFilterGroup & m_collisionFilterMask) != 0;
-				collides = collides && (m_collisionFilterGroup & proxy0->m_collisionFilterMask);
-				if (!collides) { return false; }
-
-				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)((btCollisionObject*)proxy0->m_clientObject)->getUserPointer();
-
-				//自分でない
-				if (RegiObjA->m_CObj == ObjB) {
-					return false;
-				}
-
-				//登録無効化されてないか?
-				if (!ObjB->IsEnable() || !RegiObjA->m_CObj->IsEnable()) {
-					return false;
-				}
-
-				//このループで既に実行した組み合わせか?
-				if (ObjB->GetContactTestEnable() && RegiObjA->m_CObj->GetIndex() > ObjB->GetIndex()) {
-					return false;
-				}
-
-				//マスク判定
-				if (!(Masking(RegiObjA->m_CObj->GetGroup(), ObjB->GetMask()) && Masking(ObjB->GetGroup(), RegiObjA->m_CObj->GetMask()))) {
-					return false;
-				}
-
-				return true;
+				return NeedsCollision(proxy0, RegiObjA, m_collisionFilterGroup, m_collisionFilterMask);
 			};
 
 			//接触の数だけ実行される
 			btScalar addSingleResult(btCollisionWorld::LocalConvexResult& convexResult, bool normalInWorldSpace)override
 			{				
-				Suicider::CCollisionObj* ObjA = RegiObjA->m_CObj;
-				Suicider::CCollisionObj* ObjB = (Suicider::CCollisionObj*)(convexResult.m_hitCollisionObject->getUserPointer());
+				Suicider::CCollisionObj* ObjA = nullptr; ObjA = RegiObjA->m_CObj;
+				Suicider::CCollisionObj* ObjB = nullptr; 
+				if (convexResult.m_hitCollisionObject->getUserIndex() == enCollisionAttr_CCollisionObj) {
+					ObjB = (Suicider::CCollisionObj*)(convexResult.m_hitCollisionObject->getUserPointer());
+				}
 
-				bool old_hanteingA = ObjA->GetHanteing();
-				bool old_hanteingB = ObjB->GetHanteing();
-
-				ObjA->SetHanteing(true);
-				ObjB->SetHanteing(true);
-
-				//各々処理実行
-				Suicider::CCollisionObj::SCallbackParam paramB = { ObjB->GetNameKey(), ObjB->GetName(), ObjB->GetPointer(), ObjB->GetCollisionObject(), ObjB->GetClass(), false };
-				ObjA->RunCallback(paramB);
-				Suicider::CCollisionObj::SCallbackParam paramA = { ObjA->GetNameKey(), ObjA->GetName(), ObjA->GetPointer(), ObjA->GetCollisionObject(), ObjA->GetClass(), true };
-				ObjB->RunCallback(paramA);
-
-				ObjA->SetHanteing(old_hanteingA);
-				ObjB->SetHanteing(old_hanteingB);
+				AddSingleResult(ObjA, ObjB, convexResult.m_hitPointLocal);
 
 				return 0.0f;
 			};
@@ -237,11 +216,15 @@ namespace Suicider {
 
 			ObjA->SetHanteing(true);//判定中!
 
-			ObjManagerCallback callback(&(*itr), ObjA->GetIsCollisionStaticObject());
-			GetPhysicsWorld().ContactTest(&ObjA->GetCollisionObject(), callback);
-			//ObjManagerConvexCallback callback(&(*itr));
-			//GetPhysicsWorld().ConvexSweepTest((const btConvexShape*)ObjA->GetCollisionObject().getCollisionShape(), ObjA->GetBtOldTrans(), ObjA->GetCollisionObject().getWorldTransform(), callback);
-
+			if (ObjA->GetIsHighSpeed()) {
+				ObjManagerConvexCallback callback(&(*itr), ObjA->GetIsCollisionStaticObject());
+				GetPhysicsWorld().ConvexSweepTest((const btConvexShape*)ObjA->GetCollisionObject().getCollisionShape(), ObjA->GetBtOldTrans(), ObjA->GetCollisionObject().getWorldTransform(), callback);
+			}
+			else {
+				ObjManagerCallback callback(&(*itr), ObjA->GetIsCollisionStaticObject());
+				GetPhysicsWorld().ContactTest(&ObjA->GetCollisionObject(), callback);
+			}
+			
 			ObjA->SetHanteing(false);//判定終わり
 		}
 		for (auto& reg : m_colObjList) {

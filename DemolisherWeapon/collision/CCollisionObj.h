@@ -39,10 +39,9 @@ public:
 		const btGhostObject&  m_ghostObject;
 		IDW_Class* m_classPtr;		
 		const bool m_isA;//あたった相手がAか?
+		bool m_isCCollisionObj = true;//これはCCollisionObjか?
 
-		const btManifoldPoint* m_contactPoint = nullptr;//接触点とか情報
-
-		bool m_isCCollisionObj = true;
+		CVector3 m_collisionPoint;//衝突位置(かなり雑かも)
 
 		//名前が一致するか判定
 		bool EqualName(const wchar_t* name) {
@@ -130,6 +129,14 @@ public:
 	//喰らい判定かどうか設定
 	void SetIsHurtCollision(bool isHurtCol) {
 		SetContactTestEnable(!isHurtCol);
+	}
+
+	//高速で動く判定かどうか設定
+	void SetIsHighSpeed(bool isHighSpeed) {
+		m_isHighSpeed = isHighSpeed;
+	}
+	bool GetIsHighSpeed()const {
+		return m_isHighSpeed;
 	}
 
 	/*!
@@ -315,6 +322,7 @@ private:
 	int m_lifespan = 0;//寿命
 
 	bool m_isCollisionStaticObject = false; //静的オブジェクトと判定するか
+	bool m_isHighSpeed = false; //動くスピードが速いか?
 
 	//判定ビットマスク
 	unsigned int m_group = 0;
