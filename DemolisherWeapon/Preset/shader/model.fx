@@ -42,6 +42,11 @@ Texture2D<float4> LightingTexture : register(t2);
 Texture2D<float> TranslucentTexture : register(t11);
 #endif
 
+#if defined(SOFT_PARTICLE)
+//デプスバッファ
+Texture2D<float> DepthTexture : register(t12);
+#endif
+
 //ストラクチャーバッファ
 
 //ボーン行列
@@ -92,6 +97,12 @@ cbuffer VSPSCb : register(b0){
 	//インポスター用
 	int2 imposterPartNum;//分割数
 	float2 imposterParameter;//x:スケール,y:Y軸回転
+
+    //カメラのNear(x)・Far(y)
+	float2 nearFar;
+
+	//ソフトパーティクルが有効になる範囲
+    float softParticleArea;
 };
 
 //定数バッファ　[MaterialSetting.h:MaterialParam]
@@ -118,7 +129,7 @@ struct VSInputNmTxVcTangent
     float4 Position : SV_Position;			//頂点座標。
     float3 Normal   : NORMAL;				//法線。
     float3 Tangent  : TANGENT;				//接ベクトル。
-	//float3 Binormal : BINORMAL;				//従法線。
+	//float3 Binormal : BINORMAL;			//従法線。
     float2 TexCoord : TEXCOORD0;			//UV座標。
 };
 /*!
@@ -130,7 +141,7 @@ struct VSInputNmTxWeights
     float3 Normal   : NORMAL;				//法線。
     float2 TexCoord	: TEXCOORD0;			//UV座標。
     float3 Tangent	: TANGENT;				//接ベクトル。
-	//float3 Binormal : BINORMAL;				//従法線。
+	//float3 Binormal : BINORMAL;			//従法線。
 	uint4  Indices  : BLENDINDICES0;		//この頂点に関連付けされているボーン番号。x,y,z,wの要素に入っている。4ボーンスキニング。
     float4 Weights  : BLENDWEIGHT0;			//この頂点に関連付けされているボーンへのスキンウェイト。x,y,z,wの要素に入っている。4ボーンスキニング。
 };
@@ -629,22 +640,49 @@ float4 PSMain_RenderZ(ZPSInput In) : SV_Target0
 }
 #endif
 
+//デプス値を線形に変換
+float LinearizeDepth(float depth, float near, float far)
+{
+    return (2.0 * near) / (far + near - depth * (far - near));
+}
+
+//素材の味シェーダ
+float4 SozaiNoAziInner(PSInput In)
+{
+    float4 Out;
+
+#if defined(TEXTURE)
+	Out = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset) * albedoScale;
+#else
+    Out = albedoScale;
+#endif
+	
+//ソフトパーティクル
+#if defined(SOFT_PARTICLE)
+	//モデル深度値算出
+    float depth = LinearizeDepth(In.curPos.z / In.curPos.w + depthBias.x, nearFar.x, nearFar.y);
+	//書き込み先深度値算出
+    float2 coord = In.curPos.xy * float2(0.5f, -0.5f) + 0.5f;
+    float screenDepth = LinearizeDepth(DepthTexture.Sample(Sampler, coord), nearFar.x, nearFar.y);
+	//深度の差算出
+    depth = distance(depth, screenDepth);
+	//深度の差がm_Length以下なら透明化
+    if (depth <= softParticleArea)
+    {
+        depth /= softParticleArea;
+        Out.a *= depth;
+    }
+#endif
+
+    return Out;
+}
 //モデルのアルベドをそのまま出すシェーダ
 float4 PSMain_SozaiNoAzi(PSInput In) : SV_Target0{
-#if defined(TEXTURE)
-	return albedoTexture.Sample(Sampler, In.TexCoord + uvOffset) * albedoScale;
-#else
-	return albedoScale;
-#endif
+    return SozaiNoAziInner(In);
 }
 //乗算済みアルファに変換する版
 float4 PSMain_SozaiNoAzi_ConvertToPMA(PSInput In) : SV_Target0{
-	float4 color;
-#if defined(TEXTURE)
-	color = albedoTexture.Sample(Sampler, In.TexCoord + uvOffset) * albedoScale;
-#else
-	color = albedoScale;
-#endif
+    float4 color = SozaiNoAziInner(In);
 	color.rgb *= color.a;
 	return color;
 }

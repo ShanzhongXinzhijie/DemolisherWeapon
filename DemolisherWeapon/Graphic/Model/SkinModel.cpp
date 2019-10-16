@@ -307,6 +307,10 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		vsCb.imposterParameter[0] = m_imposterScale;//スケール
 		vsCb.imposterParameter[1] = m_imposterRotY;//Y軸回転
 
+		//カメラのNear・Far
+		vsCb.nearFar.x = GetMainCamera()->GetNear();
+		vsCb.nearFar.y = GetMainCamera()->GetFar();
+
 		//定数バッファ更新
 		d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
 	}
@@ -334,7 +338,9 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	}
 
 	//ユーザー設定の描画前処理実行
-	if (m_preDrawFunc) { m_preDrawFunc(this); }
+	for (auto& func : m_preDrawFunc) {
+		func(this);
+	}
 
 	//面の向き
 	D3D11_CULL_MODE cullMode = m_cull;

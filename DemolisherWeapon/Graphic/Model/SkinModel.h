@@ -289,7 +289,7 @@ public:
 	}
 	//描画前に行う処理を設定
 	void SetPreDrawFunction(std::function<void(SkinModel*)> func) {
-		m_preDrawFunc = func;
+		m_preDrawFunc.push_back(func);
 	}
 
 	//FBXの設定取得
@@ -353,6 +353,14 @@ private:
 		//インポスター用
 		int imposterPartNum[2];//分割数
 		float imposterParameter[2];//x:スケール,y:Y軸回転
+		
+		//カメラのNear(x)・Far(y)
+		CVector2 nearFar;
+
+		//ソフトパーティクルが有効になる範囲
+		//TODO
+		//デプスバッファとシェーダ設定
+		float softParticleArea = 0.02f;
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
@@ -399,7 +407,7 @@ private:
 
 	//ユーザー設定の処理
 	std::function<void(SkinModel*)> m_preCullingFunc = nullptr;//カリング前に実行
-	std::function<void(SkinModel*)> m_preDrawFunc = nullptr;//描画前に実行
+	std::list<std::function<void(SkinModel*)>> m_preDrawFunc;//描画前に実行
 
 	static SkinModelDataManager m_skinModelDataManager;
 };
