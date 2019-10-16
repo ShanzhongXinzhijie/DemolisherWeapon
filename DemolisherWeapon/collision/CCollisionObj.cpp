@@ -10,6 +10,7 @@ namespace Suicider {
 
 	void CCollisionObj::Release()
 	{
+		//物理エンジンから削除
 		if (m_isRegistPhysicsWorld == true) {
 			GetEngine().GetPhysicsWorld().RemoveCollisionObject(m_ghostObject);
 			m_isRegistPhysicsWorld = false;
@@ -18,21 +19,30 @@ namespace Suicider {
 
 	void CCollisionObj::CreateCommon(const CVector3& pos, const CQuaternion& rot)
 	{
+		//ゴーストオブジェクトの設定
 		m_ghostObject.setCollisionShape(m_collider->GetBody());
 		m_ghostObject.setCollisionFlags(m_ghostObject.getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
 		m_ghostObject.setUserIndex(enCollisionAttr_CCollisionObj);
+		m_ghostObject.setUserPointer(this);
+		
+		//トランスフォームの設定
 		btTransform btTrans;
 		btTrans.setOrigin({ pos.x, pos.y, pos.z });
 		btTrans.setRotation({ rot.x, rot.y, rot.z, rot.w });
 		m_ghostObject.setWorldTransform(btTrans);
 		m_btOldTrans = m_ghostObject.getWorldTransform();
-
-		m_ghostObject.setUserPointer(this);
+		
+		//衝突マスク
+		short int mask = btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter;
+		if (!m_isStaticObj) {
+			mask = CCollisionObjFilter;
+		}
 
 		//物理エンジンに登録
-		GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject, btBroadphaseProxy::StaticFilter | CCollisionObjFilter, CCollisionObjFilter);// btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter ^ CCollisionObjFilter);
+		GetEngine().GetPhysicsWorld().AddCollisionObject(m_ghostObject, btBroadphaseProxy::StaticFilter | CCollisionObjFilter, mask);
 		m_isRegistPhysicsWorld = true;
 
+		//初期化完了
 		m_isInit = true;
 	}
 

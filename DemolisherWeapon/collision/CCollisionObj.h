@@ -241,6 +241,12 @@ public:
 		return m_isCollisionStaticObject; 
 	}
 
+	//このあたり判定を静的オブジェクトとしても初期化するか設定
+	//※当たり判定形状を作成する前に設定してください
+	void SetIsStaticObject(bool isStatic) {
+		m_isStaticObj = isStatic;
+	}
+
 	void PostUpdate()override {
 		//実行順がCollisionObjManagerより遅いからできる処理
 		m_isregistered = false;
@@ -337,6 +343,7 @@ private:
 
 	btGhostObject m_ghostObject;
 	btTransform m_btOldTrans;
+	bool m_isStaticObj = false;//静的オブジェクトでもあるか?
 
 	std::function<void(SCallbackParam&)> m_callback = nullptr;
 };
