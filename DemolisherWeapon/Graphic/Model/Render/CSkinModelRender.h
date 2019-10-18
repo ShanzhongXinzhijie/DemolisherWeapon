@@ -125,53 +125,13 @@ public:
 	bool GetIsDrawReverse()const { return m_isDrawReverse; }
 
 	//ポストドロー描画を初期化
-	void InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA = false) {
-		m_isPostDraw = true; m_postDrawBlendMode = blendMode;
-
-		//シェーダ読み込み
-		if (!m_loadedShaderSNA || m_shaderSNAIsConvertPMA != !isPMA) {
-			m_loadedShaderSNA = true; m_shaderSNAIsConvertPMA = !isPMA;
-			if (m_shaderSNAIsConvertPMA) {
-				//乗算済みアルファに変換する
-				D3D_SHADER_MACRO macros[] = { "TEXTURE", "1", NULL, NULL };
-				m_psSozaiNoAzi.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi_ConvertToPMA", Shader::EnType::PS);
-				m_psSozaiNoAziTex.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi_ConvertToPMA", Shader::EnType::PS, "TEXTURE", macros);
-			}
-			else {
-				//通常
-				D3D_SHADER_MACRO macros[] = { "TEXTURE", "1", NULL, NULL };
-				m_psSozaiNoAzi.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi", Shader::EnType::PS);
-				m_psSozaiNoAziTex.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi", Shader::EnType::PS, "TEXTURE", macros);
-			}
-		}
-		//シェーダ設定
-		GetSkinModel().FindMaterialSetting(
-			[&](MaterialSetting* mat) {
-				//ピクセルシェーダ
-				if (mat->GetAlbedoTexture()) {
-					mat->SetPS(&m_psSozaiNoAziTex);//テクスチャあり
-				}
-				else {
-					mat->SetPS(&m_psSozaiNoAzi);//テクスチャなし
-				}
-				//頂点シェーダ
-				//mat->SetVS(mat->GetVSZ());//深度値出力のものを使う
-			}
-		);
-	}
+	void InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA = false, bool isSoftParticle = false);
 
 	//シャドウマップへの描画を行うか設定
 	void SetIsShadowCaster(bool flag) { m_isShadowCaster = flag; }
 	//シャドウマップの描画時に面を反転させるか設定
 	void SetIsShadowDrawReverse(bool flag) { m_isShadowDrawReverse = flag; }
 	bool GetIsShadowDrawReverse()const { return m_isShadowDrawReverse; }
-	//シャドウマップ描画前後で行う処理を設定
-	/*void SetShadowMapPrePost(std::unique_ptr<ShadowMapRender::IPrePost>&& prepost) {
-		m_shadowMapPrePost = std::move(prepost);
-	}
-	ShadowMapRender::IPrePost* GetShadowMapPrePost()const {
-		return m_shadowMapPrePost.get();
-	}*/
 
 	//バウンディングボックスを表示するか設定
 	void SetIsDrawBoundingBox(bool enable) { m_isDrawBoundingBox = enable; }
@@ -247,6 +207,7 @@ private:
 	Shader m_psSozaiNoAzi, m_psSozaiNoAziTex;
 	bool m_loadedShaderSNA = false;			//素材の味シェーダはロード済みか?
 	bool m_shaderSNAIsConvertPMA = false;	//素材の味シェーダは乗算済みアルファ変換版か?
+	bool m_shaderSNAIsSoftParticle = false;	//素材の味シェーダはソフトパーティクル版か?
 
 	//std::unique_ptr<ShadowMapRender::IPrePost> m_shadowMapPrePost;
 

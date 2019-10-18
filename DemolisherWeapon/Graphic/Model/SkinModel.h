@@ -291,6 +291,10 @@ public:
 	void SetPreDrawFunction(std::function<void(SkinModel*)> func) {
 		m_preDrawFunc.push_back(func);
 	}
+	//描画後に行う処理を設定
+	void SetPostDrawFunction(std::function<void(SkinModel*)> func) {
+		m_postDrawFunc.push_back(func);
+	}
 
 	//FBXの設定取得
 	[[nodiscard]]
@@ -358,8 +362,6 @@ private:
 		CVector2 nearFar;
 
 		//ソフトパーティクルが有効になる範囲
-		//TODO
-		//デプスバッファとシェーダ設定
 		float softParticleArea = 0.02f;
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
@@ -408,6 +410,7 @@ private:
 	//ユーザー設定の処理
 	std::function<void(SkinModel*)> m_preCullingFunc = nullptr;//カリング前に実行
 	std::list<std::function<void(SkinModel*)>> m_preDrawFunc;//描画前に実行
+	std::list<std::function<void(SkinModel*)>> m_postDrawFunc;//描画後に実行
 
 	static SkinModelDataManager m_skinModelDataManager;
 };

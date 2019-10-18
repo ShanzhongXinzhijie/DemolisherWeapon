@@ -36,7 +36,7 @@ enum EnSkinModelSRVReg{
 
 	enSkinModelSRVReg_TranslucentTexture,		//トランスルーセントマップ
 
-	enSkinModelSRVReg_DepthTexture,				//デプスバッファ
+	enSkinModelSRVReg_ViewPosTexture,			//ビュー座標テクスチャ
 
 	enSkinModelSRVReg_Free2 = 60,				//ここから使ってない
 };

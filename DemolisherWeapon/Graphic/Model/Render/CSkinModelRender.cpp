@@ -1,5 +1,6 @@
 #include "DWstdafx.h"
 #include "CSkinModelRender.h"
+#include "Graphic/Model/SkinModelShaderConst.h"
 
 namespace DemolisherWeapon {
 namespace GameObj {
@@ -128,6 +129,68 @@ void CSkinModelRender::Init(const wchar_t* filePath,
 	}
 
 	m_isInit = true;
+}
+
+void CSkinModelRender::InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA, bool isSoftParticle) {
+	m_isPostDraw = true; m_postDrawBlendMode = blendMode;
+
+	//シェーダ読み込み
+	if (!m_loadedShaderSNA || m_shaderSNAIsConvertPMA != !isPMA || m_shaderSNAIsSoftParticle != isSoftParticle) {
+		m_loadedShaderSNA = true; m_shaderSNAIsConvertPMA = !isPMA; m_shaderSNAIsSoftParticle = isSoftParticle;
+
+		//マクロ
+		D3D_SHADER_MACRO macros[3] = { NULL,NULL,NULL,NULL,NULL,NULL }, macrosTex[3] = { "TEXTURE","1",NULL,NULL,NULL,NULL };
+		char shaderName[64] = "DEFAULT", shaderNameTex[64] = "TEXTURE";
+		//ソフトパーティクル設定
+		if (m_shaderSNAIsSoftParticle) {
+			macros[0].Name = "SOFT_PARTICLE";
+			macros[0].Definition = "1";
+			strcpy_s(shaderName, "SOFT_PARTICLE");
+			macrosTex[1].Name = "SOFT_PARTICLE";
+			macrosTex[1].Definition = "1";
+			strcpy_s(shaderNameTex, "TEXTURE+SOFT_PARTICLE");
+		}
+
+		if (m_shaderSNAIsConvertPMA) {
+			//乗算済みアルファに変換する
+			m_psSozaiNoAzi.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi_ConvertToPMA", Shader::EnType::PS, shaderName, macros);
+			m_psSozaiNoAziTex.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi_ConvertToPMA", Shader::EnType::PS, shaderNameTex, macrosTex);
+		}
+		else {
+			//通常
+			m_psSozaiNoAzi.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi", Shader::EnType::PS, shaderName, macros);
+			m_psSozaiNoAziTex.Load("Preset/shader/model.fx", "PSMain_SozaiNoAzi", Shader::EnType::PS, shaderNameTex, macrosTex);
+		}
+	}
+	//シェーダ設定
+	GetSkinModel().FindMaterialSetting(
+		[&](MaterialSetting* mat) {
+			//ピクセルシェーダ
+			if (mat->GetAlbedoTexture()) {
+				mat->SetPS(&m_psSozaiNoAziTex);//テクスチャあり
+			}
+			else {
+				mat->SetPS(&m_psSozaiNoAzi);//テクスチャなし
+			}
+		}
+	);
+	//ソフトパーティクル設定
+	if (isSoftParticle) {
+		//TODO めちゃくちゃ何回も設定してる
+		//デプスバッファを設定
+		GetSkinModel().SetPreDrawFunction(
+			[&](SkinModel*) {
+				GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(enSkinModelSRVReg_ViewPosTexture, 1, &GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferPosition));
+			}
+		);
+		//デプスバッファを解除
+		GetSkinModel().SetPostDrawFunction(
+			[&](SkinModel*) {
+				ID3D11ShaderResourceView* view[] = { NULL };
+				GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(enSkinModelSRVReg_ViewPosTexture, 1, view);
+			}
+		);
+	}
 }
 
 }
