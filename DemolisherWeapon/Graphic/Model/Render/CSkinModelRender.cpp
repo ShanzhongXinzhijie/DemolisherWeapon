@@ -131,8 +131,10 @@ void CSkinModelRender::Init(const wchar_t* filePath,
 	m_isInit = true;
 }
 
-void CSkinModelRender::InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA, bool isSoftParticle) {
+void CSkinModelRender::InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA, bool isSoftParticle, float softParticleArea) {
 	m_isPostDraw = true; m_postDrawBlendMode = blendMode;
+
+	bool oldIsSoftParticle = m_shaderSNAIsSoftParticle;
 
 	//シェーダ読み込み
 	if (!m_loadedShaderSNA || m_shaderSNAIsConvertPMA != !isPMA || m_shaderSNAIsSoftParticle != isSoftParticle) {
@@ -175,21 +177,37 @@ void CSkinModelRender::InitPostDraw(PostDrawModelRender::enBlendMode blendMode, 
 		}
 	);
 	//ソフトパーティクル設定
-	if (isSoftParticle) {
-		//TODO めちゃくちゃ何回も設定してる
-		//デプスバッファを設定
-		GetSkinModel().SetPreDrawFunction(
-			[&](SkinModel*) {
-				GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(enSkinModelSRVReg_ViewPosTexture, 1, &GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferPosition));
-			}
-		);
-		//デプスバッファを解除
-		GetSkinModel().SetPostDrawFunction(
-			[&](SkinModel*) {
-				ID3D11ShaderResourceView* view[] = { NULL };
-				GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(enSkinModelSRVReg_ViewPosTexture, 1, view);
-			}
-		);
+	if (isSoftParticle != oldIsSoftParticle) {
+		if (isSoftParticle) {
+			//デプスバッファを設定
+			GetSkinModel().SetPreDrawFunction(
+				L"DW_SetViewPosTexture",
+				[&](SkinModel*) {
+					GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(enSkinModelSRVReg_ViewPosTexture, 1, &GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferPosition));
+				}
+			);
+			//デプスバッファを解除
+			GetSkinModel().SetPostDrawFunction(
+				L"DW_RemoveViewPosTexture",
+				[&](SkinModel*) {
+					ID3D11ShaderResourceView* view[] = { NULL };
+					GetGraphicsEngine().GetD3DDeviceContext()->PSSetShaderResources(enSkinModelSRVReg_ViewPosTexture, 1, view);
+				}
+			);
+		}
+		else {
+			//設定解除
+			GetSkinModel().ErasePreDrawFunction(L"DW_SetViewPosTexture");
+			GetSkinModel().ErasePostDrawFunction(L"DW_RemoveViewPosTexture");
+		}
+	}
+	//ソフトパーティクル発生距離設定
+	if (softParticleArea < 0.0f) {
+		//デフォルト
+		GetSkinModel().SetSoftParticleArea(50.0f*(GetEngine().GetDistanceScale() / 3.5f));		
+	}
+	else {
+		GetSkinModel().SetSoftParticleArea(softParticleArea);
 	}
 }
 

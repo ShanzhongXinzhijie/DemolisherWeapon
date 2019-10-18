@@ -119,6 +119,7 @@ namespace GameObj {
 		);
 		//描画前にやる処理を設定
 		m_model.GetSkinModel().SetPreDrawFunction(
+			L"DW_InstancingModelFunc",
 			[&](SkinModel*) {
 				//ストラクチャーバッファの更新
 				GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(

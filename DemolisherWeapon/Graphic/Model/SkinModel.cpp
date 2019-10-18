@@ -312,7 +312,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		vsCb.nearFar.y = GetMainCamera()->GetFar();
 
 		//ソフトパーティクルが有効になる範囲
-		vsCb.softParticleArea = 50.0f;
+		vsCb.softParticleArea = m_softParticleArea;
 
 		//定数バッファ更新
 		d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
@@ -342,7 +342,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 
 	//ユーザー設定の描画前処理実行
 	for (auto& func : m_preDrawFunc) {
-		func(this);
+		func.second(this);
 	}
 
 	//面の向き
@@ -374,7 +374,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 
 	//ユーザー設定の描画後処理実行
 	for (auto& func : m_postDrawFunc) {
-		func(this);
+		func.second(this);
 	}
 }
 

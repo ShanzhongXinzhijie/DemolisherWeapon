@@ -4,6 +4,7 @@
 #include "SkinModelDataManager.h"
 #include "SkinModelEffect.h"
 #include "../Render/MotionBlurRender.h"
+#include "Util/Util.h"
 
 namespace DemolisherWeapon {
 
@@ -225,6 +226,13 @@ public:
 		m_imposterRotY = rotYrad;
 	}
 
+	/// <summary>
+	/// ソフトパーティクルが有効になる距離を設定
+	/// </summary>
+	void SetSoftParticleArea(float distance) {
+		m_softParticleArea = distance;
+	}
+
 	//インスタンス数を設定
 	void SetInstanceNum(int num) {
 		m_instanceNum = num;
@@ -287,13 +295,29 @@ public:
 	void SetPreCullingFunction(std::function<void(SkinModel*)> func) {
 		m_preCullingFunc = func;
 	}
-	//描画前に行う処理を設定
-	void SetPreDrawFunction(std::function<void(SkinModel*)> func) {
-		m_preDrawFunc.push_back(func);
+	/// <summary>
+	/// 描画前に行う処理を設定
+	/// </summary>
+	/// <param name="funcName">処理名</param>
+	/// <param name="func">処理</param>
+	/// <returns>設定に成功したか?(名前がかぶると追加できない)</returns>
+	bool SetPreDrawFunction(const wchar_t* funcName, std::function<void(SkinModel*)> func) {
+		return m_preDrawFunc.emplace(Util::MakeHash(funcName), func).second;
 	}
-	//描画後に行う処理を設定
-	void SetPostDrawFunction(std::function<void(SkinModel*)> func) {
-		m_postDrawFunc.push_back(func);
+	void ErasePreDrawFunction(const wchar_t* funcName) {
+		m_preDrawFunc.erase(Util::MakeHash(funcName));
+	}
+	/// <summary>
+	/// 描画後に行う処理を設定
+	/// </summary>
+	/// <param name="funcName">処理名</param>
+	/// <param name="func">処理</param>
+	/// <returns>設定に成功したか?(名前がかぶると追加できない)</returns>
+	bool SetPostDrawFunction(const wchar_t* funcName, std::function<void(SkinModel*)> func) {
+		return m_postDrawFunc.emplace(Util::MakeHash(funcName), func).second;
+	}
+	void ErasePostDrawFunction(const wchar_t* funcName) {
+		m_postDrawFunc.erase(Util::MakeHash(funcName));
 	}
 
 	//FBXの設定取得
@@ -395,6 +419,9 @@ private:
 	int m_imposterPartNum[2] = {};//分割数
 	float m_imposterScale = 1.0f, m_imposterRotY = 0.0f;
 
+	//ソフトパーティクルが有効になる範囲
+	float m_softParticleArea = 50.0f;
+
 	int m_instanceNum = 1;//インスタンス数
 
 	bool m_isCalcWorldMatrix = true;//ワールド行列を計算するか?
@@ -409,8 +436,8 @@ private:
 
 	//ユーザー設定の処理
 	std::function<void(SkinModel*)> m_preCullingFunc = nullptr;//カリング前に実行
-	std::list<std::function<void(SkinModel*)>> m_preDrawFunc;//描画前に実行
-	std::list<std::function<void(SkinModel*)>> m_postDrawFunc;//描画後に実行
+	std::unordered_map<int, std::function<void(SkinModel*)>> m_preDrawFunc;//描画前に実行
+	std::unordered_map<int, std::function<void(SkinModel*)>> m_postDrawFunc;//描画後に実行
 
 	static SkinModelDataManager m_skinModelDataManager;
 };

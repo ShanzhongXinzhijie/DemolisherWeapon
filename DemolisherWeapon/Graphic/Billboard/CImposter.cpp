@@ -510,7 +510,7 @@ namespace DemolisherWeapon {
 			m_billboard.GetInstancingModel().GetInstancingModel()->SetPreDrawFunction([this]() { m_texture->VSSetSizeToCameraSRV(); });
 		}
 		else {
-			m_billboard.GetModel().GetSkinModel().SetPreDrawFunction([this](SkinModel*) { m_texture->VSSetSizeToCameraSRV(); });
+			m_billboard.GetModel().GetSkinModel().SetPreDrawFunction(L"DW_SetImposterSizeToCamera",[this](SkinModel*) { m_texture->VSSetSizeToCameraSRV(); });
 		}
 
 		//インスタンシング

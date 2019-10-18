@@ -124,8 +124,14 @@ public:
 	void SetIsDrawReverse(bool flag) { m_isDrawReverse = flag; }
 	bool GetIsDrawReverse()const { return m_isDrawReverse; }
 
-	//ポストドロー描画を初期化
-	void InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA = false, bool isSoftParticle = false);
+	/// <summary>
+	/// ポストドロー描画を初期化
+	/// </summary>
+	/// <param name="blendMode">ブレンドモード</param>
+	/// <param name="isPMA">モデルが乗算済みアルファか?</param>
+	/// <param name="isSoftParticle">ソフトパーティクルを有効化するか</param>
+	/// <param name="softParticleArea">ソフトパーティクルが発生する距離範囲(＜0でデフォルト)</param>
+	void InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA = false, bool isSoftParticle = false, float softParticleArea = -1.0f);
 
 	//シャドウマップへの描画を行うか設定
 	void SetIsShadowCaster(bool flag) { m_isShadowCaster = flag; }
