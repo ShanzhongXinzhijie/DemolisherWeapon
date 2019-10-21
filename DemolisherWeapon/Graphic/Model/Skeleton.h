@@ -43,6 +43,14 @@ public:
 	{
 		//ImNonCalc();
 		m_localMatrix = m;
+
+		//オフセット適用
+		if (m_isUseOffset) {
+			CVector3 pos, scale; CQuaternion rot;
+			m_localMatrix.GetTransform(pos, rot, scale);
+			rot.Concatenate(m_offsetRot);
+			m_localMatrix.MakeTransform(pos, rot, scale);
+		}
 	}
 	/*!
 	 *@brief	ローカル行列を取得。
@@ -161,6 +169,16 @@ public:
 		return m_scale;
 	}
 
+	//回転オフセットを設定
+	void SetRotationOffset(const CQuaternion& rot) {
+		m_isUseOffset = true;
+		m_offsetRot = rot;
+	}
+	//オフセットを使用するか設定
+	void SetIsUseOffset(bool use) {
+		m_isUseOffset = use;
+	}
+
 	//座標系をセット
 	void SetCoordinateSystem(EnFbxUpAxis fbxUpAxis,	EnFbxCoordinateSystem fbxCoordinate) {
 		m_isUseBias = true;
@@ -170,11 +188,10 @@ public:
 	}
 
 private:
-
+	//CalcWorldTRS済みフラグをOFF
 	void ImNonCalc() { m_isCalced = false; }
 	
 private:
-
 	std::wstring	m_boneName;
 	int				m_parentId = -1;	//!<親のボーン番号。
 	int				m_boneId = -1;		//!<ボーン番号。
@@ -187,6 +204,9 @@ private:
 	CQuaternion		m_rotation = CQuaternion::Identity();	//!<このボーンの回転。最後にCalcWorldTRSを実行したときの結果が格納されている。
 	std::vector<Bone*>	m_children;		//!<子供。
 	Bone* m_parent = nullptr;			//親
+
+	bool m_isUseOffset = false;//オフセットを使用するか
+	CQuaternion m_offsetRot;//回転オフセット
 
 	bool m_isCalced = false;//CalcWorldTRS済みか?
 	bool m_isUseBias = false;

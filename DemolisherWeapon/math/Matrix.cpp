@@ -63,6 +63,45 @@ namespace DemolisherWeapon {
 	//	}
 	//}
 
+	void CMatrix::MakeTransform(const CVector3& pos, const CQuaternion& rot, const CVector3& scale){
+		CMatrix rotMatrix;
+		MakeScaling(scale);							//Šg‘ås—ñ‚ğì¬
+		rotMatrix.MakeRotationFromQuaternion(rot);	//‰ñ“]s—ñ‚ğì¬
+		Mul(*this, rotMatrix);						//Šg‘å~‰ñ“]
+		SetTranslation(pos);						//•½sˆÚ“®‚ğ“K—p
+	}
+
+	void CMatrix::GetTransform(CVector3& return_pos, CQuaternion& return_rot, CVector3& return_scale) {
+		CMatrix mat = *this;
+
+		//•½sˆÚ“®
+		return_pos = *(CVector3*)mat.m[3];
+		mat.m[3][0] = 0.0f;
+		mat.m[3][1] = 0.0f;
+		mat.m[3][2] = 0.0f;
+
+		//Šg‘å
+		return_scale.x = (*(CVector3*)mat.m[0]).Length();
+		return_scale.y = (*(CVector3*)mat.m[1]).Length();
+		return_scale.z = (*(CVector3*)mat.m[2]).Length();
+
+		mat.m[0][0] /= return_scale.x;
+		mat.m[0][1] /= return_scale.x;
+		mat.m[0][2] /= return_scale.x;
+
+		mat.m[1][0] /= return_scale.y;
+		mat.m[1][1] /= return_scale.y;
+		mat.m[1][2] /= return_scale.y;
+
+		mat.m[2][0] /= return_scale.z;
+		mat.m[2][1] /= return_scale.z;
+		mat.m[2][2] /= return_scale.z;
+
+		//‰ñ“]
+		return_rot.SetRotation(mat);
+	}
+
+
 	void CMatrix::Interpolate(CMatrix m1, CMatrix m2, float blendTrans, float blendRot, float blendScale) {
 		//•½sˆÚ“®‚Ì•âŠ®
 		CVector3 move;

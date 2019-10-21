@@ -319,6 +319,11 @@ public:
 		);
 	}
 
+	//トランスフォームから行列を作成
+	void MakeTransform(const CVector3& pos, const CQuaternion& rot, const CVector3& scale);
+	//行列から各要素を取得
+	void GetTransform(CVector3& return_pos, CQuaternion& return_rot, CVector3& return_scale);
+
 	//2つの行列を補間する
 	void Interpolate(CMatrix m1, CMatrix m2, float blendTrans, float blendRot, float blendScale);
 
