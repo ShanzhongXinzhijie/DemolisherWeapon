@@ -1,7 +1,7 @@
 #pragma once
 
 #include"ICollider.h"
-#include"../Graphic/Model/Render/CSkinModelRender.h"
+#include"Graphic/Model/Render/CSkinModelRender.h"
 
 namespace DemolisherWeapon {
 

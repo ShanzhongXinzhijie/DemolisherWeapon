@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../physics/PhysicsBaseObject.h"
+#include <bitset>
+#include "physics/PhysicsBaseObject.h"
 
 namespace DemolisherWeapon{
 
@@ -189,6 +190,9 @@ public:
 		m_void = pointer;
 	}
 
+	//判定ビットマスク
+	typedef std::bitset<sizeof(unsigned int)*CHAR_BIT> Bitset;
+
 	//グループを設定
 	void SetGroup(unsigned int group) {
 		m_group = group;
@@ -200,28 +204,28 @@ public:
 
 	//グループの指定のビットをオンにする
 	void On_OneGroup(unsigned int oneGroup) {
-		m_group = m_group | BIT(oneGroup);
+		m_group.set(oneGroup);
 	}
 	//マスクの指定のビットをオンにする
 	void On_OneMask(unsigned int oneMask) {
-		m_mask = m_mask | BIT(oneMask);
+		m_mask.set(oneMask);
 	}
 	//グループの指定のビットをオフにする
 	void Off_OneGroup(unsigned int oneGroup) {
-		m_group = m_group & ~BIT(oneGroup);
+		m_group.reset(oneGroup);
 	}
 	//マスクの指定のビットをオフにする
 	void Off_OneMask(unsigned int oneMask) {
-		m_mask = m_mask & ~BIT(oneMask);
+		m_mask.reset(oneMask);
 	}
 
 	//すべてのグループに属するよう設定
 	void All_On_Group() {
-		m_group = 0xFFFFFFFF;
+		m_group = 0; m_group.flip();
 	}
 	//すべてのグループと判定するようマスクを設定
 	void All_On_Mask() {
-		m_mask = 0xFFFFFFFF;
+		m_mask = 0; m_mask.flip();
 	}
 	//どのグループにも属さないよう設定
 	void All_Off_Group() {
@@ -275,8 +279,11 @@ public:
 	void* GetPointer() { return m_void; };
 	IDW_Class* GetClass() { return m_classPtr; };
 
-	unsigned int GetGroup()const { return m_group; }
-	unsigned int GetMask() const { return m_mask; }
+	//判定グループ・マスク取得
+	unsigned long GetGroup()const { return m_group.to_ulong(); }
+	unsigned long GetMask() const { return m_mask.to_ulong(); }
+	const Bitset& GetGroupBitset()const { return m_group; }
+	const Bitset& GetMaskBitset() const { return m_mask; }
 
 	//判定してもいい状態か?
 	bool IsEnable()const {
@@ -331,8 +338,8 @@ private:
 	bool m_isHighSpeed = false; //動くスピードが速いか?
 
 	//判定ビットマスク
-	unsigned int m_group = 0;
-	unsigned int m_mask = 0;// 0xFFFFFFFF;//すべて1
+	Bitset m_group;
+	Bitset m_mask;
 
 	//名前
 	int m_nameKey = 0;

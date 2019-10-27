@@ -21,6 +21,11 @@ public:
 	{
 		x = y = 0.0f;
 	}
+	CVector2(float n)
+	{
+		this->x = n;
+		this->y = n;
+	}
 	CVector2(float x, float y)
 	{
 		this->x = x;
@@ -144,7 +149,7 @@ public:
 		return re;
 	}
 
-	float Cross(const CVector2& _v)
+	float Cross(const CVector2& _v)const
 	{
 		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat2(&vec);
 		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat2(&_v.vec);
@@ -1069,6 +1074,13 @@ public:
 	{
 		DirectX::XMVECTOR xmv = DirectX::XMVector3InverseRotate(_v, *this);
 		DirectX::XMStoreFloat3(&_v.vec, xmv);
+	}
+
+	//‰ñ“]²‚ÆŠp“x‚ğŒvZ
+	void ToAngleAxis(CVector3& return_axis, float& return_angle) {
+		DirectX::XMVECTOR axis;
+		DirectX::XMQuaternionToAxisAngle(&axis, &return_angle, DirectX::XMLoadFloat4(&vec));
+		DirectX::XMStoreFloat3(&return_axis.vec, axis);
 	}
 
 	//æZ‘ã“ü‰‰Zq

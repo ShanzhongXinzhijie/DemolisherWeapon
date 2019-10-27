@@ -8,6 +8,9 @@
 
 namespace DemolisherWeapon{
 
+class CVector2;
+class CVector3;
+
 class CMath{
 public:
 	//円周率
@@ -62,6 +65,28 @@ public:
 		return min(max(in, low), high);
 	}	
 
+	// 線分の衝突(2D)
+	//http://marupeke296.com/COL_2D_No10_SegmentAndSegment.html
+	static bool ColSegments(
+		const CVector2 &seg1Start,	// 線分1の始点
+		const CVector2 &seg1Length,	// 線分1の長さベクトル
+		const CVector2 &seg2Start,	// 線分2
+		const CVector2 &seg2Length, // 線分2の長さベクトル
+		CVector2* outPos = nullptr	// 交点（出力）
+	);
+
+	//AB CDで構成される２直線の交点(あるいは最近点)を求める
+	//http://www.sousakuba.com/Programming/gs_two_lines_intersect.html
+/*
+	resultはVertex3D ２個の配列
+
+	戻り値
+	0 計算できず（平行であったりA=B C=Dのばあい）
+	1 交点があった    resultに交点を格納
+	2 交点がない　    resultには最近点を格納
+*/
+	static int IntersectLines(CVector3* result, const CVector3& A, const CVector3& B, const CVector3& C, const CVector3& D);
+	
 	//乱数
 private:
 	static std::random_device rd;
