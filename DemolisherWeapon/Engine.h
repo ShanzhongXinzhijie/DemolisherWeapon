@@ -109,6 +109,9 @@ public:
 	//動作基準FPSを取得
 	int GetStandardFrameRate()const { return m_fpscounter->GetStandardFrameRate(); }
 
+	//1フレームに処理したゲームループ数を取得
+	int RanGameLoopNum()const { return m_ranGameLoopNum; }
+
 	//デバッグ情報を描画するか設定
 	void SetIsDebugDraw(bool enable) { m_fpscounter->SetIsDebugDraw(enable); }
 	bool GetIsDebugDraw()const { return m_fpscounter->GetIsDebugDraw(); }
@@ -127,6 +130,7 @@ private:
 	CPhysicsWorld* m_physics_Ptr = nullptr;
 	EffekseerManager* m_effekseer_Ptr = nullptr;
 
+	int m_ranGameLoopNum = 0;
 	float m_runframecnt = 1.0f;
 	bool m_noVariableFramerateOnce = true;
 	float m_variableFpsMaxSec = -1.0f;
@@ -281,6 +285,9 @@ public:
 	void SetUseFpsLimiter(bool use, int maxfps = -1) { m_gameLoop.SetUseFpsLimiter(use, maxfps); }
 	//動作基準FPSを取得
 	int GetStandardFrameRate()const { return m_gameLoop.GetStandardFrameRate(); }
+
+	//1フレームに実行したゲームループ数を取得
+	int RanGameLoopNum()const { return m_gameLoop.RanGameLoopNum(); }
 
 	//可変フレーム無効(一回のみ)
 	void UnableVariableFramerateOnce() { m_gameLoop.UnableVariableFramerateOnce(); }

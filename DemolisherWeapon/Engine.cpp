@@ -240,6 +240,7 @@ void GameLoop::Run() {
 		m_gameObjectManager_Ptr->PreLoopUpdate();
 
 		//可変フレームループ
+		m_ranGameLoopNum = 0;
 		while((int)m_runframecnt >= 1){
 			//通信
 			if (GetPhoton()) { GetPhoton()->Update(); }
@@ -266,6 +267,7 @@ void GameLoop::Run() {
 
 			//実行回数カウンタ減らす
 			m_runframecnt -= 1.0f;
+			m_ranGameLoopNum++;
 		}
 
 		//ゲームオブジェクトのループ後アプデ
