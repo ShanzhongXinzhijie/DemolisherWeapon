@@ -1,6 +1,11 @@
 #pragma once
 
 namespace DemolisherWeapon {
+
+	//TODO
+	//SkinModelはIDrawer継承
+	//SkinModelRenderはLODDrawerを持ち、そこに
+
 	/// <summary>
 	/// 描画物のインターフェースクラス
 	/// </summary>

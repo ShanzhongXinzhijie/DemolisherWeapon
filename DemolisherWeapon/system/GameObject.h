@@ -323,6 +323,7 @@ public:
 
 	//この関数内でHUDに2Dグラフィックを描画
 	//int HUDNum 描画対象のHUDの番号
+	//TODO HUDのレンダーターゲット作る
 	virtual void HUDRender(int HUDNum) {};
 
 	//2Dグラフィックをこの関数内で描画してください

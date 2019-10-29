@@ -268,6 +268,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		if (initParam.isSplitScreen) {
 			//画面分割ならカメラ切り替え
 			m_renderManager.AddRender(0 + offset, m_cameraSwitchRender[i].get());
+			//TODO このタイミングでビーム更新処理
 		}
 
 		//Gバッファ描画
