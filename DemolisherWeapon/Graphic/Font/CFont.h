@@ -61,7 +61,7 @@ namespace DemolisherWeapon {
 			float rotation = 0.0f,
 			DirectX::SpriteEffects effects = DirectX::SpriteEffects_None,
 			float layerDepth = 0.5f
-		);
+		)const;
 		//const CVector2& pos をスクリーン座標で指定する版。右下の座標=画面解像度　
 		void DrawScreenPos(
 			wchar_t const* text,
@@ -72,7 +72,7 @@ namespace DemolisherWeapon {
 			float rotation = 0.0f,
 			DirectX::SpriteEffects effects = DirectX::SpriteEffects_None,
 			float layerDepth = 0.5f
-		);
+		)const;
 
 	private:
 		void initialize();

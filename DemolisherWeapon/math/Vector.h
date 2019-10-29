@@ -687,6 +687,10 @@ public:
 	{
 		Set(x, y, z, w);
 	}
+	CVector4(float f)
+	{
+		Set(f, f, f, f);
+	}
 	/*!
 	*@brief	コンストラクタ
 	*@details

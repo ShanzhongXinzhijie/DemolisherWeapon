@@ -41,7 +41,7 @@ namespace DemolisherWeapon {
 		float rotation,
 		DirectX::SpriteEffects effects,
 		float layerDepth
-	) {
+	)const {
 		DrawScreenPos(text, { pos.x * m_screenSize.x, pos.y * m_screenSize.y }, color, scale, pivot, rotation, effects, layerDepth);
 	}
 
@@ -54,7 +54,7 @@ namespace DemolisherWeapon {
 		float rotation,
 		DirectX::SpriteEffects effects,
 		float layerDepth
-	) {
+	)const {
 		if (text == nullptr) {
 			return;
 		}		
