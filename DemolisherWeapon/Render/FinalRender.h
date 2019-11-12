@@ -64,6 +64,10 @@ public:
 	static void SetIsLensDistortion(bool enable) {
 		m_isLensDistortion = enable;
 	}
+	//歪曲収差の度合いを設定
+	static void SetLensDistortionScale(float scale) {
+		m_lensDistortionScale = scale;
+	}
 	//アンチエイリアスの有効・無効を設定
 	static void SetIsAntiAliasing(bool enable) {
 		m_isAntiAliasing = enable;
@@ -103,6 +107,7 @@ private:
 
 	//ピクセルシェーダ設定
 	static bool m_isLensDistortion;
+	static float m_lensDistortionScale;
 	static bool m_isAntiAliasing;
 };
 

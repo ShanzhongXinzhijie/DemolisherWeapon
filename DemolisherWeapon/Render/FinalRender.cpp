@@ -69,6 +69,7 @@ void CFinalRenderTarget::Copy() {
 
 //ファイナルレンダー
 bool FinalRender::m_isLensDistortion = true;
+float FinalRender::m_lensDistortionScale = 1.0f;
 bool FinalRender::m_isAntiAliasing = true;
 
 FinalRender::~FinalRender()
@@ -253,15 +254,11 @@ void FinalRender::Render() {
 //}
 
 float FinalRender::Calc_k4(float fov) {
-
-	//fov *= aspect / (1280.0f / 720.0f);
-
-	//psCb.k4 = -2.0f;//-0.0875f * (fov / (3.14f*0.5f)); 
 	if (fov > 3.14f*0.5f) {
-		return CMath::Lerp(pow((fov - (3.14f*0.5f)) / (CMath::DegToRad(160.4f) - (3.14f*0.5f)), 2.0f), -0.0875f, -2.0f);
+		return m_lensDistortionScale * CMath::Lerp(pow((fov - (3.14f*0.5f)) / (CMath::DegToRad(160.4f) - (3.14f*0.5f)), 2.0f), -0.0875f, -2.0f);
 	}
 	else {
-		return min(0.0f, CMath::Lerp((((3.14f*0.5f) - fov) / (3.14f*0.5f))*4.0f, -0.0875f, 0.0f));
+		return m_lensDistortionScale * min(0.0f, CMath::Lerp((((3.14f*0.5f) - fov) / (3.14f*0.5f))*4.0f, -0.0875f, 0.0f));
 	}
 }
 
