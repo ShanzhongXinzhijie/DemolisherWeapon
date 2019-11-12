@@ -44,6 +44,11 @@ public:
 		return t0 + (t1 - t0)*rate;
 	}
 
+	//ˆø”‚Ì•„†‚ª³‚È‚ç1.0f‚ğ•‰‚È‚ç-1.0f‚ğ•Ô‚·
+	static constexpr float Sign(float f) {
+		return f < 0.0f ? -1.0f : 1.0f;
+	}
+
 	//ˆø”f‚Ì“ñæ‚ğæ“¾
 	static constexpr float Square(float f) {
 		return f * f;

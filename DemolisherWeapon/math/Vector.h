@@ -1067,6 +1067,20 @@ public:
 		DirectX::XMVECTOR xmv = DirectX::XMVector3Rotate(_v, *this);
 		DirectX::XMStoreFloat3(&_v.vec, xmv);
 	}
+	CVector4 GetMultiply(const CVector4& _v)const
+	{
+		DirectX::XMVECTOR xmv = DirectX::XMVector3Rotate(_v, *this);
+		CVector4 re;
+		DirectX::XMStoreFloat4(&re.vec, xmv);
+		return re;
+	}
+	CVector3 GetMultiply(const CVector3& _v)const
+	{
+		DirectX::XMVECTOR xmv = DirectX::XMVector3Rotate(_v, *this);
+		CVector3 re;
+		DirectX::XMStoreFloat3(&re.vec, xmv);
+		return re;
+	}
 
 	//ƒxƒNƒgƒ‹‚ð‹t‰ñ“]
 	void InverseMultiply(CVector4& _v)const
@@ -1082,6 +1096,11 @@ public:
 
 	//‰ñ“]Ž²‚ÆŠp“x‚ðŒvŽZ
 	void ToAngleAxis(CVector3& return_axis, float& return_angle) {
+		//‚È‚ñ‚©‚±‚ê‚ª‚¢‚é
+		//https://github.com/Microsoft/DirectXMath/issues/81
+		float sinHalfAngle = DirectX::XMScalarSin(DirectX::XMScalarACos(w));
+		x /= sinHalfAngle; y /= sinHalfAngle; z /= sinHalfAngle;
+		//‰ñ“]Ž²‚ÆŠp“x‚ðŒvŽZ
 		DirectX::XMVECTOR axis;
 		DirectX::XMQuaternionToAxisAngle(&axis, &return_angle, DirectX::XMLoadFloat4(&vec));
 		DirectX::XMStoreFloat3(&return_axis.vec, axis);
