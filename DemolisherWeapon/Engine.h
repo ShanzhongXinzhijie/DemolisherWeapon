@@ -403,6 +403,11 @@ static inline void SetIsLensDistortion(bool enable)
 {
 	FinalRender::SetIsLensDistortion(enable);
 }
+//歪曲収差の度合いを設定
+static inline void SetLensDistortionScale(float scale)
+{
+	FinalRender::SetLensDistortionScale(scale);
+}
 //アンチエイリアスの使用を設定
 static inline void SetIsAntiAliasing(bool enable)
 {
