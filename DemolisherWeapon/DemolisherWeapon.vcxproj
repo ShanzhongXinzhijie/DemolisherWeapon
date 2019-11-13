@@ -272,6 +272,7 @@
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
     <ClInclude Include="Graphic\IDrawer.h" />
     <ClInclude Include="Macro\Accessor.h" />
+    <ClInclude Include="Render\PreRenderRender.h" />
     <ClInclude Include="Render\InitRender.h" />
     <ClInclude Include="Graphic\Shader\StructuredBuffer.h" />
     <ClInclude Include="Timer\CDeleteTimer.h" />
@@ -371,7 +372,7 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Graphic\IDrawer.cpp" />
+    <ClCompile Include="Render\PreRenderRender.cpp" />
     <ClCompile Include="Render\InitRender.cpp" />
     <ClCompile Include="Graphic\Shader\StructuredBuffer.cpp" />
     <ClCompile Include="Timer\CDeleteTimer.cpp" />

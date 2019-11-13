@@ -321,10 +321,14 @@ public:
 	virtual void PostLoopUpdate() {};
 	virtual void PostLoopPostUpdate() {};
 
+	//3D描画前に実行(画面ごと)
+	//num 実行中の画面番号
+	virtual void Pre3DRender(int num) {};
+
 	//この関数内でHUDに2Dグラフィックを描画
 	//int HUDNum 描画対象のHUDの番号
 	//TODO HUDのレンダーターゲット作る
-	virtual void HUDRender(int HUDNum) {};
+	//virtual void HUDRender(int HUDNum) {};
 
 	//2Dグラフィックをこの関数内で描画してください
 	//※CFont,CSpriteなど
@@ -416,6 +420,13 @@ public:
 				go.gameObject->PostLoopPostUpdate();
 			}
 		}		
+	}
+	void Pre3DRender(int num) {
+		for (auto& go : m_gameObjectList) {
+			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
+				go.gameObject->Pre3DRender(num);
+			}
+		}
 	}
 	void PostRender();
 

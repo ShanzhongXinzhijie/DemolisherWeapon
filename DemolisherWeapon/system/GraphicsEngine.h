@@ -16,6 +16,7 @@
 #include"Render/ConvertLinearToSRGBRender.h"
 #include"Render/PrimitiveRender.h"
 #include"Render/InitRender.h"
+#include"Render/PreRenderRender.h"
 
 #include"Camera/CameraManager.h"
 #include"Graphic/Light/Lights.h"
@@ -329,6 +330,7 @@ private:
 	EffekseerRender m_effekseerRender;
 	std::unique_ptr<FinalRender> m_finalRender[2];
 	std::unique_ptr<CameraSwitchRender> m_cameraSwitchRender[2];
+	std::unique_ptr<PreRenderRender> m_preRenderRender[2];
 
 	//最終レンダーターゲット
 	CFinalRenderTarget m_FRT;

@@ -2,6 +2,8 @@
 
 namespace DemolisherWeapon {
 
+	class InstanceWatcher;
+
 namespace GameObj {
 
 	//インスタンシング用モデル
@@ -10,10 +12,7 @@ namespace GameObj {
 		InstancingModel() = default;
 		~InstancingModel() { Release(); };
 						
-		void PreLoopUpdate()override {
-			//ループ前にインスタンス数のリセット
-			m_instanceIndex = 0;
-		}
+		void PreLoopUpdate()override;
 
 	public:
 		/// <summary>
@@ -50,6 +49,8 @@ namespace GameObj {
 			m_worldMatrixCache.reset();
 			m_worldMatrixOldCache.reset();
 
+			m_insWatchers.reset();
+
 			m_instanceData.clear();
 		}
 
@@ -77,7 +78,13 @@ namespace GameObj {
 		}
 
 		//このフレームに描画するインスタンスの追加
-		void AddDrawInstance(const CMatrix& woridMatrix, const CMatrix& woridMatrixOld, const CMatrix& SRTMatrix, const CVector3& scale, const CVector3& minAABB, const CVector3& maxAABB, void *param_ptr) {
+		void AddDrawInstance(
+			const CMatrix& woridMatrix, const CMatrix& woridMatrixOld,
+			const CMatrix& SRTMatrix, const CVector3& scale,
+			const CVector3& minAABB, const CVector3& maxAABB, 
+			void *param_ptr,
+			const std::shared_ptr<InstanceWatcher>& watcher
+		) {
 			if (m_instanceIndex >= m_instanceMax) {
 #ifndef DW_MASTER
 				char message[256];
@@ -89,7 +96,6 @@ namespace GameObj {
 
 			m_worldMatrixCache[m_instanceIndex] = woridMatrix;
 			m_worldMatrixOldCache[m_instanceIndex] = woridMatrixOld;
-
 			m_minAABB[m_instanceIndex] = minAABB;
 			m_maxAABB[m_instanceIndex] = maxAABB;
 
@@ -98,30 +104,11 @@ namespace GameObj {
 				IID.second->AddDrawInstance(m_instanceIndex, SRTMatrix, scale, param_ptr);
 			}
 
+			//監視者登録
+			m_insWatchers[m_instanceIndex] = watcher;
+
 			m_instanceIndex++;
 		}
-
-		/*
-		/// <summary>
-		/// ワールド行列の取得
-		/// </summary>
-		const auto& GetWorldMatrix()const {
-			return m_instancingWorldMatrix;
-		}
-		/// <summary>
-		/// ワールド行列の設定と更新
-		/// </summary>
-		void SetUpdateDrawWorldMatrix(const CMatrix* mat) {
-			//設定
-			for (int i = 0; i < GetDrawInstanceNum(); i++) {
-				m_instancingWorldMatrix[i] = mat[i];
-			}
-			//StructuredBufferを更新。
-			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-				m_worldMatrixSB, 0, NULL, m_instancingWorldMatrix.get(), 0, 0
-			);
-		}
-		*/
 
 		//視錐台カリングを行うか設定
 		void SetIsFrustumCulling(bool enable) {
@@ -139,13 +126,20 @@ namespace GameObj {
 			virtual ~IInstancesData() {};
 		public:
 			/// <summary>
+			/// カリング前に実行する処理
+			/// </summary>
+			/// <param name="instanceIndex">インスタンス番号</param>
+			/// <returns>このインスタンスを描画するか</returns>
+			//virtual bool PreCulling(int instanceIndex) {}
+
+			/// <summary>
 			/// 描画前に実行する処理
 			/// 主にストラクチャーバッファの更新とSRVの設定をする
 			/// </summary>
 			/// <param name="instanceNum">インスタンス総数</param>
 			/// <param name="drawInstanceNum">描画するインスタンスの数(カリングされなかった物の数)</param>
 			/// <param name="drawInstanceMask">カリングされたインスタンスのマスク(falseになってるやつがカリングされた)</param>
-			virtual void PreDraw(int instanceNum, int drawInstanceNum, const std::unique_ptr<bool[]>& drawInstanceMask) = 0;
+			virtual void PreDraw(int instanceNum, int drawInstanceNum, const std::unique_ptr<bool[]>& drawInstanceMask) = 0;//{}
 
 			//AddDrawInstanceで実行する処理
 			//主にインスタンスごとのデータを追加する
@@ -222,6 +216,9 @@ namespace GameObj {
 		std::unique_ptr<CMatrix[]>	m_worldMatrixCache;
 		std::unique_ptr<CMatrix[]>	m_worldMatrixOldCache;
 		bool m_isFrustumCull = false;//視錐台カリングするか?
+
+		//インスタンスたちを監視する
+		std::unique_ptr<std::weak_ptr<InstanceWatcher>[]> m_insWatchers;
 		
 		//ユーザー設定の描画前処理
 		std::function<void()> m_preDrawFunc = nullptr;
@@ -276,12 +273,17 @@ namespace GameObj {
 		std::unordered_map<key_t, GameObj::InstancingModel*, key_hash> m_instancingModelMap;
 	};
 
+	
+
 namespace GameObj {
 
 	//インスタンシング用モデルのレンダラー
 	class CInstancingModelRender : public IQSGameObject
 	{
 	public:
+		CInstancingModelRender();
+		~CInstancingModelRender();
+
 		//初期化
 		void Init(int instanceMax,									//最大描画数
 			const wchar_t* filePath,								//モデルのファイルパス
@@ -337,7 +339,7 @@ namespace GameObj {
 
 			//インスタンシングモデルに送る
 			if (m_isDraw) {
-				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix, m_scale, m_minAABB, m_maxAABB, m_ptrParam);
+				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix, m_scale, m_minAABB, m_maxAABB, m_ptrParam, m_watcher);
 			}
 
 			//更新してなければ
@@ -400,9 +402,11 @@ namespace GameObj {
 		//パラメータのポインタ設定
 		void SetParamPtr(void* ptrParam) {
 			m_ptrParam = ptrParam;
-		}
+		}		
 
 	private:
+		std::shared_ptr<InstanceWatcher> m_watcher;
+
 		bool m_isInit = false;
 		bool m_isDraw = true;
 		
@@ -428,4 +432,19 @@ namespace GameObj {
 	};
 
 }
+
+	//CInstancingModelRenderを監視するクラス
+	class InstanceWatcher {
+	public:
+		void Watch(const GameObj::CInstancingModelRender* ptr) {
+			m_render = ptr;
+		}
+		bool GetIsDraw() const {
+			if (!m_render) { return false; }
+			return m_render->GetIsDraw();
+		}
+	private:
+		const GameObj::CInstancingModelRender* m_render = nullptr;
+	};
+
 }

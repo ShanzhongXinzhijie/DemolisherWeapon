@@ -3,11 +3,10 @@
 
 namespace DemolisherWeapon {
 
-	class CameraSwitchRender :
-		public IRander
+	class PreRenderRender : public IRander
 	{
 	public:
-		CameraSwitchRender()=default;
+		PreRenderRender() = default;
 
 		void Init(int cameranum) {
 			m_cameraNum = cameranum;

@@ -49,6 +49,14 @@ namespace DemolisherWeapon {
 
 namespace GameObj {
 
+	void InstancingModel::PreLoopUpdate() {
+		//ループ前にインスタンス数のリセット
+		for (int i = 0; i < m_instanceIndex; i++) {//m_instanceMax
+			m_insWatchers[i].reset();
+		}
+		m_instanceIndex = 0;
+	}
+
 	//初期化
 	void InstancingModel::Init(int instanceMax,
 		const wchar_t* filePath,
@@ -93,11 +101,23 @@ namespace GameObj {
 		//カリング前にやる処理を設定
 		m_model.GetSkinModel().SetPreCullingFunction(
 			[&](SkinModel*) {
-				m_instanceIndex = max(0, m_instanceIndex);
+				m_instanceIndex = max(0, m_instanceIndex);//0以下にはならない
 
-				//視錐台カリング
+				//描画判定
 				int drawNum = 0;
 				for (int i = 0; i < m_instanceIndex; i++) {
+					////IInstanceDataの処理実行
+					//bool isDraw = true;
+					//for (auto& IID : m_instanceData) {
+					//	if (IID.second->PreCulling(i) == false) { isDraw = false; break; }
+					//}
+					////描画しない
+					//if (!isDraw) { m_drawInstanceMask[i] = false; continue; }
+
+					//描画しない
+					if (m_insWatchers[i].expired() || !m_insWatchers[i].lock()->GetIsDraw()) { m_drawInstanceMask[i] = false; continue; }
+
+					//視錐台カリング
 					if (m_isFrustumCull) {
 						if (!FrustumCulling::AABBTest(GetMainCamera(), m_minAABB[i], m_maxAABB[i])) {
 							//描画しない
@@ -173,6 +193,9 @@ namespace GameObj {
 		m_maxAABB = std::make_unique<CVector3[]>(m_instanceMax);
 		m_worldMatrixCache = std::make_unique<CMatrix[]>(m_instanceMax);
 		m_worldMatrixOldCache = std::make_unique<CMatrix[]>(m_instanceMax);
+
+		//インスタンスたちを監視する
+		m_insWatchers = std::make_unique<std::weak_ptr<InstanceWatcher>[]>(m_instanceMax);
 		
 		//StructuredBufferの確保
 		D3D11_BUFFER_DESC desc;
@@ -196,6 +219,13 @@ namespace GameObj {
 		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_worldMatrixSBOld, &descSRV, &m_worldMatrixSRVOld);
 	}
 	
+	CInstancingModelRender::CInstancingModelRender() {
+		m_watcher = std::make_shared<InstanceWatcher>();
+		m_watcher->Watch(this);
+	}
+	CInstancingModelRender::~CInstancingModelRender() {
+		m_watcher->Watch(nullptr);
+	}
 	InstancingModelManager CInstancingModelRender::m_s_instancingModelManager;
 }
 }

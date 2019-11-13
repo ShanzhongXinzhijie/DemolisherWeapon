@@ -148,19 +148,16 @@ private:
 
 class Engine
 {
-
 //シングルトン
 private:
-	Engine() : m_gameLoop(&m_gameObjectManager,&m_goNewDeleteManager,&m_physics,&m_effekseer) {};// = default;
+	Engine() : m_gameLoop(&m_gameObjectManager,&m_goNewDeleteManager,&m_physics,&m_effekseer) {};
 	~Engine() = default;
 public:
 	Engine(const Engine&) = delete;
 	Engine& operator=(const Engine&) = delete;
 	Engine(Engine&&) = delete;
 	Engine& operator=(Engine&&) = delete;
-
 public:
-
 	//インスタンスを取得
 	static Engine& GetInstance()
 	{
@@ -169,11 +166,8 @@ public:
 		}
 		return *instance;
 	}
-
 private:
-
 	static Engine* instance;
-
 	//インスタンスの削除
 	static void DeleteInstance() {
 		if (instance) {

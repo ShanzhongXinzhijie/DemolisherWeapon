@@ -228,9 +228,11 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	m_primitiveRender.Init();
 
 	if (initParam.isSplitScreen) {
+		//画面分割初期化
+
+		//最終レンダー
 		m_finalRender[0] = std::make_unique<FinalRender>();
 		m_finalRender[1] = std::make_unique<FinalRender>();
-
 		if (initParam.isSplitScreen == enVertical_TwoSplit) {
 			m_finalRender[1]->Init({ 0.0f,0.0f }, { 1.0f,0.5f });
 			m_finalRender[0]->Init({ 0.0f,0.5f }, { 1.0f,1.0f });
@@ -240,14 +242,28 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 			m_finalRender[1]->Init({ 0.5f,0.0f }, { 1.0f,1.0f });
 		}
 
+		//描画前処理レンダー
+		m_preRenderRender[0] = std::make_unique<PreRenderRender>();
+		m_preRenderRender[1] = std::make_unique<PreRenderRender>();
+		m_preRenderRender[0]->Init(0);
+		m_preRenderRender[1]->Init(1);
+
+		//カメラ切り替えレンダー
 		m_cameraSwitchRender[0] = std::make_unique<CameraSwitchRender>();
 		m_cameraSwitchRender[1] = std::make_unique<CameraSwitchRender>();
 		m_cameraSwitchRender[0]->Init(0);
 		m_cameraSwitchRender[1]->Init(1);
 	}
 	else {
+		//単画面初期化
+
+		//最終レンダー
 		m_finalRender[0] = std::make_unique<FinalRender>();
 		m_finalRender[0]->Init();
+
+		//描画前処理レンダー
+		m_preRenderRender[0] = std::make_unique<PreRenderRender>();
+		m_preRenderRender[0]->Init(0);
 	}
 	FinalRender::SetIsLensDistortion(initParam.isLensDistortion);
 	FinalRender::SetIsAntiAliasing(initParam.isAntiAliasing);
@@ -255,9 +271,9 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	//レンダーをセット	
 
 	//初期化レンダー
-	m_renderManager.AddRender(-2, &m_initRender);
+	m_renderManager.AddRender(-3, &m_initRender);
 	//シャドウマップ描画
-	m_renderManager.AddRender(-1, &m_shadowMapRender);
+	m_renderManager.AddRender(-2, &m_shadowMapRender);
 
 	//画面分割数分実行
 	int screencnt = m_isSplitScreen ? 2 : 1;
@@ -267,10 +283,13 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 
 		if (initParam.isSplitScreen) {
 			//画面分割ならカメラ切り替え
-			m_renderManager.AddRender(0 + offset, m_cameraSwitchRender[i].get());
-			//TODO このタイミングでビーム更新処理
+			m_renderManager.AddRender(-1 + offset, m_cameraSwitchRender[i].get());			
 		}
 
+		//描画前処理
+		//TODO このタイミングでビーム更新処理
+		m_renderManager.AddRender(0 + offset, m_preRenderRender[i].get());
+		
 		//Gバッファ描画
 		m_renderManager.AddRender(1 + offset, &m_gbufferRender);
 
@@ -391,14 +410,17 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 		//再確保
 		m_finalRender[0].reset();
 		m_finalRender[1].reset();
+		m_preRenderRender[0].reset();
+		m_preRenderRender[1].reset();
 		m_cameraSwitchRender[0].reset();
 		m_cameraSwitchRender[1].reset();
 
 		if (m_isSplitScreen) {
+			//画面分割時初期化
+
 			//最終レンダーの確保
 			m_finalRender[0] = std::make_unique<FinalRender>();
 			m_finalRender[1] = std::make_unique<FinalRender>();
-
 			//スクリーンサイズ設定
 			if (splitScreenSize) {
 				m_finalRender[0]->Init({ splitScreenSize[0],splitScreenSize[1] }, { splitScreenSize[2],splitScreenSize[3] });
@@ -415,6 +437,12 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 				}
 			}
 
+			//描画前処理レンダー
+			m_preRenderRender[0] = std::make_unique<PreRenderRender>();
+			m_preRenderRender[1] = std::make_unique<PreRenderRender>();
+			m_preRenderRender[0]->Init(0);
+			m_preRenderRender[1]->Init(1);
+
 			//カメラ切り替えレンダーの初期化
 			m_cameraSwitchRender[0] = std::make_unique<CameraSwitchRender>();
 			m_cameraSwitchRender[1] = std::make_unique<CameraSwitchRender>();
@@ -422,9 +450,15 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 			m_cameraSwitchRender[1]->Init(1);
 		}
 		else {
+			//単画面時初期化
+
 			//最終レンダーの初期化
 			m_finalRender[0] = std::make_unique<FinalRender>();
 			m_finalRender[0]->Init();
+
+			//描画前処理レンダー
+			m_preRenderRender[0] = std::make_unique<PreRenderRender>();
+			m_preRenderRender[0]->Init(0);
 		}
 
 		//画面分割数分実行
@@ -436,19 +470,21 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 			//再確保組の再登録
 			{
 				//レンダーリストから削除
+				m_renderManager.DeleteRender(-1 + offset);
 				m_renderManager.DeleteRender(0 + offset);
 				m_renderManager.DeleteRender(1000 + offset);
 
 				//登録
 				if (m_isSplitScreen) {
 					//カメラ切り替え
-					m_renderManager.AddRender(0 + offset, m_cameraSwitchRender[i].get());
+					m_renderManager.AddRender(-1 + offset, m_cameraSwitchRender[i].get());
 				}
 				if (m_isSplitScreen || i == 0) {
+					//描画前処理
+					m_renderManager.AddRender(0 + offset, m_preRenderRender[i].get());
 					//最終描画
-					m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());
-				}
-				
+					m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());					
+				}				
 			}
 
 			if (i == 0) { 

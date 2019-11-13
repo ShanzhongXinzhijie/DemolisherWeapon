@@ -1,5 +1,5 @@
 #pragma once
 
 namespace DemolisherWeapon {
-	static constexpr wchar_t DW_VER[] = L"Bitset";//エンジンのバージョン
+	static constexpr wchar_t DW_VER[] = L"PreDraw&InsWatcher";//エンジンのバージョン
 }

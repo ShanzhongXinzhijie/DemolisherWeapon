@@ -106,6 +106,7 @@
     <ClInclude Include="Render\InitRender.h" />
     <ClInclude Include="Macro\Accessor.h" />
     <ClInclude Include="Graphic\Shader\StructuredBuffer.h" />
+    <ClInclude Include="Render\PreRenderRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -197,9 +198,9 @@
     <ClCompile Include="Graphic\Factory\TextureFactory.cpp" />
     <ClCompile Include="Graphic\Particle\CParticle.cpp" />
     <ClCompile Include="Timer\CDeleteTimer.cpp" />
-    <ClCompile Include="Graphic\IDrawer.cpp" />
     <ClCompile Include="Render\InitRender.cpp" />
     <ClCompile Include="Graphic\Shader\StructuredBuffer.cpp" />
+    <ClCompile Include="Render\PreRenderRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

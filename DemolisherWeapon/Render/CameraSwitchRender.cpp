@@ -2,16 +2,7 @@
 #include "CameraSwitchRender.h"
 
 namespace DemolisherWeapon {
-
-	CameraSwitchRender::CameraSwitchRender()
-	{
-	}
-
-
-	CameraSwitchRender::~CameraSwitchRender()
-	{
-	}
-
+	
 	void CameraSwitchRender::Render() {
 		auto& camlist = GetEngine().GetGraphicsEngine().GetCameraManager().GetCameraList();		
 		
@@ -21,10 +12,11 @@ namespace DemolisherWeapon {
 			std::abort();
 		}
 #endif
-
+		//メインカメラ変更
 		SetMainCamera(camlist[m_cameraNum]);
 
 		//シェーダに送るポイントライト用カメラ座標更新
 		GetEngine().GetGraphicsEngine().GetLightManager().UpdateConstantBuffer();
 	}
+
 }
