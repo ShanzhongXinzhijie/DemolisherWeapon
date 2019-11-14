@@ -17,6 +17,7 @@
 #include"Render/PrimitiveRender.h"
 #include"Render/InitRender.h"
 #include"Render/PreRenderRender.h"
+#include"Render/HUDRender.h"
 
 #include"Camera/CameraManager.h"
 #include"Graphic/Light/Lights.h"
@@ -67,6 +68,7 @@ public:
 								EnSplitScreenMode screenMode, float* splitScreenSize = nullptr);
 
 	//フレームバッファの取得
+	//TODO ターゲットのものにする
 	float GetFrameBuffer_W()const {
 		return FRAME_BUFFER_W;
 	}
@@ -331,6 +333,7 @@ private:
 	std::unique_ptr<FinalRender> m_finalRender[2];
 	std::unique_ptr<CameraSwitchRender> m_cameraSwitchRender[2];
 	std::unique_ptr<PreRenderRender> m_preRenderRender[2];
+	std::unique_ptr<HUDRender> m_HUDRender[2];
 
 	//最終レンダーターゲット
 	CFinalRenderTarget m_FRT;

@@ -86,6 +86,9 @@ void FinalRender::Release() {
 void FinalRender::Init(const CVector2 screen_min, const CVector2 screen_max, bool isLinearSample) {
 	//m_FRT.Init();
 
+	m_screen_min = screen_min;
+	m_screen_max = screen_max;
+
 	//頂点シェーダ
 	m_vs.Load("Preset/shader/LensDistortion.fx", "VSMain", Shader::EnType::VS);
 	
@@ -231,7 +234,6 @@ void FinalRender::Render() {
 
 	//描画
 	m_drawSpace.DrawIndexed();
-	//GetEngine().GetGraphicsEngine().DrawFullScreen();
 
 	//定数バッファ解除
 	ID3D11Buffer* pCB = NULL;
@@ -249,9 +251,6 @@ void FinalRender::Render() {
 	//ビューポート戻す
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &oldviewport);
 }
-//void FinalRender::SetFinalRenderTarget() {
-//	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, &m_FRT.GetRTV(), m_FRT.GetDSV());
-//}
 
 float FinalRender::Calc_k4(float fov) {
 	if (fov > 3.14f*0.5f) {

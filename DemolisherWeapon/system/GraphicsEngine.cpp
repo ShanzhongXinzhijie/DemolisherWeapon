@@ -248,6 +248,14 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		m_preRenderRender[0]->Init(0);
 		m_preRenderRender[1]->Init(1);
 
+		//HUD描画レンダー
+		for (int i = 0; i < 2; i++) {
+			CVector2 areaMin, areaMax;
+			m_finalRender[i]->GetDrawArea(areaMin, areaMax);
+			m_HUDRender[i] = std::make_unique<HUDRender>();
+			m_HUDRender[i]->Init(i, areaMin, areaMax, { Get3DFrameBuffer_W(),Get3DFrameBuffer_H() });
+		}
+
 		//カメラ切り替えレンダー
 		m_cameraSwitchRender[0] = std::make_unique<CameraSwitchRender>();
 		m_cameraSwitchRender[1] = std::make_unique<CameraSwitchRender>();
@@ -264,6 +272,14 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		//描画前処理レンダー
 		m_preRenderRender[0] = std::make_unique<PreRenderRender>();
 		m_preRenderRender[0]->Init(0);
+
+		//HUD描画レンダー
+		for (int i = 0; i < 1; i++) {
+			CVector2 areaMin, areaMax;
+			m_finalRender[i]->GetDrawArea(areaMin, areaMax);
+			m_HUDRender[i] = std::make_unique<HUDRender>();
+			m_HUDRender[i]->Init(i, areaMin, areaMax, { Get3DFrameBuffer_W(),Get3DFrameBuffer_H() });
+		}
 	}
 	FinalRender::SetIsLensDistortion(initParam.isLensDistortion);
 	FinalRender::SetIsAntiAliasing(initParam.isAntiAliasing);
@@ -322,7 +338,10 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		m_renderManager.AddRender(999 + offset, &m_physicsDebugDrawRender);
 #endif
 		//最終描画
-		m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());		
+		m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());	
+
+		//HUD描画
+		m_renderManager.AddRender(1001 + offset, m_HUDRender[i].get());
 	}
 
 	//GPUイベント用
@@ -411,6 +430,8 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 		m_finalRender[1].reset();
 		m_preRenderRender[0].reset();
 		m_preRenderRender[1].reset();
+		m_HUDRender[0].reset();
+		m_HUDRender[1].reset();
 		m_cameraSwitchRender[0].reset();
 		m_cameraSwitchRender[1].reset();
 
@@ -442,6 +463,14 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 			m_preRenderRender[0]->Init(0);
 			m_preRenderRender[1]->Init(1);
 
+			//HUD描画レンダー
+			for (int i = 0; i < 2; i++) {
+				CVector2 areaMin, areaMax;
+				m_finalRender[i]->GetDrawArea(areaMin, areaMax);
+				m_HUDRender[i] = std::make_unique<HUDRender>();
+				m_HUDRender[i]->Init(i, areaMin, areaMax, { Get3DFrameBuffer_W(),Get3DFrameBuffer_H() });
+			}
+
 			//カメラ切り替えレンダーの初期化
 			m_cameraSwitchRender[0] = std::make_unique<CameraSwitchRender>();
 			m_cameraSwitchRender[1] = std::make_unique<CameraSwitchRender>();
@@ -458,6 +487,14 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 			//描画前処理レンダー
 			m_preRenderRender[0] = std::make_unique<PreRenderRender>();
 			m_preRenderRender[0]->Init(0);
+
+			//HUD描画レンダー
+			for (int i = 0; i < 1; i++) {
+				CVector2 areaMin, areaMax;
+				m_finalRender[i]->GetDrawArea(areaMin, areaMax);
+				m_HUDRender[i] = std::make_unique<HUDRender>();
+				m_HUDRender[i]->Init(i, areaMin, areaMax, { Get3DFrameBuffer_W(),Get3DFrameBuffer_H() });
+			}
 		}
 
 		//画面分割数分実行
@@ -472,6 +509,7 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 				m_renderManager.DeleteRender(-1 + offset);
 				m_renderManager.DeleteRender(0 + offset);
 				m_renderManager.DeleteRender(1000 + offset);
+				m_renderManager.DeleteRender(1001 + offset);
 
 				//登録
 				if (m_isSplitScreen) {
@@ -482,7 +520,9 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 					//描画前処理
 					m_renderManager.AddRender(0 + offset, m_preRenderRender[i].get());
 					//最終描画
-					m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());					
+					m_renderManager.AddRender(1000 + offset, m_finalRender[i].get());	
+					//HUD描画
+					m_renderManager.AddRender(1001 + offset, m_HUDRender[i].get());
 				}				
 			}
 

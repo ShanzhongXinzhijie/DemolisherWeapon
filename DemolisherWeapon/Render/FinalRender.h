@@ -51,9 +51,11 @@ public:
 
 	void Render()override;
 
-	//void SetFinalRenderTarget();
-
-	//CFinalRenderTarget& GetFRT() { return m_FRT; }
+	//描画範囲を取得
+	void GetDrawArea(CVector2& return_min, CVector2& return_max) {
+		return_min = m_screen_min;
+		return_max = m_screen_max;
+	}
 
 	//歪曲収差の係数を計算
 	static float Calc_k4(float fov);
@@ -71,7 +73,7 @@ public:
 	//アンチエイリアスの有効・無効を設定
 	static void SetIsAntiAliasing(bool enable) {
 		m_isAntiAliasing = enable;
-	}
+	}	
 
 private:
 	//シェーダーマクロ
@@ -102,6 +104,10 @@ private:
 	CPrimitive m_drawSpace;
 	CPrimitive::SVertex m_vertex[4];
 	int m_index[4] = { 0,1,2,3 };
+
+	//描画範囲
+	CVector2 m_screen_min;
+	CVector2 m_screen_max;
 
 	ID3D11ShaderResourceView* m_gridTex = nullptr;
 

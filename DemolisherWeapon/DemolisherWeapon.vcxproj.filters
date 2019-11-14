@@ -107,6 +107,7 @@
     <ClInclude Include="Macro\Accessor.h" />
     <ClInclude Include="Graphic\Shader\StructuredBuffer.h" />
     <ClInclude Include="Render\PreRenderRender.h" />
+    <ClInclude Include="Render\HUDRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -201,6 +202,7 @@
     <ClCompile Include="Render\InitRender.cpp" />
     <ClCompile Include="Graphic\Shader\StructuredBuffer.cpp" />
     <ClCompile Include="Render\PreRenderRender.cpp" />
+    <ClCompile Include="Render\HUDRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

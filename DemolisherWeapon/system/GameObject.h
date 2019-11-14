@@ -322,13 +322,13 @@ public:
 	virtual void PostLoopPostUpdate() {};
 
 	//3D描画前に実行(画面ごと)
-	//num 実行中の画面番号
+	//int num 実行中の画面番号
 	virtual void Pre3DRender(int num) {};
 
 	//この関数内でHUDに2Dグラフィックを描画
 	//int HUDNum 描画対象のHUDの番号
 	//TODO HUDのレンダーターゲット作る
-	//virtual void HUDRender(int HUDNum) {};
+	virtual void HUDRender(int HUDNum) {};
 
 	//2Dグラフィックをこの関数内で描画してください
 	//※CFont,CSpriteなど
@@ -428,6 +428,7 @@ public:
 			}
 		}
 	}
+	void HUDRender(int HUDNum);
 	void PostRender();
 
 	//死の処理

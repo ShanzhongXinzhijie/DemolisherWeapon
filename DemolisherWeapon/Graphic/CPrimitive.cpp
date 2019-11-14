@@ -19,6 +19,7 @@ void CPrimitive::Release() {
 }
 
 void CPrimitive::Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* vertex, int numIndex, int* index) {
+	Release();
 
 	m_topology = topology;
 
