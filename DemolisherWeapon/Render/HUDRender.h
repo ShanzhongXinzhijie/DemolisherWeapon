@@ -30,6 +30,6 @@ namespace DemolisherWeapon {
 		Shader m_vs, m_ps;
 		CPrimitive m_drawSpace;
 		CPrimitive::SVertex m_vertex[4];
-		int m_index[4] = { 0,1,2,3 };
+		unsigned long m_index[4] = { 0,1,2,3 };
 	};
 }

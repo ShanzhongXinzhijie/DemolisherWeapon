@@ -21,7 +21,7 @@ public:
 	void Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* vertex);
 	void Draw(int numVertex);
 	//インデックス使用
-	void Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* vertex, int numIndex, int* index);
+	void Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* vertex, int numIndex, unsigned long* index);
 	void DrawIndexed();
 
 	//頂点バッファ取得

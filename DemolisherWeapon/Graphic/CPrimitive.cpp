@@ -18,7 +18,7 @@ void CPrimitive::Release() {
 	m_isInit = false;
 }
 
-void CPrimitive::Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* vertex, int numIndex, int* index) {
+void CPrimitive::Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* vertex, int numIndex, unsigned long* index) {
 	Release();
 
 	m_topology = topology;
@@ -43,7 +43,7 @@ void CPrimitive::Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* v
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 		bd.Usage = D3D11_USAGE_DEFAULT;
-		bd.ByteWidth = 4 * numIndex;//DXGI_FORMAT_R32_UINT
+		bd.ByteWidth = sizeof(unsigned long)* numIndex;//DXGI_FORMAT_R32_UINT
 		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
 		D3D11_SUBRESOURCE_DATA InitData;

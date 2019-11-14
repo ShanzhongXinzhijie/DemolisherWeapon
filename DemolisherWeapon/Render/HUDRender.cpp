@@ -61,14 +61,14 @@ namespace DemolisherWeapon {
 
 	//HUDに描画
 		//レンダーターゲットのクリア
-		float clearColor[4] = { 1.0f, 1.0f, 1.0f, 0.0f };
+		float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		GetGraphicsEngine().GetD3DDeviceContext()->ClearRenderTargetView(m_RTV.Get(), clearColor);
 		//レンダーターゲットの設定
 		GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(1, m_RTV.GetAddressOf(), nullptr);
 		//ビューポート
 		GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().GetFrameBuffer_W(), GetEngine().GetGraphicsEngine().GetFrameBuffer_H());
 
-		//フレームバッファサイズの変更
+		//TODO フレームバッファサイズの変更
 
 		//描画
 		GetEngine().GetGameObjectManager().HUDRender(m_HUDNum);
@@ -93,6 +93,8 @@ namespace DemolisherWeapon {
 		GetGraphicsEngine().GetD3DDeviceContext()->PSSetSamplers(0, 1, &samp);
 		//ブレンドステートを設定
 		GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(GetGraphicsEngine().GetCommonStates().AlphaBlend(), nullptr, 0xFFFFFFFF);
+		//ラスタライザーステートを設定
+		GetGraphicsEngine().ResetRasterizerState();
 
 		//描画
 		m_drawSpace.DrawIndexed();

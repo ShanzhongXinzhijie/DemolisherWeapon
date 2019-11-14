@@ -310,7 +310,7 @@ private:
 			{1.0f, 0.0f}
 		},
 	};
-	int m_index[4] = { 0,1,2,3 };
+	unsigned long m_index[4] = { 0,1,2,3 };
 
 	//ƒŒƒ“ƒ_[
 	int m_freeRenderPriority = -1;
