@@ -27,6 +27,7 @@ constexpr inline auto enButtonLB = enButtonLB1;
 enum enLR {
 	L, R, enLRNUM,
 };
+static constexpr enLR LR[] = { L,R };
 
 class XInputPad
 {
