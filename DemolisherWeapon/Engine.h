@@ -397,6 +397,11 @@ static inline std::vector<GameObj::ICamera*>& GetCameraList()
 {
 	return GetEngine().GetGraphicsEngine().GetCameraManager().GetCameraList();
 }
+//‰æ–Ê•ªŠ„”‚ğæ“¾
+static inline int GetScreenNum()
+{
+	return GetEngine().GetGraphicsEngine().GetSplitScreenMode() ? 2 : 1 ;
+}
 
 //˜c‹Èû·‚Ìg—p‚ğİ’è
 static inline void SetIsLensDistortion(bool enable)

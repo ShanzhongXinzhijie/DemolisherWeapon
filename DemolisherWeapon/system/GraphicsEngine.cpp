@@ -287,7 +287,6 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		}
 
 		//描画前処理
-		//TODO このタイミングでビーム更新処理
 		m_renderManager.AddRender(0 + offset, m_preRenderRender[i].get());
 		
 		//Gバッファ描画
