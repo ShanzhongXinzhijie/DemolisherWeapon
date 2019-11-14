@@ -104,18 +104,18 @@ namespace DemolisherWeapon {
 		//•`‰æŠJn
 		m_batch->Begin();
 
-		//ü•ª•`‰æ
-		for (auto& L : m_ilneList2D) {
-			m_batch->DrawLine(DirectX::VertexPositionColor(L.start, L.color), DirectX::VertexPositionColor(L.end, L.color));
-		}
 		//lŠpŒ`•`‰æ
 		for (auto& Q : m_quadList2D) {
 			m_batch->DrawQuad(
-				DirectX::VertexPositionColor(CVector3(Q.start.x, -Q.start.y, 0.f), Q.color),
-				DirectX::VertexPositionColor(CVector3(Q.end.x, -Q.start.y, 0.f), Q.color),
-				DirectX::VertexPositionColor(CVector3(Q.end.x, -Q.end.y, 0.f), Q.color),
-				DirectX::VertexPositionColor(CVector3(Q.start.x, -Q.end.y, 0.f), Q.color)
+				DirectX::VertexPositionColor(CVector3(Q.start.x, Q.start.y, 0.f), Q.color),
+				DirectX::VertexPositionColor(CVector3(Q.end.x, Q.start.y, 0.f), Q.color),
+				DirectX::VertexPositionColor(CVector3(Q.end.x, Q.end.y, 0.f), Q.color),
+				DirectX::VertexPositionColor(CVector3(Q.start.x, Q.end.y, 0.f), Q.color)
 			);
+		}
+		//ü•ª•`‰æ
+		for (auto& L : m_ilneList2D) {
+			m_batch->DrawLine(DirectX::VertexPositionColor(L.start, L.color), DirectX::VertexPositionColor(L.end, L.color));
 		}
 
 		//•`‰æI—¹

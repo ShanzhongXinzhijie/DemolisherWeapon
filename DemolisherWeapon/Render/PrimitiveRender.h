@@ -36,7 +36,7 @@ namespace DemolisherWeapon {
 			}
 			else {
 				m_isDraw2D = true;
-				m_ilneList2D.emplace_back(start*CVector3(m_2dCamera.GetWidth(), m_2dCamera.GetHeight(), 0.0f), end*CVector3(m_2dCamera.GetWidth(), m_2dCamera.GetHeight(), 0.0f), color);
+				m_ilneList2D.emplace_back(start*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), end*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), color);
 			}
 		}
 		/// <summary>
@@ -47,7 +47,7 @@ namespace DemolisherWeapon {
 		/// <param name="color">êF</param>
 		void AddQuad(const CVector3& min, const CVector3& max, const CVector4& color) {			
 			m_isDraw2D = true;
-			m_quadList2D.emplace_back(min*CVector3(m_2dCamera.GetWidth(), m_2dCamera.GetHeight(), 0.0f), max*CVector3(m_2dCamera.GetWidth(), m_2dCamera.GetHeight(), 0.0f), color);
+			m_quadList2D.emplace_back(min*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), max*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), color);
 		}
 
 	private:
