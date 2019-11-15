@@ -15,8 +15,8 @@ namespace DemolisherWeapon {
 			m_spriteFont = GetEngine().GetGraphicsEngine().GetSpriteFont();
 		}
 
-		m_screenSize.x = GetEngine().GetGraphicsEngine().GetFrameBuffer_W();
-		m_screenSize.y = GetEngine().GetGraphicsEngine().GetFrameBuffer_H();
+		//m_screenSize.x = GetEngine().GetGraphicsEngine().GetFrameBuffer_W();
+		//m_screenSize.y = GetEngine().GetGraphicsEngine().GetFrameBuffer_H();
 	}
 
 	CFont::CFont()
@@ -42,7 +42,7 @@ namespace DemolisherWeapon {
 		DirectX::SpriteEffects effects,
 		float layerDepth
 	)const {
-		DrawScreenPos(text, { pos.x * m_screenSize.x, pos.y * m_screenSize.y }, color, scale, pivot, rotation, effects, layerDepth);
+		DrawScreenPos(text, { pos.x * GetGraphicsEngine().GetFrameBuffer_W(), pos.y * GetGraphicsEngine().GetFrameBuffer_H() }, color, scale, pivot, rotation, effects, layerDepth);
 	}
 
 	void CFont::DrawScreenPos(

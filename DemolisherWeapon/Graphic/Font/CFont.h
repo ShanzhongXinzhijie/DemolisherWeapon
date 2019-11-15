@@ -79,7 +79,7 @@ namespace DemolisherWeapon {
 
 		DirectX::SpriteBatch* m_spriteBatch = nullptr;
 		DirectX::SpriteFont* m_spriteFont = nullptr;
-		CVector2 m_screenSize;
+		//CVector2 m_screenSize;
 
 		static FontBank m_s_fontBank;
 		static DirectX::SpriteFont* m_s_defaultFont;

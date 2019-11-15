@@ -49,7 +49,7 @@ namespace DemolisherWeapon {
 
 	private:
 		DirectX::SpriteBatch* m_spriteBatch = nullptr;
-		CVector2 m_screenSize;
+		//CVector2 m_screenSize;
 
 		ID3D11ShaderResourceView* m_srv = nullptr;
 		ID3D11Resource* m_tex = nullptr;

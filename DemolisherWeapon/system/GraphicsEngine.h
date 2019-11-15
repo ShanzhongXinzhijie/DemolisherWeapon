@@ -68,12 +68,11 @@ public:
 								EnSplitScreenMode screenMode, float* splitScreenSize = nullptr);
 
 	//フレームバッファの取得
-	//TODO ターゲットのものにする
 	float GetFrameBuffer_W()const {
-		return FRAME_BUFFER_W;
+		return m_isChangeFrameBufferSize ? m_frameBufferW : FRAME_BUFFER_W;
 	}
 	float GetFrameBuffer_H()const {
-		return FRAME_BUFFER_H;
+		return m_isChangeFrameBufferSize ? m_frameBufferH : FRAME_BUFFER_H;
 	}
 	float Get3DFrameBuffer_W()const{
 		return FRAME_BUFFER_3D_W;
@@ -81,6 +80,13 @@ public:
 	float Get3DFrameBuffer_H()const {
 		return FRAME_BUFFER_3D_H;
 	}
+	//取得できるフレームバッファサイズの変更
+	void ChangeFrameBufferSize(float W, float H) {
+		m_isChangeFrameBufferSize = true;
+		m_frameBufferW = W; m_frameBufferH = H;
+	}
+	//取得できるフレームバッファサイズをもとに戻す
+	void ResetFrameBufferSize(){ m_isChangeFrameBufferSize = false; }
 
 	//画面分割設定を取得
 	EnSplitScreenMode GetSplitScreenMode()const {
@@ -265,6 +271,11 @@ private:
 	float FRAME_BUFFER_H = 720.0f;				//フレームバッファの高さ。
 	float FRAME_BUFFER_3D_W = 1280.0f;			//フレームバッファの幅(3D描画)
 	float FRAME_BUFFER_3D_H = 720.0f;			//フレームバッファの高さ(3D描画)
+	
+	//取得するフレームバッファサイズ
+	bool m_isChangeFrameBufferSize = false;
+	float m_frameBufferW = FRAME_BUFFER_W;
+	float m_frameBufferH = FRAME_BUFFER_H;
 
 	EnSplitScreenMode m_isSplitScreen = enNoSplit;//画面分割設定
 

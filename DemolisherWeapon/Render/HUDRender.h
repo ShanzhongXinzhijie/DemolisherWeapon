@@ -9,6 +9,7 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// 初期化
 		/// </summary>
+		/// <param name="HUDNum">このレンダーが担当するHUD番号</param>
 		/// <param name="screen_min">描画範囲(最小側)</param>
 		/// <param name="screen_max">描画範囲(最大側)</param>
 		/// <param name="screenSize">テクスチャサイズ</param>
@@ -20,8 +21,9 @@ namespace DemolisherWeapon {
 		void Render();
 
 	private:
-		int m_HUDNum = 0;
+		int m_HUDNum = 0;//このレンダーが担当するHUD番号
 
+		CVector2 m_textureSize;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D>				m_texture;	//テクスチャ
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView>		m_RTV;		//レンダーターゲットビュー
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_SRV;		//SRV

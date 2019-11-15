@@ -6,8 +6,8 @@ namespace DemolisherWeapon {
 
 	CSprite::CSprite()
 	{
-		m_screenSize.x = GetEngine().GetGraphicsEngine().GetFrameBuffer_W();
-		m_screenSize.y = GetEngine().GetGraphicsEngine().GetFrameBuffer_H();
+		//m_screenSize.x = GetEngine().GetGraphicsEngine().GetFrameBuffer_W();
+		//m_screenSize.y = GetEngine().GetGraphicsEngine().GetFrameBuffer_H();
 	}
 	CSprite::~CSprite()
 	{
@@ -53,7 +53,7 @@ namespace DemolisherWeapon {
 		DirectX::SpriteEffects effects,
 		float layerDepth
 	) {
-		DrawScreenPos({ pos.x * m_screenSize.x, pos.y * m_screenSize.y }, scale, pivot, rotation, color, effects, layerDepth);
+		DrawScreenPos({ pos.x * GetGraphicsEngine().GetFrameBuffer_W(), pos.y * GetGraphicsEngine().GetFrameBuffer_H() }, scale, pivot, rotation, color, effects, layerDepth);
 	}
 	void CSprite::DrawScreenPos(
 		const CVector2& pos,

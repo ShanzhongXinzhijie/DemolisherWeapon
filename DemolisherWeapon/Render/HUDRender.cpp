@@ -6,6 +6,7 @@ namespace DemolisherWeapon {
 		GraphicsEngine& ge = GetEngine().GetGraphicsEngine();
 
 		m_HUDNum = HUDNum;
+		m_textureSize = screenSize;
 
 		//出力テクスチャDESC
 		D3D11_TEXTURE2D_DESC texDesc;
@@ -60,6 +61,9 @@ namespace DemolisherWeapon {
 		GetGraphicsEngine().GetD3DDeviceContext()->OMGetBlendState(&oldBlendState, oldf, &olduint);
 
 	//HUDに描画
+		//フレームバッファサイズの変更
+		GetGraphicsEngine().ChangeFrameBufferSize(m_textureSize.x, m_textureSize.y);
+
 		//レンダーターゲットのクリア
 		float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		GetGraphicsEngine().GetD3DDeviceContext()->ClearRenderTargetView(m_RTV.Get(), clearColor);
@@ -68,10 +72,14 @@ namespace DemolisherWeapon {
 		//ビューポート
 		GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().GetFrameBuffer_W(), GetEngine().GetGraphicsEngine().GetFrameBuffer_H());
 
-		//TODO フレームバッファサイズの変更
-
+		//2Dプリミティブの描画
+		GetGraphicsEngine().GetPrimitiveRender().RenderHUD(m_HUDNum);
+		GetGraphicsEngine().GetPrimitiveRender().PostRenderHUD(m_HUDNum);
 		//描画
 		GetEngine().GetGameObjectManager().HUDRender(m_HUDNum);
+
+		//フレームバッファサイズを戻す
+		GetGraphicsEngine().ResetFrameBufferSize();
 
 	//バックバッファにHUDを描画
 		//描画先をバックバッファにする

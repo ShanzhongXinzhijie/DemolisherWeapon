@@ -80,6 +80,7 @@ namespace DemolisherWeapon {
 		d3dContext->OMSetRenderTargets(0, NULL, NULL);
 	}
 	void PrimitiveRender::PostRender() {
+		if (!m_isDraw3D) { return; }
 		//描画リストのクリア
 		m_ilneList3D.clear();
 		m_isDraw3D = false;
@@ -122,9 +123,61 @@ namespace DemolisherWeapon {
 		m_batch->End();
 	}
 	void PrimitiveRender::PostRender2D() {
+		if (!m_isDraw2D) { return; }
 		//描画リストのクリア
 		m_ilneList2D.clear();
 		m_quadList2D.clear();
 		m_isDraw2D = false;
+	}
+
+	void PrimitiveRender::RenderHUD(int HUDNum) {
+		if (!m_isDrawHUD[HUDNum]) { return; }
+
+		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
+
+		d3dContext->OMSetBlendState(GetGraphicsEngine().GetCommonStates().Opaque(), nullptr, 0xFFFFFFFF);
+		d3dContext->OMSetDepthStencilState(GetGraphicsEngine().GetCommonStates().DepthNone(), 0);
+		d3dContext->RSSetState(GetGraphicsEngine().GetCommonStates().CullNone());
+
+		//行列設定
+		m_effect->SetView(m_2dCamera.GetViewMatrix());
+		m_effect->SetProjection(m_2dCamera.GetProjMatrix());
+
+		m_effect->Apply(d3dContext);
+		d3dContext->IASetInputLayout(m_inputLayout.Get());
+
+		//描画開始
+		m_batch->Begin();
+
+		//四角形描画
+		for (auto& Q : m_quadListHUD[HUDNum]) {
+			m_batch->DrawQuad(
+				DirectX::VertexPositionColor(CVector3(Q.start.x, Q.start.y, 0.f), Q.color),
+				DirectX::VertexPositionColor(CVector3(Q.end.x, Q.start.y, 0.f), Q.color),
+				DirectX::VertexPositionColor(CVector3(Q.end.x, Q.end.y, 0.f), Q.color),
+				DirectX::VertexPositionColor(CVector3(Q.start.x, Q.end.y, 0.f), Q.color)
+			);
+		}
+		//線分描画
+		for (auto& L : m_ilneListHUD[HUDNum]) {
+			m_batch->DrawLine(DirectX::VertexPositionColor(L.start, L.color), DirectX::VertexPositionColor(L.end, L.color));
+		}
+
+		//描画終了
+		m_batch->End();
+	}
+	void PrimitiveRender::PostRenderHUD() {
+		int i = 0;
+		std::for_each(
+			m_isDrawHUD.begin(), m_isDrawHUD.end(),
+			[&](bool& isDraw) {
+				if (!isDraw) { i++; return; }
+				//描画リストのクリア
+				m_ilneListHUD[i].clear();
+				m_quadListHUD[i].clear();
+				isDraw = false;
+				i++;
+			}
+		);
 	}
 }
