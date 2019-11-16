@@ -32,19 +32,26 @@ namespace DemolisherWeapon {
 		/// <param name="end">I“_</param>
 		/// <param name="color">F</param>
 		/// <param name="is3D">3D•`‰æ‚©H(false‚Å2D•`‰æ)</param>
-		/// <param name="isHUD">HUD‚É•`‰æ‚·‚é‚©?(0ˆÈã‚Å‚»‚Ì”Ô†‚ÌHUD‚É•`‰æ)(HUD•`‰æ‚Í2D•`‰æ)</param>
-		void AddLine(const CVector3& start, const CVector3& end, const CVector4& color, bool is3D, int isHUD) {
-			if (isHUD >= 0) {
-				m_isDrawHUD[isHUD] = true;
-				if (m_ilneListHUD.size() <= isHUD) { m_ilneListHUD.resize(isHUD + 1); }
-				m_ilneListHUD[isHUD].emplace_back(start*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), end*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), color);
-				return;
-			}
+		/// <param name="isHUD">HUD‚É•`‰æ‚·‚é‚©?(0ˆÈã‚Å‚»‚Ì”Ô†‚ÌHUD‚É•`‰æ)</param>
+		void AddLine(const CVector3& start, const CVector3& end, const CVector4& color, bool is3D, int isHUD) {			
 			if (is3D) {
 				m_isDraw3D = true;
-				m_ilneList3D.emplace_back(start, end, color);
+				m_ilneList3D.emplace_back(isHUD, start, end, color);
 			}
 			else {
+				//HUD2D
+				if (isHUD >= 0) {
+					if (m_isDrawHUD.size() <= isHUD) {
+						m_isDrawHUD.resize(isHUD + 1);
+					}
+					if (m_ilneListHUD.size() <= isHUD) {
+						m_ilneListHUD.resize(isHUD + 1);
+					}
+					m_isDrawHUD[isHUD] = true;
+					m_ilneListHUD[isHUD].emplace_back(start*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), end*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), color);
+					return;
+				}
+				//’Êí2D
 				m_isDraw2D = true;
 				m_ilneList2D.emplace_back(start*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), end*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), color);
 			}
@@ -55,14 +62,21 @@ namespace DemolisherWeapon {
 		/// <param name="min">Å¬À•W</param>
 		/// <param name="max">Å‘åÀ•W</param>
 		/// <param name="color">F</param>
-		/// <param name="isHUD">HUD‚É•`‰æ‚·‚é‚©?(0ˆÈã‚Å‚»‚Ì”Ô†‚ÌHUD‚É•`‰æ)(HUD•`‰æ‚Í2D•`‰æ)</param>
+		/// <param name="isHUD">HUD‚É•`‰æ‚·‚é‚©?(0ˆÈã‚Å‚»‚Ì”Ô†‚ÌHUD‚É•`‰æ)</param>
 		void AddQuad(const CVector3& min, const CVector3& max, const CVector4& color, int isHUD) {
+			//HUD2D
 			if (isHUD >= 0) {
+				if (m_isDrawHUD.size() <= isHUD) {
+					m_isDrawHUD.resize(isHUD + 1);
+				}
+				if (m_quadListHUD.size() <= isHUD) { 
+					m_quadListHUD.resize(isHUD + 1); 
+				}
 				m_isDrawHUD[isHUD] = true;
-				if (m_quadListHUD.size() <= isHUD) { m_quadListHUD.resize(isHUD + 1); }
 				m_quadListHUD[isHUD].emplace_back(min*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), max*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), color);
 				return;
 			}
+			//’Êí2D
 			m_isDraw2D = true;
 			m_quadList2D.emplace_back(min*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), max*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), color);
 		}
@@ -88,8 +102,14 @@ namespace DemolisherWeapon {
 			CVector3 end;
 			CVector4 color;
 		};
+		struct IsHUDLine {
+			IsHUDLine(bool ishud, const CVector3& s, const CVector3& e, const CVector4& c) : isHUD(ishud), line(s,e,c) {};
+			bool isHUD = false;
+			Line line;
+		};
 		//ü•ª
-		std::list<Line> m_ilneList3D, m_ilneList2D;
+		std::list<IsHUDLine> m_ilneList3D;
+		std::list<Line> m_ilneList2D;
 		std::vector<std::list<Line>> m_ilneListHUD;
 		//lŠpŒ`
 		std::list<Line> m_quadList2D;

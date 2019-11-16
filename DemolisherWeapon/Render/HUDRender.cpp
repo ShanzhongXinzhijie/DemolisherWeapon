@@ -74,7 +74,7 @@ namespace DemolisherWeapon {
 
 		//2Dプリミティブの描画
 		GetGraphicsEngine().GetPrimitiveRender().RenderHUD(m_HUDNum);
-		GetGraphicsEngine().GetPrimitiveRender().PostRenderHUD(m_HUDNum);
+		GetGraphicsEngine().GetPrimitiveRender().PostRenderHUD();
 		//描画
 		GetEngine().GetGameObjectManager().HUDRender(m_HUDNum);
 

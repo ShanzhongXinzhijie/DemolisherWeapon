@@ -93,6 +93,14 @@ public:
 		return m_isSplitScreen;
 	}
 
+	//ターゲットになってるスクリーン番号を取得
+	int GetTargetScreenNum()const {
+		return m_HUDNum;
+	}
+	void SetTargetScreenNum(int num) {
+		m_HUDNum = num;
+	}
+
 	//垂直同期待つかを設定
 	void SetUseVSync(bool b) {
 		m_useVSync = b;
@@ -200,10 +208,6 @@ public:
 #endif
 		return false;
 	}
-	//ファイナルレンダーの取得
-	//FinalRender& GetFinalRender() {
-	//	return m_finalRender;
-	//}
 
 	//カメラマネージャー取得
 	CameraManager& GetCameraManager(){
@@ -345,6 +349,9 @@ private:
 	std::unique_ptr<CameraSwitchRender> m_cameraSwitchRender[2];
 	std::unique_ptr<PreRenderRender> m_preRenderRender[2];
 	std::unique_ptr<HUDRender> m_HUDRender[2];
+
+	//現在ターゲットになっている画面番号
+	int m_HUDNum = -1;
 
 	//最終レンダーターゲット
 	CFinalRenderTarget m_FRT;

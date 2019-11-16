@@ -4,7 +4,7 @@
 namespace DemolisherWeapon {
 	
 	void CameraSwitchRender::Render() {
-		auto& camlist = GetEngine().GetGraphicsEngine().GetCameraManager().GetCameraList();		
+		auto& camlist = GetGraphicsEngine().GetCameraManager().GetCameraList();		
 		
 #ifndef DW_MASTER
 		if (camlist.size() <= m_cameraNum) {
@@ -16,7 +16,7 @@ namespace DemolisherWeapon {
 		SetMainCamera(camlist[m_cameraNum]);
 
 		//シェーダに送るポイントライト用カメラ座標更新
-		GetEngine().GetGraphicsEngine().GetLightManager().UpdateConstantBuffer();
+		GetGraphicsEngine().GetLightManager().UpdateConstantBuffer();
 	}
 
 }

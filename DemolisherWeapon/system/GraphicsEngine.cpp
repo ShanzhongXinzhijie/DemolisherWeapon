@@ -16,7 +16,6 @@ GraphicsEngine::~GraphicsEngine()
 	Release();
 }
 
-
 void GraphicsEngine::ClearBackBuffer()
 {
 	//バックバッファを灰色で塗りつぶす。

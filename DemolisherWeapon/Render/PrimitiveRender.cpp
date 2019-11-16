@@ -44,6 +44,14 @@ namespace DemolisherWeapon {
 
 	void PrimitiveRender::Render() {
 		if (!m_isDraw3D) { return; }
+		
+		bool isDraw = false;
+		for (auto& L : m_ilneList3D) {
+			if (L.isHUD < 0 || L.isHUD == GetGraphicsEngine().GetTargetScreenNum()) {
+				isDraw = true; break;
+			}
+		}
+		if (!isDraw) { return; }
 
 		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
@@ -70,7 +78,9 @@ namespace DemolisherWeapon {
 
 		//ü•ª•`‰æ
 		for (auto& L : m_ilneList3D) {
-			m_batch->DrawLine(DirectX::VertexPositionColor(L.start, L.color), DirectX::VertexPositionColor(L.end, L.color));
+			if (L.isHUD < 0 || L.isHUD == GetGraphicsEngine().GetTargetScreenNum()) {
+				m_batch->DrawLine(DirectX::VertexPositionColor(L.line.start, L.line.color), DirectX::VertexPositionColor(L.line.end, L.line.color));
+			}
 		}
 
 		//•`‰æI—¹
@@ -131,7 +141,7 @@ namespace DemolisherWeapon {
 	}
 
 	void PrimitiveRender::RenderHUD(int HUDNum) {
-		if (!m_isDrawHUD[HUDNum]) { return; }
+		if (m_isDrawHUD.size() <= HUDNum || !m_isDrawHUD[HUDNum]) { return; }
 
 		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
@@ -150,34 +160,36 @@ namespace DemolisherWeapon {
 		m_batch->Begin();
 
 		//lŠpŒ`•`‰æ
-		for (auto& Q : m_quadListHUD[HUDNum]) {
-			m_batch->DrawQuad(
-				DirectX::VertexPositionColor(CVector3(Q.start.x, Q.start.y, 0.f), Q.color),
-				DirectX::VertexPositionColor(CVector3(Q.end.x, Q.start.y, 0.f), Q.color),
-				DirectX::VertexPositionColor(CVector3(Q.end.x, Q.end.y, 0.f), Q.color),
-				DirectX::VertexPositionColor(CVector3(Q.start.x, Q.end.y, 0.f), Q.color)
-			);
+		if (m_quadListHUD.size() > HUDNum) {
+			for (auto& Q : m_quadListHUD[HUDNum]) {
+				m_batch->DrawQuad(
+					DirectX::VertexPositionColor(CVector3(Q.start.x, Q.start.y, 0.f), Q.color),
+					DirectX::VertexPositionColor(CVector3(Q.end.x, Q.start.y, 0.f), Q.color),
+					DirectX::VertexPositionColor(CVector3(Q.end.x, Q.end.y, 0.f), Q.color),
+					DirectX::VertexPositionColor(CVector3(Q.start.x, Q.end.y, 0.f), Q.color)
+				);
+			}
 		}
 		//ü•ª•`‰æ
-		for (auto& L : m_ilneListHUD[HUDNum]) {
-			m_batch->DrawLine(DirectX::VertexPositionColor(L.start, L.color), DirectX::VertexPositionColor(L.end, L.color));
+		if (m_ilneListHUD.size() > HUDNum) {
+			for (auto& L : m_ilneListHUD[HUDNum]) {
+				m_batch->DrawLine(DirectX::VertexPositionColor(L.start, L.color), DirectX::VertexPositionColor(L.end, L.color));
+			}
 		}
 
 		//•`‰æI—¹
 		m_batch->End();
 	}
 	void PrimitiveRender::PostRenderHUD() {
-		int i = 0;
-		std::for_each(
-			m_isDrawHUD.begin(), m_isDrawHUD.end(),
-			[&](bool& isDraw) {
-				if (!isDraw) { i++; return; }
-				//•`‰æƒŠƒXƒg‚ÌƒNƒŠƒA
-				m_ilneListHUD[i].clear();
-				m_quadListHUD[i].clear();
-				isDraw = false;
-				i++;
-			}
-		);
+		//•`‰æƒŠƒXƒg‚ÌƒNƒŠƒA
+		for (auto& line : m_ilneListHUD) {
+			line.clear();
+		}
+		for (auto& quad : m_quadListHUD) {
+			quad.clear();
+		}
+		for (auto it = m_isDrawHUD.begin(), e = m_isDrawHUD.end(); it != e; ++it) {
+			*it = false;
+		}
 	}
 }

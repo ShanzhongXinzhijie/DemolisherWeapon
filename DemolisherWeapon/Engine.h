@@ -578,12 +578,15 @@ static inline float GetMasterVolume() {
 }
 
 //ü•ª‚Ì•`‰æ
-static inline void DrawLine(const CVector3& start, const CVector3& end, const CVector4& color, bool is3D = true) {
-	GetGraphicsEngine().GetPrimitiveRender().AddLine(start, end, color, is3D);
+static inline void DrawLine3D(const CVector3& start, const CVector3& end, const CVector4& color, int HUDNum = -1) {
+	GetGraphicsEngine().GetPrimitiveRender().AddLine(start, end, color, true, HUDNum);
+}
+static inline void DrawLine2D(const CVector3& start, const CVector3& end, const CVector4& color, int HUDNum = -1) {
+	GetGraphicsEngine().GetPrimitiveRender().AddLine(start, end, color, false, HUDNum);
 }
 //lŠpŒ`‚Ì•`‰æ(2D)
-static inline void DrawQuad(const CVector3& min, const CVector3& max, const CVector4& color) {
-	GetGraphicsEngine().GetPrimitiveRender().AddQuad(min, max, color);
+static inline void DrawQuad2D(const CVector3& min, const CVector3& max, const CVector4& color, int HUDNum = -1) {
+	GetGraphicsEngine().GetPrimitiveRender().AddQuad(min, max, color, HUDNum);
 }
 
 //ƒfƒoƒbƒOî•ñ‚ğ•`‰æ‚·‚é‚©İ’è

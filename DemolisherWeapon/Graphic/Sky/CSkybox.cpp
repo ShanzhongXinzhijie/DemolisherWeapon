@@ -51,6 +51,7 @@ namespace GameObj {
 		m_skyModel.SetIsShadowCaster(false);
 		
 		//大きさ
+		//TODO 複数カメラを使う場合、現状だとFarを合わせる必要がある
 		if (size < 0.0f) { size = std::floor(GetMainCamera()->GetFar() * (1.0f/sqrt(3.0f))); }
 		m_skyModel.SetScale({ size / 50.0f, size / 50.0f, size / 50.0f });
 
