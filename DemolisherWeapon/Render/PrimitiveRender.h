@@ -103,8 +103,8 @@ namespace DemolisherWeapon {
 			CVector4 color;
 		};
 		struct IsHUDLine {
-			IsHUDLine(bool ishud, const CVector3& s, const CVector3& e, const CVector4& c) : isHUD(ishud), line(s,e,c) {};
-			bool isHUD = false;
+			IsHUDLine(int ishud, const CVector3& s, const CVector3& e, const CVector4& c) : isHUD(ishud), line(s,e,c) {};
+			int isHUD = -1;
 			Line line;
 		};
 		//ê¸ï™
