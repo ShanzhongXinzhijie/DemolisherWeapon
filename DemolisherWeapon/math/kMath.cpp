@@ -87,4 +87,31 @@ int CMath::IntersectLines(CVector3* result, const CVector3& A, const CVector3& B
 	return 2;
 }
 
+void CMath::GenerateBlueNoise(int pointNum, const CVector2& min, const CVector2& max, float radius, std::vector<CVector2>& return_points) {
+	//Dart throwingで生成
+	std::unique_ptr<CVector2[]> points = std::make_unique<CVector2[]>(pointNum);
+	std::unique_ptr<bool[]> isDead = std::make_unique<bool[]>(pointNum);
+	//ランダムな点を生成する
+	for (int i = 0; i < pointNum; i++) {
+		points[i] = { Lerp(RandomZeroToOne(),min.x,max.x), Lerp(RandomZeroToOne(),min.y,max.y) };
+	}
+	//点の一定距離内に他の点があったら消滅
+	float radiusSq = Square(radius);
+	for (int i = 0; i < pointNum; i++) {
+		for (int i2 = i+1; i2 < pointNum; i2++) {
+			if ((points[i] - points[i2]).LengthSq() < radiusSq) {
+				isDead[i] = true;//点死亡
+				break;
+			}
+		}
+	}
+	//ブルーノイズを返す
+	return_points.clear();
+	for (int i = 0; i < pointNum; i++) {
+		if (!isDead[i]) {//死んでない点
+			return_points.emplace_back(points[i]);
+		}
+	}
+}
+
 }

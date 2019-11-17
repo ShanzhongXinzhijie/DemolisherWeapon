@@ -22,6 +22,7 @@ public:
 	/*!
 	 * @brief	degree‚©‚çradian‚É•ÏŠ·B
 	 */
+	[[nodiscard]]
 	static constexpr float DegToRad( float deg )
 	{
 		return deg * (PI/180.0f);
@@ -29,6 +30,7 @@ public:
 	/*!
 	 * @brief	radian‚©‚çdegree‚É•ÏŠ·B
 	 */
+	[[nodiscard]]
 	static constexpr float RadToDeg( float rad )
 	{
 		return rad / (PI/180.0f);
@@ -39,33 +41,39 @@ public:
 	 *  ret = t0 + (t1-t0) + rate;
 	 *@param[in]	t		•âŠÔ—¦	0.0`1.0
 	 */
+	[[nodiscard]]
 	static constexpr float Lerp(float rate, float t0, float t1)
 	{
 		return t0 + (t1 - t0)*rate;
 	}
 
 	//ˆø”‚Ì•„†‚ª³‚È‚ç1.0f‚ğ•‰‚È‚ç-1.0f‚ğ•Ô‚·
+	[[nodiscard]]
 	static constexpr float Sign(float f) {
 		return f < 0.0f ? -1.0f : 1.0f;
 	}
 
 	//ˆø”f‚Ì“ñæ‚ğæ“¾
+	[[nodiscard]]
 	static constexpr float Square(float f) {
 		return f * f;
 	}
 
 	//ˆø”f‚ğ0.0f`1.0f‚ÅƒNƒ‰ƒ“ƒv
+	[[nodiscard]]
 	static constexpr float Saturate(float f) {
 		return Clamp(f,0.0f,1.0f);
 	}
 
 	//ˆø”f‚ğ-1.0f`1.0f‚ÅƒNƒ‰ƒ“ƒv
+	[[nodiscard]]
 	static constexpr float ClampFromNegOneToPosOne(float f) {
 		return Clamp(f, -1.0f, 1.0f);
 	}
 
 	//ˆø”in‚ğlow`high‚ÌŠÔ‚Éû‚ß‚é
 	template<typename Ttype>
+	[[nodiscard]]
 	static constexpr Ttype Clamp(Ttype in, Ttype low, Ttype high) {
 		return min(max(in, low), high);
 	}	
@@ -100,13 +108,18 @@ private:
 	static std::uniform_int_distribution<> intRandom;
 public:
 	//0.0f`1.0f‚Ìfloat—”‚ğæ“¾
+	[[nodiscard]]
 	static float RandomZeroToOne() {
 		return zeroToOne(mt);
 	}
 	//0`RAND_MAX‚Ìint—”‚ğæ“¾
+	[[nodiscard]]
 	static int RandomInt() {
 		return intRandom(mt);
 	}
+
+	//ƒuƒ‹[ƒmƒCƒY‚ğ¶¬
+	static void GenerateBlueNoise(int pointNum, const CVector2& min, const CVector2& max, float radius, std::vector<CVector2>& return_points);	
 };
 
 }

@@ -53,9 +53,11 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	Out.albedo = Z;
 	Out.albedo = lerp(Out.albedo, X, blendNormal.x);
 	Out.albedo = lerp(Out.albedo, Y, blendNormal.y);	
+
+	//Out.albedo.xyz = lerp(Out.albedo.xyz,blendNormal,0.5f);
 #else
     AlbedoRender(In, Out);
-#endif
+#endif    
 
 	//ƒ¿ƒeƒXƒg
     if (Out.albedo.a > 0.5f)

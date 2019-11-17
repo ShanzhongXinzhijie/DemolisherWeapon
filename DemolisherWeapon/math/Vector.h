@@ -140,7 +140,7 @@ public:
 		xmv = DirectX::XMVector2Normalize(xmv);
 		DirectX::XMStoreFloat2(&vec, xmv);
 	}
-	CVector2 GetNorm() const {
+	[[nodiscard]] CVector2 GetNorm() const {
 		DirectX::XMVECTOR xmv = DirectX::XMLoadFloat2(&vec);
 		xmv = DirectX::XMVector2Normalize(xmv);
 		CVector2 re;
@@ -436,7 +436,7 @@ public:
 		DirectX::XMVECTOR xmvr = DirectX::XMVector3Cross(xmv0, xmv1);
 		DirectX::XMStoreFloat3(&vec, xmvr);
 	}
-	CVector3 GetCross(const CVector3& _v)const
+	[[nodiscard]] CVector3 GetCross(const CVector3& _v)const
 	{
 		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat3(&vec);
 		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat3(&_v.vec);
@@ -445,7 +445,7 @@ public:
 		DirectX::XMStoreFloat3(&re.vec, xmvr);
 		return re;
 	}
-	static CVector3 GetCross(const CVector3& v0, const CVector3& v1)
+	[[nodiscard]] static CVector3 GetCross(const CVector3& v0, const CVector3& v1)
 	{
 		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat3(&v0.vec);
 		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat3(&v1.vec);
@@ -504,7 +504,7 @@ public:
 		xmv = DirectX::XMVector3Normalize(xmv);
 		DirectX::XMStoreFloat3(&vec, xmv);
 	}
-	CVector3 GetNorm() const{
+	[[nodiscard]] CVector3 GetNorm() const{
 		DirectX::XMVECTOR xmv = DirectX::XMLoadFloat3(&vec);
 		xmv = DirectX::XMVector3Normalize(xmv);
 		CVector3 re;
@@ -520,11 +520,11 @@ public:
 	}
 
 	//最大値を取得
-	float GetMax()const {
+	[[nodiscard]] float GetMax()const {
 		return max(max(vec.x, vec.y), vec.z);
 	}
 	//最小値を取得
-	float GetMin()const {
+	[[nodiscard]] float GetMin()const {
 		return min(min(vec.x, vec.y), vec.z);
 	}
 
@@ -961,7 +961,7 @@ public:
 	}
 
 	//任意の軸周りの回転クォータニオンを取得
-	static CQuaternion GetRotation(const CVector3& axis, float angle)
+	[[nodiscard]] static CQuaternion GetRotation(const CVector3& axis, float angle)
 	{
 		float s;
 		float halfAngle = angle * 0.5f;
@@ -969,7 +969,7 @@ public:
 
 		return { axis.x * s , axis.y * s, axis.z * s, cos(halfAngle) };
 	}
-	static CQuaternion GetRotationDeg(const CVector3& axis, float angle)
+	[[nodiscard]] static CQuaternion GetRotationDeg(const CVector3& axis, float angle)
 	{
 		float s;
 		float halfAngle = CMath::DegToRad(angle) * 0.5f;
@@ -1067,14 +1067,14 @@ public:
 		DirectX::XMVECTOR xmv = DirectX::XMVector3Rotate(_v, *this);
 		DirectX::XMStoreFloat3(&_v.vec, xmv);
 	}
-	CVector4 GetMultiply(const CVector4& _v)const
+	[[nodiscard]] CVector4 GetMultiply(const CVector4& _v)const
 	{
 		DirectX::XMVECTOR xmv = DirectX::XMVector3Rotate(_v, *this);
 		CVector4 re;
 		DirectX::XMStoreFloat4(&re.vec, xmv);
 		return re;
 	}
-	CVector3 GetMultiply(const CVector3& _v)const
+	[[nodiscard]] CVector3 GetMultiply(const CVector3& _v)const
 	{
 		DirectX::XMVECTOR xmv = DirectX::XMVector3Rotate(_v, *this);
 		CVector3 re;
