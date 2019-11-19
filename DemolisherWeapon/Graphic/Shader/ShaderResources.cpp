@@ -5,12 +5,12 @@
 
 #include "DWstdafx.h"
 #include "ShaderResources.h"
-#include "Shader.h"
 #include "util/Util.h"
 
 namespace DemolisherWeapon {
 
 namespace {
+	//ファイル読み込み
 	std::unique_ptr<char[]> ReadFile(const char* filePath, int& fileSize)
 	{
 		FILE* fp;
@@ -107,7 +107,7 @@ namespace {
  */
 ShaderResources::ShaderResources()
 {
-	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateClassLinkage(&pClassLinkage);
+	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateClassLinkage(&m_pClassLinkage);
 }
 /*!
  *@brief	デストラクタ。
@@ -119,39 +119,191 @@ ShaderResources::~ShaderResources()
 void ShaderResources::Release()
 {
 	for (auto it = m_shaderResourceMap.begin(); it != m_shaderResourceMap.end(); it++) {
-		switch (it->second->type) {
-		case Shader::EnType::VS:
-			((ID3D11VertexShader*)it->second->shader)->Release();
-			break;
-		case Shader::EnType::PS:
-			((ID3D11PixelShader*)it->second->shader)->Release();
-			break;
-		case Shader::EnType::CS:
-			((ID3D11ComputeShader*)it->second->shader)->Release();
-			break;
-		}
-		if (it->second->inputLayout) {
-			it->second->inputLayout->Release();
-		}
-		it->second->blobOut->Release();
-
-		it->second->numInterfaces = 0;
-		free(it->second->dynamicLinkageArray);
+		it->second->Release();
 	}
 	m_shaderResourceMap.clear();
 	m_shaderProgramMap.clear();
 
-	pClassLinkage->Release();
+	m_pClassLinkage->Release();
 }
+
+void ShaderResources::SShaderResource::Release(bool fullRelease) {
+	if (shader) {
+		switch (type) {
+		case EnType::VS:
+			((ID3D11VertexShader*)shader)->Release();
+			shader = nullptr;
+			break;
+		case EnType::PS:
+			((ID3D11PixelShader*)shader)->Release();
+			shader = nullptr;
+			break;
+		case EnType::CS:
+			((ID3D11ComputeShader*)shader)->Release();
+			shader = nullptr;
+			break;
+		}
+	}
+	if (inputLayout) {
+		inputLayout->Release();
+		inputLayout = nullptr;
+	}
+	if (blobOut) {
+		blobOut->Release();
+		blobOut = nullptr;
+	}
+
+#ifndef DW_MASTER
+	if (fullRelease) {
+		entryFuncName.reset();
+		pDefines.reset();
+	}
+	macroNum = 0;
+#endif
+
+	if (numInterfaces > 0) {
+		free(dynamicLinkageArray); 
+		dynamicLinkageArray = nullptr;
+	}
+	numInterfaces = 0;
+}
+
+void ShaderResources::LoadShaderProgram(const char* filePath, SShaderProgramPtr& prog) {
+	prog->program = ReadFile(filePath, prog->programSize);
+#ifndef DW_MASTER
+	prog->filepath = filePath; prog->file_time = std::filesystem::last_write_time(prog->filepath);
+#endif
+}
+
+
+bool ShaderResources::CompileShader(const SShaderProgram* shaderProgram, const char* filePath, const D3D_SHADER_MACRO* pDefines, const char* entryFuncName, EnType shaderType, SShaderResource* resource, bool isHotReload) {
+	resource->Release(!isHotReload);
+	
+	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_OPTIMIZATION_LEVEL3;
+
+#ifndef DW_MASTER //#if BUILD_LEVEL == BUILD_LEVEL_DEBUG
+	// Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
+	// Setting this flag improves the shader debugging experience, but still allows 
+	// the shaders to be optimized and to run exactly the way they will run in 
+	// the release configuration of this program.
+	dwShaderFlags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+	static const char* shaderModelNames[] = {
+		"vs_5_0",
+		"ps_5_0",
+		"cs_5_0"
+	};
+	ID3DBlob* blobOut;
+	ID3DBlob* errorBlob;
+
+	HRESULT hr = S_OK;
+
+	//コンパイル
+	hr = D3DCompile(shaderProgram->program.get(), shaderProgram->programSize,
+		filePath, pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryFuncName,
+		shaderModelNames[(int)shaderType], dwShaderFlags, 0, &blobOut, &errorBlob);
+
+	//エラー!
+	if (FAILED(hr))
+	{
+		if (errorBlob != nullptr) {
+			static char errorMessage[10 * 1024];
+			sprintf_s(errorMessage, "filePath : %s, %s", filePath, (char*)errorBlob->GetBufferPointer());
+			MessageBox(NULL, errorMessage, "シェーダーコンパイルエラー", MB_OK);
+		}
+		return false;
+	}
+
+	//シェーダータイプに合わせて作成
+	resource->type = shaderType;
+	ID3D11Device* pD3DDevice = GetEngine().GetGraphicsEngine().GetD3DDevice();
+	switch (shaderType) {
+	case EnType::VS: {
+		//頂点シェーダー。
+		hr = pD3DDevice->CreateVertexShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), m_pClassLinkage, (ID3D11VertexShader**)&resource->shader);
+		if (FAILED(hr)) {
+			blobOut->Release();
+			return false;
+		}
+		//入力レイアウトを作成。
+		hr = CreateInputLayoutDescFromVertexShaderSignature(blobOut, pD3DDevice, &resource->inputLayout);
+		if (FAILED(hr)) {
+			//入力レイアウトの作成に失敗した。
+			blobOut->Release(); 
+			return false;
+		}
+	}break;
+	case EnType::PS: {
+		//ピクセルシェーダー。
+		hr = pD3DDevice->CreatePixelShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), m_pClassLinkage, (ID3D11PixelShader**)&resource->shader);
+		if (FAILED(hr)) {
+			blobOut->Release();
+			return false;
+		}
+	}break;
+	case EnType::CS: {
+		//コンピュートシェーダー。
+		hr = pD3DDevice->CreateComputeShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), m_pClassLinkage, (ID3D11ComputeShader**)&resource->shader);
+		if (FAILED(hr)) {
+			blobOut->Release();
+			return false;
+		}
+	}break;
+	}
+
+	//動的リンク関係
+	{
+		ID3D11ShaderReflection* pReflector = nullptr;
+		D3DReflect(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
+		//インターフェイスインスタンスの数を取得
+		resource->numInterfaces = pReflector->GetNumInterfaceSlots();
+		//配列確保
+		if (resource->numInterfaces > 0) {
+			resource->dynamicLinkageArray = (ID3D11ClassInstance**)malloc(sizeof(ID3D11ClassInstance*) * resource->numInterfaces);
+		}
+		pReflector->Release();
+	}
+
+	//返す
+	resource->blobOut = blobOut;
+#ifndef DW_MASTER
+	if (!isHotReload) {
+		resource->entryFuncName = std::make_unique<std::string>(entryFuncName);
+		if (pDefines) {
+			//マクロの数カウント
+			int cnt = 0;
+			while (1) {
+				if (pDefines[cnt].Name == NULL || pDefines[cnt].Definition == NULL) { break; }
+				cnt++;
+			}
+			resource->macroNum = cnt;
+			if (cnt > 0) {
+				resource->pDefines = std::make_unique<SShaderResource::D3D_SHADER_MACRO_SAVE[]>(cnt + 1);
+				resource->pDefines[cnt].Name = NULL; resource->pDefines[cnt].Definition = NULL;
+				for (int i = 0; i < cnt; i++) {
+					//文字数
+					size_t size[2] = { strlen(pDefines[i].Name) + 1, strlen(pDefines[i].Definition) + 1 };
+					resource->pDefines[i].Name = std::make_unique<char[]>(size[0]);
+					resource->pDefines[i].Definition = std::make_unique<char[]>(size[1]);
+					//コピー
+					strcpy_s(resource->pDefines[i].Name.get(), size[0], pDefines[i].Name);
+					strcpy_s(resource->pDefines[i].Definition.get(), size[1], pDefines[i].Definition);
+				}
+			}
+		}
+	}
+#endif
+
+	return true;
+}
+
+
 bool ShaderResources::Load(
-	void*& shader,
-	ID3D11InputLayout*& inputLayout,
-	ID3DBlob*& blob,
+	const ShaderResources::SShaderResource*& return_resource,
 	const char* filePath, 
 	const char* entryFuncName,
-	Shader::EnType shaderType,
-	int& numInterfaces,
-	ID3D11ClassInstance**& dynamicLinkageArray,
+	EnType shaderType,
 	const char* definesIdentifier,
 	const D3D_SHADER_MACRO* pDefines
 )
@@ -164,13 +316,15 @@ bool ShaderResources::Load(
 	if (it == m_shaderProgramMap.end()) {
 		//新規。
 		SShaderProgramPtr prog = std::make_unique<SShaderProgram>();
-		prog->program = ReadFile(filePath, prog->programSize);
+		//ファイル読み込み
+		LoadShaderProgram(filePath, prog);
+		//返す
 		shaderProgram = prog.get();
+		//mapに登録
 		std::pair<int, SShaderProgramPtr> pair;
 		pair.first = hash;
 		pair.second = std::move(prog);
-		m_shaderProgramMap.insert(std::move(pair));
-		
+		m_shaderProgramMap.insert(std::move(pair));		
 	}
 	else {
 		//すでに読み込み済み。
@@ -187,96 +341,22 @@ bool ShaderResources::Load(
 	auto itShaderResource = m_shaderResourceMap.find(hash);
 	if (itShaderResource == m_shaderResourceMap.end()) {
 		//新規。
-		HRESULT hr = S_OK;
+		SShaderResourcePtr resource = std::make_unique<SShaderResource>();
 
-		DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_OPTIMIZATION_LEVEL3;
-		/*if (strcmp(filePath, "Resource/shader/bloom.fx") == 0
-		|| strcmp(filePath, "Resource/shader/model.fx") == 0) {
-		dwShaderFlags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-		}*/
-#if BUILD_LEVEL == BUILD_LEVEL_DEBUG
-		// Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
-		// Setting this flag improves the shader debugging experience, but still allows 
-		// the shaders to be optimized and to run exactly the way they will run in 
-		// the release configuration of this program.
-		dwShaderFlags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-		static const char* shaderModelNames[] = {
-			"vs_5_0",
-			"ps_5_0",
-			"cs_5_0"
-		};
-		ID3DBlob* blobOut;
-		ID3DBlob* errorBlob;
-
-		hr = D3DCompile(shaderProgram->program.get(), shaderProgram->programSize, filePath, pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryFuncName,
-			shaderModelNames[(int)shaderType], dwShaderFlags, 0, &blobOut, &errorBlob);
-		
-		if (FAILED(hr))
-		{
-			if (errorBlob != nullptr) {
-				static char errorMessage[10 * 1024];
-				sprintf_s(errorMessage, "filePath : %s, %s", filePath, (char*)errorBlob->GetBufferPointer());
-				MessageBox(NULL, errorMessage, "シェーダーコンパイルエラー", MB_OK);
-			}
+		//コンパイル
+		if (!CompileShader(shaderProgram, filePath, pDefines, entryFuncName, shaderType, resource.get())) {
 			return false;
 		}
-		SShaderResourcePtr resource = std::make_unique<SShaderResource>();
-		resource->inputLayout = nullptr;
-		resource->type = shaderType;
-		ID3D11Device* pD3DDevice = GetEngine().GetGraphicsEngine().GetD3DDevice();
-		switch (shaderType) {
-		case Shader::EnType::VS: {
-			//頂点シェーダー。
-			hr = pD3DDevice->CreateVertexShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), pClassLinkage, (ID3D11VertexShader**)&resource->shader);
-			if (FAILED(hr)) {
-				return false;
-			}
-			//入力レイアウトを作成。
-			hr = CreateInputLayoutDescFromVertexShaderSignature(blobOut, pD3DDevice, &resource->inputLayout);
-			if (FAILED(hr)) {
-				//入力レイアウトの作成に失敗した。
-				return false;
-			}
-		}break;
-		case Shader::EnType::PS: {
-			//ピクセルシェーダー。
-			hr = pD3DDevice->CreatePixelShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), pClassLinkage, (ID3D11PixelShader**)&resource->shader);
-			if (FAILED(hr)) {
-				return false;
-			}
-		}break;
-		case Shader::EnType::CS: {
-			//コンピュートシェーダー。
-			hr = pD3DDevice->CreateComputeShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), pClassLinkage, (ID3D11ComputeShader**)&resource->shader);
-			if (FAILED(hr)) {
-				return false;
-			}
-		}break;
-		}
 
-		//動的リンク関係
-		{
-			ID3D11ShaderReflection* pReflector = nullptr;
-			D3DReflect(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pReflector);
-			//インターフェイスインスタンスの数を取得
-			resource->numInterfaces = pReflector->GetNumInterfaceSlots();
-			//配列確保
-			if (resource->numInterfaces > 0) {
-				resource->dynamicLinkageArray = (ID3D11ClassInstance**)malloc(sizeof(ID3D11ClassInstance*) * resource->numInterfaces);
-			}
-			pReflector->Release();
-		}
+		//戻り値
+		return_resource = resource.get();
 
-		resource->blobOut = blobOut;
-		shader = resource->shader;
-		inputLayout = resource->inputLayout;
-		blob = blobOut;
+#ifndef DW_MASTER
+		//シェーダープログラムのリストに登録
+		shaderProgram->shaderResourceList.emplace_back(resource.get());
+#endif
 
-		numInterfaces = resource->numInterfaces;
-		dynamicLinkageArray = resource->dynamicLinkageArray;
-
+		//マップに登録
 		std::pair<int, SShaderResourcePtr> pair;
 		pair.first = hash;
 		pair.second = std::move(resource);
@@ -284,14 +364,37 @@ bool ShaderResources::Load(
 	}
 	else {
 		//すでに読み込み済み。
-		shader = itShaderResource->second->shader;
-		inputLayout = itShaderResource->second->inputLayout;
-		blob = itShaderResource->second->blobOut;
-
-		numInterfaces = itShaderResource->second->numInterfaces;
-		dynamicLinkageArray = itShaderResource->second->dynamicLinkageArray;
+		return_resource = itShaderResource->second.get();
 	}
+
 	return true;
 }
+
+#ifndef DW_MASTER
+void ShaderResources::HotReload() {
+	for (auto& shader : m_shaderProgramMap) {
+		//ファイルの最終更新日が一致しなければ更新
+		auto file_time = std::filesystem::last_write_time(shader.second->filepath);
+		if (file_time != shader.second->file_time) {
+			//シェーダープログラムの更新
+			LoadShaderProgram(shader.second->filepath.c_str(), shader.second);
+			//シェーダーの再コンパイル
+			for (auto& resource : shader.second->shaderResourceList) {
+				std::unique_ptr<D3D_SHADER_MACRO[]> macros;
+				if (resource->macroNum > 0) {
+					macros = std::make_unique<D3D_SHADER_MACRO[]>(resource->macroNum + 1);
+					macros[resource->macroNum].Name = NULL; macros[resource->macroNum].Definition = NULL;
+					for (int i = 0; i < resource->macroNum; i++) {
+						//これらがかいほうされる....
+						macros[i].Name = resource->pDefines[i].Name.get();
+						macros[i].Definition = resource->pDefines[i].Definition.get();
+					}
+				}
+				CompileShader(shader.second.get(), shader.second->filepath.c_str(), resource->macroNum > 0 ? macros.get() : nullptr, resource->entryFuncName->c_str(), resource->type, resource, true);
+			}
+		}
+	}
+}
+#endif
 
 }

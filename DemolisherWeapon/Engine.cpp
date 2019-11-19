@@ -311,6 +311,17 @@ void GameLoop::Run() {
 			break;
 		}
 
+#ifndef DW_MASTER
+		//シェーダーのホットリロード
+		static float tttt = 0.0f;
+		tttt += m_fpscounter->GetFrameTimeSec();
+		if (tttt > 2.8f) {
+			tttt = 0.0f;
+			ShaderResources::GetInstance().HotReload();
+		}
+#endif
+
+		//デバッグ操作
 		if (m_isDebugInput) {
 			//ゲーム終了
 			if (GetAsyncKeyState(VK_ESCAPE)) {

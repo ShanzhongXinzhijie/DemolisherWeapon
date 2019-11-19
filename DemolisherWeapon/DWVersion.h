@@ -1,5 +1,5 @@
 #pragma once
 
 namespace DemolisherWeapon {
-	static constexpr wchar_t DW_VER[] = L"HUD";//エンジンのバージョン
+	static constexpr wchar_t DW_VER[] = L"HotReload";//エンジンのバージョン
 }
