@@ -1,6 +1,7 @@
 #include "DWstdafx.h"
 #include "CCollisionObj.h"
 #include "physics/CollisionAttr.h"
+#include "bulletPhysics/src/LinearMath/btVector3.h"
 
 namespace DemolisherWeapon {
 
@@ -226,7 +227,7 @@ namespace Suicider {
 
 			ObjA->SetHanteing(true);//”»’è’†!
 
-			if (ObjA->GetIsHighSpeed()) {
+			if (ObjA->GetIsHighSpeed() && !(ObjA->GetBtOldTrans().getOrigin() - ObjA->GetCollisionObject().getWorldTransform().getOrigin()).fuzzyZero()) {
 				ObjManagerConvexCallback callback(&(*itr), ObjA->GetIsCollisionStaticObject());
 				GetPhysicsWorld().ConvexSweepTest((const btConvexShape*)ObjA->GetCollisionObject().getCollisionShape(), ObjA->GetBtOldTrans(), ObjA->GetCollisionObject().getWorldTransform(), callback);
 			}
