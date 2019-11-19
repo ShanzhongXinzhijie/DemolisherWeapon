@@ -108,7 +108,8 @@ public:
 
 	//動作基準FPSを取得
 	int GetStandardFrameRate()const { return m_fpscounter->GetStandardFrameRate(); }
-
+	//1フレームの処理にかかった時間を取得
+	float GetRealDeltaTimeSec()const { return m_fpscounter->GetFrameTimeSec(); }
 	//1フレームに処理したゲームループ数を取得
 	int RanGameLoopNum()const { return m_ranGameLoopNum; }
 
@@ -277,9 +278,11 @@ public:
 
 	//FPS上限を設定
 	void SetUseFpsLimiter(bool use, int maxfps = -1) { m_gameLoop.SetUseFpsLimiter(use, maxfps); }
+
 	//動作基準FPSを取得
 	int GetStandardFrameRate()const { return m_gameLoop.GetStandardFrameRate(); }
-
+	//1フレームの処理にかかった時間を取得
+	float GetRealDeltaTimeSec()const { return m_gameLoop.GetRealDeltaTimeSec(); }
 	//1フレームに実行したゲームループ数を取得
 	int RanGameLoopNum()const { return m_gameLoop.RanGameLoopNum(); }
 
@@ -555,11 +558,16 @@ static inline int GetMouseWheelNotch() { return GetEngine().GetMouseWheelNotch()
 static inline int GetMouseWheel_H_Notch() { return GetEngine().GetMouseWheel_H_Notch(); }
 
 //動作フレームレートを取得
-static inline int GetStandardFrameRate() { return GetEngine().GetStandardFrameRate(); }
-
-//1フレームの動作時間(秒)
+static inline int GetStandardFrameRate() { 
+	return GetEngine().GetStandardFrameRate(); 
+}
+//1動作フレームの動作時間(秒)
 static inline float GetDeltaTimeSec() {
 	return 1.0f / GetStandardFrameRate();
+}
+//1フレームの処理にかかった時間(秒)を取得
+static inline float GetRealDeltaTimeSec() {
+	return GetEngine().GetRealDeltaTimeSec();
 }
 
 //コリジョンマネージャーに判定を追加

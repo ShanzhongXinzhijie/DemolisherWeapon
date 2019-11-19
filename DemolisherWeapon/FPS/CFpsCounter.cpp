@@ -26,7 +26,6 @@ void CFpsCounter::Count() {
 		//4msecまではスリープ
 		while (m_maxFrameTimeSec - m_frametimeSec > 0.004f) {
 			Sleep(1);
-
 			QueryPerformanceCounter(&nAfter);
 			m_frametimeSec = ((float)(nAfter.QuadPart - nBefore.QuadPart) / nFreq.QuadPart);//単位:秒
 		}
