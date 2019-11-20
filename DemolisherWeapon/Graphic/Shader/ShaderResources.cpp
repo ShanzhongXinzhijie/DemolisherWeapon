@@ -157,8 +157,8 @@ void ShaderResources::SShaderResource::Release(bool fullRelease) {
 	if (fullRelease) {
 		entryFuncName.reset();
 		pDefines.reset();
+		macroNum = 0;
 	}
-	macroNum = 0;
 #endif
 
 	if (numInterfaces > 0) {
