@@ -301,15 +301,26 @@ bool ShaderResources::CompileShader(const SShaderProgram* shaderProgram, const c
 
 bool ShaderResources::Load(
 	const ShaderResources::SShaderResource*& return_resource,
-	const char* filePath, 
+	std::string_view filePath, 
 	const char* entryFuncName,
 	EnType shaderType,
 	const char* definesIdentifier,
 	const D3D_SHADER_MACRO* pDefines
 )
 {
+
+#ifndef DW_MASTER
+	std::string pathstring;
+	if (m_replaceForEngineFilePath) {
+		std::filesystem::path path(filePath);
+		path = "../../DemolisherWeapon/DemolisherWeapon/Preset/shader" / path.filename();
+		pathstring = path.string();
+		filePath = pathstring;
+	}
+#endif
+
 	//ファイルパスからハッシュ値を作成する。
-	int hash = Util::MakeHash(filePath);
+	int hash = Util::MakeHash(filePath.data());
 	//シェーダープログラムをロード済みか調べる。
 	auto it = m_shaderProgramMap.find(hash);
 	SShaderProgram* shaderProgram;
@@ -317,7 +328,7 @@ bool ShaderResources::Load(
 		//新規。
 		SShaderProgramPtr prog = std::make_unique<SShaderProgram>();
 		//ファイル読み込み
-		LoadShaderProgram(filePath, prog);
+		LoadShaderProgram(filePath.data(), prog);
 		//返す
 		shaderProgram = prog.get();
 		//mapに登録
@@ -333,7 +344,7 @@ bool ShaderResources::Load(
 
 	//続いて、シェーダーをコンパイル済み調べる。
 	static char buff[1024];
-	strcpy_s(buff, filePath);
+	strcpy_s(buff, filePath.data());
 	strcat_s(buff, entryFuncName);
 	strcat_s(buff, definesIdentifier);
 	//ファイルパス＋エントリーポイントの関数名＋マクロの識別名でハッシュ値を作成する。
@@ -344,7 +355,7 @@ bool ShaderResources::Load(
 		SShaderResourcePtr resource = std::make_unique<SShaderResource>();
 
 		//コンパイル
-		if (!CompileShader(shaderProgram, filePath, pDefines, entryFuncName, shaderType, resource.get())) {
+		if (!CompileShader(shaderProgram, filePath.data(), pDefines, entryFuncName, shaderType, resource.get())) {
 			return false;
 		}
 
@@ -376,6 +387,11 @@ void ShaderResources::HotReload() {
 		//ファイルの最終更新日が一致しなければ更新
 		auto file_time = std::filesystem::last_write_time(shader.second->filepath);
 		if (file_time != shader.second->file_time) {
+			//TODO マクロが適応されてない説　ModelShaderだけか?
+			/*GetGraphicsEngine().GetD3DDeviceContext()->VSSetShader(nullptr, NULL, 0);
+			GetGraphicsEngine().GetD3DDeviceContext()->PSSetShader(nullptr, NULL, 0);
+			GetGraphicsEngine().GetD3DDeviceContext()->CSSetShader(nullptr, NULL, 0);
+			GetGraphicsEngine().GetD3DDeviceContext()->IASetInputLayout(nullptr);*/
 			//シェーダープログラムの更新
 			LoadShaderProgram(shader.second->filepath.c_str(), shader.second);
 			//シェーダーの再コンパイル
@@ -385,7 +401,6 @@ void ShaderResources::HotReload() {
 					macros = std::make_unique<D3D_SHADER_MACRO[]>(resource->macroNum + 1);
 					macros[resource->macroNum].Name = NULL; macros[resource->macroNum].Definition = NULL;
 					for (int i = 0; i < resource->macroNum; i++) {
-						//これらがかいほうされる....
 						macros[i].Name = resource->pDefines[i].Name.get();
 						macros[i].Definition = resource->pDefines[i].Definition.get();
 					}

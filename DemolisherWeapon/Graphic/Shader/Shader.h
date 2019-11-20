@@ -30,7 +30,7 @@ public:
 	bool Load(const char* filePath, const char* entryFuncName, EnType shaderType, const char* definesIdentifier = "", const D3D_SHADER_MACRO* pDefines = nullptr);
 
 	/*!
-	* @brief	
+	* @brief	シェーダーを取得
 	*/
 	void* GetBody()const
 	{

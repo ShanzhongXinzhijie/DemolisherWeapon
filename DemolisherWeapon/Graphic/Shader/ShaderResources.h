@@ -88,7 +88,7 @@ public:
 	/// <returns>ロードが成功したか?</returns>
 	bool Load(
 		const ShaderResources::SShaderResource*& return_resource,
-		const char* filePath,
+		std::string_view filePath,
 		const char* entryFuncName,
 		EnType shaderType,
 		const char* definesIdentifier,
@@ -107,6 +107,13 @@ public:
 	/// シェーダーのホットリロード(ゲームループから呼び出す)
 	/// </summary>
 	void HotReload();
+
+	/// <summary>
+	/// ファイルパスをエンジン下のものに置換するか設定
+	/// </summary>
+	void SetIsReplaceForEngineFilePath(bool isReplace) {
+		m_replaceForEngineFilePath = isReplace;
+	}
 #endif
 
 private:
@@ -128,6 +135,10 @@ private:
 	std::unordered_map<int, SShaderResourcePtr>	m_shaderResourceMap;	//!<シェーダーリソースのマップ。
 
 	ID3D11ClassLinkage* m_pClassLinkage = nullptr;//クラス リンク オブジェクト
+
+#ifndef DW_MASTER
+	bool m_replaceForEngineFilePath = false;//ファイルパスをエンジン下に置き換えるか?
+#endif
 
 private:
 	//シェーダプログラムをロード
