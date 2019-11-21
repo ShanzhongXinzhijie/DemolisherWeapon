@@ -387,15 +387,11 @@ void ShaderResources::HotReload() {
 		//ファイルの最終更新日が一致しなければ更新
 		auto file_time = std::filesystem::last_write_time(shader.second->filepath);
 		if (file_time != shader.second->file_time) {
-			//TODO マクロが適応されてない説　ModelShaderだけか?
-			/*GetGraphicsEngine().GetD3DDeviceContext()->VSSetShader(nullptr, NULL, 0);
-			GetGraphicsEngine().GetD3DDeviceContext()->PSSetShader(nullptr, NULL, 0);
-			GetGraphicsEngine().GetD3DDeviceContext()->CSSetShader(nullptr, NULL, 0);
-			GetGraphicsEngine().GetD3DDeviceContext()->IASetInputLayout(nullptr);*/
 			//シェーダープログラムの更新
 			LoadShaderProgram(shader.second->filepath.c_str(), shader.second);
 			//シェーダーの再コンパイル
 			for (auto& resource : shader.second->shaderResourceList) {
+				//マクロ
 				std::unique_ptr<D3D_SHADER_MACRO[]> macros;
 				if (resource->macroNum > 0) {
 					macros = std::make_unique<D3D_SHADER_MACRO[]>(resource->macroNum + 1);
@@ -405,6 +401,7 @@ void ShaderResources::HotReload() {
 						macros[i].Definition = resource->pDefines[i].Definition.get();
 					}
 				}
+				//コンパイル
 				CompileShader(shader.second.get(), shader.second->filepath.c_str(), resource->macroNum > 0 ? macros.get() : nullptr, resource->entryFuncName->c_str(), resource->type, resource, true);
 			}
 		}

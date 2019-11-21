@@ -33,7 +33,7 @@ float4 PSMain(PSInput In) : SV_Target0
 {
 	float4 Resize = ResizeBuffer.Sample(Sampler, In.uv);
 	float4 Normal = FRT.Sample(Sampler, In.uv);
-	float depth = PosMap.Sample(Sampler, In.uv).z;
+    float depth = length(PosMap.Sample(Sampler, In.uv).xyz);
 	
 	float fade = 0.0f;
 	if (depth > focus + focusArea) {

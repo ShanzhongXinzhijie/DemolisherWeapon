@@ -235,15 +235,17 @@ void ModelMesh::PrepareForRendering(
 	}
 
     // Set sampler state.
-    ID3D11SamplerState* samplers[] =
+    /*
+	ID3D11SamplerState* samplers[] =
     {
         states.LinearWrap(),
         states.LinearWrap(),
     };
     deviceContext->PSSetSamplers(0, 2, samplers);	
+	*/
 
-	//ID3D11SamplerState* samplerState = states.AnisotropicWrap();
-	//deviceContext->PSSetSamplers(0, 1, &samplerState);
+	ID3D11SamplerState* samplerState = states.AnisotropicWrap();
+	deviceContext->PSSetSamplers(0, 1, &samplerState);
 }
 
 
