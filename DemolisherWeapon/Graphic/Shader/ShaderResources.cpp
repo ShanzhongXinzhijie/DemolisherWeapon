@@ -7,6 +7,10 @@
 #include "ShaderResources.h"
 #include "util/Util.h"
 
+#include <iostream>
+#include <fstream>
+#include <charconv>
+
 namespace DemolisherWeapon {
 
 namespace {
@@ -14,8 +18,7 @@ namespace {
 	std::unique_ptr<char[]> ReadFile(const char* filePath, int& fileSize)
 	{
 		FILE* fp;
-		fopen_s(&fp, filePath, "rb");
-
+		DW_ERRORBOX(fopen_s(&fp, filePath, "rb") != 0, "<ShaderResources.cpp>ReadFile\nファイルが開けませんでした。");
 		fseek(fp, 0, SEEK_END);
 		fpos_t fPos;
 		fgetpos(fp, &fPos);
@@ -194,8 +197,8 @@ bool ShaderResources::CompileShader(const SShaderProgram* shaderProgram, const c
 		"ps_5_0",
 		"cs_5_0"
 	};
-	ID3DBlob* blobOut;
-	ID3DBlob* errorBlob;
+	ID3DBlob* blobOut = nullptr;
+	ID3DBlob* errorBlob = nullptr;
 
 	HRESULT hr = S_OK;
 
@@ -212,8 +215,11 @@ bool ShaderResources::CompileShader(const SShaderProgram* shaderProgram, const c
 			sprintf_s(errorMessage, "filePath : %s, %s", filePath, (char*)errorBlob->GetBufferPointer());
 			MessageBox(NULL, errorMessage, "シェーダーコンパイルエラー", MB_OK);
 		}
+		if (blobOut) { blobOut->Release(); blobOut = nullptr; }
+		if (errorBlob) { errorBlob->Release(); errorBlob = nullptr; }
 		return false;
 	}
+	if (errorBlob) { errorBlob->Release(); errorBlob = nullptr; }
 
 	//シェーダータイプに合わせて作成
 	resource->type = shaderType;
@@ -308,8 +314,8 @@ bool ShaderResources::Load(
 	const D3D_SHADER_MACRO* pDefines
 )
 {
-
 #ifndef DW_MASTER
+	//ファイルパスをエンジン側のものにするモード
 	std::string pathstring;
 	if (m_replaceForEngineFilePath) {
 		std::filesystem::path path(filePath);
@@ -319,10 +325,51 @@ bool ShaderResources::Load(
 	}
 #endif
 
+	//ファイルパス＋エントリーポイントの関数名＋マクロの識別名でハッシュ値を作成する。
+	static char buff[1024];
+	strcpy_s(buff, filePath.data());
+	strcat_s(buff, entryFuncName);
+	strcat_s(buff, definesIdentifier);
+	int shaderResourceHash = Util::MakeHash(buff);
+
+	//メタファイルの読み込み
+	bool isMeta = false;
+	//ハッシュを10進数文字列へ変換
+	auto begin = std::begin(buff);
+	auto end = std::end(buff);
+	if (auto[ptr, ec] = std::to_chars(begin, end, shaderResourceHash); ec == std::errc{}) {
+		//メタファイルへのファイルパスを作成
+#ifndef DW_MASTER
+		std::string path("Preset/shader/meta/debug");
+#else
+		std::string path("Preset/shader/meta/master");
+#endif
+		path += std::string_view(begin, ptr - begin);
+		path += "dwsmeta";
+		//メタファイルがあるか?
+		std::ifstream ifs(path);
+		if (ifs) {
+			//メタファイルはあります
+			isMeta = true;
+			if () {
+				//更新日時が一致する場合はファイルからblobを読み込む
+				std::filesystem::last_write_time(filePath);
+			}
+			else {
+				//更新日時が一致しない場合はファイルがないものとして扱う
+				isMeta = false;
+			}
+		}
+	}	
+	//メタファイルなし
+	if (!isMeta) {
+
+	}
+
 	//ファイルパスからハッシュ値を作成する。
-	int hash = Util::MakeHash(filePath.data());
+	int shaderProgramHash = Util::MakeHash(filePath.data());
 	//シェーダープログラムをロード済みか調べる。
-	auto it = m_shaderProgramMap.find(hash);
+	auto it = m_shaderProgramMap.find(shaderProgramHash);
 	SShaderProgram* shaderProgram;
 	if (it == m_shaderProgramMap.end()) {
 		//新規。
@@ -333,7 +380,7 @@ bool ShaderResources::Load(
 		shaderProgram = prog.get();
 		//mapに登録
 		std::pair<int, SShaderProgramPtr> pair;
-		pair.first = hash;
+		pair.first = shaderProgramHash;
 		pair.second = std::move(prog);
 		m_shaderProgramMap.insert(std::move(pair));		
 	}
@@ -342,14 +389,8 @@ bool ShaderResources::Load(
 		shaderProgram = it->second.get();
 	}
 
-	//続いて、シェーダーをコンパイル済み調べる。
-	static char buff[1024];
-	strcpy_s(buff, filePath.data());
-	strcat_s(buff, entryFuncName);
-	strcat_s(buff, definesIdentifier);
-	//ファイルパス＋エントリーポイントの関数名＋マクロの識別名でハッシュ値を作成する。
-	hash = Util::MakeHash(buff);
-	auto itShaderResource = m_shaderResourceMap.find(hash);
+	//続いて、シェーダーをコンパイル済み調べる。	
+	auto itShaderResource = m_shaderResourceMap.find(shaderResourceHash);
 	if (itShaderResource == m_shaderResourceMap.end()) {
 		//新規。
 		SShaderResourcePtr resource = std::make_unique<SShaderResource>();
@@ -369,7 +410,7 @@ bool ShaderResources::Load(
 
 		//マップに登録
 		std::pair<int, SShaderResourcePtr> pair;
-		pair.first = hash;
+		pair.first = shaderResourceHash;
 		pair.second = std::move(resource);
 		m_shaderResourceMap.insert(std::move(pair));		 
 	}

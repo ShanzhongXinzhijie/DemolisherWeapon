@@ -117,6 +117,10 @@ public:
 #endif
 
 private:
+	/// <summary>
+	/// シェーダープログラム
+	/// コンパイル前のシェーダーのデータ
+	/// </summary>
 	struct SShaderProgram {
 		std::unique_ptr<char[]> program;
 		int programSize;
