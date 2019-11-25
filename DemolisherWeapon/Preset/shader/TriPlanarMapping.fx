@@ -72,7 +72,7 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset),s);
 	Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 0.1f+ uvOffset),s);
     
-    s = saturate((fdistance-4000.0f)/16000.0f);
+    s = saturate((fdistance-650.0f)/16000.0f);
     X = lerp(X,albedoTexture.Sample(Sampler, uv.zy * 0.01f + uvOffset),s);
 	Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),s);
 	Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 0.01f + uvOffset),s);    
@@ -100,7 +100,7 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	//‘½•ª‚¾‚ß
 	//https://www.patreon.com/posts/16714688
 	//https://medium.com/@bgolus/normal-mapping-for-a-triplanar-shader-10bf39dca05a	
-#if 0
+#if NORMAL_MAP
 	float3 nX = NormalTexture.Sample(Sampler, uv.zy* 40.0f + uvOffset);
 	float3 nY = NormalTexture.Sample(Sampler, uv.zx* 40.0f + uvOffset);
 	float3 nZ = NormalTexture.Sample(Sampler, uv.xy* 40.0f + uvOffset);
