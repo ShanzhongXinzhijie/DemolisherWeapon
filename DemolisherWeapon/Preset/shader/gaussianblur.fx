@@ -38,7 +38,7 @@ PS_BlurInput VSXBlur(VSInput In)
 
 	//テクスチャサンプル座標算出
     float2 tex = In.uv;
-    tex += float2(-0.5f / sampleScale, 0.0f); //オフセット
+    //tex += float2(-0.5f / sampleScale, 0.0f); //オフセット
     Out.tex0 = tex + float2(-1.0f / sampleScale, 0.0f);
     Out.tex1 = tex + float2(-3.0f / sampleScale, 0.0f);
     Out.tex2 = tex + float2(-5.0f / sampleScale, 0.0f);
@@ -57,7 +57,7 @@ PS_BlurInput VSYBlur(VSInput In)
 
 	//テクスチャサンプル座標算出
     float2 tex = In.uv;
-    tex += float2(0.0f, -0.5f / sampleScale); //オフセット
+    //tex += float2(0.0f, -0.5f / sampleScale); //オフセット
 	Out.tex0 = tex + float2(0.0f, -1.0f / sampleScale);
     Out.tex1 = tex + float2(0.0f, -3.0f / sampleScale);
     Out.tex2 = tex + float2(0.0f, -5.0f / sampleScale);

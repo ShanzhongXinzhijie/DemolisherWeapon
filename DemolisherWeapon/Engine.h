@@ -38,6 +38,8 @@ struct InitEngineParameter {
 	int frameBufferHeight = 720;	//フレームバッファの高さ。これが内部解像度。
 	int frameBufferWidth3D = 1280;	//3D描画の解像度(幅)
 	int frameBufferHeight3D = 720;	//3D描画の解像度(高さ)
+	int HUDWidth = 1280;			//HUDの解像度(幅)
+	int HUDHeight = 720;			//HUDの解像度(高さ)
 	int refleshRate = 60;			//リフレッシュレート
 	bool isWindowMode = TRUE;		//ウィンドウモードか？
 
@@ -56,6 +58,10 @@ struct InitEngineParameter {
 	float bloomBufferScale = 0.75f;				//ブルーム解像度(3D描画の解像度に対する倍率)
 	bool isEnableDOF = false;					//被写界深度有効
 	float DOFBufferScale = 0.5f;				//被写界深度解像度(3D描画の解像度に対する倍率)
+	
+	//シェーダのファイルパスをエンジンのものに置き換えるか?
+	//※デバッグ用 DW_MASTER時無効
+	bool isShaderPathReplaceForEngineFilePath = false;
 
 	//低スペック用設定をセット
 	void SetLowSpecSetting() {
@@ -72,6 +78,8 @@ struct InitEngineParameter {
 		isEnableBloom = false;
 		//被写界深度無効
 		isEnableDOF = false;
+		//アンチエイリアス無効
+		isAntiAliasing = false;
 	}
 	//中スペック用設定をセット
 	void SetMiddleSpecSetting() {

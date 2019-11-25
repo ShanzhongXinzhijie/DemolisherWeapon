@@ -17,8 +17,9 @@ namespace {
 	//ファイル読み込み
 	std::unique_ptr<char[]> ReadFile(const char* filePath, int& fileSize)
 	{
-		FILE* fp;
-		DW_ERRORBOX(fopen_s(&fp, filePath, "rb") != 0, "<ShaderResources.cpp>ReadFile\nファイルが開けませんでした。");
+		FILE* fp = nullptr;
+		errno_t err = fopen_s(&fp, filePath, "rb");
+		DW_ERRORBOX(err != 0, "<ShaderResources.cpp>ReadFile\nファイルが開けませんでした。");
 		fseek(fp, 0, SEEK_END);
 		fpos_t fPos;
 		fgetpos(fp, &fPos);
@@ -325,6 +326,7 @@ bool ShaderResources::Load(
 	}
 #endif
 
+	//TODO この処理、再ロード確定してからやる
 	//ファイルパス＋エントリーポイントの関数名＋マクロの識別名でハッシュ値を作成する。
 	static char buff[1024];
 	strcpy_s(buff, filePath.data());
@@ -332,6 +334,7 @@ bool ShaderResources::Load(
 	strcat_s(buff, definesIdentifier);
 	int shaderResourceHash = Util::MakeHash(buff);
 
+	/*
 	//メタファイルの読み込み
 	bool isMeta = false;
 	//ハッシュを10進数文字列へ変換
@@ -345,15 +348,25 @@ bool ShaderResources::Load(
 		std::string path("Preset/shader/meta/master");
 #endif
 		path += std::string_view(begin, ptr - begin);
-		path += "dwsmeta";
+		path += ".dwsmeta";
 		//メタファイルがあるか?
 		std::ifstream ifs(path);
 		if (ifs) {
 			//メタファイルはあります
 			isMeta = true;
-			if () {
+			//更新日時ロード
+			bool isLoad = false;
+			std::string lastwritetimeString;
+			long long lastwritetime = 0;
+			while (!ifs.eof())
+			{
+				std::getline(ifs, lastwritetimeString);
+				lastwritetime = std::stoll(lastwritetimeString);
+				isLoad = true;
+				break;
+			}
+			if (isLoad && lastwritetime == std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(filePath).time_since_epoch()).count()) {
 				//更新日時が一致する場合はファイルからblobを読み込む
-				std::filesystem::last_write_time(filePath);
 			}
 			else {
 				//更新日時が一致しない場合はファイルがないものとして扱う
@@ -363,8 +376,10 @@ bool ShaderResources::Load(
 	}	
 	//メタファイルなし
 	if (!isMeta) {
-
+		//通常のロート
+		//TODO 保存処理
 	}
+	*/
 
 	//ファイルパスからハッシュ値を作成する。
 	int shaderProgramHash = Util::MakeHash(filePath.data());

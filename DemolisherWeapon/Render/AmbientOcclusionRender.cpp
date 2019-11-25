@@ -129,7 +129,7 @@ void AmbientOcclusionRender::Render() {
 		rc->CSSetUnorderedAccessViews(0, 1, &m_outputUAV, nullptr);
 		
 		//SRV‚ðÝ’è
-		rc->CSSetShaderResources(1, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferNormal));
+		//rc->CSSetShaderResources(1, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferNormal));
 		rc->CSSetShaderResources(2, 1, &GetEngine().GetGraphicsEngine().GetGBufferRender().GetGBufferSRV(GBufferRender::enGBufferPosition));
 	}
 
@@ -142,7 +142,7 @@ void AmbientOcclusionRender::Render() {
 		rc->CSSetConstantBuffers(0, 1, &pCB);
 
 		ID3D11ShaderResourceView*	pReses = NULL;
-		rc->CSSetShaderResources(1, 1, &pReses);
+		//rc->CSSetShaderResources(1, 1, &pReses);
 		rc->CSSetShaderResources(2, 1, &pReses);
 
 		ID3D11UnorderedAccessView*	pUAV = NULL;

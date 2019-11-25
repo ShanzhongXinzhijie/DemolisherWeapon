@@ -21,6 +21,9 @@ public:
 	ID3D11ShaderResourceView*& GetAmbientOcclusionSRV();
 	ID3D11ShaderResourceView*& GetAmbientOcclusionBlurSRV();
 
+	//テクスチャサイズの取得
+	CVector2 GetTextureSize()const { return { (float)m_textureSizeX, (float)m_textureSizeY }; }
+
 	//有効無効の設定
 	void SetEnable(bool enable) { m_enable = enable; }
 	bool GetEnable()const { return m_enable; }

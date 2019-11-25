@@ -46,19 +46,30 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 
 	//アルベド
 #if ALBEDO_MAP
-	float4 X = albedoTexture.Sample(Sampler, uv.zy * 10.0f + uvOffset);
-	float4 Y = albedoTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset);
-	float4 Z = albedoTexture.Sample(Sampler, uv.xy * 10.0f + uvOffset);
+	float4 X = albedoTexture.Sample(Sampler, uv.zy * 40.0f + uvOffset);
+	float4 Y = albedoTexture.Sample(Sampler, uv.zx * 40.0f + uvOffset);
+	float4 Z = albedoTexture.Sample(Sampler, uv.xy * 40.0f + uvOffset);
 
     float fdistance = length(In.Viewpos);
-    float s = saturate(fdistance/500.0f);
-    X = lerp(X,albedoTexture.Sample(Sampler, uv.zy * 1.0f + uvOffset),s);
-	Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 1.0f + uvOffset),s);
-	Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 1.0f + uvOffset),s);
+	
+	float s = saturate(fdistance/50.0f);
+	X = lerp(X,albedoTexture.Sample(Sampler, uv.zy * 10.0f + uvOffset),s);
+	Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset),s);
+	Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 10.0f + uvOffset),s);
+
+    s = saturate((fdistance-50.0f)/175.0f);
+    X = lerp(X,albedoTexture.Sample(Sampler, uv.zy * 3.0f + uvOffset),s);
+	Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset),s);
+	Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 3.0f + uvOffset),s);
+
+	s = saturate((fdistance-225.0f)/425.0f);
+    X = lerp(X,albedoTexture.Sample(Sampler, uv.zy + uvOffset),s);
+	Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx + uvOffset),s);//TODO くりかえしめだつ?
+	Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy + uvOffset),s);
    
-    s = saturate((fdistance-500.0f)/3500.0f);
+    s = saturate((fdistance-650.0f)/3150.0f);
     X = lerp(X,albedoTexture.Sample(Sampler, uv.zy * 0.1f+ uvOffset),s);
-	Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset),s);//TODO ここ手前に広い
+	Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset),s);
 	Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 0.1f+ uvOffset),s);
     
     s = saturate((fdistance-4000.0f)/16000.0f);
@@ -89,10 +100,17 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	//多分だめ
 	//https://www.patreon.com/posts/16714688
 	//https://medium.com/@bgolus/normal-mapping-for-a-triplanar-shader-10bf39dca05a	
-#if 0//NORMAL_MAP
-	float3 nX = NormalTexture.Sample(Sampler, uv.zy + uvOffset);
-	float3 nY = NormalTexture.Sample(Sampler, uv.zx + uvOffset);
-	float3 nZ = NormalTexture.Sample(Sampler, uv.xy + uvOffset);
+#if 0
+	float3 nX = NormalTexture.Sample(Sampler, uv.zy* 40.0f + uvOffset);
+	float3 nY = NormalTexture.Sample(Sampler, uv.zx* 40.0f + uvOffset);
+	float3 nZ = NormalTexture.Sample(Sampler, uv.xy* 40.0f + uvOffset);
+
+	 float nfdistance = length(In.Viewpos);
+	
+	float ns = saturate(nfdistance/50.0f);
+	nX = lerp(nX,float3(0.5f,0.5f,1.0f),ns);
+	nY = lerp(nY,float3(0.5f,0.5f,1.0f),ns);
+	nZ = lerp(nZ,float3(0.5f,0.5f,1.0f),ns);
 
  //   nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 80.0f + uvOffset),0.5f);
 	//nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 80.0f + uvOffset),0.5f);

@@ -64,7 +64,9 @@ public:
 	}
 
 	//フレームバッファサイズの変更
-	void ChangeFrameBufferSize(	int frameBufferWidth, int frameBufferHeight, int frameBuffer3DWidth, int frameBuffer3DHeight,
+	void ChangeFrameBufferSize(	int frameBufferWidth, int frameBufferHeight,
+								int frameBuffer3DWidth, int frameBuffer3DHeight,
+								int HUDWidth, int HUDHeight,
 								EnSplitScreenMode screenMode, float* splitScreenSize = nullptr);
 
 	//フレームバッファの取得

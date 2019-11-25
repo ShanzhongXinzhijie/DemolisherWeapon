@@ -13,7 +13,7 @@ cbuffer CSCb : register(b0) {
 };
 
 // 入力テクスチャ
-Texture2D<float4> normalTexture : register(t1);
+//Texture2D<float4> normalTexture : register(t1);
 Texture2D<float4> posTexture : register(t2);
 
 // 出力テクスチャ
@@ -57,7 +57,7 @@ void CSmain(uint3 run_xy : SV_DispatchThreadID)
 	}
 
 	uint2 sampuv = uint2(uv.x *((float)win_x / ao_x)+0.5f, uv.y *((float)win_y / ao_y)+0.5f);
-	float3 normal = normalTexture[sampuv].xyz;
+	//float3 normal = normalTexture[sampuv].xyz;
 	float4 viewpos = posTexture[sampuv];
 	float3 worldpos = CalcWorldPosFromUVZ(float2(sampuv.x/ (float)win_x, sampuv.y / (float)win_y), viewpos.w, ViewProjInv);
 
@@ -70,8 +70,8 @@ void CSmain(uint3 run_xy : SV_DispatchThreadID)
 		for (int i = 0; i < 2; i++) {
 			uint2 uv2 = sampuv, uv22 = sampuv;
 
-			uv2  += offset_2[i + 2 * (i2 % 2)] * i2 * uvScale;
-			uv22 += offset_22[i + 2 * (i2 % 2)] * i2 * uvScale;
+            uv2 = uv2 + (offset_2[i + 2 * (i2 % 2)] * i2 * uvScale) + 0.5f;
+            uv22 = uv22 + (offset_22[i + 2 * (i2 % 2)] * i2 * uvScale) + 0.5f;
 			
 			if (uv2.x  < 0 || uv2.y  < 0 || uv2.x  > win_x || uv2.y  > win_y) { continue; }
 			if (uv22.x < 0 || uv22.y < 0 || uv22.x > win_x || uv22.y > win_y) { continue; }

@@ -121,6 +121,9 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		&m_pd3dDeviceContext							//作成したD3Dデバイスコンテキストのアドレスの格納先。
 	);
 
+	//シェーダーのパス設定(デバッグ用)
+	ShaderResources::GetInstance().SetIsReplaceForEngineFilePath(initParam.isShaderPathReplaceForEngineFilePath);
+
 	//書き込み先になるレンダリングターゲットを作成。
 	ID3D11Texture2D* pBackBuffer = NULL;
 	m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
@@ -252,7 +255,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 			CVector2 areaMin, areaMax;
 			m_finalRender[i]->GetDrawArea(areaMin, areaMax);
 			m_HUDRender[i] = std::make_unique<HUDRender>();
-			m_HUDRender[i]->Init(i, areaMin, areaMax, { Get3DFrameBuffer_W(),Get3DFrameBuffer_H() });
+			m_HUDRender[i]->Init(i, areaMin, areaMax, { (float)initParam.HUDWidth, (float)initParam.HUDHeight });
 		}
 
 		//カメラ切り替えレンダー
@@ -277,7 +280,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 			CVector2 areaMin, areaMax;
 			m_finalRender[i]->GetDrawArea(areaMin, areaMax);
 			m_HUDRender[i] = std::make_unique<HUDRender>();
-			m_HUDRender[i]->Init(i, areaMin, areaMax, { Get3DFrameBuffer_W(),Get3DFrameBuffer_H() });
+			m_HUDRender[i]->Init(i, areaMin, areaMax, { (float)initParam.HUDWidth, (float)initParam.HUDHeight });
 		}
 	}
 	FinalRender::SetIsLensDistortion(initParam.isLensDistortion);
@@ -349,7 +352,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 #endif
 }
 
-void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBufferWidth3D, int frameBufferHeight3D, EnSplitScreenMode screenMode, float* splitScreenSize) {
+void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBufferWidth3D, int frameBufferHeight3D, int HUDWidth, int HUDHeight, EnSplitScreenMode screenMode, float* splitScreenSize) {
 	//サイズ変更
 	FRAME_BUFFER_W = (float)frameBufferWidth;
 	FRAME_BUFFER_H = (float)frameBufferHeight;
@@ -400,12 +403,12 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 	//画面分割用の比率に
 	FRAME_BUFFER_3D_W = (float)frameBufferWidth3D;
 	FRAME_BUFFER_3D_H = (float)frameBufferHeight3D;
-	if (m_isSplitScreen == enVertical_TwoSplit) {
+	/*if (m_isSplitScreen == enVertical_TwoSplit) {
 		FRAME_BUFFER_3D_H *= 0.5f;
 	}
 	if (m_isSplitScreen == enSide_TwoSplit) {
 		FRAME_BUFFER_3D_W *= 0.5f;
-	}
+	}*/
 	
 	//最終レンダーターゲット再初期化
 	m_FRT.Init();
@@ -467,7 +470,7 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 				CVector2 areaMin, areaMax;
 				m_finalRender[i]->GetDrawArea(areaMin, areaMax);
 				m_HUDRender[i] = std::make_unique<HUDRender>();
-				m_HUDRender[i]->Init(i, areaMin, areaMax, { Get3DFrameBuffer_W(),Get3DFrameBuffer_H() });
+				m_HUDRender[i]->Init(i, areaMin, areaMax, { (float)HUDWidth, (float)HUDHeight });
 			}
 
 			//カメラ切り替えレンダーの初期化
@@ -492,7 +495,7 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 				CVector2 areaMin, areaMax;
 				m_finalRender[i]->GetDrawArea(areaMin, areaMax);
 				m_HUDRender[i] = std::make_unique<HUDRender>();
-				m_HUDRender[i]->Init(i, areaMin, areaMax, { Get3DFrameBuffer_W(),Get3DFrameBuffer_H() });
+				m_HUDRender[i]->Init(i, areaMin, areaMax, { (float)HUDWidth, (float)HUDHeight });
 			}
 		}
 

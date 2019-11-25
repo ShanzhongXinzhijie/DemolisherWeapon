@@ -107,14 +107,16 @@ public:
 	/// シェーダーのホットリロード(ゲームループから呼び出す)
 	/// </summary>
 	void HotReload();
+#endif
 
 	/// <summary>
 	/// ファイルパスをエンジン下のものに置換するか設定
 	/// </summary>
 	void SetIsReplaceForEngineFilePath(bool isReplace) {
+#ifndef DW_MASTER
 		m_replaceForEngineFilePath = isReplace;
-	}
 #endif
+	}
 
 private:
 	/// <summary>

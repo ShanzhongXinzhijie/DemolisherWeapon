@@ -440,8 +440,8 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	//AO
 	float ambientOcclusion = 1.0f;
 	if (boolAO) {
-		ambientOcclusion = AoMapBlur.Sample(Sampler, In.uv);
-	}
+        ambientOcclusion = AoMapBlur.Sample(Sampler, In.uv);
+    }
     ambientOcclusion *= saturate(ambientOcclusion * 1.5f); //ガウスブラーで薄くなってるので濃くする
 	
 	//アンビエント
