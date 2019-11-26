@@ -104,13 +104,41 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	float3 nX = NormalTexture.Sample(Sampler, uv.zy* 40.0f + uvOffset);
 	float3 nY = NormalTexture.Sample(Sampler, uv.zx* 40.0f + uvOffset);
 	float3 nZ = NormalTexture.Sample(Sampler, uv.xy* 40.0f + uvOffset);
+    //nX.rg-=0.5f;nX.rg*=4.0f;nX.rg+=0.5f;
+    //nY.rg-=0.5f;nY.rg*=4.0f;nY.rg+=0.5f;
+    //nZ.rg-=0.5f;nZ.rg*=4.0f;nZ.rg+=0.5f;
 
-	 float nfdistance = length(In.Viewpos);
+	float nfdistance = length(In.Viewpos);
 	
 	float ns = saturate(nfdistance/50.0f);
-	nX = lerp(nX,float3(0.5f,0.5f,1.0f),ns);
-	nY = lerp(nY,float3(0.5f,0.5f,1.0f),ns);
-	nZ = lerp(nZ,float3(0.5f,0.5f,1.0f),ns);
+	nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 10.0f + uvOffset),ns);
+	nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset),ns);
+	nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 10.0f + uvOffset),ns);
+
+    ns = saturate((nfdistance-50.0f)/175.0f);
+    nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 3.0f + uvOffset),ns);
+	nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset),ns);
+	nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 3.0f + uvOffset),ns);
+
+	ns = saturate((nfdistance-225.0f)/425.0f);
+    nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy + uvOffset),ns);
+	nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx + uvOffset),ns);//TODO ‚­‚è‚©‚¦‚µ‚ß‚¾‚Â?
+	nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy + uvOffset),ns);
+   
+    ns = saturate((nfdistance-650.0f)/3150.0f);
+    nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 0.1f+ uvOffset),ns);
+	nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset),ns);
+	nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 0.1f+ uvOffset),ns);
+    
+    ns = saturate((nfdistance-650.0f)/16000.0f);
+    nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 0.01f + uvOffset),ns);
+	nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),ns);
+	nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 0.01f + uvOffset),ns);  
+
+    
+	//float3 nX = NormalTexture.Sample(Sampler, uv.zy + uvOffset);
+	//float3 nY = NormalTexture.Sample(Sampler, uv.zx + uvOffset);
+	//float3 nZ = NormalTexture.Sample(Sampler, uv.xy + uvOffset);
 
  //   nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 80.0f + uvOffset),0.5f);
 	//nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 80.0f + uvOffset),0.5f);
@@ -123,6 +151,8 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
  //   nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 0.01f + uvOffset),0.5f);
 	//nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),0.5f);
 	//nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 0.01f + uvOffset),0.5f);
+
+
 
  //   float3 nX = NormalTexture.Sample(Sampler, uv.zy * 10.0f + uvOffset);
 	//float3 nY = NormalTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset);
@@ -153,6 +183,7 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	Out.normal.xyz = lerp(Out.normal.xyz, nY, blendNormal.y);
 
 	Out.normal.xyz = Out.normal.xyz * 2.0f - 1.0f;
+    //Out.normal.xy *= 2.0f;
 	Out.normal.xyz = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
 	Out.normal.xyz = normalize(Out.normal.xyz);
 #else

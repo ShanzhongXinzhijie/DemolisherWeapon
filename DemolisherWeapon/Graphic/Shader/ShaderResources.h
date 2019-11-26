@@ -57,6 +57,9 @@ public:
 		EnType type;								//!<シェーダータイプ。
 		ID3DBlob* blobOut = nullptr;
 
+		std::unique_ptr<char[]> fileblob;
+		size_t fileblobSize = 0;
+
 #ifndef DW_MASTER
 		//マクロ
 		struct D3D_SHADER_MACRO_SAVE {
@@ -149,8 +152,12 @@ private:
 private:
 	//シェーダプログラムをロード
 	void LoadShaderProgram(const char* filePath, SShaderProgramPtr& return_prog);
-	//シェーダーをコンパイルする
+	//シェーダをコンパイルする
 	bool CompileShader(const SShaderProgram* shaderProgram, const char* filePath, const D3D_SHADER_MACRO* pDefines, const char* entryFuncName, EnType shaderType, SShaderResource* return_resource, bool isHotReload = false);
+	//シェーダリソースをファイルからロード
+	bool LoadShaderResource(const char* filePath, const D3D_SHADER_MACRO* pDefines, const char* entryFuncName, EnType shaderType, SShaderResource* return_resource);
+	//シェーダリソースを生成した後の処理
+	bool PostLoadShader(void* blob, size_t blobSize, EnType shaderType, const char* entryFuncName, const D3D_SHADER_MACRO* pDefines, bool isHotReload, SShaderResource* return_resource);
 };
 
 }
