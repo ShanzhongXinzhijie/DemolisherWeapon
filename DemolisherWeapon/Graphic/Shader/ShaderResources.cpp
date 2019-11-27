@@ -31,6 +31,20 @@ namespace {
 		fclose(fp);
 		return readBuff;
 	}
+	//ファイル書き込み
+	void WriteFile(std::filesystem::path filePath, const char * data, size_t dataSize)
+	{
+		//フォルダ作成
+		std::filesystem::create_directories(filePath.parent_path());
+		//ファイル開く
+		std::ofstream ofs(filePath, std::ios::binary);
+		if (!ofs) {
+			//失敗
+			return;
+		}
+		// バイナリとして書き込む
+		ofs.write(data, dataSize);
+	}
 	/*!
 	*@brief	頂点シェーダーから頂点レイアウトを生成。
 	*/
@@ -157,12 +171,14 @@ void ShaderResources::SShaderResource::Release(bool fullRelease) {
 		blobOut->Release();
 		blobOut = nullptr;
 	}
+	fileblob.reset(); fileblobSize = 0;
 
 #ifndef DW_MASTER
 	if (fullRelease) {
 		entryFuncName.reset();
 		pDefines.reset();
 		macroNum = 0;
+		shaderResourceHash = 0;
 	}
 #endif
 
@@ -260,9 +276,11 @@ bool ShaderResources::PostLoadShader(void* blob, size_t blobSize, EnType shaderT
 		}
 	}
 #endif
+
+	return true;
 }
 
-bool ShaderResources::CompileShader(const SShaderProgram* shaderProgram, const char* filePath, const D3D_SHADER_MACRO* pDefines, const char* entryFuncName, EnType shaderType, SShaderResource* resource, bool isHotReload) {
+bool ShaderResources::CompileShader(const SShaderProgram* shaderProgram, const char* filePath, const D3D_SHADER_MACRO* pDefines, const char* entryFuncName, EnType shaderType, std::string_view hashString, SShaderResource* resource, bool isHotReload) {
 	resource->Release(!isHotReload);
 	
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_OPTIMIZATION_LEVEL3;
@@ -299,6 +317,19 @@ bool ShaderResources::CompileShader(const SShaderProgram* shaderProgram, const c
 	}
 	if (errorBlob) { errorBlob->Release(); errorBlob = nullptr; }
 
+	//コンパイル済みシェーダー保存
+	//ファイルパス作成
+#ifndef DW_MASTER
+	std::string path = "Preset/shader/meta/debug/";
+#else
+	std::string path = "Preset/shader/meta/master/";
+#endif
+	path += hashString;
+	path += ".cso";
+	//保存
+	WriteFile(path.c_str(), reinterpret_cast<char*>(blobOut->GetBufferPointer()), blobOut->GetBufferSize());
+	//TODO .metaももも
+
 	//読み込み後の処理
 	if (!PostLoadShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), shaderType, entryFuncName, pDefines, isHotReload, resource)) {
 		//エラー!
@@ -311,6 +342,8 @@ bool ShaderResources::CompileShader(const SShaderProgram* shaderProgram, const c
 }
 
 bool ShaderResources::LoadShaderResource(const char* filePath, const D3D_SHADER_MACRO* pDefines, const char* entryFuncName, EnType shaderType, SShaderResource* return_resource) {
+	return_resource->Release(false);
+	
 	int filesize;
 	return_resource->fileblob = ReadFile(filePath, filesize);
 	return_resource->fileblobSize = filesize;
@@ -344,15 +377,50 @@ bool ShaderResources::Load(
 	}
 #endif
 
+	//ファイルパスからハッシュ値を作成する。
+	int shaderProgramHash = Util::MakeHash(filePath.data());
+	//シェーダープログラムをロード済みか調べる。
+	auto it = m_shaderProgramMap.find(shaderProgramHash);
+	SShaderProgram* shaderProgram;
+	if (it == m_shaderProgramMap.end()) {
+		//新規。
+		SShaderProgramPtr prog = std::make_unique<SShaderProgram>();
+		//ファイル読み込み
+		LoadShaderProgram(filePath.data(), prog);
+		//返す
+		shaderProgram = prog.get();
+		//mapに登録
+		std::pair<int, SShaderProgramPtr> pair;
+		pair.first = shaderProgramHash;
+		pair.second = std::move(prog);
+		m_shaderProgramMap.insert(std::move(pair));
+	}
+	else {
+		//すでに読み込み済み。
+		shaderProgram = it->second.get();
+	}
+
 	//ファイルパス＋エントリーポイントの関数名＋マクロの識別名でハッシュ値を作成する。
 	static char buff[1024];
 	strcpy_s(buff, filePath.data());
 	strcat_s(buff, entryFuncName);
 	strcat_s(buff, definesIdentifier);
 	int shaderResourceHash = Util::MakeHash(buff);
+	
+	//ハッシュを10進数文字列へ変換
+	auto begin = std::begin(buff);
+	auto end = std::end(buff);
+	auto[ptr, ec] = std::to_chars(begin, end, shaderResourceHash);
+	std::string_view hashString = std::string_view(begin, ptr - begin);
+	if (ec != std::errc{}) {
+		//エラー!
+		return false;
+	}
+
+	bool isCompiled = false;
+	bool isMeta = false;
 
 	//シェーダーがコンパイル済みか調べる
-	bool isCompiled = false;
 	auto itShaderResource = m_shaderResourceMap.find(shaderResourceHash);
 	if (itShaderResource != m_shaderResourceMap.end()) {
 		//コンパイル済み!
@@ -361,18 +429,14 @@ bool ShaderResources::Load(
 	//コンパイルしてない!
 	if (!isCompiled) {
 		//メタファイルの読み込み
-		bool isMeta = false;
-		//ハッシュを10進数文字列へ変換
-		auto begin = std::begin(buff);
-		auto end = std::end(buff);
-		if (auto[ptr, ec] = std::to_chars(begin, end, shaderResourceHash); ec == std::errc{}) {
+		{
 			//メタファイルへのファイルパスを作成
 #ifndef DW_MASTER
-			std::string path("Preset/shader/meta/debug");
+			std::string path("Preset/shader/meta/debug/");
 #else
-			std::string path("Preset/shader/meta/master");
+			std::string path("Preset/shader/meta/master/");
 #endif
-			path += std::string_view(begin, ptr - begin);
+			path += hashString;
 			path += ".dwsmeta";
 			{
 				//メタファイルがあるか?
@@ -407,58 +471,48 @@ bool ShaderResources::Load(
 			if (isMeta) {
 				//ファイルパス作成
 #ifndef DW_MASTER
-				path = "Preset/shader/meta/debug";
+				path = "Preset/shader/meta/debug/";
 #else
-				path = "Preset/shader/meta/master";
+				path = "Preset/shader/meta/master/";
 #endif
-				path += std::string_view(begin, ptr - begin);
+				path += hashString;
 				path += ".cso";
 
 				//シェーダー読み込み
-
+				SShaderResourcePtr resource = std::make_unique<SShaderResource>();
+				if (!LoadShaderResource(path.c_str(), pDefines, entryFuncName, shaderType, resource.get())) {
+					return false;
+				}
+				//戻り値
+				return_resource = resource.get();
+#ifndef DW_MASTER
+				//シェーダープログラムのリストに登録
+				shaderProgram->shaderResourceList.emplace_back(resource.get());
+#endif
+				//マップに登録
+				std::pair<int, SShaderResourcePtr> pair;
+				pair.first = shaderResourceHash;
+				pair.second = std::move(resource);
+				m_shaderResourceMap.insert(std::move(pair));
+				//コンパイル済みにする
+				isCompiled = true;
 			}
-		}
-		
-		//メタファイルなし
-		if (!isMeta) {
-			//通常のロート
-			//TODO 保存処理
-		}
-	}
+		}		
+	}	
 
-	//ファイルパスからハッシュ値を作成する。
-	int shaderProgramHash = Util::MakeHash(filePath.data());
-	//シェーダープログラムをロード済みか調べる。
-	auto it = m_shaderProgramMap.find(shaderProgramHash);
-	SShaderProgram* shaderProgram;
-	if (it == m_shaderProgramMap.end()) {
-		//新規。
-		SShaderProgramPtr prog = std::make_unique<SShaderProgram>();
-		//ファイル読み込み
-		LoadShaderProgram(filePath.data(), prog);
-		//返す
-		shaderProgram = prog.get();
-		//mapに登録
-		std::pair<int, SShaderProgramPtr> pair;
-		pair.first = shaderProgramHash;
-		pair.second = std::move(prog);
-		m_shaderProgramMap.insert(std::move(pair));		
-	}
-	else {
-		//すでに読み込み済み。
-		shaderProgram = it->second.get();
-	}
-
-	//続いて、シェーダーをコンパイル済み調べる。	
-	//auto itShaderResource = m_shaderResourceMap.find(shaderResourceHash);
-	if (itShaderResource == m_shaderResourceMap.end()) {
+	//シェーダーがコンパイル済みでなければコンパイル	
+	if (!isCompiled) {
 		//新規。
 		SShaderResourcePtr resource = std::make_unique<SShaderResource>();
 
 		//コンパイル
-		if (!CompileShader(shaderProgram, filePath.data(), pDefines, entryFuncName, shaderType, resource.get())) {
+		if (!CompileShader(shaderProgram, filePath.data(), pDefines, entryFuncName, shaderType, hashString, resource.get())) {
 			return false;
 		}
+
+#ifndef DW_MASTER
+		resource->shaderResourceHash = shaderResourceHash;
+#endif
 
 		//戻り値
 		return_resource = resource.get();
@@ -474,7 +528,7 @@ bool ShaderResources::Load(
 		pair.second = std::move(resource);
 		m_shaderResourceMap.insert(std::move(pair));		 
 	}
-	else {
+	else if (itShaderResource != m_shaderResourceMap.end()) {
 		//すでに読み込み済み。
 		return_resource = itShaderResource->second.get();
 	}
@@ -502,8 +556,23 @@ void ShaderResources::HotReload() {
 						macros[i].Definition = resource->pDefines[i].Definition.get();
 					}
 				}
+				//ハッシュを10進数文字列へ変換
+				static char buff[24];
+				auto begin = std::begin(buff);
+				auto end = std::end(buff);
+				auto[ptr, ec] = std::to_chars(begin, end, resource->shaderResourceHash);
+				if (ec != std::errc{}) {
+					//エラー!
+					MessageBox(NULL, "ハッシュの文字列変換に失敗しました。", "HotReloadエラー", MB_OK);
+					continue;
+				}
 				//コンパイル
-				CompileShader(shader.second.get(), shader.second->filepath.c_str(), resource->macroNum > 0 ? macros.get() : nullptr, resource->entryFuncName->c_str(), resource->type, resource, true);
+				bool ok = CompileShader(shader.second.get(), shader.second->filepath.c_str(), resource->macroNum > 0 ? macros.get() : nullptr, resource->entryFuncName->c_str(), resource->type, std::string_view(begin, ptr - begin), resource, true);
+				if (!ok) {
+					//ERR!
+					MessageBox(NULL, "シェーダーの再コンパイルに失敗しました。", "CompileShaderエラー", MB_OK);
+					continue;
+				}
 			}
 		}
 	}

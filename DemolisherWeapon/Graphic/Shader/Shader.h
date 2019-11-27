@@ -45,11 +45,11 @@ public:
 	}
 	void* GetByteCode()const
 	{
-		return m_pShaderResource->blobOut->GetBufferPointer();
+		return m_pShaderResource->GetBufferPointer();
 	}
 	size_t GetByteCodeSize()const
 	{
-		return m_pShaderResource->blobOut->GetBufferSize();
+		return m_pShaderResource->GetBufferSize();
 	}
 
 	//“®“IƒŠƒ“ƒNŠÖŒW

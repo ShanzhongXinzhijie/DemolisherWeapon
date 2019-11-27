@@ -16,6 +16,9 @@ bool Shader::Load(const char* filePath, const char* entryFuncName, EnType shader
 		definesIdentifier,
 		pDefines
 	);
+	if (!result) {
+		MessageBox(NULL, filePath, "Shader::Load()‚ÉŽ¸”s‚µ‚Ü‚µ‚½", MB_OK);
+	}
 	m_isLoaded = result;
     return result;
 }

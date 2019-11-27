@@ -55,10 +55,31 @@ public:
 		void* shader = nullptr;						//!<シェーダー。
 		ID3D11InputLayout* inputLayout = nullptr;	//!<入力レイアウト。
 		EnType type;								//!<シェーダータイプ。
-		ID3DBlob* blobOut = nullptr;
 
+		//コンパイル済みシェーダーのデータ(バイトコード)
+	private:
+		ID3DBlob* blobOut = nullptr;
 		std::unique_ptr<char[]> fileblob;
 		size_t fileblobSize = 0;
+	public:
+		LPVOID GetBufferPointer()const {
+			if (blobOut) {
+				return blobOut->GetBufferPointer();
+			}
+			if (fileblob) {
+				return fileblob.get();
+			}
+			return nullptr;
+		}
+		SIZE_T GetBufferSize()const {
+			if (blobOut) {
+				return blobOut->GetBufferSize();
+			}
+			if (fileblob) {
+				return fileblobSize;
+			}
+			return 0;
+		}
 
 #ifndef DW_MASTER
 		//マクロ
@@ -69,6 +90,7 @@ public:
 		int macroNum = 0;
 		std::unique_ptr<D3D_SHADER_MACRO_SAVE[]> pDefines;
 		std::unique_ptr<std::string> entryFuncName;
+		int shaderResourceHash = 0;
 #endif
 
 		//動的リンク関係
@@ -77,6 +99,8 @@ public:
 
 		//開放
 		void Release(bool fullRelease = true);
+
+		friend class ShaderResources;
 	};
 
 	/// <summary>
@@ -153,7 +177,7 @@ private:
 	//シェーダプログラムをロード
 	void LoadShaderProgram(const char* filePath, SShaderProgramPtr& return_prog);
 	//シェーダをコンパイルする
-	bool CompileShader(const SShaderProgram* shaderProgram, const char* filePath, const D3D_SHADER_MACRO* pDefines, const char* entryFuncName, EnType shaderType, SShaderResource* return_resource, bool isHotReload = false);
+	bool CompileShader(const SShaderProgram* shaderProgram, const char* filePath, const D3D_SHADER_MACRO* pDefines, const char* entryFuncName, EnType shaderType, std::string_view hashString, SShaderResource* return_resource, bool isHotReload = false);
 	//シェーダリソースをファイルからロード
 	bool LoadShaderResource(const char* filePath, const D3D_SHADER_MACRO* pDefines, const char* entryFuncName, EnType shaderType, SShaderResource* return_resource);
 	//シェーダリソースを生成した後の処理
