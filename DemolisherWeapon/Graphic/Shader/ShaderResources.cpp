@@ -32,7 +32,7 @@ namespace {
 		return readBuff;
 	}
 	//ファイル書き込み
-	void WriteFile(std::filesystem::path filePath, const char * data, size_t dataSize)
+	bool WriteFile(std::filesystem::path filePath, const char * data, size_t dataSize)
 	{
 		//フォルダ作成
 		std::filesystem::create_directories(filePath.parent_path());
@@ -40,10 +40,12 @@ namespace {
 		std::ofstream ofs(filePath, std::ios::binary);
 		if (!ofs) {
 			//失敗
-			return;
+			return false;
 		}
 		// バイナリとして書き込む
 		ofs.write(data, dataSize);
+
+		return true;
 	}
 	/*!
 	*@brief	頂点シェーダーから頂点レイアウトを生成。
@@ -317,18 +319,36 @@ bool ShaderResources::CompileShader(const SShaderProgram* shaderProgram, const c
 	}
 	if (errorBlob) { errorBlob->Release(); errorBlob = nullptr; }
 
-	//コンパイル済みシェーダー保存
-	//ファイルパス作成
+	{
+		//コンパイル済みシェーダー保存//
+		
+		//ファイルパス作成
 #ifndef DW_MASTER
-	std::string path = "Preset/shader/meta/debug/";
+		std::filesystem::path path = "Preset/shader/meta/debug/";
 #else
-	std::string path = "Preset/shader/meta/master/";
+		std::filesystem::path path = "Preset/shader/meta/master/";
 #endif
-	path += hashString;
-	path += ".cso";
-	//保存
-	WriteFile(path.c_str(), reinterpret_cast<char*>(blobOut->GetBufferPointer()), blobOut->GetBufferSize());
-	//TODO .metaももも
+		path += hashString;
+		path += ".dwcso";
+		//シェーダー保存
+		if (WriteFile(path.c_str(), reinterpret_cast<char*>(blobOut->GetBufferPointer()), blobOut->GetBufferSize()))
+		{
+			//メタファイル保存//
+
+			//ファイルパス作成
+			path = path.parent_path();
+			path /= hashString;
+			path += ".dwsmeta";
+
+			std::ofstream ofs(path);
+			if (!ofs) {
+				//失敗
+			}
+			else {
+				ofs << std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(filePath).time_since_epoch()).count() << std::endl;
+			}
+		}
+	}
 
 	//読み込み後の処理
 	if (!PostLoadShader(blobOut->GetBufferPointer(), blobOut->GetBufferSize(), shaderType, entryFuncName, pDefines, isHotReload, resource)) {
@@ -476,26 +496,31 @@ bool ShaderResources::Load(
 				path = "Preset/shader/meta/master/";
 #endif
 				path += hashString;
-				path += ".cso";
+				path += ".dwcso";
 
 				//シェーダー読み込み
 				SShaderResourcePtr resource = std::make_unique<SShaderResource>();
 				if (!LoadShaderResource(path.c_str(), pDefines, entryFuncName, shaderType, resource.get())) {
-					return false;
+					//失敗
+					//return false;
 				}
-				//戻り値
-				return_resource = resource.get();
+				else {
+					//成功
+
+					//戻り値
+					return_resource = resource.get();
 #ifndef DW_MASTER
-				//シェーダープログラムのリストに登録
-				shaderProgram->shaderResourceList.emplace_back(resource.get());
+					//シェーダープログラムのリストに登録
+					shaderProgram->shaderResourceList.emplace_back(resource.get());
 #endif
-				//マップに登録
-				std::pair<int, SShaderResourcePtr> pair;
-				pair.first = shaderResourceHash;
-				pair.second = std::move(resource);
-				m_shaderResourceMap.insert(std::move(pair));
-				//コンパイル済みにする
-				isCompiled = true;
+					//マップに登録
+					std::pair<int, SShaderResourcePtr> pair;
+					pair.first = shaderResourceHash;
+					pair.second = std::move(resource);
+					m_shaderResourceMap.insert(std::move(pair));
+					//コンパイル済みにする
+					isCompiled = true;
+				}
 			}
 		}		
 	}	
