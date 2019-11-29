@@ -310,7 +310,7 @@ namespace GameObj {
 			m_isInit = true;
 		}
 		
-		void PostLoopUpdate()override final {
+		void PostLoopPostUpdate()override final {
 			if (!m_isInit) { return; }
 			if (!m_isDraw) { m_isFirstWorldMatRef = true; return; }
 
@@ -393,6 +393,10 @@ namespace GameObj {
 		}
 		bool GetIsDraw() const{
 			return m_isDraw;
+		}
+		//旧ワールド行列のリセット
+		void ResetWorldMatrixOld() {
+			m_isFirstWorldMatRef = true;
 		}
 
 		//モデルの取得
