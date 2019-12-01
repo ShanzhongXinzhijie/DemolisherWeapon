@@ -275,8 +275,8 @@ CVector2 FinalRender::CalcLensDistortion(const CVector2& pos, GameObj::ICamera* 
 	}
 
 	// Aspect比を考慮した空間上での,光軸中心からの距離ベクトル
-	CVector3 rVec = (CVector3(pos.x, pos.y, 0.0f) - CVector3(0.5f, 0.5f, 0.0f));
-	CVector3 rVecX = (CVector3(1.0f, 0.0f, 0.0f) - CVector3(0.5f, 0.5f, 0.0f));
+	CVector2 rVec = (pos - CVector2::OneHalf());
+	CVector2 rVecX = (CVector2(1.0f, 0.0f) - CVector2::OneHalf());
 	rVec.x *= cam->GetAspect();
 	rVecX.x *= cam->GetAspect();
 	const float r2 = rVec.Dot(rVec);
@@ -285,18 +285,19 @@ CVector2 FinalRender::CalcLensDistortion(const CVector2& pos, GameObj::ICamera* 
 	const float r4X = r2X * r2X;
 
 	// 半径方向歪みを考慮した距離ベクトル
-	CVector3 distortionR = rVec * ((1.0f) / (1.0f + Calc_k4(fov) * r4));
-	CVector3 distortionRX = rVecX * ((1.0f) / (1.0f + Calc_k4(fov) * r4X));
+	float k4 = Calc_k4(fov);
+	CVector2 distortionR = rVec * ((1.0f) / (1.0f + k4 * r4));
+	CVector2 distortionRX = rVecX * ((1.0f) / (1.0f + k4 * r4X));
 
 	// アスペクト比補正
 	distortionR.x *= 1.0f / cam->GetAspect();
 	distortionRX.x *= 1.0f / cam->GetAspect();
 
 	// 画面中心基準の拡大,UV座標への変換
-	distortionRX += CVector3(0.5f, 0.5f, 0.0f);
+	distortionRX += CVector2::OneHalf();
 	float LENS_DISTORTION_UV_MAGNIFICATION = (1.0f / distortionRX.x);
 
-	rVec = (distortionR*LENS_DISTORTION_UV_MAGNIFICATION) + CVector3(0.5f, 0.5f, 0.0f);
+	rVec = (distortionR*LENS_DISTORTION_UV_MAGNIFICATION) + CVector2::OneHalf();
 
 	return { rVec.x , rVec.y };
 }

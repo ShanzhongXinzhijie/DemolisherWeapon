@@ -86,17 +86,23 @@ CVector3 ICamera::CalcScreenPosFromWorldPos(const CVector3& worldPos)
 	//ビュープロジェクション行列の作成。
 	CMatrix viewProjectionMatrix; viewProjectionMatrix.Mul(m_viewMat, m_projMat);
 
+	//ビュープロジェクション行列をワールド座標に適用
 	CVector4 _screenPos(worldPos.x, worldPos.y, worldPos.z, 1.0f);
 	viewProjectionMatrix.Mul(_screenPos);
 
+	//wで割ってスクリーン座標を求める
 	CVector3 screenPos;
 	screenPos.x = (_screenPos.x / _screenPos.w) * 0.5f + 0.5f;
 	screenPos.y = (_screenPos.y / _screenPos.w) *-0.5f + 0.5f;
 	screenPos.z = _screenPos.z / _screenPos.w;
 
-	//歪曲収差後の座標を取得
-	auto [x, y] = FinalRender::CalcLensDistortion({ screenPos.x , screenPos.y }, this);
-	screenPos.x *= screenPos.x/x; screenPos.y *= screenPos.y/y;
+	//歪曲収差後の座標に変換
+	//※画面外の座標は変換しない(できない)
+	if (screenPos.x >= 0.0f && screenPos.x <= 1.0f || screenPos.y >= 0.0f && screenPos.y <= 1.0f) {
+		auto[x, y] = FinalRender::CalcLensDistortion({ screenPos.x , screenPos.y }, this);
+		if (screenPos.x >= 0.0f && screenPos.x <= 1.0f) { screenPos.x *= screenPos.x / x; }
+		if (screenPos.y >= 0.0f && screenPos.y <= 1.0f) { screenPos.y *= screenPos.y / y; }
+	}
 
 	return screenPos;
 }

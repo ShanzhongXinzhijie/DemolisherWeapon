@@ -149,6 +149,19 @@ public:
 		return re;
 	}
 
+	/// <summary>
+	/// ì‡êœ
+	/// </summary>
+	float Dot(const CVector2& _v)const
+	{
+		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat2(&vec);
+		DirectX::XMVECTOR xmv1 = DirectX::XMLoadFloat2(&_v.vec);
+		return DirectX::XMVector2Dot(xmv0, xmv1).m128_f32[0];
+	}
+
+	/// <summary>
+	/// äOêœ
+	/// </summary>
 	float Cross(const CVector2& _v)const
 	{
 		DirectX::XMVECTOR xmv0 = DirectX::XMLoadFloat2(&vec);
@@ -208,6 +221,8 @@ public:
 		x = v0.x + (v1.x - v0.x) * t;
 		y = v0.y + (v1.y - v0.y) * t;
 	}
+
+	//íËêî
 	static const CVector2& Zero()
 	{
 		static const CVector2 zero = { 0.0f,  0.0f };
@@ -217,6 +232,11 @@ public:
 	{
 		static const CVector2 one = { 1.0f,  1.0f };
 		return one;
+	}
+	static const CVector2& OneHalf()
+	{
+		static const CVector2 half = { 0.5f,  0.5f };
+		return half;
 	}
 
 	//ç\ë¢âªë©îõÇÃÇ‚Ç¬
