@@ -272,7 +272,7 @@
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
     <ClInclude Include="Graphic\IDrawer.h" />
     <ClInclude Include="Render\HUDRender.h" />
-    <ClInclude Include="Macro\Accessor.h" />
+    <ClInclude Include="Macro\Macro.h" />
     <ClInclude Include="Render\PreRenderRender.h" />
     <ClInclude Include="Render\InitRender.h" />
     <ClInclude Include="Graphic\Shader\StructuredBuffer.h" />
