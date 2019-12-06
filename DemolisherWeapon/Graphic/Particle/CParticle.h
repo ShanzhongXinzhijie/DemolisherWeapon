@@ -6,14 +6,16 @@ namespace DemolisherWeapon {
 
 			template <class X>
 			class CParticle :
-				public IGameObject
+				public IQSGameObject
 			{
 			public:
 				void Update()override {
 					//–ˆƒtƒŒ[ƒ€‚Ì•Ï‰»
-					m_graphic->SetPos(m_graphic->GetPos() + m_move);
-					m_graphic->SetScale(m_graphic->GetScale()*m_scaling);
-					m_graphic->SetRot(m_rotation * m_graphic->GetRot());
+					if (m_graphic) {
+						m_graphic->SetPos(m_graphic->GetPos() + m_move);
+						m_graphic->SetScale(m_graphic->GetScale()*m_scaling);
+						m_graphic->SetRot(m_rotation * m_graphic->GetRot());
+					}
 					//Žõ–½
 					if (m_lifeTime < 0) { return; }
 					m_lifeTime--; if (m_lifeTime <= 0) { delete this; return; }

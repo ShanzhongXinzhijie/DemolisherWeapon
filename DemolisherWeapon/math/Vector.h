@@ -1021,6 +1021,17 @@ public:
 		);
 		DirectX::XMStoreFloat4(&vec, xmv);
 	}
+	static const CQuaternion& GetSlerp(float t, CQuaternion q1, CQuaternion q2)
+	{
+		DirectX::XMVECTOR xmv = DirectX::XMQuaternionSlerp(
+			DirectX::XMLoadFloat4(&q1.vec),
+			DirectX::XMLoadFloat4(&q2.vec),
+			t
+		);
+		static CQuaternion ret;
+		DirectX::XMStoreFloat4(&ret.vec, xmv);
+		return ret;
+	}
 	/*!
 	*@brief	クォータニオン同士の積。
 	*/

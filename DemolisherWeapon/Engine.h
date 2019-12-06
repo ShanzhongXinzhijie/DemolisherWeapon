@@ -113,6 +113,8 @@ public:
 
 	//FPSãŒÀ‚ğİ’è
 	void SetUseFpsLimiter(bool use, int maxfps = -1) { m_fpscounter->SetUseFpsLimiter(use, maxfps); }
+	//“®ìŠî€FPS‚ğİ’è
+	void SetStandardFrameRate(int fps) { m_fpscounter->SetStandardFrameRate(fps); }
 
 	//“®ìŠî€FPS‚ğæ“¾
 	int GetStandardFrameRate()const { return m_fpscounter->GetStandardFrameRate(); }
@@ -286,6 +288,8 @@ public:
 
 	//FPSãŒÀ‚ğİ’è
 	void SetUseFpsLimiter(bool use, int maxfps = -1) { m_gameLoop.SetUseFpsLimiter(use, maxfps); }
+	//“®ìŠî€FPS‚ğİ’è
+	void SetStandardFrameRate(int fps) { m_gameLoop.SetStandardFrameRate(fps); }
 
 	//“®ìŠî€FPS‚ğæ“¾
 	int GetStandardFrameRate()const { return m_gameLoop.GetStandardFrameRate(); }
