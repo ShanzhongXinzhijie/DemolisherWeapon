@@ -8,20 +8,36 @@ public:
 	CFpsCounter();
 	~CFpsCounter();
 
+	//初期化
 	void Init(int maxfps, int stdfps) {
-		m_maxfps = maxfps; m_maxFrameTimeSec = 1.0f / m_maxfps;
-		m_standardfps = stdfps; m_standardFrameTimeSec = 1.0f / m_standardfps;
+		SetUseFpsLimiter(m_useFpsLimiter,maxfps);
+		SetStandardFrameRate(stdfps);
 	}
 
+	//フレームレート計測
 	void Count();
 
+	//フレームレート描画
 	void Draw();
 
+	//前回フレームの実行にかかった時間
 	float GetFrameTimeSec() const { return m_frametimeSec; };
+	//実行した動作フレーム数を取得
 	float GetRunFrameCnt() const { return m_runframecnt; };
 
 	//fps上限を設定
-	void SetUseFpsLimiter(bool use, int maxfps = -1) { m_useFpsLimiter = use; if (maxfps >= 1) { m_maxfps = maxfps; m_maxFrameTimeSec = 1.0f / m_maxfps; } }
+	void SetUseFpsLimiter(bool use, int maxfps = -1) { 
+		m_useFpsLimiter = use;
+		if (maxfps >= 1) {
+			m_maxfps = maxfps; 
+			m_maxFrameTimeSec = 1.0f / m_maxfps; 
+		} 
+	}
+	//動作基準FPSを設定
+	void SetStandardFrameRate(int fps) {
+		m_standardfps = fps; 
+		m_standardFrameTimeSec = 1.0f / m_standardfps;
+	}
 
 	//動作基準FPSを取得
 	int GetStandardFrameRate()const { return m_standardfps; }
