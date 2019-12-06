@@ -141,6 +141,8 @@ namespace DemolisherWeapon {
 	}
 
 	void PrimitiveRender::RenderHUD(int HUDNum) {
+		m_clearedHUD = false;
+
 		if (m_isDrawHUD.size() <= HUDNum || !m_isDrawHUD[HUDNum]) { return; }
 
 		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
@@ -181,6 +183,9 @@ namespace DemolisherWeapon {
 		m_batch->End();
 	}
 	void PrimitiveRender::PostRenderHUD() {
+		if (m_clearedHUD) { return; }//消去済み
+		m_clearedHUD = true;
+
 		//描画リストのクリア
 		for (auto& line : m_ilneListHUD) {
 			line.clear();

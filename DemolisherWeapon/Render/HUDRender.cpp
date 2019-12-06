@@ -74,7 +74,6 @@ namespace DemolisherWeapon {
 
 		//2Dプリミティブの描画
 		GetGraphicsEngine().GetPrimitiveRender().RenderHUD(m_HUDNum);
-		GetGraphicsEngine().GetPrimitiveRender().PostRenderHUD();
 		//描画
 		GetEngine().GetGameObjectManager().HUDRender(m_HUDNum);
 
@@ -118,5 +117,9 @@ namespace DemolisherWeapon {
 			GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(oldBlendState, oldf, olduint);
 			oldBlendState->Release();
 		}
+	}
+
+	void HUDRender::PostRender() {
+		GetGraphicsEngine().GetPrimitiveRender().PostRenderHUD();
 	}
 }

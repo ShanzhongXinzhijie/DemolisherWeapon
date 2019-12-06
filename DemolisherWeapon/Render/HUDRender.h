@@ -18,7 +18,8 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// レンダー処理
 		/// </summary>
-		void Render();
+		void Render()override;
+		void PostRender()override;
 
 	private:
 		int m_HUDNum = 0;//このレンダーが担当するHUD番号

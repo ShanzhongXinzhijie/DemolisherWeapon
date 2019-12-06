@@ -90,6 +90,8 @@ namespace DemolisherWeapon {
 		//2D•`‰æ—pƒJƒƒ‰
 		GameObj::NoRegisterOrthoCamera m_2dCamera;
 
+		bool m_clearedHUD = true;//HUD‚ªÁ‹Ï‚İ‚©?
+
 		//•`‰æ‚ğÀs‚·‚é‚©?
 		bool m_isDraw3D = false;
 		bool m_isDraw2D = false;
