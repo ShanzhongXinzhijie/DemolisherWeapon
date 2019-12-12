@@ -368,6 +368,8 @@ public:
 	virtual ~IQSGameObject() {};
 };
 
+//ゲームオブジェクトのマネージャー
+//ゲームオブジェクトのUpdateとか呼び出す
 class GameObjectManager {
 public:
 	~GameObjectManager() {
@@ -574,16 +576,13 @@ public:
 	}
 
 private:
-
 	std::list<GORegister> m_gameObjectList;
-
 	std::unordered_multimap<int, GORegister*> m_gameObjectMap;
 };
 
+//ゲームオブジェクトの生成と削除のマネージャー
 class GONewDeleteManager {
-
 public:
-
 	template<class T, class... TArgs>
 	T*  NewGO(TArgs... ctorArgs) {
 		//newする+フラグおん
@@ -636,7 +635,6 @@ public:
 
 private:
 	std::list<IGameObject*> m_deleteList;
-
 };
 
 }
