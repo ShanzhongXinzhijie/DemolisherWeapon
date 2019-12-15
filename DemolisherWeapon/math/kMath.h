@@ -100,6 +100,13 @@ public:
 */
 	static int IntersectLines(CVector3* result, const CVector3& A, const CVector3& B, const CVector3& C, const CVector3& D);
 	
+	/// <summary>
+	/// 反射ベクトルを計算
+	/// </summary>
+	/// <param name="front">侵入ベクトル</param>
+	/// <param name="normal">法線</param>
+	static CVector3 CalcReflectVector(const CVector3& front, const CVector3& normal);
+	
 	//乱数
 private:
 	static std::random_device rd;

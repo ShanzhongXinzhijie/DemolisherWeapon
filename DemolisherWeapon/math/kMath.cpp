@@ -114,4 +114,8 @@ void CMath::GenerateBlueNoise(int pointNum, const CVector2& min, const CVector2&
 	}
 }
 
+CVector3 CMath::CalcReflectVector(const CVector3& front, const CVector3& normal) {
+	return front - normal * 2.0f * front.Dot(normal);
+}
+
 }
