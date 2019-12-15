@@ -193,6 +193,10 @@ public:
 	DepthOfFieldRender& GetDOFRender() {
 		return m_DOFRender;
 	}
+	//モーションブラーレンダーの取得
+	MotionBlurRender& GetMotionBlurRender() {
+		return m_motionBlurRender;
+	}
 	//プリミティブレンダーの取得
 	PrimitiveRender& GetPrimitiveRender() {
 		return m_primitiveRender;

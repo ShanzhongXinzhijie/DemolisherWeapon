@@ -292,7 +292,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		vsCb.mProj_old = GetMainCamera()->GetProjMatrixOld();
 		vsCb.mView_old = GetMainCamera()->GetViewMatrixOld();
 
-		vsCb.camMoveVec = (GetMainCamera()->GetPos() - GetMainCamera()->GetPosOld())*MotionBlurScale;
+		vsCb.camMoveVec = (GetMainCamera()->GetPos() - GetMainCamera()->GetPosOld())*GetGraphicsEngine().GetMotionBlurRender().GetMotionBlurScale();
 		vsCb.camMoveVec.w = GetEngine().GetDistanceScale();
 
 		vsCb.depthBias.x = m_depthBias;
@@ -316,6 +316,9 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 
 		//ソフトパーティクルが有効になる範囲
 		vsCb.softParticleArea = m_softParticleArea;
+
+		//モーションブラースケール
+		vsCb.MotionBlurScale = GetGraphicsEngine().GetMotionBlurRender().GetMotionBlurScale();
 
 		//定数バッファ更新
 		d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);

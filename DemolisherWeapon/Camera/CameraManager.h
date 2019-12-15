@@ -23,6 +23,9 @@ public:
 	void SetIsMainCamera(bool isMainCamera) {
 		m_isMainCamera = isMainCamera;
 	}
+	bool GetIsMainCamera()const {
+		return m_isMainCamera;
+	}
 
 private: bool m_isMainCamera = false;//ƒƒCƒ“ƒJƒƒ‰‚Éİ’è‚³‚ê‚Ä‚¢‚é‚©?
 

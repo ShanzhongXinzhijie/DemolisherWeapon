@@ -3,8 +3,8 @@
 #include "Skeleton.h"
 #include "SkinModelDataManager.h"
 #include "SkinModelEffect.h"
-#include "../Render/MotionBlurRender.h"
 #include "Util/Util.h"
+#include "Render/MotionBlurRender.h"
 
 namespace DemolisherWeapon {
 
@@ -387,6 +387,9 @@ private:
 
 		//ソフトパーティクルが有効になる範囲
 		float softParticleArea = 0.02f;
+
+		//モーションブラースケール
+		float MotionBlurScale = MotionBlurRender::DEFAULT_MBLUR_SCALE;
 	};
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
@@ -421,7 +424,7 @@ private:
 
 	//ソフトパーティクルが有効になる範囲
 	float m_softParticleArea = 50.0f;
-
+	
 	int m_instanceNum = 1;//インスタンス数
 
 	bool m_isCalcWorldMatrix = true;//ワールド行列を計算するか?

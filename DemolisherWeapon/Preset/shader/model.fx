@@ -103,6 +103,9 @@ cbuffer VSPSCb : register(b0){
 
 	//ソフトパーティクルが有効になる範囲
     float softParticleArea;
+	
+	//モーションブラースケール
+	float MotionBlurScale;
 };
 
 //定数バッファ　[MaterialSetting.h:MaterialParam]

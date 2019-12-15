@@ -1,8 +1,6 @@
 #ifndef DW_MOTION_BLUR_HEADER_H
 #define DW_MOTION_BLUR_HEADER_H
 
-static const float MotionBlurScale = 0.15f;
-
 static const float Z_OFFSET = 15.0f;
 static const float Z_OFFSET_PS = 150.0f;
 static const float samples = 8.0f;
