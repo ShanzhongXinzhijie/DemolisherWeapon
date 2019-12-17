@@ -389,7 +389,7 @@ bool ShaderResources::Load(
 #ifndef DW_MASTER
 	//ファイルパスをエンジン側のものにするモード
 	std::string pathstring;
-	if (m_replaceForEngineFilePath) {
+	if (m_replaceForEngineFilePath && filePath.find("_u_") == std::string_view::npos && filePath.find("_U_") == std::string_view::npos) {
 		std::filesystem::path path(filePath);
 		path = "../../DemolisherWeapon/DemolisherWeapon/Preset/shader" / path.filename();
 		pathstring = path.string();
