@@ -88,6 +88,7 @@ namespace GameObj {
 			[&](MaterialSetting* mat) {
 				if (mat->GetModelEffect()->GetIsSkining()) {
 					//ƒXƒLƒ“ƒ‚ƒfƒ‹
+				//TODO
 					mat->SetVS(&m_vsSkinShader);
 					mat->SetVSZ(&m_vsZSkinShader);
 				}

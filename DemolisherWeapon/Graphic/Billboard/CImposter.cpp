@@ -495,6 +495,7 @@ namespace DemolisherWeapon {
 				mat->SetLightingTexture(m_texture->GetSRV(ImposterTexRender::enGBufferLightParam));
 				mat->SetTranslucentTexture(m_texture->GetSRV(ImposterTexRender::enGBufferTranslucent));
 				//シェーダ
+				//TODO
 				mat->SetVS(&m_vsShader);
 				mat->SetVSZ(&m_vsZShader);
 				mat->SetPS(&m_imposterPS);

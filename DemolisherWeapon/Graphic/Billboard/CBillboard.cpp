@@ -61,6 +61,7 @@ namespace DemolisherWeapon {
 				mat->SetAlbedoTexture(srv);
 				mat->SetIsUseTexZShader(true);//Z値出力シェーダでテクスチャを使用
 				if (isBillboardShader) {
+					//TODO
 					mat->SetVS(&m_vsShader);
 					mat->SetVSZ(&m_vsZShader);
 				}
