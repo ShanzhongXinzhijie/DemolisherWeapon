@@ -128,7 +128,11 @@ namespace DemolisherWeapon {
 		std::unique_ptr<GameObj::CSkinModelRender> m_model;
 		std::unique_ptr<GameObj::CInstancingModelRender> m_insModel;
 
-		Shader m_vsShader, m_vsZShader;
+		static inline bool m_s_isShaderLoaded = false;
+		enum EnShaderType{
+			enNormal, enInstancing, enShaderTypeNum
+		};
+		static inline Shader m_s_vsShader[enShaderTypeNum], m_s_vsZShader[enShaderTypeNum];
 
 		float m_aspect = 1.0f;//アスペクト比(縦に対する横の比率)
 	};

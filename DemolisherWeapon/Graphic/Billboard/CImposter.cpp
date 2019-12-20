@@ -1,6 +1,6 @@
 #include "DWstdafx.h"
 #include "CImposter.h"
-#include "Graphic\Model\SkinModelShaderConst.h"
+#include "Graphic/Model/SkinModelShaderConst.h"
 
 namespace DemolisherWeapon {
 	ImposterTexBank* ImposterTexBank::instance = nullptr;
@@ -9,30 +9,11 @@ namespace DemolisherWeapon {
 	void InstancingImposterParamManager::Reset(int instancingMaxNum) {
 		m_instanceMax = instancingMaxNum;
 
+		//ストラクチャーバッファ初期化
+		m_paramsSB.Init(instancingMaxNum);
+
 		//インデックス配列の確保
-		m_params = std::make_unique<CVector2[]>(instancingMaxNum);
 		m_paramsCache = std::make_unique<CVector2[]>(instancingMaxNum);
-
-		//TODO
-		int stride = sizeof(CVector2);
-		
-		//StructuredBufferの確保
-		D3D11_BUFFER_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		desc.ByteWidth = static_cast<UINT>(stride * instancingMaxNum);
-		desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		desc.StructureByteStride = stride;
-		GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, m_paramsSB.ReleaseAndGetAddressOf());
-
-		//ShaderResourceViewの確保
-		D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
-		ZeroMemory(&descSRV, sizeof(descSRV));
-		descSRV.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
-		descSRV.BufferEx.FirstElement = 0;
-		descSRV.Format = DXGI_FORMAT_UNKNOWN;
-		descSRV.BufferEx.NumElements = desc.ByteWidth / desc.StructureByteStride;
-		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_paramsSB.Get(), &descSRV, m_paramsSRV.ReleaseAndGetAddressOf());
 	}
 	InstancingImposterParamManager::InstancingImposterParamManager(int instancingMaxNum, ImposterTexRender* tex) : m_texture(tex) {
 		Reset(instancingMaxNum);
@@ -42,17 +23,15 @@ namespace DemolisherWeapon {
 		int drawNum = 0;
 		for (int i = 0; i < instanceNum; i++) {
 			if (drawInstanceMask[i]) {
-				m_params[drawNum] = m_paramsCache[i];
+				m_paramsSB.GetData()[drawNum] = m_paramsCache[i];
 				drawNum++;
 			}
 		}
 		//StructuredBufferを更新
-		GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-			m_paramsSB.Get(), 0, NULL, m_params.get(), 0, 0
-		);
+		m_paramsSB.UpdateSubresource();
 		//シェーダーリソースにセット
 		GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(
-			enSkinModelSRVReg_InstancingImposterScale, 1, m_paramsSRV.GetAddressOf()
+			enSkinModelSRVReg_InstancingImposterScale, 1, m_paramsSB.GetAddressOfSRV()
 		);
 	}
 	void InstancingImposterParamManager::AddDrawInstance(int instanceIndex, const CMatrix& SRTMatrix, const CVector3& scale, void *param) {
@@ -176,24 +155,7 @@ namespace DemolisherWeapon {
 		);
 	
 		//モデルのカメラ方向の大きさ
-		m_toCamDirSize = std::make_unique<float[]>(m_partNumX*m_partNumY);
-		//StructuredBufferの確保
-		D3D11_BUFFER_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-		int stride = sizeof(float);
-		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		desc.ByteWidth = static_cast<UINT>(stride * (m_partNumX*m_partNumY));
-		desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		desc.StructureByteStride = stride;
-		GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, m_toCamDirSizeSB.ReleaseAndGetAddressOf());
-		//ShaderResourceViewの確保
-		D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
-		ZeroMemory(&descSRV, sizeof(descSRV));
-		descSRV.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
-		descSRV.BufferEx.FirstElement = 0;
-		descSRV.Format = DXGI_FORMAT_UNKNOWN;
-		descSRV.BufferEx.NumElements = desc.ByteWidth / desc.StructureByteStride;
-		GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_toCamDirSizeSB.Get(), &descSRV, m_toCamDirSizeSRV.ReleaseAndGetAddressOf());
+		m_toCamDirSize.Init(m_partNumX*m_partNumY);
 
 		//インポスタテクスチャの作成
 		Render(model);
@@ -202,15 +164,13 @@ namespace DemolisherWeapon {
 		model.SetWorldMatrix(beforeWorldMatrix, true);
 
 		//StructuredBufferを更新
-		GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-			m_toCamDirSizeSB.Get(), 0, NULL, m_toCamDirSize.get(), 0, 0
-		);		
+		m_toCamDirSize.UpdateSubresource();
 	}
 
 	void ImposterTexRender::VSSetSizeToCameraSRV() {
 		//シェーダーリソースにセット
 		GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(
-			enSkinModelSRVReg_ImposterSizeToCamera, 1, m_toCamDirSizeSRV.GetAddressOf()
+			enSkinModelSRVReg_ImposterSizeToCamera, 1, m_toCamDirSize.GetAddressOfSRV()
 		);
 	}
 
@@ -343,7 +303,7 @@ namespace DemolisherWeapon {
 			rotM.Multiply(toCamDir);
 			toCamDirMaxSize = max(toCamDirMaxSize, CVector3::AxisZ().Dot(toCamDir));
 
-			m_toCamDirSize[indY*m_partNumX + i%m_partNumX] = toCamDirMaxSize;
+			m_toCamDirSize.GetData()[indY*m_partNumX + i%m_partNumX] = toCamDirMaxSize;
 			
 			//ビューポート横にずらす
 			viewport.TopLeftX += viewport.Width;
@@ -376,6 +336,10 @@ namespace DemolisherWeapon {
 
 		//GPUイベントの終了
 		GetGraphicsEngine().EndGPUEvent();
+	}
+
+	float ImposterTexRender::GetDirectionOfCameraSize(int x, int y)const {
+		return m_toCamDirSize.GetData()[(m_partNumY - 1 + y)*m_partNumX + x];
 	}
 
 //インポスターテクスチャバンク
@@ -461,30 +425,33 @@ namespace DemolisherWeapon {
 		m_billboard.Init(m_texture->GetSRV(ImposterTexRender::enGBufferAlbedo), instancingNum, moji.c_str());
 
 		//シェーダ読み込み
-		if (m_billboard.GetIsInstancing()) {
-			//インスタンシング用シェーダ
-			D3D_SHADER_MACRO macrosVS[] = { "INSTANCING", "1", "ALL_VS", "1", NULL, NULL };
-			m_vsShader.Load("Preset/shader/Imposter.fx", "VSMain_Imposter", Shader::EnType::VS, "INSTANCING", macrosVS);
-			m_vsZShader.Load("Preset/shader/Imposter.fx", "VSMain_RenderZ_Imposter", Shader::EnType::VS, "INSTANCING", macrosVS);
+		if (!m_s_isShaderLoaded) {
+			{
+				//インスタンシング用シェーダ
+				D3D_SHADER_MACRO macrosVS[] = { "INSTANCING", "1", "ALL_VS", "1", NULL, NULL };
+				m_s_vsShader[enInstancing].Load("Preset/shader/Imposter.fx", "VSMain_Imposter", Shader::EnType::VS, "INSTANCING", macrosVS);
+				m_s_vsZShader[enInstancing].Load("Preset/shader/Imposter.fx", "VSMain_RenderZ_Imposter", Shader::EnType::VS, "INSTANCING", macrosVS);
 
-			D3D_SHADER_MACRO macros[] = {
-				"INSTANCING", "1",
-				NULL, NULL
-			};
-			m_imposterPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS, "INSTANCING", macros);
-			
-			D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1","INSTANCING", "1", NULL, NULL };
-			m_zShader.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderZ", Shader::EnType::PS, "TEXTURE_INSTANCING", macrosZ);
-		}
-		else {
-			D3D_SHADER_MACRO macrosVS[] = { "ALL_VS", "1", NULL, NULL };
-			m_vsShader.Load("Preset/shader/Imposter.fx", "VSMain_Imposter", Shader::EnType::VS, "NORMAL", macrosVS);
-			m_vsZShader.Load("Preset/shader/Imposter.fx", "VSMain_RenderZ_Imposter", Shader::EnType::VS, "NORMAL", macrosVS);
+				D3D_SHADER_MACRO macros[] = {
+					"INSTANCING", "1",
+					NULL, NULL
+				};
+				m_s_imposterPS[enInstancing].Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS, "INSTANCING", macros);
 
-			m_imposterPS.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
-			
-			D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1", NULL, NULL };
-			m_zShader.Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderZ", Shader::EnType::PS, "TEXTURE", macrosZ);
+				D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1","INSTANCING", "1", NULL, NULL };
+				m_s_zShader[enInstancing].Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderZ", Shader::EnType::PS, "TEXTURE_INSTANCING", macrosZ);
+			}
+			{
+				D3D_SHADER_MACRO macrosVS[] = { "ALL_VS", "1", NULL, NULL };
+				m_s_vsShader[enNormal].Load("Preset/shader/Imposter.fx", "VSMain_Imposter", Shader::EnType::VS, "NORMAL", macrosVS);
+				m_s_vsZShader[enNormal].Load("Preset/shader/Imposter.fx", "VSMain_RenderZ_Imposter", Shader::EnType::VS, "NORMAL", macrosVS);
+
+				m_s_imposterPS[enNormal].Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderGBuffer", Shader::EnType::PS);
+
+				D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1", NULL, NULL };
+				m_s_zShader[enNormal].Load("Preset/shader/Imposter.fx", "PSMain_ImposterRenderZ", Shader::EnType::PS, "TEXTURE", macrosZ);
+			}
+			m_s_isShaderLoaded = true;
 		}
 
 		//いろいろ設定
@@ -495,11 +462,10 @@ namespace DemolisherWeapon {
 				mat->SetLightingTexture(m_texture->GetSRV(ImposterTexRender::enGBufferLightParam));
 				mat->SetTranslucentTexture(m_texture->GetSRV(ImposterTexRender::enGBufferTranslucent));
 				//シェーダ
-				//TODO
-				mat->SetVS(&m_vsShader);
-				mat->SetVSZ(&m_vsZShader);
-				mat->SetPS(&m_imposterPS);
-				mat->SetPSZ(&m_zShader);
+				mat->SetVS(&m_s_vsShader[m_billboard.GetIsInstancing() ? enInstancing : enNormal]);
+				mat->SetVSZ(&m_s_vsZShader[m_billboard.GetIsInstancing() ? enInstancing : enNormal]);
+				mat->SetPS(&m_s_imposterPS[m_billboard.GetIsInstancing() ? enInstancing : enNormal]);
+				mat->SetPSZ(&m_s_zShader[m_billboard.GetIsInstancing() ? enInstancing : enNormal]);
 			}
 		);
 

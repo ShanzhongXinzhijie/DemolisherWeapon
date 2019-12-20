@@ -36,19 +36,20 @@ namespace DemolisherWeapon {
 			m_model->Init(L"Preset/modelData/billboard.cmo");
 		}
 
-		if (isBillboardShader) {
+		if (!m_s_isShaderLoaded && isBillboardShader) {
 			//シェーダ読み込み
-			if (m_isIns) {
+			{
 				//インスタンシング用シェーダ
 				D3D_SHADER_MACRO macrosVS[] = { "INSTANCING", "1", "ALL_VS", "1", NULL, NULL };
-				m_vsShader.Load("Preset/shader/billboard.fx", "VSMain_Billboard", Shader::EnType::VS, "INSTANCING", macrosVS);
-				m_vsZShader.Load("Preset/shader/billboard.fx", "VSMain_RenderZ_Billboard", Shader::EnType::VS, "INSTANCING", macrosVS);
+				m_s_vsShader[enInstancing].Load("Preset/shader/billboard.fx", "VSMain_Billboard", Shader::EnType::VS, "INSTANCING", macrosVS);
+				m_s_vsZShader[enInstancing].Load("Preset/shader/billboard.fx", "VSMain_RenderZ_Billboard", Shader::EnType::VS, "INSTANCING", macrosVS);
 			}
-			else {
+			{
 				D3D_SHADER_MACRO macrosVS[] = { "ALL_VS", "1", NULL, NULL };
-				m_vsShader.Load("Preset/shader/billboard.fx", "VSMain_Billboard", Shader::EnType::VS, "NORMAL", macrosVS);
-				m_vsZShader.Load("Preset/shader/billboard.fx", "VSMain_RenderZ_Billboard", Shader::EnType::VS, "NORMAL", macrosVS);
+				m_s_vsShader[enNormal].Load("Preset/shader/billboard.fx", "VSMain_Billboard", Shader::EnType::VS, "NORMAL", macrosVS);
+				m_s_vsZShader[enNormal].Load("Preset/shader/billboard.fx", "VSMain_RenderZ_Billboard", Shader::EnType::VS, "NORMAL", macrosVS);
 			}
+			m_s_isShaderLoaded = true;
 		}
 
 		//CSkinModelRender
@@ -61,9 +62,8 @@ namespace DemolisherWeapon {
 				mat->SetAlbedoTexture(srv);
 				mat->SetIsUseTexZShader(true);//Z値出力シェーダでテクスチャを使用
 				if (isBillboardShader) {
-					//TODO
-					mat->SetVS(&m_vsShader);
-					mat->SetVSZ(&m_vsZShader);
+					mat->SetVS(&m_s_vsShader[m_isIns ? enInstancing : enNormal]);
+					mat->SetVSZ(&m_s_vsZShader[m_isIns ? enInstancing : enNormal]);
 				}
 			}
 		);

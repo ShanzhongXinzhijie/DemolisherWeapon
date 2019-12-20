@@ -31,9 +31,8 @@ namespace DemolisherWeapon {
 		ImposterTexRender* m_texture = nullptr;
 
 		//パラメータ
-		std::unique_ptr<CVector2[]>							m_params, m_paramsCache;
-		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_paramsSB;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_paramsSRV;
+		StructuredBuffer<CVector2>  m_paramsSB;
+		std::unique_ptr<CVector2[]> m_paramsCache;
 
 		int m_instanceMax = 0;
 	};
@@ -65,9 +64,7 @@ namespace DemolisherWeapon {
 		/// <param name="x">横インデックス</param>
 		/// <param name="y">縦インデックス</param>
 		/// <returns>モデルのカメラへの方向のサイズ</returns>
-		float GetDirectionOfCameraSize(int x, int y)const {
-			return m_toCamDirSize[(m_partNumY-1+y)*m_partNumX + x];
-		}
+		float GetDirectionOfCameraSize(int x, int y)const;
 
 		/// <summary>
 		/// モデルのカメラへの方向のサイズSRVを頂点シェーダに設定
@@ -117,9 +114,7 @@ namespace DemolisherWeapon {
 		CVector3 m_boundingBoxMaxSize, m_boundingBoxMinSize;
 
 		//分割された各テクスチャのモデルのカメラ方向の大きさ
-		std::unique_ptr<float[]>							m_toCamDirSize;
-		Microsoft::WRL::ComPtr<ID3D11Buffer>				m_toCamDirSizeSB;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_toCamDirSizeSRV;
+		StructuredBuffer<float> m_toCamDirSize;
 	};
 
 	/// <summary>
@@ -246,8 +241,13 @@ namespace DemolisherWeapon {
 		ImposterTexRender* m_texture = nullptr;
 		//ビルボード
 		CBillboard m_billboard;
-		SkinModelEffectShader m_imposterPS;
-		Shader m_zShader, m_vsShader, m_vsZShader;
+		//シェーダ
+		static inline bool m_s_isShaderLoaded = false;
+		enum EnShaderType {
+			enNormal, enInstancing, enShaderTypeNum
+		};
+		static inline SkinModelEffectShader m_s_imposterPS[enShaderTypeNum];
+		static inline Shader m_s_zShader[enShaderTypeNum], m_s_vsShader[enShaderTypeNum], m_s_vsZShader[enShaderTypeNum];
 
 		CVector3 m_pos;
 		float m_scale = 1.0f, m_rotYrad = 0.0f;

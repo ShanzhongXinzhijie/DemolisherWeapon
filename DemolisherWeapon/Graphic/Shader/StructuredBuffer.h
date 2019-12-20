@@ -34,6 +34,7 @@ namespace DemolisherWeapon {
 		}
 
 		//データを取得
+		const std::unique_ptr<T[]>& GetData()const { return m_t; }
 		std::unique_ptr<T[]>& GetData() { return m_t; }
 
 		//StructuredBufferを更新

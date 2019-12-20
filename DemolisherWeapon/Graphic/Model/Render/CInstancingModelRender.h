@@ -227,8 +227,9 @@ namespace GameObj {
 		std::unordered_map<int,std::unique_ptr<IInstancesData>> m_instanceData;
 
 		//シェーダ
-		Shader m_vsShader, m_vsZShader;
-		Shader m_vsSkinShader, m_vsZSkinShader;
+		static inline bool m_s_isShaderLoaded = false;
+		static inline Shader m_s_vsShader, m_s_vsZShader;
+		static inline Shader m_s_vsSkinShader, m_s_vsZSkinShader;
 	};
 
 }

@@ -78,24 +78,26 @@ namespace GameObj {
 		m_isFrustumCull = m_model.GetSkinModel().GetIsFrustumCulling();//こちら側に設定
 		m_model.GetSkinModel().SetIsFrustumCulling(false);
 		//インスタンシング用頂点シェーダをロード
-		D3D_SHADER_MACRO macros[] = { "INSTANCING", "1", "ALL_VS", "1", NULL, NULL };
-		m_vsShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "INSTANCING", macros);
-		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS, "INSTANCING", macros);
-		m_vsSkinShader.Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, "INSTANCING", macros);
-		m_vsZSkinShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS, "INSTANCING", macros);
+		if (!m_s_isShaderLoaded) {
+			D3D_SHADER_MACRO macros[] = { "INSTANCING", "1", "ALL_VS", "1", NULL, NULL };
+			m_s_vsShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS, "INSTANCING", macros);
+			m_s_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS, "INSTANCING", macros);
+			m_s_vsSkinShader.Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS, "INSTANCING", macros);
+			m_s_vsZSkinShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS, "INSTANCING", macros);
+			m_s_isShaderLoaded = true;
+		}
 		//インスタンシング用頂点シェーダをセット
 		m_model.GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
 				if (mat->GetModelEffect()->GetIsSkining()) {
 					//スキンモデル
-				//TODO
-					mat->SetVS(&m_vsSkinShader);
-					mat->SetVSZ(&m_vsZSkinShader);
+					mat->SetVS(&m_s_vsSkinShader);
+					mat->SetVSZ(&m_s_vsZSkinShader);
 				}
 				else {
 					//スキンじゃないモデル
-					mat->SetVS(&m_vsShader);
-					mat->SetVSZ(&m_vsZShader);
+					mat->SetVS(&m_s_vsShader);
+					mat->SetVSZ(&m_s_vsZShader);
 				}
 			}
 		);
