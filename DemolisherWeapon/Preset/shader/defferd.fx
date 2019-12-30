@@ -479,8 +479,8 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
             }
             nothide = saturate(dot(normal, fogLightDir)) * nothide;
 
-            Out = lerp(Out, fogLightColor, fogEnable * nothide * diskaku * max(0.0f, dot(fogLightDir, viewDir)));
-        }
+		Out = lerp(Out, float3(100.0f, 0, 0), fogEnable * nothide * diskaku * max(0.0f, dot(fogLightDir * -1.0f, viewDir))); //fogLightColor
+	}
     //}
 
     return float4(Out, albedo.w);

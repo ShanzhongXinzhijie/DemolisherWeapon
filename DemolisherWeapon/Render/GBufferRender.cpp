@@ -77,42 +77,6 @@ void GBufferRender::Init() {
 	SRVDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
 	SRVDesc.Texture2D.MipLevels = texDesc.MipLevels;
 	ge.GetD3DDevice()->CreateShaderResourceView(m_depthStencilTex, &SRVDesc, &m_depthStencilSRV);
-
-	//ブレンドステート
-	//D3D11_BLEND_DESC desc = {};
-
-	//レンダーターゲットごとにブレンドステート変える
-	//desc.IndependentBlendEnable = true;
-
-	//ノーマルブレンド(ブレンドしない)
-	/*D3D11_BLEND srcBlend = D3D11_BLEND_ONE, destBlend = D3D11_BLEND_ZERO;
-	for (auto& rt : desc.RenderTarget) {
-		rt.BlendEnable = (srcBlend != D3D11_BLEND_ONE) || (destBlend != D3D11_BLEND_ZERO);
-		rt.SrcBlend = rt.SrcBlendAlpha = srcBlend;
-		rt.DestBlend = rt.DestBlendAlpha = destBlend;
-		rt.BlendOp = rt.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		rt.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	}*/
-
-	//加算ブレンド(トランスルーセント用)
-	/*desc.RenderTarget[enGbufferTranslucent].BlendEnable = true;
-	desc.RenderTarget[enGbufferTranslucent].SrcBlend = desc.RenderTarget[enGbufferTranslucent].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-	desc.RenderTarget[enGbufferTranslucent].DestBlend = desc.RenderTarget[enGbufferTranslucent].DestBlendAlpha = D3D11_BLEND_ONE;
-	desc.RenderTarget[enGbufferTranslucent].BlendOp = desc.RenderTarget[enGbufferTranslucent].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	desc.RenderTarget[enGbufferTranslucent].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;*/
-
-	//乗算ブレンド(トランスルーセント用)
-	/*desc.RenderTarget[enGbufferTranslucent].BlendEnable = TRUE;
-	desc.RenderTarget[enGbufferTranslucent].SrcBlend = D3D11_BLEND_ZERO;
-	desc.RenderTarget[enGbufferTranslucent].DestBlend = D3D11_BLEND_SRC_COLOR;
-	desc.RenderTarget[enGbufferTranslucent].BlendOp = D3D11_BLEND_OP_ADD;
-	desc.RenderTarget[enGbufferTranslucent].SrcBlendAlpha = D3D11_BLEND_ONE;
-	desc.RenderTarget[enGbufferTranslucent].DestBlendAlpha = D3D11_BLEND_ZERO;
-	desc.RenderTarget[enGbufferTranslucent].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	desc.RenderTarget[enGbufferTranslucent].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;*/
-
-	//ブレンドステート作成
-	//ge.GetD3DDevice()->CreateBlendState(&desc, m_blendState.ReleaseAndGetAddressOf());
 }
 void GBufferRender::Release() {
 	for (int i = 0; i < enGBufferNum; i++) {

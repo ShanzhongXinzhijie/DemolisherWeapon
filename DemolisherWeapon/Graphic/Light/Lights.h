@@ -169,13 +169,13 @@ private:
 	SLightParam							m_lightParam;
 	ID3D11Buffer*						m_lightParamCB = nullptr;			//!<GPUで使用するライト用のパラメータの定数バッファ。	
 	
-	static const int DIRLIGHT_NUM = 4;
+	static constexpr int DIRLIGHT_NUM = 4;
 	SDirectionLight						m_rawDirectionLights[DIRLIGHT_NUM];
 	std::list<GameObj::CDirectionLight*>	m_directionLights;					//!<平行光源のリスト。
 	ID3D11Buffer*						m_directionLightSB = nullptr;		//!<平行光源のリストのストラクチャーバッファ。
 	ID3D11ShaderResourceView*	m_directionLightSRV = nullptr;
 
-	static const int POILIGHT_NUM = 12;
+	static constexpr int POILIGHT_NUM = 12;
 	SPointLight							m_rawPointLights[POILIGHT_NUM];
 	std::list<GameObj::CPointLight*>		m_pointLights;					//!<ポイントライトのリスト。
 	ID3D11Buffer*						m_pointLightsSB = nullptr;		//!<ポイントライトのリストのストラクチャーバッファ。
