@@ -168,7 +168,7 @@ void LightManager::UpdateConstantBuffer() {
 		//フォグ情報更新
 		//m_lightParam.fogFar = GetMainCamera()->GetFar();
 		if (m_lightParam.numDirectionLight > 0) {
-			m_lightParam.fogLightDir = m_rawDirectionLights[0].direction ;//TODO -1 いる? //.directionはすでに*-1されてる
+			m_lightParam.fogLightDir = m_rawDirectionLights[0].direction;//.directionはすでに*-1されてる
 			m_lightParam.fogLightColor = m_rawDirectionLights[0].color;
 		}
 	}

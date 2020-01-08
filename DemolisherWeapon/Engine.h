@@ -442,6 +442,14 @@ static inline void SetEnableFog(bool enable) {
 static inline void SetFogDistance(float distance) {
 	GetGraphicsEngine().GetLightManager().SetFogDistance(distance);
 }
+//高さフォグのかかり具合を設定
+static inline void SetFogHeightScale(float scale) {
+	GetGraphicsEngine().GetLightManager().SetFogHeightScale(scale);
+}
+//フォグの色を設定
+static inline void SetFogColor(const CVector3& color) {
+	GetGraphicsEngine().GetLightManager().SetFogColor(color);
+}
 
 //アンビエントライトを設定
 static inline void SetAmbientLight(const CVector3& color) {

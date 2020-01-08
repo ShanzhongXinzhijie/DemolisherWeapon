@@ -149,6 +149,14 @@ public:
 	void SetFogDistance(float distance) {
 		m_lightParam.fogFar = distance;
 	}
+	//高さフォグのかかり具合を設定
+	void SetFogHeightScale(float scale) {
+		m_lightParam.fogHeightScale = scale;
+	}
+	//フォグの色を設定
+	void SetFogColor(const CVector3& color) {
+		m_lightParam.fogColor = color;
+	}
 
 private:
 	//[defferd.fx : lightCb]

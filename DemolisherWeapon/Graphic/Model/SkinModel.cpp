@@ -374,7 +374,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		cullMode,
 		pBlendState,
 		m_pRasterizerStateCw, m_pRasterizerStateCCw, m_pRasterizerStateNone,
-		pDepthStencilState,
+		pDepthStencilState ? pDepthStencilState : m_pDepthStencilState,
 		instanceNum*m_instanceNum
 	);
 

@@ -184,6 +184,10 @@ public:
 		}
 	}
 
+	//デプスステンシルステートをセット
+	void SetDepthStencilState(ID3D11DepthStencilState* state) {
+		m_pDepthStencilState = state;
+	}
 	//ラスタライザーステートをセット
 	void SetRasterizerState(ID3D11RasterizerState* RSCw, ID3D11RasterizerState* RSCCw, ID3D11RasterizerState* RSNone) {
 		m_pRasterizerStateCw = RSCw;
@@ -408,6 +412,7 @@ private:
 	DirectX::Model*		m_modelDx;								//!<DirectXTKが提供するモデルクラス。
 	std::wstring		m_modelName;							//!<モデルの名前。
 
+	ID3D11DepthStencilState* m_pDepthStencilState = nullptr;//デプスステンシルステート
 	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;//ラスタライザステート
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
 	ID3D11RasterizerState* m_pRasterizerStateNone = nullptr;

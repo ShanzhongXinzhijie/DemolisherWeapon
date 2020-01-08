@@ -343,7 +343,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 
     float3 normal = normalmapRGBA.xyz;
 	float4 viewpos = PosMap.Sample(Sampler, In.uv);
-	float3 worldpos = CalcWorldPosFromUVZ(In.uv, viewpos.w);
+	float3 worldpos = CalcWorldPosFromUVZ(In.uv, saturate(viewpos.w));
 	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
 	float3 emissive = albedo.rgb*lightParam.x;
 
@@ -467,6 +467,7 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
     //if (fogEnable){
         //レイリー散乱
         float diskaku = 1.0f - exp(-(viewpos.z - min(0.0f, worldpos.y - eyePos.y) * fogHeightScale) / fogFar);
+		diskaku = square(diskaku);
         Out = lerp(Out, fogColor, fogEnable * diskaku);
         //ミー散乱
         {    
@@ -479,8 +480,8 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
             }
             nothide = saturate(dot(normal, fogLightDir)) * nothide;
 
-		Out = lerp(Out, float3(100.0f, 0, 0), fogEnable * nothide * diskaku * max(0.0f, dot(fogLightDir * -1.0f, viewDir))); //fogLightColor
-	}
+			Out = lerp(Out, fogLightColor, fogEnable * nothide * diskaku * max(0.0f, dot(fogLightDir * -1.0f, viewDir))); //float3(100.0f, 0, 0)
+		}
     //}
 
     return float4(Out, albedo.w);
