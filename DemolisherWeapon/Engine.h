@@ -407,7 +407,18 @@ static inline void SetMainCamera(GameObj::ICamera* cam)
 {
 	GetEngine().GetGraphicsEngine().GetCameraManager().SetMainCamera(cam);
 }
+//カメラリストに登録
+static inline void SetCameraToList(int index, GameObj::ICamera* cam)
+{
+	GetEngine().GetGraphicsEngine().GetCameraManager().SetCameraToList(index, cam);
+}
 //カメラリストを取得
+static inline const std::vector<GameObj::ICamera*>& ViewCameraList()
+{
+	return GetEngine().GetGraphicsEngine().GetCameraManager().ViewCameraList();
+}
+//非推奨
+[[deprecated("Please use SetCameraToList or ViewCameraList")]]
 static inline std::vector<GameObj::ICamera*>& GetCameraList()
 {
 	return GetEngine().GetGraphicsEngine().GetCameraManager().GetCameraList();

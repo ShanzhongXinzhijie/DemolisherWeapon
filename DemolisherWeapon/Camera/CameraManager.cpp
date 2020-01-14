@@ -9,6 +9,17 @@ ICamera::~ICamera() {
 	if (m_isMainCamera) {
 		SetMainCamera(nullptr);
 	}
+	//ƒJƒƒ‰ƒŠƒXƒgÝ’è‰ðœ
+	if (m_isCameraListCount > 0) {
+		int i = 0;
+		for (auto& listcam : ViewCameraList()) {
+			if (m_isCameraListCount <= 0) { break; }
+			if (listcam == this) {
+				SetCameraToList(i, nullptr);
+			}
+			i++;
+		}
+	}
 }
 
 //Ž‹‘ä‚Ì6•½–Ê‚ðŽæ“¾

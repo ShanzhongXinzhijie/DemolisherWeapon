@@ -27,7 +27,19 @@ public:
 		return m_isMainCamera;
 	}
 
-private: bool m_isMainCamera = false;//メインカメラに設定されているか?
+	//カメラリストに登録されているか設定
+	//ユーザーは使わないでください
+	void SetIsCameraListCount(bool isSetCameraList) {
+		if (isSetCameraList) {//登録
+			m_isCameraListCount++;
+		}
+		else {//解除
+			m_isCameraListCount--;
+		}
+	}
+private: 
+	bool m_isMainCamera = false;//メインカメラに設定されているか?
+	int m_isCameraListCount = 0;//カメラリストに何個登録されているか
 
 private:
 	//行列の更新
@@ -337,7 +349,7 @@ public:
 class CameraManager
 {
 public:
-
+	//メインカメラを設定
 	void SetMainCamera(GameObj::ICamera* c) {
 		if (m_mainCamera == c) { return; }
 
@@ -345,10 +357,45 @@ public:
 		m_mainCamera = c;
 		if (m_mainCamera) { m_mainCamera->SetIsMainCamera(true); }
 	}
+	//メインカメラを取得
 	GameObj::ICamera* GetMainCamera() {
-		return m_mainCamera;
+		if (m_mainCamera) {
+			return m_mainCamera;
+		}
+		else {
+			DW_WARNING_MESSAGE(true, "GetMainCamera: カメラ未設定。初期カメラを使用\n")
+			return &m_nullCamera;
+		}
 	}
 
+	//カメラリストにカメラを設定
+	void SetCameraToList(int index, GameObj::ICamera* c) {
+		//リストリサイズ
+		if (m_cameralist.size() < index+1) {
+			m_cameralist.resize(index+1);
+			//初期化
+			for (auto& cam : m_cameralist) {
+				if (cam == nullptr) {
+					//初期カメラつめとく
+					cam = &m_nullCamera;
+					cam->SetIsCameraListCount(true);
+				}
+			}
+		}
+
+		if (m_cameralist[index] == c) { return; }
+
+		if (m_cameralist[index]) { m_cameralist[index]->SetIsCameraListCount(false); }
+		m_cameralist[index] = c ? c : &m_nullCamera;
+		if (m_cameralist[index]) { m_cameralist[index]->SetIsCameraListCount(true); }
+	}
+
+	//画面分割用カメラリスト取得
+	const std::vector<GameObj::ICamera*>& ViewCameraList()const {
+		return m_cameralist;
+	}
+	//非推奨
+	//[[deprecated("Please use SetCameraToList or ViewCameraList")]]
 	std::vector<GameObj::ICamera*>& GetCameraList() {
 		return m_cameralist;
 	}
@@ -356,6 +403,9 @@ public:
 private:
 	GameObj::ICamera* m_mainCamera = nullptr;
 	std::vector<GameObj::ICamera*> m_cameralist;
+
+	//初期カメラ(ゴミカス)
+	GameObj::NoRegisterOrthoCamera m_nullCamera;
 };
 
 }
