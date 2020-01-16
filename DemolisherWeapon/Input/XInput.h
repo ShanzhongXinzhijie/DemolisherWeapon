@@ -32,7 +32,6 @@ static constexpr enLR LR[] = { L,R };
 class XInputPad
 {
 public:	
-
 	void Init(DWORD padnum) {
 		m_padNum = padnum;
 	}
@@ -44,6 +43,16 @@ public:
 	bool GetButton(enXInputButton button) const;//入力状態取得
 	bool GetDown(enXInputButton button) const;//このフレームに押された？
 	bool GetUp(enXInputButton button) const;//このフレームに離された？
+
+	//何かしらのボタンが押された?
+	bool GetAnyDown()const {
+		for (int i = 0; i < enButtonNum; i++) {
+			if (GetDown((enXInputButton)i)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	//スティック入力値取得
 	const CVector2& GetStick(enLR lr) const{
