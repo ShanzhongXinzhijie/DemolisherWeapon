@@ -117,8 +117,8 @@ public:
 	}
 
 	//描画を行うか設定
-	void SetIsDraw(bool flag) { m_isDraw = flag; }
-	bool GetIsDraw() const { return m_isDraw; }
+	void SetIsDraw(bool flag) { m_model.SetIsDraw(flag); }
+	bool GetIsDraw() const { return m_model.GetIsDraw(); }
 
 	//面を反転させるか設定
 	void SetIsDrawReverse(bool flag) { m_isDrawReverse = flag; }
@@ -195,7 +195,7 @@ private:
 
 	bool m_isEnableUpdate = true;//Updateを実行するか?
 
-	bool m_isDraw = true;				//表示するか
+	//bool m_isDraw = true;				//表示するか
 	bool m_isDrawReverse = false;		//面を反転して描画するか
 	bool m_isShadowCaster = true;		//シャドウマップに書き込むか
 	bool m_isShadowDrawReverse = true;	//シャドウマップ描画時に面を反転させるか?

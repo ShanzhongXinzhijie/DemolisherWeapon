@@ -264,7 +264,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 #endif
 
 	//描画フラグ立っているか
-	//if (!GetIsDraw()) { return; }
+	if (!GetIsDraw()) { return; }
 
 	//ユーザー設定のカリング前処理実行
 	if (m_preCullingFunc) { m_preCullingFunc(this); }

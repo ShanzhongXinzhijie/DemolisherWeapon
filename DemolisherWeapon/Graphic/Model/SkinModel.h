@@ -324,6 +324,10 @@ public:
 		m_postDrawFunc.erase(Util::MakeHash(funcName));
 	}
 
+	//描画を行うか設定
+	void SetIsDraw(bool flag) { m_isDraw = flag; }
+	bool GetIsDraw() const { return m_isDraw; }
+
 	//FBXの設定取得
 	[[nodiscard]]
 	const EnFbxUpAxis& GetFBXUpAxis()const {
@@ -447,6 +451,9 @@ private:
 	std::unordered_map<int, std::function<void(SkinModel*)>> m_preDrawFunc;//描画前に実行
 	std::unordered_map<int, std::function<void(SkinModel*)>> m_postDrawFunc;//描画後に実行
 
+	bool m_isDraw = true; //描画するか?
+
+	//モデルデータマネージャー
 	static SkinModelDataManager m_skinModelDataManager;
 };
 

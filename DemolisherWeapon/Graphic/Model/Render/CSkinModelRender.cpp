@@ -70,7 +70,7 @@ void CSkinModelRender::PostUpdate() {
 
 void CSkinModelRender::PostLoopUpdate() {
 	if (!m_isInit) { return; }		
-	if (!m_isDraw) { return; }
+	if (!m_model.GetIsDraw()) { return; }
 
 	if (m_isShadowCaster) {
 		//シャドウマップ描画前後で実行する処理を送る

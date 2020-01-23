@@ -3,6 +3,7 @@
 namespace DemolisherWeapon {
 
 class Skeleton;
+
 /*!
 *@brief	スキンモデルデータマネージャー。。
 *@FlyweightパターンのFlyweightFactoryクラス、。
