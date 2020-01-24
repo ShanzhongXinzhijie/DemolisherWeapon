@@ -918,6 +918,22 @@ public:
 		static const CVector4 white = { 1.0f, 1.0f, 1.0f, 1.0f };
 		return white;
 	}
+	static const CVector4& Red()
+	{
+		static const CVector4 red = { 1.0f, 0.0f, 0.0f, 1.0f };
+		return red;
+	}
+	static const CVector4& Green()
+	{
+		static const CVector4 green = { 0.0f, 1.0f, 0.0f, 1.0f };
+		return green;
+	}
+	static const CVector4& Blue()
+	{
+		static const CVector4 blue = { 0.0f, 0.0f, 1.0f, 1.0f };
+		return blue;
+	}
+
 	static inline const CVector4& One() {
 		return White();
 	}
