@@ -25,35 +25,98 @@ namespace {
 		{ enButtonLB1		, XINPUT_GAMEPAD_LEFT_SHOULDER },
 		{ enButtonLT		, 0 },
 		{ enButtonLSB		, XINPUT_GAMEPAD_LEFT_THUMB },
+
+		{ enButtonLSUp		, 0 },
+		{ enButtonLSDown	, 0 },
+		{ enButtonLSLeft	, 0 },
+		{ enButtonLSRight	, 0 },
+
+		{ enButtonRSUp		, 0 },
+		{ enButtonRSDown	, 0 },
+		{ enButtonRSLeft	, 0 },
+		{ enButtonRSRight	, 0 },
 	};
 }
 
 bool XInputPad::GetButton(enXInputButton button) const {
 	if (!m_state.isConnect) { return false; }//接続してない
 
-	//for (const auto& vPadToXPad : vPadToXPadTable) {
+	//テーブルから指定のボタンを取得
 	const auto& vPadToXPad = vPadToXPadTable[button];
-		//if (button == vPadToXPad.vButton) {
-			if (vPadToXPad.vButton == enButtonRT) {
-				if (GetTrigger(R) > m_TRIGGER_THRESHOLD / 255.0f) {
-					return true;
-				}
-				return false; //break;
-			}
-			if (vPadToXPad.vButton == enButtonLT) {
-				if (GetTrigger(L) > m_TRIGGER_THRESHOLD / 255.0f) {
-					return true;
-				}
-				return false; //break;
-			}
-			if ((m_state.state.Gamepad.wButtons & vPadToXPad.xButton ) != 0) {
-				return true;
-			}
-			return false; //break;
-		//}
-	//}
+	
+	//トリガーの場合
+	if (vPadToXPad.vButton == enButtonRT) {
+		if (GetTrigger(R) > m_TriggerButtonThreshold) {
+			return true;//押されている
+		}
+		return false;//押されていない
+	}
+	if (vPadToXPad.vButton == enButtonLT) {
+		if (GetTrigger(L) > m_TriggerButtonThreshold) {
+			return true;//押されている
+		}
+		return false;//押されていない
+	}
 
-	return false;
+	//スティックの場合
+
+	//L
+	if (vPadToXPad.vButton == enButtonLSUp) {
+		if (GetStick(L).y > m_LSButtonThreshold) {
+			return true;//押されている
+		}
+		return false;//押されていない
+	}
+	if (vPadToXPad.vButton == enButtonLSDown) {
+		if (GetStick(L).y < -m_LSButtonThreshold) {
+			return true;//押されている
+		}
+		return false;//押されていない
+	}
+	if (vPadToXPad.vButton == enButtonLSLeft) {
+		if (GetStick(L).x < -m_LSButtonThreshold) {
+			return true;//押されている
+		}
+		return false;//押されていない
+	}
+	if (vPadToXPad.vButton == enButtonLSRight) {
+		if (GetStick(L).x > m_LSButtonThreshold) {
+			return true;//押されている
+		}
+		return false;//押されていない
+	}
+
+	//R
+	if (vPadToXPad.vButton == enButtonRSUp) {
+		if (GetStick(R).y > m_RSButtonThreshold) {
+			return true;//押されている
+		}
+		return false;//押されていない
+	}
+	if (vPadToXPad.vButton == enButtonRSDown) {
+		if (GetStick(R).y < -m_RSButtonThreshold) {
+			return true;//押されている
+		}
+		return false;//押されていない
+	}
+	if (vPadToXPad.vButton == enButtonRSLeft) {
+		if (GetStick(R).x < -m_RSButtonThreshold) {
+			return true;//押されている
+		}
+		return false;//押されていない
+	}
+	if (vPadToXPad.vButton == enButtonRSRight) {
+		if (GetStick(R).x > m_RSButtonThreshold) {
+			return true;//押されている
+		}
+		return false;//押されていない
+	}
+
+	//ボタンの場合
+	if ((m_state.state.Gamepad.wButtons & vPadToXPad.xButton ) != 0) {
+		return true;//押されている
+	}	
+	return false;//押されていない
 }
 bool XInputPad::GetDown(enXInputButton button) const {
 	if (!m_buttonInputOld[button] && GetButton(button)) {
@@ -107,13 +170,13 @@ void XInputPad::Update() {
 			m_state.state.Gamepad.sThumbRY = 0;
 		}
 
-		m_state.m_stick[L].x = m_state.state.Gamepad.sThumbLX / 32768.0f;
-		m_state.m_stick[L].y = m_state.state.Gamepad.sThumbLY / 32768.0f;
-		m_state.m_stick[R].x = m_state.state.Gamepad.sThumbRX / 32768.0f;
-		m_state.m_stick[R].y = m_state.state.Gamepad.sThumbRY / 32768.0f;		
+		m_state.m_stick[L].x = m_state.state.Gamepad.sThumbLX / STICK_INPUT_MAX;
+		m_state.m_stick[L].y = m_state.state.Gamepad.sThumbLY / STICK_INPUT_MAX;
+		m_state.m_stick[R].x = m_state.state.Gamepad.sThumbRX / STICK_INPUT_MAX;
+		m_state.m_stick[R].y = m_state.state.Gamepad.sThumbRY / STICK_INPUT_MAX;
 
-		m_state.m_trigger[L] = m_state.state.Gamepad.bLeftTrigger  / 255.0f;
-		m_state.m_trigger[R] = m_state.state.Gamepad.bRightTrigger / 255.0f;		
+		m_state.m_trigger[L] = m_state.state.Gamepad.bLeftTrigger  / TRRIGER_INPUT_MAX;
+		m_state.m_trigger[R] = m_state.state.Gamepad.bRightTrigger / TRRIGER_INPUT_MAX;
 	}
 	else
 	{

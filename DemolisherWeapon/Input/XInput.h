@@ -19,15 +19,32 @@ enum enXInputButton {
 	enButtonLB1,		//!<LB1ボタン。
 	enButtonLT,			//!<LT ボタン。
 	enButtonLSB,		//!<LSBボタン。
+
+	enButtonLSUp,		//!<Lスティック上。
+	enButtonLSDown,		//!<Lスティック下。
+	enButtonLSLeft,		//!<Lスティック左。
+	enButtonLSRight,	//!<Lスティック右。
+
+	enButtonRSUp,		//!<Rスティック上。
+	enButtonRSDown,		//!<Rスティック下。
+	enButtonRSLeft,		//!<Rスティック左。
+	enButtonRSRight,	//!<Rスティック右。
+
 	enButtonNum,		//!<ボタンの数。
 };
 constexpr inline auto enButtonRB = enButtonRB1;
 constexpr inline auto enButtonLB = enButtonLB1;
 
+//左右
 enum enLR {
 	L, R, enLRNUM,
 };
 static constexpr enLR LR[] = { L,R };
+
+//スティック入力の最大値
+static constexpr float STICK_INPUT_MAX = 32768.0f;
+//トリガー入力の最大値
+static constexpr float TRRIGER_INPUT_MAX = 255.0f;
 
 class XInputPad
 {
@@ -85,6 +102,11 @@ private:
 	int m_LEFT_THUMB_DEADZONE = XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE / 2;
 	int m_RIGHT_THUMB_DEADZONE = XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE / 2;// XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
 	int m_TRIGGER_THRESHOLD = XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+
+	//アナログ入力をボタン入力として扱うしきい値
+	float m_LSButtonThreshold = 0.5f;
+	float m_RSButtonThreshold = 0.5f;
+	float m_TriggerButtonThreshold = XINPUT_GAMEPAD_TRIGGER_THRESHOLD / TRRIGER_INPUT_MAX;
 
 	struct PadState{
 		bool isConnect = false;
