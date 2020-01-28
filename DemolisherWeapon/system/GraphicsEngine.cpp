@@ -403,12 +403,6 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 	//画面分割用の比率に
 	FRAME_BUFFER_3D_W = (float)frameBufferWidth3D;
 	FRAME_BUFFER_3D_H = (float)frameBufferHeight3D;
-	/*if (m_isSplitScreen == enVertical_TwoSplit) {
-		FRAME_BUFFER_3D_H *= 0.5f;
-	}
-	if (m_isSplitScreen == enSide_TwoSplit) {
-		FRAME_BUFFER_3D_W *= 0.5f;
-	}*/
 	
 	//最終レンダーターゲット再初期化
 	m_FRT.Init();
