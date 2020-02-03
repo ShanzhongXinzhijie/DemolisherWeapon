@@ -61,6 +61,8 @@ DirectX::Model* SkinModelDataManager::Load(const wchar_t* filePath, const Skelet
 				sprintf_s(message, "cmoファイルのロードに失敗。\n%ls\n", filePath);
 			}
 			MessageBox(NULL, message, "Error", MB_OK);
+
+			HRESULT hr =  GetGraphicsEngine().GetD3DDevice()->GetDeviceRemovedReason();
 			std::abort();
 #endif
 		}

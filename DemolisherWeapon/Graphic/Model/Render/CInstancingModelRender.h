@@ -292,12 +292,12 @@ namespace GameObj {
 			int numAnimationClips = 0,								//アニメーションクリップの数
 			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,					//モデルの上方向	//新規読み込み時のみ使用
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//座標系			//新規読み込み時のみ使用
-			const wchar_t** identifiers = nullptr					//識別子、これが違うと別モデルとして扱われる //numAnimationClipsと同数必要
+			std::wstring_view identifiers[] = nullptr				//識別子、これが違うと別モデルとして扱われる //numAnimationClipsと同数必要
 		) {
 			//アニメーションの数だけモデルロード
 			m_model.clear();
 			for (int i = 0; i < max(numAnimationClips,1); i++) {
-				const wchar_t* identifier = nullptr; if (identifiers) { identifier = identifiers[i]; }
+				const wchar_t* identifier = nullptr; if (identifiers) { identifier = identifiers[i].data(); }
 				m_model.emplace_back(m_s_instancingModelManager.Load(instanceMax, filePath, &animationClips[i], fbxUpAxis, fbxCoordinate, identifier));
 				if (m_model.back()->GetInstanceMax() < instanceMax) {
 					m_model.back()->SetInstanceMax(instanceMax);

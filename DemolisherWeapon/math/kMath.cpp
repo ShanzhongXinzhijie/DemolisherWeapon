@@ -104,9 +104,18 @@ void CMath::GenerateBlueNoise(int pointNum, const CVector2& min, const CVector2&
 				break;
 			}
 		}
+		//引数で渡された点とも判定
+		if (!isDead[i]) {
+			for (auto& point : return_points) {
+				if ((points[i] - point).LengthSq() < radiusSq) {
+					isDead[i] = true;//点死亡
+					break;
+				}
+			}
+		}
 	}
 	//ブルーノイズを返す
-	return_points.clear();
+	//return_points.clear();
 	for (int i = 0; i < pointNum; i++) {
 		if (!isDead[i]) {//死んでない点
 			return_points.emplace_back(points[i]);

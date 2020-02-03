@@ -125,8 +125,15 @@ public:
 		return intRandom(mt);
 	}
 
-	//ブルーノイズを生成
-	static void GenerateBlueNoise(int pointNum, const CVector2& min, const CVector2& max, float radius, std::vector<CVector2>& return_points);	
+	/// <summary>
+	/// ブルーノイズを生成
+	/// </summary>
+	/// <param name="pointNum">最大生成数(この数以下の点が生成されます)</param>
+	/// <param name="min">生成座標(最小)</param>
+	/// <param name="max">生成座標(最大)</param>
+	/// <param name="radius">生成間隔</param>
+	/// <param name="return_points">点の戻り値(すでにこれの中にある点とも生成間隔の判定します)</param>
+	static void GenerateBlueNoise(int pointNum, const CVector2& min, const CVector2& max, float radius, std::vector<CVector2>& return_points);
 };
 
 }
