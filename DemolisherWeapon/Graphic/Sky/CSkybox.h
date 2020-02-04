@@ -7,9 +7,9 @@ namespace GameObj {
 	{
 	public:
 		CSkybox() = default;
-		CSkybox(const wchar_t* filePass, float size = -1.0f, bool isSetAmbientCube = true);
+		CSkybox(const wchar_t* filePass, float size = -1.0f, bool isSetAmbientCube = true, const CVector3& ambientScale = CVector3::One());
 		
-		void Init(const wchar_t* filePass, float size = -1.0f, bool isSetAmbientCube = true);	
+		void Init(const wchar_t* filePass, float size = -1.0f, bool isSetAmbientCube = true, const CVector3& ambientScale = CVector3::One());
 
 	private:
 		bool m_isInit = false;

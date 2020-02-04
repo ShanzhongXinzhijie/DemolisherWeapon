@@ -4,11 +4,11 @@
 namespace DemolisherWeapon {
 namespace GameObj {
 
-	CSkybox::CSkybox(const wchar_t* filePass, float size, bool isSetAmbientCube) {
+	CSkybox::CSkybox(const wchar_t* filePass, float size, bool isSetAmbientCube, const CVector3& ambientScale) {
 		Init(filePass, size, isSetAmbientCube);
 	}
 	
-	void CSkybox::Init(const wchar_t* filePass, float size, bool isSetAmbientCube)
+	void CSkybox::Init(const wchar_t* filePass, float size, bool isSetAmbientCube, const CVector3& ambientScale)
 	{
 		if (m_isInit) { return; }
 
@@ -32,6 +32,7 @@ namespace GameObj {
 		m_skyModel.GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
 				mat->SetAlbedoTexture(tex);
+				mat->SetAlbedoScale(ambientScale);
 				mat->SetVS(&m_vsShader);
 				mat->SetPS(&m_psShader);
 				mat->SetLightingEnable(false);
@@ -40,7 +41,7 @@ namespace GameObj {
 
 		//環境キューブマップを設定
 		if (isSetAmbientCube) {
-			SetAmbientCubeMap(tex, CVector3::One());
+			SetAmbientCubeMap(tex, ambientScale);
 		}
 
 		if (tex) { tex->Release(); }
