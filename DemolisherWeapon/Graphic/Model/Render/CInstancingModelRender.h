@@ -32,27 +32,8 @@ namespace GameObj {
 			Init(instanceMax, filePath, animationClip, fbxUpAxis, fbxCoordinate);
 		}
 
-		void Release() {
-			//インスタンシング用リソースの開放
-			m_instanceMax = 0;
-			m_instanceIndex = 0; m_instanceDrawNum = 0;
-
-			m_instancingWorldMatrix.reset();
-			if (m_worldMatrixSB) { m_worldMatrixSB->Release(); m_worldMatrixSB = nullptr; }
-			if (m_worldMatrixSRV) { m_worldMatrixSRV->Release(); m_worldMatrixSRV = nullptr; }
-			m_instancingWorldMatrixOld.reset();
-			if (m_worldMatrixSBOld) { m_worldMatrixSBOld->Release(); m_worldMatrixSBOld = nullptr; }
-			if (m_worldMatrixSRVOld) { m_worldMatrixSRVOld->Release(); m_worldMatrixSRVOld = nullptr; }
-
-			m_drawInstanceMask.reset();
-			m_minAABB.reset(); m_maxAABB.reset();
-			m_worldMatrixCache.reset();
-			m_worldMatrixOldCache.reset();
-
-			m_insWatchers.reset();
-
-			m_instanceData.clear();
-		}
+		//リセット・リソースの開放
+		void Release();
 
 		//初期化
 		void Init(int instanceMax,
@@ -124,14 +105,15 @@ namespace GameObj {
 		class IInstancesData {
 		public:
 			virtual ~IInstancesData() {};
-		public:
-			/// <summary>
-			/// カリング前に実行する処理
-			/// </summary>
-			/// <param name="instanceIndex">インスタンス番号</param>
-			/// <returns>このインスタンスを描画するか</returns>
-			//virtual bool PreCulling(int instanceIndex) {}
 
+			/// <summary>
+			/// このデータに対応するインスタンシングモデルを設定
+			/// </summary>
+			void SetInstancingModel(InstancingModel* model) {
+				m_insModel = model;
+			}
+
+		public:
 			/// <summary>
 			/// 描画前に実行する処理
 			/// 主にストラクチャーバッファの更新とSRVの設定をする
@@ -141,13 +123,33 @@ namespace GameObj {
 			/// <param name="drawInstanceMask">カリングされたインスタンスのマスク(falseになってるやつがカリングされた)</param>
 			virtual void PreDraw(int instanceNum, int drawInstanceNum, const std::unique_ptr<bool[]>& drawInstanceMask) = 0;//{}
 
-			//AddDrawInstanceで実行する処理
-			//主にインスタンスごとのデータを追加する
+			/// <summary>
+			/// AddDrawInstanceで実行する処理
+			/// 主にインスタンスごとのデータを追加する
+			/// </summary>
+			/// <param name="instanceIndex">インスタンス番号</param>
+			/// <param name="SRTMatrix">ワールド行列</param>
+			/// <param name="scale">スケール</param>
+			/// <param name="param">設定されたパラメータ</param>
 			virtual void AddDrawInstance(int instanceIndex, const CMatrix& SRTMatrix, const CVector3& scale, void *param) {}
 
-			//SetInstanceMaxで実行する処理
-			//インスタンス最大数を設定
+			/// <summary>
+			/// SetInstanceMaxで実行する処理
+			/// インスタンス最大数を設定
+			/// </summary>
 			virtual void SetInstanceMax(int instanceMax) {}
+
+			/// <summary>
+			/// 描画するインスタンスのワールド行列を取得
+			/// </summary>
+			/// <param name="drawInstanceIndex"></param>
+			/// <returns></returns>
+			const CMatrix& GetDrawInstanceWorldMatrix(int drawInstanceIndex)const {
+				return m_insModel->m_instancingWorldMatrix[drawInstanceIndex];
+			}
+
+		private:
+			InstancingModel* m_insModel = nullptr;//このデータに対応するインスタンシングモデル
 		};
 
 		/// <summary>
@@ -155,6 +157,7 @@ namespace GameObj {
 		/// </summary>
 		/// <param name="identifier">IInstanceDataの名前</param>
 		void AddIInstanceData(const wchar_t* identifier, std::unique_ptr<IInstancesData>&& IID) {
+			IID->SetInstancingModel(this);
 			int index = Util::MakeHash(identifier);
 			m_instanceData.emplace(index,std::move(IID));
 		}

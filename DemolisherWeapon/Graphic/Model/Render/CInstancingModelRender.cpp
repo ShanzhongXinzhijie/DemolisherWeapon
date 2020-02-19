@@ -109,14 +109,6 @@ namespace GameObj {
 				//描画判定
 				int drawNum = 0;
 				for (int i = 0; i < m_instanceIndex; i++) {
-					////IInstanceDataの処理実行
-					//bool isDraw = true;
-					//for (auto& IID : m_instanceData) {
-					//	if (IID.second->PreCulling(i) == false) { isDraw = false; break; }
-					//}
-					////描画しない
-					//if (!isDraw) { m_drawInstanceMask[i] = false; continue; }
-
 					//描画しない
 					if (m_insWatchers[i].expired() || !m_insWatchers[i].lock()->GetIsDraw()) { m_drawInstanceMask[i] = false; continue; }
 
@@ -168,6 +160,28 @@ namespace GameObj {
 
 		//最大インスタンス数設定
 		SetInstanceMax(instanceMax);
+	}
+
+	void InstancingModel::Release() {
+		m_instanceMax = 0;
+		m_instanceIndex = 0; m_instanceDrawNum = 0;
+
+		//インスタンシング用リソースの開放
+		m_instancingWorldMatrix.reset();
+		if (m_worldMatrixSB) { m_worldMatrixSB->Release(); m_worldMatrixSB = nullptr; }
+		if (m_worldMatrixSRV) { m_worldMatrixSRV->Release(); m_worldMatrixSRV = nullptr; }
+		m_instancingWorldMatrixOld.reset();
+		if (m_worldMatrixSBOld) { m_worldMatrixSBOld->Release(); m_worldMatrixSBOld = nullptr; }
+		if (m_worldMatrixSRVOld) { m_worldMatrixSRVOld->Release(); m_worldMatrixSRVOld = nullptr; }
+
+		m_drawInstanceMask.reset();
+		m_minAABB.reset(); m_maxAABB.reset();
+		m_worldMatrixCache.reset();
+		m_worldMatrixOldCache.reset();
+
+		m_insWatchers.reset();
+
+		m_instanceData.clear();
 	}
 
 	void InstancingModel::SetInstanceMax(int instanceMax) {
