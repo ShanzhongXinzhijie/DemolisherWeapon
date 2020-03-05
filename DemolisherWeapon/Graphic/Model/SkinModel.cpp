@@ -16,7 +16,7 @@ SkinModel::~SkinModel()
 		m_cb->Release();
 	}
 }
-void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate)
+void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate, bool isUseFlyweightFactory)
 {
 	//FBX情報を設定
 	m_enFbxUpAxis = enFbxUpAxis;
@@ -37,7 +37,15 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	InitConstantBuffer();
 
 	//SkinModelDataManagerを使用してCMOファイルのロード。
-	m_modelDx = m_skinModelDataManager.Load(filePath, m_skeleton);	
+	if (isUseFlyweightFactory) {
+		//モデルプールを使用
+		m_modelDx = m_skinModelDataManager.Load(filePath, m_skeleton);
+	}
+	else {
+		//モデルを新規作成
+		m_modelDxData = m_skinModelDataManager.CreateModel(filePath, m_skeleton);
+		m_modelDx = m_modelDxData.get();
+	}
 
 	if (m_modelDx) {
 		//マテリアル設定の確保

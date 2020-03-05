@@ -112,12 +112,14 @@ void CSkinModelRender::Init(const wchar_t* filePath,
 	AnimationClip* animationClips,
 	int numAnimationClips,
 	EnFbxUpAxis fbxUpAxis,
-	EnFbxCoordinateSystem fbxCoordinate) {
+	EnFbxCoordinateSystem fbxCoordinate,
+	bool isUseFlyweightFactory
+) {
 
 	if (m_isInit) { return; }
 
 	//モデル読み込み
-	m_model.Init(filePath, fbxUpAxis, fbxCoordinate);
+	m_model.Init(filePath, fbxUpAxis, fbxCoordinate, isUseFlyweightFactory);
 	
 	//アニメーションの初期化。
 	if (animationClips != nullptr) {

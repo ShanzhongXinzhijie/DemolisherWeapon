@@ -23,12 +23,14 @@ public:
 	*/
 	~SkinModel();
 	
-	/*!
-	*@brief	初期化。
-	*@param[in]	filePath		ロードするcmoファイルのファイルパス。
-	*@param[in] enFbxUpAxis		fbxの上軸。デフォルトはenFbxUpAxisZ。
-	*/
-	void Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis = enFbxUpAxisZ, EnFbxCoordinateSystem enFbxCoordinate = enFbxRightHanded);
+	/// <summary>
+	/// 初期化
+	/// </summary>
+	/// <param name="filePath">ロードするcmoファイルのファイルパス</param>
+	/// <param name="enFbxUpAxis">fbxの上軸。デフォルトはenFbxUpAxisZ</param>
+	/// <param name="enFbxCoordinate">fbxの座標系。デフォルトはenFbxRightHanded</param>
+	/// <param name="isUseFlyweightFactory">モデルのロードにFlyweightFactoryを使用するか</param>
+	void Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis = enFbxUpAxisZ, EnFbxCoordinateSystem enFbxCoordinate = enFbxRightHanded, bool isUseFlyweightFactory = true);
 	
 	/*!
 	*@brief	モデルをワールド座標系に変換するためのワールド行列を更新する。
@@ -414,6 +416,7 @@ private:
 	ID3D11Buffer*		m_cb = nullptr;							//!<定数バッファ。
 	Skeleton			m_skeleton;								//!<スケルトン。
 	DirectX::Model*		m_modelDx;								//!<DirectXTKが提供するモデルクラス。
+	std::unique_ptr<DirectX::Model> m_modelDxData;
 	std::wstring		m_modelName;							//!<モデルの名前。
 
 	ID3D11DepthStencilState* m_pDepthStencilState = nullptr;//デプスステンシルステート
