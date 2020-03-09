@@ -14,6 +14,7 @@ namespace DemolisherWeapon {
 
 		//初期化
 		void Init(const wchar_t* fileName);
+		void Init(ID3D11ShaderResourceView* srv, UINT width, UINT height, bool isPMA = false);
 
 		//描画する
 		//※layerDepthの第三小数点以下は使わないほうがいいと思う

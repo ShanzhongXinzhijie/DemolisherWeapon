@@ -31,6 +31,7 @@ namespace DemolisherWeapon {
 		else {
 			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatchPMA();
 		}
+
 		//画像サイズの取得
 		m_width = texdata->width;
 		m_height = texdata->height;
@@ -39,6 +40,29 @@ namespace DemolisherWeapon {
 		m_sourceRectangle.bottom = m_height;
 		m_sourceRectangle.right = m_width;
 	}
+
+	void CSprite::Init(ID3D11ShaderResourceView* srv, UINT width, UINT height, bool isPMA) {
+		Release();
+
+		m_srv = srv;
+		m_srv->AddRef();
+
+		if (!isPMA) {
+			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
+		}
+		else {
+			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatchPMA();
+		}
+
+		//画像サイズの取得
+		m_width = width;
+		m_height = height;
+		m_sourceRectangle.top = 0;
+		m_sourceRectangle.left = 0;
+		m_sourceRectangle.bottom = m_height;
+		m_sourceRectangle.right = m_width;
+	}
+
 	void CSprite::Release() {
 		if (m_tex) { m_tex->Release(); m_tex = nullptr; }
 		if (m_srv) { m_srv->Release(); m_srv = nullptr; }

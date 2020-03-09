@@ -235,6 +235,15 @@ namespace DemolisherWeapon {
 			m_billboard.GetModel().SetIsShadowCaster(flag);
 		}
 
+		/// <summary>
+		/// SRVの取得
+		/// </summary>
+		/// <param name="type">取得するテクスチャの種類</param>
+		/// <returns>SRV</returns>
+		ID3D11ShaderResourceView* GetSRV(ImposterTexRender::EnGBuffer type)const {
+			return m_texture->GetSRV(type);
+		}
+
 	private:
 		bool m_isInit = false;
 		//テクスチャ
