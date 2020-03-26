@@ -133,10 +133,10 @@ void CSkinModelRender::Init(const wchar_t* filePath,
 	m_isInit = true;
 }
 
-void CSkinModelRender::InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA, bool isSoftParticle, float softParticleArea) {
+void CSkinModelRender::InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA, enSoftParticleMode isSoftParticle, float softParticleArea) {
 	m_isPostDraw = true; m_postDrawBlendMode = blendMode;
 
-	bool oldIsSoftParticle = m_shaderSNAIsSoftParticle;
+	enSoftParticleMode oldIsSoftParticle = m_shaderSNAIsSoftParticle;
 
 	//シェーダ読み込み
 	if (!m_loadedShaderSNA || m_shaderSNAIsConvertPMA != !isPMA || m_shaderSNAIsSoftParticle != isSoftParticle) {
@@ -146,13 +146,21 @@ void CSkinModelRender::InitPostDraw(PostDrawModelRender::enBlendMode blendMode, 
 		D3D_SHADER_MACRO macros[3] = { NULL,NULL,NULL,NULL,NULL,NULL }, macrosTex[3] = { "TEXTURE","1",NULL,NULL,NULL,NULL };
 		char shaderName[64] = "DEFAULT", shaderNameTex[64] = "TEXTURE";
 		//ソフトパーティクル設定
-		if (m_shaderSNAIsSoftParticle) {
+		if (m_shaderSNAIsSoftParticle == enSoftParticle) {
 			macros[0].Name = "SOFT_PARTICLE";
 			macros[0].Definition = "1";
 			strcpy_s(shaderName, "SOFT_PARTICLE");
 			macrosTex[1].Name = "SOFT_PARTICLE";
 			macrosTex[1].Definition = "1";
 			strcpy_s(shaderNameTex, "TEXTURE+SOFT_PARTICLE");
+		}
+		if (m_shaderSNAIsSoftParticle == enRevSoftParticle) {
+			macros[0].Name = "REV_SOFT_PARTICLE";
+			macros[0].Definition = "1";
+			strcpy_s(shaderName, "REV_SOFT_PARTICLE");
+			macrosTex[1].Name = "REV_SOFT_PARTICLE";
+			macrosTex[1].Definition = "1";
+			strcpy_s(shaderNameTex, "TEXTURE+REV_SOFT_PARTICLE");
 		}
 
 		if (m_shaderSNAIsConvertPMA) {
@@ -179,8 +187,8 @@ void CSkinModelRender::InitPostDraw(PostDrawModelRender::enBlendMode blendMode, 
 		}
 	);
 	//ソフトパーティクル設定
-	if (isSoftParticle != oldIsSoftParticle) {
-		if (isSoftParticle) {
+	if (isSoftParticle != enOff && oldIsSoftParticle == enOff || isSoftParticle == enOff && oldIsSoftParticle != enOff) {
+		if (isSoftParticle != enOff) {
 			//デプスバッファを設定
 			GetSkinModel().SetPreDrawFunction(
 				L"DW_SetViewPosTexture",

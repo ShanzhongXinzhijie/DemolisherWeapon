@@ -42,7 +42,7 @@ Texture2D<float4> LightingTexture : register(t2);
 Texture2D<float> TranslucentTexture : register(t11);
 #endif
 
-#if defined(SOFT_PARTICLE)
+#if defined(SOFT_PARTICLE) || defined(REV_SOFT_PARTICLE)
 //ビュー座標テクスチャ(wが深度値)
 Texture2D<float4> ViewPosTexture : register(t12);
 #endif
@@ -660,24 +660,35 @@ float4 SozaiNoAziInner(PSInput In)
     Out = albedoScale;
 #endif
 	
-//ソフトパーティクル
+    //ソフトパーティクル    
 #if defined(SOFT_PARTICLE)
 	//モデル深度値算出
-    float depth = In.Viewpos.z;//LinearizeDepth(In.curPos.z / In.curPos.w + depthBias.x, nearFar.x, nearFar.y);
+    float depth = In.Viewpos.z;
 	//書き込み先深度値算出
     float2 coord = (In.curPos.xy / In.curPos.w) * float2(0.5f, -0.5f) + 0.5f;
-    float screenDepth = ViewPosTexture.Sample(Sampler, coord).z; //LinearizeDepth(ViewPosTexture.Sample(Sampler, coord).w, nearFar.x, nearFar.y);
+    float screenDepth = ViewPosTexture.Sample(Sampler, coord).z;
 	//深度の差算出
     depth = distance(depth, screenDepth);
-	//深度の差がm_Length以下なら透明化
-    //float a =1;
+	//深度の差がsoftParticleArea以下なら透明化
     if (depth <= softParticleArea)
     {
         depth /= softParticleArea;
         Out.a *= depth;
-    //a =depth;
     }
-    //Out = float4(a,a,a,1);
+#endif
+    
+    //逆ソフトパーティクル
+#if defined(REV_SOFT_PARTICLE)
+	//モデル深度値算出
+    float depth = In.Viewpos.z;
+	//書き込み先深度値算出
+    float2 coord = (In.curPos.xy / In.curPos.w) * float2(0.5f, -0.5f) + 0.5f;
+    float screenDepth = ViewPosTexture.Sample(Sampler, coord).z;
+	//深度の差算出
+    depth = distance(depth, screenDepth);
+    //透明化
+	depth = max(0.0f,1.0f - (depth / softParticleArea));
+    Out.a *= depth;
 #endif
 
     return Out;

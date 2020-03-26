@@ -133,13 +133,21 @@ public:
 	bool GetIsDrawReverse()const { return m_isDrawReverse; }
 
 	/// <summary>
+	/// ソフトパーティクルの種類
+	/// </summary>
+	enum enSoftParticleMode{
+		enOff,//オフ
+		enSoftParticle,//通常
+		enRevSoftParticle,//逆
+	};
+	/// <summary>
 	/// ポストドロー描画を初期化
 	/// </summary>
 	/// <param name="blendMode">ブレンドモード</param>
 	/// <param name="isPMA">モデルが乗算済みアルファか?</param>
 	/// <param name="isSoftParticle">ソフトパーティクルを有効化するか</param>
 	/// <param name="softParticleArea">ソフトパーティクルが発生する距離範囲(＜0でデフォルト)</param>
-	void InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA = false, bool isSoftParticle = false, float softParticleArea = -1.0f);
+	void InitPostDraw(PostDrawModelRender::enBlendMode blendMode, bool isPMA = false, enSoftParticleMode isSoftParticle = enOff, float softParticleArea = -1.0f);
 
 	//シャドウマップへの描画を行うか設定
 	void SetIsShadowCaster(bool flag) { m_isShadowCaster = flag; }
@@ -221,7 +229,7 @@ private:
 	Shader m_psSozaiNoAzi, m_psSozaiNoAziTex;
 	bool m_loadedShaderSNA = false;			//素材の味シェーダはロード済みか?
 	bool m_shaderSNAIsConvertPMA = false;	//素材の味シェーダは乗算済みアルファ変換版か?
-	bool m_shaderSNAIsSoftParticle = false;	//素材の味シェーダはソフトパーティクル版か?
+	enSoftParticleMode m_shaderSNAIsSoftParticle = enOff;	//素材の味シェーダはソフトパーティクル版か?
 
 	//std::unique_ptr<ShadowMapRender::IPrePost> m_shadowMapPrePost;
 
