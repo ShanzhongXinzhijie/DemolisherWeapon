@@ -16,7 +16,10 @@ void CSound::Streaming() {
 
 	while (currentPosition < m_insAudioBytes) {
 
-		if (m_threadBreak) { m_threadEnded = true; return; }
+		if (m_threadBreak) { 
+			m_threadEnded = true; 
+			return; 
+		}
 
 		DWORD cbValid = min(STREAMING_BUFFER_SIZE, m_insAudioBytes - currentPosition);
 		m_ovlCurrentRequest.Offset = m_insStartAudio + currentPosition;
@@ -63,13 +66,18 @@ void CSound::Streaming() {
 		XAUDIO2_VOICE_STATE state;
 		for (;; )
 		{
-			if (m_threadBreak) { m_threadEnded = true; return; }
+			if (m_threadBreak) {
+				m_threadEnded = true; 
+				return; 
+			}
 
 			while (m_isLockSourceVoice.exchange(true)) {}//スピンロック
 			m_sourceVoice->GetState(&state); 
 			m_isLockSourceVoice = false;//スピンロック解除
 
-			if (state.BuffersQueued < MAX_BUFFER_COUNT - 1) { break; }
+			if (state.BuffersQueued < MAX_BUFFER_COUNT - 1) { 
+				break;
+			}
 
 			WaitForSingleObject(m_voiceContext.hBufferEndEvent, INFINITE);
 		}
@@ -103,13 +111,18 @@ void CSound::Streaming() {
 		XAUDIO2_VOICE_STATE state;
 		for (; ; )
 		{
-			if (m_threadBreak) { m_threadEnded = true; return; }
+			if (m_threadBreak) {
+				m_threadEnded = true; 
+				return; 
+			}
 
 			while (m_isLockSourceVoice.exchange(true)) {}//スピンロック
 			m_sourceVoice->GetState(&state);
 			m_isLockSourceVoice = false;//スピンロック解除
 
-			if (!state.BuffersQueued) { break; }
+			if (!state.BuffersQueued) { 
+				break;
+			}
 
 			WaitForSingleObject(m_voiceContext.hBufferEndEvent, INFINITE);
 		}

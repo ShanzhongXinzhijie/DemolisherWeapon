@@ -141,6 +141,14 @@ void CSound::Play(bool enable3D, bool isLoop) {
 
 void CSound::Stop() {
 	Release();
+
+	if (m_thread.joinable()) {
+		m_threadBreak = true;
+		m_thread.join();
+		m_threadBreak = false;
+	}
+
+	Release();
 }
 void CSound::Pause() {
 	while (m_isLockSourceVoice.exchange(true)) {}//スピンロック
@@ -184,8 +192,11 @@ void CSound::InUpdate(bool canStop) {
 		m_sourceVoice->GetState(&state);
 		//キューなくなったら再生止める
 		if (state.BuffersQueued <= 0) {
-			m_isLockSourceVoice = false;//スピンロック解除
-			Release(); return;
+			if (!m_isStreaming || m_threadEnded) {//非ストリーミングまたはストリーミングスレッドが終了
+				m_isLockSourceVoice = false;//スピンロック解除
+				Release();
+				return;
+			}
 		}
 	}
 

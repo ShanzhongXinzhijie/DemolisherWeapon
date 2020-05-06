@@ -96,6 +96,7 @@ namespace GameObj {
 
 		//Ä¶’†‚©æ“¾(ˆê’â~‚Íl—¶‚³‚ê‚È‚¢)
 		bool GetIsPlaying()const { return m_sourceVoice; }
+		//Ä¶’†‚Åˆê’â~‚à‚µ‚Ä‚È‚¢‚©æ“¾
 		bool GetIsPlayingAndNotPause()const { return !m_isPause && m_sourceVoice; }
 		//ˆê’â~’†‚©æ“¾
 		bool GetIsPausing()const { return m_isPause; }
@@ -204,7 +205,7 @@ namespace Suicider {
 		virtual ~CBGM() {};
 
 		void PostUpdate()override {
-			if (!GetIsPlaying()) {
+			if (m_isAutoDelete && !GetIsPlaying()) {
 				delete this;
 			}
 		}
@@ -222,7 +223,12 @@ namespace Suicider {
 			return m_SubmixVoice;
 		}
 
+		void SetIsAutoDelete(bool isAutoDel) {
+			m_isAutoDelete = isAutoDel;
+		}
+
 	private:
+		bool m_isAutoDelete = true;
 		static IXAudio2SubmixVoice* m_SubmixVoice;
 	};
 }
