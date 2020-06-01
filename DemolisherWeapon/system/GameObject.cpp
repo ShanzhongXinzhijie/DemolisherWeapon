@@ -15,6 +15,9 @@ namespace DemolisherWeapon {
 	}
 
 	IGameObject::IGameObject(bool isRegister, bool quickStart) {
+		for (auto& b : m_isRunFunc) {
+			b = true;
+		}
 		if (isRegister) { AddGO(this); }
 		m_quickStart = quickStart;
 	}
@@ -32,9 +35,9 @@ namespace DemolisherWeapon {
 		GetGraphicsEngine().GetSpriteBatch()->Begin(DirectX::SpriteSortMode_BackToFront);
 		GetGraphicsEngine().GetSpriteBatchPMA()->Begin(DirectX::SpriteSortMode_BackToFront, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
 
-		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
-				go.gameObject->HUDRender(HUDNum);
+		for (auto& go : m_runFuncGOList[IGameObject::enHUDRender]) {
+			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+				go->gameObject->HUDRender(HUDNum);
 			}
 		}
 
@@ -46,9 +49,9 @@ namespace DemolisherWeapon {
 		GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin(DirectX::SpriteSortMode_BackToFront);
 		GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->Begin(DirectX::SpriteSortMode_BackToFront, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
 
-		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
-				go.gameObject->PostRender();
+		for (auto& go : m_runFuncGOList[IGameObject::enPostRender]) {
+			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+				go->gameObject->PostRender();
 			}
 		}
 
