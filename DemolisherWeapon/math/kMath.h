@@ -113,6 +113,7 @@ private:
 	static std::mt19937 mt;
 	static std::uniform_real_distribution<float> zeroToOne;
 	static std::uniform_int_distribution<> intRandom;
+
 public:
 	//0.0f`1.0f‚Ìfloat—”‚ğæ“¾
 	[[nodiscard]]
@@ -123,6 +124,12 @@ public:
 	[[nodiscard]]
 	static int RandomInt() {
 		return intRandom(mt);
+	}
+	//0`w’è”‚Ìint—”‚ğæ“¾
+	[[nodiscard]]
+	static int IntUniDist(int max) {
+		std::uniform_int_distribution<> dist(0, max);
+		return dist(mt);
 	}
 
 	/// <summary>
