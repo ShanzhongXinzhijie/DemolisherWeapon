@@ -161,27 +161,7 @@ class IGameObject : public IDW_Class
 {
 public:
 	IGameObject(bool isRegister = true, bool quickStart = false);
-	virtual ~IGameObject() {
-		//有効でないんだ！
-		if (IsRegistered()) { m_register->isEnable = false; }
-		//ステータス更新(死んだぞ！)
-		m_status.m_isDead = true;
-		CastStatus();
-		//デスリスナーに通知
-		GODeathListener::SDeathParam param;
-		param.gameObject = this;
-		auto it = m_deathListeners.begin();
-		auto endit = m_deathListeners.end();
-		while (it != endit) {
-			if ((*it).enable) {
-				(*it).listener->RunFunction(param);
-				it++;
-			}
-			else {
-				it = m_deathListeners.erase(it);//削除
-			}
-		}
-	};
+	virtual ~IGameObject();
 
 	IGameObject(const IGameObject& go) = delete;//コピーコンストラクタ
 	IGameObject& operator=(const IGameObject&) = delete;
@@ -321,56 +301,60 @@ public:
 	//名前をつける
 	void SetName(const wchar_t* objectName);
 
+private:
+	//仮想関数の実行をやめる
+	void OffIsRunVFunc(VirtualFuncs type);
+
 public:
 	//仮想関数
 
 	//処理開始時に実行
 	//戻り値がfalseだと処理開始しない
 	virtual bool Start() {
-		m_isRunFunc[enStart] = false;
+		OffIsRunVFunc(enStart);
 		return true; 
 	}
 
 	//ゲームループ前に実行
 	virtual void PreLoopUpdate() {
-		m_isRunFunc[enPreLoopUpdate] = false;
+		OffIsRunVFunc(enPreLoopUpdate);
 	}
 	
 	//ゲームループ内で実行
 	virtual void PreUpdate() {
-		m_isRunFunc[enPreUpdate] = false;
+		OffIsRunVFunc(enPreUpdate);
 	}
 	virtual void Update() {
-		m_isRunFunc[enUpdate] = false;
+		OffIsRunVFunc(enUpdate);
 	}
 	virtual void PostUpdate() {
-		m_isRunFunc[enPostUpdate] = false;
+		OffIsRunVFunc(enPostUpdate);
 	}
 
 	//ゲームループ後に実行
 	virtual void PostLoopUpdate() {
-		m_isRunFunc[enPostLoopUpdate] = false;
+		OffIsRunVFunc(enPostLoopUpdate);
 	}
 	virtual void PostLoopPostUpdate() {
-		m_isRunFunc[enPostLoopPostUpdate] = false;
+		OffIsRunVFunc(enPostLoopPostUpdate);
 	}
 
 	//3D描画前に実行(画面ごと)
 	//int num 実行中の画面番号
 	virtual void Pre3DRender(int num) {
-		m_isRunFunc[enPre3DRender] = false;
+		OffIsRunVFunc(enPre3DRender);
 	}
 
 	//この関数内でHUDに2Dグラフィックを描画
 	//int HUDNum 描画対象のHUDの番号
 	virtual void HUDRender(int HUDNum) {
-		m_isRunFunc[enHUDRender] = false;
+		OffIsRunVFunc(enHUDRender);
 	}
 
 	//2Dグラフィックをこの関数内で描画してください
 	//※CFont,CSpriteなど
 	virtual void PostRender() {
-		m_isRunFunc[enPostRender] = false;
+		OffIsRunVFunc(enPostRender);
 	}
 
 private:
@@ -477,7 +461,7 @@ public:
 	//死の処理
 	void Hell() {
 		//m_gameObjectMapの削除
-		{
+		if(m_isDeleteGOThisFrame){
 			auto it = m_gameObjectMap.begin();
 			auto endit = m_gameObjectMap.end();
 			while (it != endit) {
@@ -490,18 +474,21 @@ public:
 			}
 		}
 
-		//関数実行リストからゲームオブジェクト参照を削除
 		//TODO この辺の処理必要がなければやらない
 		//関数外しは最初のフラグが立っているときのみ
 		//削除系はこのフレーム中になにか削除されたフラグがあるとき
+		
+		//関数実行リストからゲームオブジェクト参照を削除
 		DeleteFromFuncList();
 
 		//m_gameObjectListの削除
-		{
+		if(m_isDeleteGOThisFrame){
+			bool isRun = false;
 			auto it = m_gameObjectList.begin();
 			auto endit = m_gameObjectList.end();
 			while (it != endit) {
 				if (!(*it).isEnable) {
+					isRun = true;
 					if ((*it).GetNowOnHell()) {//二回目で削除
 						it = m_gameObjectList.erase(it);//削除
 					}
@@ -514,30 +501,44 @@ public:
 					++it;
 				}
 			}
+			if (!isRun) {
+				//削除処理実行なければOFF
+				m_isDeleteGOThisFrame = false;
+			}
 		}
 	}
 
 private:
 	//関数実行リストからゲームオブジェクト参照を削除
-	//TODO だいたい実装されてるならこの処理のせいで重くなるのでは
 	void DeleteFromFuncList() {
 		int funcType = 0;
 		for (auto& list : m_runFuncGOList) {
-			auto it = list.begin();
-			auto endit = list.end();
-			while (it != endit) {
-				if (!(*it)->isEnable || !(*it)->gameObject->GetIsOverrideVFunc(static_cast<IGameObject::VirtualFuncs>(funcType))) {
-					it = list.erase(it);//削除
-				}
-				else {
-					++it;
+			if (m_isDeleteGOThisFrame || m_isCheckVFuncThisFrame[funcType]) {
+				auto it = list.begin();
+				auto endit = list.end();
+				while (it != endit) {
+					if (!(*it)->isEnable || !(*it)->gameObject->GetIsOverrideVFunc(static_cast<IGameObject::VirtualFuncs>(funcType))) {
+						it = list.erase(it);//削除
+					}
+					else {
+						++it;
+					}
 				}
 			}
+			m_isCheckVFuncThisFrame[funcType] = false;
 			funcType++;//次の関数へ
 		}
 	}
 
 public:
+	//このフレーム中にGOが削除された
+	void EnableIsDeleteGOThisFrame() {
+		m_isDeleteGOThisFrame = true;
+	}
+	//このフレーム中に仮想関数の実行確認がされた
+	void EnableIsCheckVFuncThisFrame(IGameObject::VirtualFuncs ind) {
+		m_isCheckVFuncThisFrame[ind] = true;
+	}
 
 	//ゲームオブジェクトの登録
 	void AddGameObj(IGameObject* go) {
@@ -654,6 +655,9 @@ private:
 	std::list<GORegister> m_gameObjectList;//ゲームオブジェクトのリスト
 	std::list<GORegister*> m_runFuncGOList[IGameObject::enVirtualFuncNum];//各関数を実行するゲームオブジェクトのリスト
 	std::unordered_multimap<int, GORegister*> m_gameObjectMap;//名前付きゲームオブジェクトの辞書
+
+	bool m_isDeleteGOThisFrame = false;//このフレーム中にGOが削除されたか?
+	bool m_isCheckVFuncThisFrame[IGameObject::enVirtualFuncNum] = {};//このフレーム中に仮想関数の実行確認がされたか?
 };
 
 //ゲームオブジェクトの生成と削除のマネージャー

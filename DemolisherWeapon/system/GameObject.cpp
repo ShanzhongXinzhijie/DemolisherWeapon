@@ -21,6 +21,39 @@ namespace DemolisherWeapon {
 		if (isRegister) { AddGO(this); }
 		m_quickStart = quickStart;
 	}
+	IGameObject::~IGameObject() {
+		//マネージャーにゲームオブジェクトの削除が行われたことを通知
+		GetEngine().GetGameObjectManager().EnableIsDeleteGOThisFrame();
+
+		//有効でないんだ！
+		if (IsRegistered()) { m_register->isEnable = false; }
+
+		//ステータス更新(死んだぞ！)
+		m_status.m_isDead = true;
+		CastStatus();
+
+		//デスリスナーに通知
+		GODeathListener::SDeathParam param;
+		param.gameObject = this;
+		auto it = m_deathListeners.begin();
+		auto endit = m_deathListeners.end();
+		while (it != endit) {
+			if ((*it).enable) {
+				(*it).listener->RunFunction(param);
+				it++;
+			}
+			else {
+				it = m_deathListeners.erase(it);//削除
+			}
+		}
+	}
+
+	//仮想関数の実行をやめる
+	void IGameObject::OffIsRunVFunc(VirtualFuncs type) {
+		m_isRunFunc[type] = false;
+		//マネージャーに通知
+		GetEngine().GetGameObjectManager().EnableIsCheckVFuncThisFrame(type);
+	}
 
 	//名前をつける
 	void IGameObject::SetName(const wchar_t* objectName) {
