@@ -173,6 +173,7 @@ private:
 	//開始
 	void SetIsStart() {
 		m_isStart = true;
+		OffIsRunVFunc(enStart);//実行リストから消す
 	}
 	//登録
 	void RegisterRegister(GORegister* regi) {
