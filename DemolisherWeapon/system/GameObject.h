@@ -127,25 +127,20 @@ private:
 //ゲームオブジェクト登録クラス
 struct GORegister
 {
-	GORegister(bool enable, IGameObject* go) {
-		isEnable = enable;
-		gameObject = go;
-	}
+	GORegister(IGameObject* go, bool isQuickStart) 
+		: isEnableGO(true), isNoPendingkill(true), m_isQuickStartGO(isQuickStart), gameObject(go)
+	{}
 
-	bool isEnable = false;
-	IGameObject* gameObject = nullptr;
+	bool isEnableGO = false;//ゲームオブジェクトが有効状態か
+	bool isStartedGO = false;//ゲームオブジェクトがStart関数を実行済みか
+	bool isNoPendingkill = false;//実質削除状態でない
 
 private:
-	bool m_nowOnHell = false;
+	IGameObject* gameObject = nullptr;
+	bool nowOnHell = false;//GameObjectManagerからの削除マーク用
 
-	//地獄に到着
-	void ArriveHell() {
-		m_nowOnHell = true;
-	}
-	//地獄にいるか?
-	bool GetNowOnHell() const{
-		return m_nowOnHell;
-	}
+	bool m_isQuickStartGO = false;
+	bool GetIsStart();
 
 //　GameObjectManagerから操作できる	
 	friend GameObjectManager;
@@ -173,11 +168,17 @@ private:
 	//開始
 	void SetIsStart() {
 		m_isStart = true;
+		m_register->isStartedGO = true;
 		OffIsRunVFunc(enStart);//実行リストから消す
 	}
 	//登録
 	void RegisterRegister(GORegister* regi) {
 		m_register = regi;
+	}
+
+	//レジスターを取得
+	GORegister* GetRegister()const {
+		return m_register;
 	}
 
 	//ステータスをレシーバーに送る
@@ -202,6 +203,7 @@ private:
 	//DeleteGOされた
 	void お前はもう死んでいる() {
 		m_isDead = true;
+		UpdateRegisterIsEnable();
 	}
 
 public:
@@ -215,12 +217,13 @@ public:
 	}
 
 	//有効化
+	//TODO レジスターを参照
 	void SetEnable(bool e){
 		m_enable = e;
+		UpdateRegisterIsEnable();
 	}
 	//有効なのか？
 	bool GetEnable() const{
-		//if (m_goToHell) { return false; }
 		return m_enable && !m_isDead;
 	}
 
@@ -254,6 +257,11 @@ public:
 		}
 		return m_isStart;
 	}
+
+	//クイックスタート設定か取得
+	bool GetIsQuickStart()const {
+		return m_quickStart;
+	}
 	
 	//登録されているか?
 	bool IsRegistered() const{
@@ -261,11 +269,6 @@ public:
 			return true;
 		}
 		return false;
-	}
-
-	//レジスターを取得
-	GORegister* GetRegister()const {
-		return m_register;
 	}
 
 	//ステータスレシーバーを登録
@@ -305,6 +308,10 @@ public:
 private:
 	//仮想関数の実行をやめる
 	void OffIsRunVFunc(VirtualFuncs type);
+	//レジスターのIsEnableを更新
+	void UpdateRegisterIsEnable() {
+		m_register->isEnableGO = GetEnable();
+	}
 
 public:
 	//仮想関数
@@ -400,7 +407,7 @@ class GameObjectManager {
 public:
 	~GameObjectManager() {
 		for (auto& go : m_gameObjectList) {
-			if (go.isEnable) { go.gameObject->RegisterRegister(nullptr); }
+			if (go.isNoPendingkill) { go.gameObject->RegisterRegister(nullptr); }
 		}
 	}
 
@@ -437,11 +444,12 @@ public:
 		if (go->IsRegistered()) { return; }
 
 		//ゲームオブジェクトをリスト登録
-		m_gameObjectList.emplace_back(true, go);
+		m_gameObjectList.emplace_back(go,go->GetIsQuickStart());
 		//ゲームオブジェクトへGORegisterを登録
 		go->RegisterRegister(&m_gameObjectList.back());
 
 		//実行関数リストへゲームオブジェクトを登録
+		//TODO クイックスタートリスト
 		for (auto& list : m_runFuncGOList) {
 			list.emplace_back(&m_gameObjectList.back());
 		}
@@ -474,7 +482,7 @@ public:
 			auto& regiGo = it->second;
 
 			//有効か？
-			if (regiGo->isEnable && regiGo->gameObject->GetEnable()) {
+			if (regiGo->isNoPendingkill && regiGo->m_isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo->gameObject);
 				if (p != nullptr) {
@@ -490,7 +498,7 @@ public:
 	{
 		for (auto& regiGo : m_gameObjectList) {
 			//有効か？
-			if (regiGo.isEnable && regiGo.gameObject->GetEnable()) {
+			if (regiGo.isNoPendingkill && regiGo.m_isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo.gameObject);
 				if (p != nullptr) {
@@ -510,7 +518,7 @@ public:
 			auto& regiGo = it->second;		
 
 			//有効か？
-			if (regiGo->isEnable && regiGo->gameObject->GetEnable()) {
+			if (regiGo->isNoPendingkill && regiGo->m_isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo->gameObject);
 				if (p != nullptr) {
@@ -527,7 +535,7 @@ public:
 	{
 		for (auto& regiGo : m_gameObjectList) {
 			//有効か？
-			if (regiGo.isEnable && regiGo.gameObject->GetEnable()) {
+			if (regiGo.isNoPendingkill && regiGo.m_isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo.gameObject);
 				if (p != nullptr) {

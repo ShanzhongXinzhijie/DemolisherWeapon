@@ -3,6 +3,13 @@
 
 namespace DemolisherWeapon {
 
+	bool GORegister::GetIsStart() {
+		if (!isStartedGO && m_isQuickStartGO) {
+			return gameObject->GetIsStart();
+		}
+		return isStartedGO;
+	}
+
 	GOStatusCaster::~GOStatusCaster() {
 		if (m_alive && m_receiver) {
 			m_receiver->SetCaster(nullptr);
@@ -26,7 +33,7 @@ namespace DemolisherWeapon {
 		GetEngine().GetGameObjectManager().EnableIsDeleteGOThisFrame();
 
 		//有効でないんだ！
-		if (IsRegistered()) { m_register->isEnable = false; }
+		if (IsRegistered()) { m_register->isNoPendingkill = false; }
 
 		//ステータス更新(死んだぞ！)
 		m_status.m_isDead = true;
@@ -66,7 +73,7 @@ namespace DemolisherWeapon {
 
 	void GameObjectManager::Start() {
 		for (auto& go : m_runFuncGOList[IGameObject::enStart]) {
-			if (go->isEnable && go->gameObject->GetEnable() && !go->gameObject->GetIsStart()) {
+			if (go->isNoPendingkill && go->isEnableGO && !go->GetIsStart()) {
 				if (go->gameObject->Start()) {
 					go->gameObject->SetIsStart();
 				}
@@ -75,43 +82,43 @@ namespace DemolisherWeapon {
 	}
 	void GameObjectManager::PreLoopUpdate() {
 		for (auto& go : m_runFuncGOList[IGameObject::enPreLoopUpdate]) {
-			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+			if (go->isNoPendingkill && go->isEnableGO && go->GetIsStart()) {
 				go->gameObject->PreLoopUpdate();
 			}
 		}
 	}
 	void GameObjectManager::Update() {
 		for (auto& go : m_runFuncGOList[IGameObject::enPreUpdate]) {
-			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+			if (go->isNoPendingkill && go->isEnableGO && go->GetIsStart()) {
 				go->gameObject->PreUpdate();
 			}
 		}
 		for (auto& go : m_runFuncGOList[IGameObject::enUpdate]) {
-			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+			if (go->isNoPendingkill && go->isEnableGO && go->GetIsStart()) {
 				go->gameObject->Update();
 			}
 		}
 		for (auto& go : m_runFuncGOList[IGameObject::enPostUpdate]) {
-			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+			if (go->isNoPendingkill && go->isEnableGO && go->GetIsStart()) {
 				go->gameObject->PostUpdate();
 			}
 		}
 	}
 	void GameObjectManager::PostLoopUpdate() {
 		for (auto& go : m_runFuncGOList[IGameObject::enPostLoopUpdate]) {
-			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+			if (go->isNoPendingkill && go->isEnableGO && go->GetIsStart()) {
 				go->gameObject->PostLoopUpdate();
 			}
 		}
 		for (auto& go : m_runFuncGOList[IGameObject::enPostLoopPostUpdate]) {
-			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+			if (go->isNoPendingkill && go->isEnableGO && go->GetIsStart()) {
 				go->gameObject->PostLoopPostUpdate();
 			}
 		}
 	}
 	void GameObjectManager::Pre3DRender(int num) {
 		for (auto& go : m_runFuncGOList[IGameObject::enPre3DRender]) {
-			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+			if (go->isNoPendingkill && go->isEnableGO && go->GetIsStart()) {
 				go->gameObject->Pre3DRender(num);
 			}
 		}
@@ -121,7 +128,7 @@ namespace DemolisherWeapon {
 		GetGraphicsEngine().GetSpriteBatchPMA()->Begin(DirectX::SpriteSortMode_BackToFront, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
 
 		for (auto& go : m_runFuncGOList[IGameObject::enHUDRender]) {
-			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+			if (go->isNoPendingkill && go->isEnableGO && go->GetIsStart()) {
 				go->gameObject->HUDRender(HUDNum);
 			}
 		}
@@ -135,7 +142,7 @@ namespace DemolisherWeapon {
 		GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->Begin(DirectX::SpriteSortMode_BackToFront, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
 
 		for (auto& go : m_runFuncGOList[IGameObject::enPostRender]) {
-			if (go->isEnable && go->gameObject->GetEnable() && go->gameObject->GetIsStart()) {
+			if (go->isNoPendingkill && go->isEnableGO && go->GetIsStart()) {
 				go->gameObject->PostRender();
 			}
 		}
@@ -150,7 +157,7 @@ namespace DemolisherWeapon {
 			auto it = m_gameObjectMap.begin();
 			auto endit = m_gameObjectMap.end();
 			while (it != endit) {
-				if (!(*it).second->isEnable) {
+				if (!(*it).second->isNoPendingkill) {
 					it = m_gameObjectMap.erase(it);//削除
 				}
 				else {
@@ -172,13 +179,13 @@ namespace DemolisherWeapon {
 			auto it = m_gameObjectList.begin();
 			auto endit = m_gameObjectList.end();
 			while (it != endit) {
-				if (!(*it).isEnable) {
+				if (!(*it).isNoPendingkill) {
 					isRun = true;
-					if ((*it).GetNowOnHell()) {//二回目で削除
+					if ((*it).nowOnHell) {//二回目で削除
 						it = m_gameObjectList.erase(it);//削除
 					}
 					else {
-						(*it).ArriveHell();
+						(*it).nowOnHell = true;
 						++it;
 					}
 				}
@@ -199,7 +206,7 @@ namespace DemolisherWeapon {
 				auto it = list.begin();
 				auto endit = list.end();
 				while (it != endit) {
-					if (!(*it)->isEnable || !(*it)->gameObject->GetIsOverrideVFunc(static_cast<IGameObject::VirtualFuncs>(funcType))) {
+					if (!(*it)->isNoPendingkill || !(*it)->gameObject->GetIsOverrideVFunc(static_cast<IGameObject::VirtualFuncs>(funcType))) {
 						it = list.erase(it);//削除
 					}
 					else {
