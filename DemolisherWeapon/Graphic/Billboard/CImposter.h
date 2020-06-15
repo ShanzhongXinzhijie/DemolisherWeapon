@@ -177,13 +177,9 @@ namespace DemolisherWeapon {
 	
 	class CImposter
 	{
-	private:
-		/// <summary>
-		/// 初期化で使用する関数
-		/// </summary>
-		void InnerInit(const wchar_t* identifier, int instancingNum);
-
 	public:
+		CImposter(bool isRegister = true) : m_billboard(isRegister){}
+
 		/// <summary>
 		/// 初期化(リソース新規作成)
 		/// </summary>
@@ -243,6 +239,12 @@ namespace DemolisherWeapon {
 		ID3D11ShaderResourceView* GetSRV(ImposterTexRender::EnGBuffer type)const {
 			return m_texture->GetSRV(type);
 		}
+
+	private:
+		/// <summary>
+		/// 初期化で使用する関数
+		/// </summary>
+		void InnerInit(const wchar_t* identifier, int instancingNum);
 
 	private:
 		bool m_isInit = false;

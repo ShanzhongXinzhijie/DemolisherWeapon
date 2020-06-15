@@ -236,7 +236,7 @@ namespace GameObj {
 		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_worldMatrixSBOld, &descSRV, &m_worldMatrixSRVOld);
 	}
 	
-	CInstancingModelRender::CInstancingModelRender() {
+	CInstancingModelRender::CInstancingModelRender(bool isRegister) : IQSGameObject(isRegister) {
 		m_watcher = std::make_shared<InstanceWatcher>();
 		m_watcher->Watch(this);
 	}

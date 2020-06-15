@@ -9,7 +9,7 @@ ID3D11RasterizerState* CSkinModelRender::m_mostDepthRSCw = nullptr;
 ID3D11RasterizerState* CSkinModelRender::m_mostDepthRSCCw = nullptr;
 ID3D11RasterizerState* CSkinModelRender::m_mostDepthRSNone = nullptr;
 
-CSkinModelRender::CSkinModelRender()
+CSkinModelRender::CSkinModelRender(bool isRegister) : IQSGameObject(isRegister)
 {
 	if (!m_mostDepthRSCw) {
 		D3D11_RASTERIZER_DESC desc = {};

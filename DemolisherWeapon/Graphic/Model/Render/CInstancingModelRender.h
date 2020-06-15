@@ -285,7 +285,7 @@ namespace GameObj {
 	class CInstancingModelRender : public IQSGameObject
 	{
 	public:
-		CInstancingModelRender();
+		CInstancingModelRender(bool isRegister = true);
 		~CInstancingModelRender();
 
 		//‰Šú‰»
