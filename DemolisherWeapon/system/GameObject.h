@@ -482,7 +482,7 @@ public:
 			auto& regiGo = it->second;
 
 			//有効か？
-			if (regiGo->isNoPendingkill && regiGo->m_isEnableGO) {
+			if (regiGo->isNoPendingkill && regiGo->isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo->gameObject);
 				if (p != nullptr) {
@@ -498,7 +498,7 @@ public:
 	{
 		for (auto& regiGo : m_gameObjectList) {
 			//有効か？
-			if (regiGo.isNoPendingkill && regiGo.m_isEnableGO) {
+			if (regiGo.isNoPendingkill && regiGo.isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo.gameObject);
 				if (p != nullptr) {
@@ -518,7 +518,7 @@ public:
 			auto& regiGo = it->second;		
 
 			//有効か？
-			if (regiGo->isNoPendingkill && regiGo->m_isEnableGO) {
+			if (regiGo->isNoPendingkill && regiGo->isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo->gameObject);
 				if (p != nullptr) {
@@ -535,7 +535,7 @@ public:
 	{
 		for (auto& regiGo : m_gameObjectList) {
 			//有効か？
-			if (regiGo.isNoPendingkill && regiGo.m_isEnableGO) {
+			if (regiGo.isNoPendingkill && regiGo.isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo.gameObject);
 				if (p != nullptr) {
