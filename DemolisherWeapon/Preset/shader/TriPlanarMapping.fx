@@ -1,6 +1,7 @@
 #include"model.fx"
 
-//#define CLOUD
+//#define Y_ONLY 1
+#define LITE 1
 
 //雲輪郭テクスチャ
 #if defined(CLOUD)
@@ -45,7 +46,94 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 #endif
 
 	//アルベド
-#if ALBEDO_MAP
+#if ALBEDO_MAP	
+#if Y_ONLY
+#if LITE
+	float fdistance = length(In.Viewpos);	
+	
+	if(fdistance < 50.0f){
+		Out.albedo = albedoTexture.Sample(Sampler, uv.zx* 40.0f + uvOffset);		
+		Out.albedo = lerp(Out.albedo,albedoTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset), saturate(fdistance/50.0f));
+	}else
+	if(fdistance < 225.0f){
+		Out.albedo = albedoTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset);
+		Out.albedo = lerp(Out.albedo,albedoTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset), saturate((fdistance-50.0f)/175.0f));	
+	}else
+	if(fdistance < 650.0f){
+		Out.albedo = albedoTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset);	
+		Out.albedo = lerp(Out.albedo,albedoTexture.Sample(Sampler, uv.zx + uvOffset), saturate((fdistance-225.0f)/425.0f));	
+	}else{
+		Out.albedo = albedoTexture.Sample(Sampler, uv.zx + uvOffset);	
+		Out.albedo = lerp(Out.albedo,albedoTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset), saturate((fdistance-650.0f)/3150.0f));	
+		Out.albedo = lerp(Out.albedo,albedoTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset), saturate((fdistance-650.0f)/16000.0f));
+	}	
+#else
+	Out.albedo = albedoTexture.Sample(Sampler, uv.zx * 40.0f + uvOffset);
+
+    float fdistance = length(In.Viewpos);
+	
+	float s = saturate(fdistance/50.0f);
+	Out.albedo = lerp(Out.albedo,albedoTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset),s);
+
+    s = saturate((fdistance-50.0f)/175.0f);
+	Out.albedo = lerp(Out.albedo,albedoTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset),s);
+
+	s = saturate((fdistance-225.0f)/425.0f);
+	Out.albedo = lerp(Out.albedo,albedoTexture.Sample(Sampler, uv.zx + uvOffset),s);//TODO くりかえしめだつ?
+   
+    s = saturate((fdistance-650.0f)/3150.0f);
+	Out.albedo = lerp(Out.albedo,albedoTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset),s);
+    
+    s = saturate((fdistance-650.0f)/16000.0f);
+	Out.albedo = lerp(Out.albedo,albedoTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),s);  
+#endif
+#else
+#if LITE
+    float fdistance = length(In.Viewpos);	
+	float4 X =0;
+	float4 Y =0;
+	float4 Z =0;
+	if(fdistance < 50.0f){
+		X = albedoTexture.Sample(Sampler, uv.zy * 40.0f + uvOffset);
+		Y = albedoTexture.Sample(Sampler, uv.zx * 40.0f + uvOffset);
+		Z = albedoTexture.Sample(Sampler, uv.xy * 40.0f + uvOffset);
+		float s = saturate(fdistance/50.0f);
+		X = lerp(X,albedoTexture.Sample(Sampler, uv.zy * 10.0f + uvOffset),s);
+		Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset),s);
+		Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 10.0f + uvOffset),s);
+	}else
+	if(fdistance < 225.0f){
+		X = albedoTexture.Sample(Sampler, uv.zy * 10.0f + uvOffset);
+		Y = albedoTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset);
+		Z = albedoTexture.Sample(Sampler, uv.xy * 10.0f + uvOffset);
+		float s = saturate((fdistance-50.0f)/175.0f);
+		X = lerp(X,albedoTexture.Sample(Sampler, uv.zy * 3.0f + uvOffset),s);
+		Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset),s);
+		Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 3.0f + uvOffset),s);
+	}else
+	if(fdistance < 650.0f){
+		X = albedoTexture.Sample(Sampler, uv.zy * 3.0f + uvOffset);
+		Y = albedoTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset);
+		Z = albedoTexture.Sample(Sampler, uv.xy * 3.0f + uvOffset);
+		float s = saturate((fdistance-225.0f)/425.0f);
+		X = lerp(X,albedoTexture.Sample(Sampler, uv.zy + uvOffset),s);
+		Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx + uvOffset),s);//TODO くりかえしめだつ?
+		Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy + uvOffset),s);
+	}else
+	{
+		X = albedoTexture.Sample(Sampler, uv.zy + uvOffset);
+		Y = albedoTexture.Sample(Sampler, uv.zx + uvOffset);
+		Z = albedoTexture.Sample(Sampler, uv.xy + uvOffset);
+		float s = saturate((fdistance-650.0f)/3150.0f);
+		X = lerp(X,albedoTexture.Sample(Sampler, uv.zy * 0.1f+ uvOffset),s);
+		Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset),s);
+		Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 0.1f+ uvOffset),s);
+		s = saturate((fdistance-650.0f)/16000.0f);
+		X = lerp(X,albedoTexture.Sample(Sampler, uv.zy * 0.01f + uvOffset),s);
+		Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),s);
+		Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 0.01f + uvOffset),s);  
+    }
+#else
 	float4 X = albedoTexture.Sample(Sampler, uv.zy * 40.0f + uvOffset);
 	float4 Y = albedoTexture.Sample(Sampler, uv.zx * 40.0f + uvOffset);
 	float4 Z = albedoTexture.Sample(Sampler, uv.xy * 40.0f + uvOffset);
@@ -76,12 +164,11 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
     X = lerp(X,albedoTexture.Sample(Sampler, uv.zy * 0.01f + uvOffset),s);
 	Y = lerp(Y,albedoTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),s);
 	Z = lerp(Z,albedoTexture.Sample(Sampler, uv.xy * 0.01f + uvOffset),s);    
-
+#endif
 	Out.albedo = Z;
 	Out.albedo = lerp(Out.albedo, X, blendNormal.x);
 	Out.albedo = lerp(Out.albedo, Y, blendNormal.y);	
-
-	//Out.albedo.xyz = lerp(Out.albedo.xyz,blendNormal,0.5f);
+#endif
 #else
     AlbedoRender(In, Out);
 #endif    
@@ -101,13 +188,100 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	//https://www.patreon.com/posts/16714688
 	//https://medium.com/@bgolus/normal-mapping-for-a-triplanar-shader-10bf39dca05a	
 #if NORMAL_MAP
+#if Y_ONLY
+#if LITE
+	float nfdistance = length(In.Viewpos);
+	
+	if(nfdistance < 50.0f){
+		Out.normal.xyz = NormalTexture.Sample(Sampler, uv.zx* 40.0f + uvOffset);		
+		Out.normal.xyz = lerp(Out.normal.xyz,NormalTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset), saturate(nfdistance/50.0f));
+	}else
+	if(nfdistance < 225.0f){
+		Out.normal.xyz = NormalTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset);
+		Out.normal.xyz = lerp(Out.normal.xyz,NormalTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset), saturate((nfdistance-50.0f)/175.0f));	
+	}else
+	if(nfdistance < 650.0f){
+		Out.normal.xyz = NormalTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset);	
+		Out.normal.xyz = lerp(Out.normal.xyz,NormalTexture.Sample(Sampler, uv.zx + uvOffset), saturate((nfdistance-225.0f)/425.0f));	
+	}else{
+		Out.normal.xyz = NormalTexture.Sample(Sampler, uv.zx + uvOffset);	
+		Out.normal.xyz = lerp(Out.normal.xyz,NormalTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset), saturate((nfdistance-650.0f)/3150.0f));	
+		Out.normal.xyz = lerp(Out.normal.xyz,NormalTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset), saturate((nfdistance-650.0f)/16000.0f));
+	}  
+#else
+	Out.normal.xyz = NormalTexture.Sample(Sampler, uv.zx* 40.0f + uvOffset);
+	
+	float nfdistance = length(In.Viewpos);
+	
+	float ns = saturate(nfdistance/50.0f);
+	Out.normal.xyz = lerp(Out.normal.xyz,NormalTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset),ns);
+	
+    ns = saturate((nfdistance-50.0f)/175.0f);
+	Out.normal.xyz = lerp(Out.normal.xyz,NormalTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset),ns);
+	
+	ns = saturate((nfdistance-225.0f)/425.0f);
+	Out.normal.xyz = lerp(Out.normal.xyz,NormalTexture.Sample(Sampler, uv.zx + uvOffset),ns);//TODO くりかえしめだつ?
+	
+    ns = saturate((nfdistance-650.0f)/3150.0f);
+	Out.normal.xyz = lerp(Out.normal.xyz,NormalTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset),ns);
+	
+    ns = saturate((nfdistance-650.0f)/16000.0f);
+    Out.normal.xyz = lerp(Out.normal.xyz,NormalTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),ns);
+#endif
+	Out.normal.xyz = Out.normal.xyz * 2.0f - 1.0f;
+	Out.normal.xyz = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
+	Out.normal.xyz = normalize(Out.normal.xyz);
+#else
+#if LITE
+	float nfdistance = length(In.Viewpos);	
+	float3 nX =0;
+	float3 nY =0;
+	float3 nZ =0;
+	if(nfdistance < 50.0f){
+		nX = NormalTexture.Sample(Sampler, uv.zy * 40.0f + uvOffset);
+		nY = NormalTexture.Sample(Sampler, uv.zx * 40.0f + uvOffset);
+		nZ = NormalTexture.Sample(Sampler, uv.xy * 40.0f + uvOffset);
+		float s = saturate(nfdistance/50.0f);
+		nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 10.0f + uvOffset),s);
+		nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset),s);
+		nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 10.0f + uvOffset),s);
+	}else
+	if(nfdistance < 225.0f){
+		nX = NormalTexture.Sample(Sampler, uv.zy * 10.0f + uvOffset);
+		nY = NormalTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset);
+		nZ = NormalTexture.Sample(Sampler, uv.xy * 10.0f + uvOffset);
+		float s = saturate((nfdistance-50.0f)/175.0f);
+		nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 3.0f + uvOffset),s);
+		nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset),s);
+		nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 3.0f + uvOffset),s);
+	}else
+	if(nfdistance < 650.0f){
+		nX = NormalTexture.Sample(Sampler, uv.zy * 3.0f + uvOffset);
+		nY = NormalTexture.Sample(Sampler, uv.zx * 3.0f + uvOffset);
+		nZ = NormalTexture.Sample(Sampler, uv.xy * 3.0f + uvOffset);
+		float s = saturate((nfdistance-225.0f)/425.0f);
+		nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy + uvOffset),s);
+		nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx + uvOffset),s);//TODO くりかえしめだつ?
+		nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy + uvOffset),s);
+	}else
+	{
+		nX = NormalTexture.Sample(Sampler, uv.zy + uvOffset);
+		nY = NormalTexture.Sample(Sampler, uv.zx + uvOffset);
+		nZ = NormalTexture.Sample(Sampler, uv.xy + uvOffset);
+		float s = saturate((nfdistance-650.0f)/3150.0f);
+		nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 0.1f+ uvOffset),s);
+		nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset),s);
+		nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 0.1f+ uvOffset),s);
+		s = saturate((nfdistance-650.0f)/16000.0f);
+		nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 0.01f + uvOffset),s);
+		nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),s);
+		nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 0.01f + uvOffset),s);  
+    }
+#else
 	float3 nX = NormalTexture.Sample(Sampler, uv.zy* 40.0f + uvOffset);
 	float3 nY = NormalTexture.Sample(Sampler, uv.zx* 40.0f + uvOffset);
 	float3 nZ = NormalTexture.Sample(Sampler, uv.xy* 40.0f + uvOffset);
-    //nX.rg-=0.5f;nX.rg*=4.0f;nX.rg+=0.5f;
-    //nY.rg-=0.5f;nY.rg*=4.0f;nY.rg+=0.5f;
-    //nZ.rg-=0.5f;nZ.rg*=4.0f;nZ.rg+=0.5f;
-
+   
 	float nfdistance = length(In.Viewpos);
 	
 	float ns = saturate(nfdistance/50.0f);
@@ -135,57 +309,14 @@ PSOutput_RenderGBuffer PS_TriPlanarMapping(PSInput In)
 	nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),ns);
 	nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 0.01f + uvOffset),ns);  
 
-    
-	//float3 nX = NormalTexture.Sample(Sampler, uv.zy + uvOffset);
-	//float3 nY = NormalTexture.Sample(Sampler, uv.zx + uvOffset);
-	//float3 nZ = NormalTexture.Sample(Sampler, uv.xy + uvOffset);
-
- //   nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 80.0f + uvOffset),0.5f);
-	//nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 80.0f + uvOffset),0.5f);
-	//nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 80.0f + uvOffset),0.5f);
-
- //   nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 20.0f + uvOffset),0.5f);
-	//nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 20.0f + uvOffset),0.5f);
-	//nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 20.0f + uvOffset),0.5f);
-
- //   nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 0.01f + uvOffset),0.5f);
-	//nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),0.5f);
-	//nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 0.01f + uvOffset),0.5f);
-
-
-
- //   float3 nX = NormalTexture.Sample(Sampler, uv.zy * 10.0f + uvOffset);
-	//float3 nY = NormalTexture.Sample(Sampler, uv.zx * 10.0f + uvOffset);
-	//float3 nZ = NormalTexture.Sample(Sampler, uv.xy * 10.0f + uvOffset);
-
- //   float fdistanceN = length(In.Viewpos);
- //   float sN = saturate(fdistanceN/1000.0f);
- //   nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 1.0f + uvOffset),sN);
-	//nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 1.0f + uvOffset),sN);
-	//nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 1.0f + uvOffset),sN);
-   
- //   sN = saturate((fdistanceN-1000.0f)/1000.0f);
- //   nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 0.1f+ uvOffset),sN);
-	//nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 0.1f+ uvOffset),sN);
-	//nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 0.1f+ uvOffset),sN);
-    
- //   sN = saturate((fdistanceN-1000.0f)/5000.0f);//TODO 2000
- //   nX = lerp(nX,NormalTexture.Sample(Sampler, uv.zy * 0.01f + uvOffset),sN);
-	//nY = lerp(nY,NormalTexture.Sample(Sampler, uv.zx * 0.01f + uvOffset),sN);
-	//nZ = lerp(nZ,NormalTexture.Sample(Sampler, uv.xy * 0.01f + uvOffset),sN);  
-
- //   nX = lerp(nX,float3(0.5f,0.5f,1.0f),0.5f);
-	//nY = lerp(nY,float3(0.5f,0.5f,1.0f),0.5f);
-	//nZ = lerp(nZ,float3(0.5f,0.5f,1.0f),0.5f);  
-
 	Out.normal.xyz = nZ;
 	Out.normal.xyz = lerp(Out.normal.xyz, nX, blendNormal.x);
 	Out.normal.xyz = lerp(Out.normal.xyz, nY, blendNormal.y);
-
+#endif
 	Out.normal.xyz = Out.normal.xyz * 2.0f - 1.0f;
-    //Out.normal.xy *= 2.0f;
 	Out.normal.xyz = Out.normal.x * In.Tangent + Out.normal.y * In.Binormal + Out.normal.z * In.Normal;
 	Out.normal.xyz = normalize(Out.normal.xyz);
+#endif
 #else
     Out.normal.xyz = In.Normal;
 #endif

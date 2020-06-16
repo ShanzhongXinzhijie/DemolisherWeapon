@@ -47,8 +47,8 @@ namespace DemolisherWeapon {
 		m_pPSZShader = m_isInit->GetDefaultPSZ();
 	}
 	//TriPlanarMapping用のシェーダを設定
-	void MaterialSetting::SetTriPlanarMappingPS() {
-		m_pPSShader = m_isInit->GetTriPlanarMappingPS();
+	void MaterialSetting::SetTriPlanarMappingPS(bool isYOnly) {
+		m_pPSShader = m_isInit->GetTriPlanarMappingPS(isYOnly);
 	}
 
 	//アルベドテクスチャをデフォに戻す
