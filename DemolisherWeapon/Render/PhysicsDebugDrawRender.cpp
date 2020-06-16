@@ -24,6 +24,9 @@ namespace DemolisherWeapon {
 
 	void  PhysicsDebugDrawRender::Render() {
 		if (m_enable) {
+			//GPUイベントの開始
+			GetGraphicsEngine().BeginGPUEvent(L"PhysicsDebugDrawRender");
+			
 			//レンダーターゲットとか設定		
 			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(
 				1,
@@ -38,6 +41,9 @@ namespace DemolisherWeapon {
 
 			//レンダーターゲット解除
 			GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+
+			//GPUイベントの終了
+			GetGraphicsEngine().EndGPUEvent();
 		}
 	}
 }

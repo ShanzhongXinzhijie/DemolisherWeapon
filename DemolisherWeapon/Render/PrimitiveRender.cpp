@@ -53,6 +53,9 @@ namespace DemolisherWeapon {
 		}
 		if (!isDraw) { return; }
 
+		//GPUイベントの開始
+		GetGraphicsEngine().BeginGPUEvent(L"PrimitiveRender");
+
 		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 		//レンダーターゲットとか設定		
@@ -88,6 +91,9 @@ namespace DemolisherWeapon {
 
 		//レンダーターゲット解除
 		d3dContext->OMSetRenderTargets(0, NULL, NULL);
+
+		//GPUイベントの終了
+		GetGraphicsEngine().EndGPUEvent();
 	}
 	void PrimitiveRender::PostRender() {
 		if (!m_isDraw3D) { return; }

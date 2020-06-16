@@ -53,6 +53,9 @@ namespace DemolisherWeapon {
 		m_drawSpace.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, m_vertex, 4, m_index);
 	}
 	void HUDRender::Render() {
+		//GPUイベントの開始
+		GetGraphicsEngine().BeginGPUEvent(L"HUDRender");
+
 		//ビューポート設定
 		D3D11_VIEWPORT oldviewport; UINT kaz = 1;
 		GetGraphicsEngine().GetD3DDeviceContext()->RSGetViewports(&kaz, &oldviewport);
@@ -117,6 +120,9 @@ namespace DemolisherWeapon {
 			GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(oldBlendState, oldf, olduint);
 			oldBlendState->Release();
 		}
+
+		//GPUイベントの終了
+		GetGraphicsEngine().EndGPUEvent();
 	}
 
 	void HUDRender::PostRender() {
