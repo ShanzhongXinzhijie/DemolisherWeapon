@@ -13,9 +13,9 @@
 
 #include"physics/Physics.h"
 
-#include "collision/CCollisionObj.h"
+#include"collision/CCollisionObj.h"
 
-#include "Graphic/Effekseer/EffekseerManager.h"
+#include"Graphic/Effekseer/EffekseerManager.h"
 
 #include"Network/PhotonManager.h"
 
@@ -546,6 +546,17 @@ static inline void QueryGOs(const wchar_t* objectName, std::function<bool(T* go)
 template<class T>
 static inline void QueryGOs(std::function<bool(T* go)> func) {
 	GetEngine().GetGameObjectManager().QueryGOs<T>(func);
+}
+
+/// <summary>
+/// マネージャーに登録されているゲームオブジェクトの数を取得
+/// </summary>
+static inline size_t GetRegisterGameObjectNum()
+{
+#ifndef DW_MASTER
+	return GetEngine().GetGameObjectManager().GetGameObjNum();
+#endif
+	return 0;
 }
 
 //マウスカーソルマネージャーを取得

@@ -240,6 +240,13 @@ namespace DemolisherWeapon {
 			return m_texture->GetSRV(type);
 		}
 
+		/// <summary>
+		/// インスタンシングモデルの取得
+		/// </summary>
+		GameObj::CInstancingModelRender& GetInstancingModel() {
+			return m_billboard.GetInstancingModel();
+		}
+
 	private:
 		/// <summary>
 		/// 初期化で使用する関数

@@ -548,6 +548,15 @@ public:
 		}
 	}
 
+#ifndef DW_MASTER
+	/// <summary>
+	/// 登録されているGameObjの数を取得
+	/// </summary>
+	size_t GetGameObjNum()const{
+		return m_gameObjectList.size();
+	}
+#endif
+
 private:
 	std::list<GORegister> m_gameObjectList;//ゲームオブジェクトのリスト
 	std::list<GORegister*> m_runFuncGOList[IGameObject::enVirtualFuncNum];//各関数を実行するゲームオブジェクトのリスト
