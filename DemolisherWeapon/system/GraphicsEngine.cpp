@@ -417,19 +417,24 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 	m_motionBlurRender.Resize();	
 	m_ConvertLinearToSRGB.Resize();
 	m_primitiveRender.Resize();		
+	//HUDリサイズ
+	for (auto& hud : m_HUDRender) {
+		if (hud) {
+			hud->Resize({ (float)HUDWidth, (float)HUDHeight });
+		}
+	}
 
 	//画面分割変更
-	if (isChangeSplitScreen) {
-		
+	if (isChangeSplitScreen) {		
 		//再確保
 		m_finalRender[0].reset();
 		m_finalRender[1].reset();
 		m_preRenderRender[0].reset();
 		m_preRenderRender[1].reset();
-		m_HUDRender[0].reset();
-		m_HUDRender[1].reset();
 		m_cameraSwitchRender[0].reset();
 		m_cameraSwitchRender[1].reset();
+		m_HUDRender[0].reset();
+		m_HUDRender[1].reset();
 
 		if (m_isSplitScreen) {
 			//画面分割時初期化
@@ -457,15 +462,7 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 			m_preRenderRender[0] = std::make_unique<PreRenderRender>();
 			m_preRenderRender[1] = std::make_unique<PreRenderRender>();
 			m_preRenderRender[0]->Init(0);
-			m_preRenderRender[1]->Init(1);
-
-			//HUD描画レンダー
-			for (int i = 0; i < 2; i++) {
-				CVector2 areaMin, areaMax;
-				m_finalRender[i]->GetDrawArea(areaMin, areaMax);
-				m_HUDRender[i] = std::make_unique<HUDRender>();
-				m_HUDRender[i]->Init(i, areaMin, areaMax, { (float)HUDWidth, (float)HUDHeight });
-			}
+			m_preRenderRender[1]->Init(1);			
 
 			//カメラ切り替えレンダーの初期化
 			m_cameraSwitchRender[0] = std::make_unique<CameraSwitchRender>();
@@ -483,14 +480,14 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 			//描画前処理レンダー
 			m_preRenderRender[0] = std::make_unique<PreRenderRender>();
 			m_preRenderRender[0]->Init(0);
+		}
 
-			//HUD描画レンダー
-			for (int i = 0; i < 1; i++) {
-				CVector2 areaMin, areaMax;
-				m_finalRender[i]->GetDrawArea(areaMin, areaMax);
-				m_HUDRender[i] = std::make_unique<HUDRender>();
-				m_HUDRender[i]->Init(i, areaMin, areaMax, { (float)HUDWidth, (float)HUDHeight });
-			}
+		//HUDレンダー
+		for (int i = 0; i < (m_isSplitScreen ? 2 : 1); i++) {
+			CVector2 areaMin, areaMax;
+			m_finalRender[i]->GetDrawArea(areaMin, areaMax);
+			m_HUDRender[i] = std::make_unique<HUDRender>();
+			m_HUDRender[i]->Init(i, areaMin, areaMax, { (float)HUDWidth, (float)HUDHeight });
 		}
 
 		//画面分割数分実行

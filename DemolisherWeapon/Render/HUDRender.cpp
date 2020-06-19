@@ -7,6 +7,7 @@ namespace DemolisherWeapon {
 
 		m_HUDNum = HUDNum;
 		m_textureSize = screenSize;
+		m_screen_min = screen_min, m_screen_max = screen_max;
 
 		//出力テクスチャDESC
 		D3D11_TEXTURE2D_DESC texDesc;
@@ -51,6 +52,9 @@ namespace DemolisherWeapon {
 			{1.0f, 0.0f}
 		};
 		m_drawSpace.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, m_vertex, 4, m_index);
+	}
+	void HUDRender::Resize(const CVector2& screenSize) {
+		Init(m_HUDNum, m_screen_min, m_screen_max, screenSize);
 	}
 	void HUDRender::Render() {
 		//GPUイベントの開始
