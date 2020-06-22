@@ -343,38 +343,38 @@ private:
 };
 
 //Engineのインスタンスを取得
-static inline Engine& GetEngine()
+inline Engine& GetEngine()
 {
 	return Engine::GetInstance();
 }
 //グラフィックスエンジンの取得
-static inline GraphicsEngine& GetGraphicsEngine()
+inline GraphicsEngine& GetGraphicsEngine()
 {
 	return GetEngine().GetGraphicsEngine();
 }
 //物理エンジンの取得
-static inline CPhysicsWorld& GetPhysicsWorld()
+inline CPhysicsWorld& GetPhysicsWorld()
 {
 	return GetEngine().GetPhysicsWorld();
 }
 //Photonの取得
-static inline PhotonNetworkLogic* GetPhoton() {
+inline PhotonNetworkLogic* GetPhoton() {
 
 	return GetEngine().GetPhoton();
 }
 //WAVManagerの取得
-static inline WAVManager& GetWAVManager() {
+inline WAVManager& GetWAVManager() {
 
 	return GetEngine().GetSoundEngine().GetWAVManager();
 }
 //WAVSettingManager(音声データ自体への設定を扱うクラス)の取得
-static inline WAVSettingManager& GetWAVSettingManager() {
+inline WAVSettingManager& GetWAVSettingManager() {
 
 	return GetEngine().GetSoundEngine().GetWAVSettingManager();
 }
 
 //3Dモデルレンダーに描画するモデルを登録
-static inline void AddDrawModelToD3Render(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT, bool reverse = false)
+inline void AddDrawModelToD3Render(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT, bool reverse = false)
 {
 	GetEngine().GetGraphicsEngine().AddDrawModelToD3Render(sm, priority, reverse);
 }
@@ -384,97 +384,97 @@ static inline void AddDrawModelToD3Render(SkinModel* sm, int priority = DRAW_PRI
 /// <param name="sm">描画するモデル</param>
 /// <param name="priority">描画順(0～DRAW_PRIORITY_MAX)(大きいと後に描画)</param>
 /// <param name="reverse">面方向を反転するか</param>
-static inline void AddDrawModelToShadowMapRender(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT, bool reverse = true)
+inline void AddDrawModelToShadowMapRender(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT, bool reverse = true)
 {
 	GetEngine().GetGraphicsEngine().AddDrawModelToShadowMapRender(sm, priority, reverse);
 }
 //物理エンジンのデバッグ表示のモードを設定する
-static inline void SetPhysicsDebugDrawMode(int debugMode) {
+inline void SetPhysicsDebugDrawMode(int debugMode) {
 	GetEngine().GetGraphicsEngine().SetPhysicsDebugDrawMode(debugMode);
 }
 //物理エンジンのデバッグ表示が有効か調べる
-static inline bool GetEnablePhysicsDebugDraw() {
+inline bool GetEnablePhysicsDebugDraw() {
 	return GetEngine().GetGraphicsEngine().GetEnablePhysicsDebugDraw();
 }
 
 //メインカメラを取得
-static inline GameObj::ICamera* GetMainCamera()
+inline GameObj::ICamera* GetMainCamera()
 {
 	return GetEngine().GetGraphicsEngine().GetCameraManager().GetMainCamera();
 }
 //メインカメラを登録
-static inline void SetMainCamera(GameObj::ICamera* cam)
+inline void SetMainCamera(GameObj::ICamera* cam)
 {
 	GetEngine().GetGraphicsEngine().GetCameraManager().SetMainCamera(cam);
 }
 //カメラリストに登録
-static inline void SetCameraToList(int index, GameObj::ICamera* cam)
+inline void SetCameraToList(int index, GameObj::ICamera* cam)
 {
 	GetEngine().GetGraphicsEngine().GetCameraManager().SetCameraToList(index, cam);
 }
 //カメラリストを取得
-static inline const std::vector<GameObj::ICamera*>& ViewCameraList()
+inline const std::vector<GameObj::ICamera*>& ViewCameraList()
 {
 	return GetEngine().GetGraphicsEngine().GetCameraManager().ViewCameraList();
 }
 //非推奨
 [[deprecated("Please use SetCameraToList or ViewCameraList")]]
-static inline std::vector<GameObj::ICamera*>& GetCameraList()
+inline std::vector<GameObj::ICamera*>& GetCameraList()
 {
 	return GetEngine().GetGraphicsEngine().GetCameraManager().GetCameraList();
 }
 //画面分割数を取得
-static inline int GetScreenNum()
+inline int GetScreenNum()
 {
 	return GetEngine().GetGraphicsEngine().GetSplitScreenMode() ? 2 : 1 ;
 }
 
 //歪曲収差の使用を設定
-static inline void SetIsLensDistortion(bool enable)
+inline void SetIsLensDistortion(bool enable)
 {
 	FinalRender::SetIsLensDistortion(enable);
 }
 //歪曲収差の度合いを設定
-static inline void SetLensDistortionScale(float scale)
+inline void SetLensDistortionScale(float scale)
 {
 	FinalRender::SetLensDistortionScale(scale);
 }
 //アンチエイリアスの使用を設定
-static inline void SetIsAntiAliasing(bool enable)
+inline void SetIsAntiAliasing(bool enable)
 {
 	FinalRender::SetIsAntiAliasing(enable);
 }
 
 //フォグの有効無効を設定
-static inline void SetEnableFog(bool enable) {
+inline void SetEnableFog(bool enable) {
 	GetGraphicsEngine().GetLightManager().SetEnableFog(enable);
 }
 //フォグが完全にかかる距離を設定
-static inline void SetFogDistance(float distance) {
+inline void SetFogDistance(float distance) {
 	GetGraphicsEngine().GetLightManager().SetFogDistance(distance);
 }
 //高さフォグのかかり具合を設定
-static inline void SetFogHeightScale(float scale) {
+inline void SetFogHeightScale(float scale) {
 	GetGraphicsEngine().GetLightManager().SetFogHeightScale(scale);
 }
 //フォグの色を設定
-static inline void SetFogColor(const CVector3& color) {
+inline void SetFogColor(const CVector3& color) {
 	GetGraphicsEngine().GetLightManager().SetFogColor(color);
 }
 
 //アンビエントライトを設定
-static inline void SetAmbientLight(const CVector3& color) {
+inline void SetAmbientLight(const CVector3& color) {
 	GetEngine().GetGraphicsEngine().GetDefferdRender().SetIsAmbientCubeMap(false);
 	GetEngine().GetGraphicsEngine().GetLightManager().SetAmbientLight(color);
 }
 //アンビエントキューブマップを設定
 //※MipMapが必要です(少なくとも8がいる)
-static inline void SetAmbientCubeMap(const wchar_t* filePass, const CVector3& scale) {
+inline void SetAmbientCubeMap(const wchar_t* filePass, const CVector3& scale) {
 	GetEngine().GetGraphicsEngine().GetDefferdRender().SetIsAmbientCubeMap(true);
 	GetEngine().GetGraphicsEngine().GetDefferdRender().SetAmbientCubeMap(filePass);
 	GetEngine().GetGraphicsEngine().GetLightManager().SetAmbientLight(scale);
 }
-static inline void SetAmbientCubeMap(ID3D11ShaderResourceView* srv, const CVector3& scale) {
+inline void SetAmbientCubeMap(ID3D11ShaderResourceView* srv, const CVector3& scale) {
 	GetEngine().GetGraphicsEngine().GetDefferdRender().SetIsAmbientCubeMap(true);
 	GetEngine().GetGraphicsEngine().GetDefferdRender().SetAmbientCubeMap(srv);
 	GetEngine().GetGraphicsEngine().GetLightManager().SetAmbientLight(scale);
@@ -482,76 +482,76 @@ static inline void SetAmbientCubeMap(ID3D11ShaderResourceView* srv, const CVecto
 
 //シャドウマップをひとつ有効化
 //UINT width, UINT height ...シャドウマップのサイズ
-static inline CShadowMap* CreateShadowMap(UINT width, UINT height) {
+inline CShadowMap* CreateShadowMap(UINT width, UINT height) {
 	return GetEngine().GetGraphicsEngine().GetShadowMapRender().EnableShadowMap(width, height);
 }
 
 //ゲームオブジェクトの登録
 template <typename T>
-static inline void AddGO(T* go) {
+inline void AddGO(T* go) {
 	GetEngine().GetGameObjectManager().AddGameObj(go);
 }
 //ゲームオブジェクトの作成
 template<class T, class... TArgs>
-static inline T* NewGO(TArgs... ctorArgs)
+inline T* NewGO(TArgs... ctorArgs)
 {
 	return GetEngine().GetGONewDeleteManager().NewGO<T>(ctorArgs...);
 }
 //ゲームオブジェクトの削除
 //(ゲームオブジェクトの無効化フラグが立つ。実際にインスタンスが削除されるのは、全てのGOのPostUpdateが終わってから)
 template <typename T>
-static inline void DeleteGO(T*& go, bool newgoCheck = true)
+inline void DeleteGO(T*& go, bool newgoCheck = true)
 {
 	if (GetEngine().GetGONewDeleteManager().DeleteGO(go, newgoCheck)) {
 		go = nullptr;
 	}
 }
-static inline void DeleteGO(IGameObject* const go, bool newgoCheck = true)
+inline void DeleteGO(IGameObject* const go, bool newgoCheck = true)
 {
 	GetEngine().GetGONewDeleteManager().DeleteGO(go, newgoCheck);
 }
 //即座にゲームオブジェクトを削除
 template <typename T>
-static inline void InstantDeleteGO(T*& go, bool newgoCheck = true)
+inline void InstantDeleteGO(T*& go, bool newgoCheck = true)
 {
 	if (GetEngine().GetGONewDeleteManager().DeleteGO(go, newgoCheck, true)) {
 		go = nullptr;
 	}
 }
-static inline void InstantDeleteGO(IGameObject* const go, bool newgoCheck = true)
+inline void InstantDeleteGO(IGameObject* const go, bool newgoCheck = true)
 {
 	GetEngine().GetGONewDeleteManager().DeleteGO(go, newgoCheck, true);
 }
 
 //ゲームオブジェクトに名前をつける
-static inline void SetNameGO(IGameObject* go, const wchar_t* objectName)
+inline void SetNameGO(IGameObject* go, const wchar_t* objectName)
 {
 	GetEngine().GetGameObjectManager().SetNameGO(go, objectName);
 }
 //ゲームオブジェクトの検索(単体)
 template <typename T>
-static inline T* FindGO(const wchar_t* objectName) {
+inline T* FindGO(const wchar_t* objectName) {
 	return GetEngine().GetGameObjectManager().FindGO<T>(objectName);
 }
 template <typename T>
-static inline T* FindGO() {
+inline T* FindGO() {
 	return GetEngine().GetGameObjectManager().FindGO<T>();
 }
 //ゲームオブジェクトの検索(複数)
 //funcの戻り値=falseで検索終了
 template<class T>
-static inline void QueryGOs(const wchar_t* objectName, std::function<bool(T* go)> func) {
+inline void QueryGOs(const wchar_t* objectName, std::function<bool(T* go)> func) {
 	GetEngine().GetGameObjectManager().QueryGOs<T>(objectName, func);
 }
 template<class T>
-static inline void QueryGOs(std::function<bool(T* go)> func) {
+inline void QueryGOs(std::function<bool(T* go)> func) {
 	GetEngine().GetGameObjectManager().QueryGOs<T>(func);
 }
 
 /// <summary>
 /// マネージャーに登録されているゲームオブジェクトの数を取得
 /// </summary>
-static inline size_t GetRegisterGameObjectNum()
+inline size_t GetRegisterGameObjectNum()
 {
 #ifndef DW_MASTER
 	return GetEngine().GetGameObjectManager().GetGameObjNum();
@@ -560,93 +560,93 @@ static inline size_t GetRegisterGameObjectNum()
 }
 
 //マウスカーソルマネージャーを取得
-static inline CMouseCursor& MouseCursor() {
+inline CMouseCursor& MouseCursor() {
 	return GetEngine().GetMouseCursorManager();
 }
-static inline CMouseCursor& GetMouseCursorManager() {
+inline CMouseCursor& GetMouseCursorManager() {
 	return GetEngine().GetMouseCursorManager();
 }
 //キーステートマネージャーを取得
-static inline KeyState& GetKeyState() {
+inline KeyState& GetKeyState() {
 	return GetEngine().GetKeyState();
 }
 //キーボード入力を取得
-static inline bool GetKeyInput(int n) {
+inline bool GetKeyInput(int n) {
 	return GetEngine().GetKeyState().GetInput(n);
 }
-static inline bool GetKeyDown(int n) {
+inline bool GetKeyDown(int n) {
 	return GetEngine().GetKeyState().GetDown(n);
 }
-static inline bool GetKeyUp(int n) {
+inline bool GetKeyUp(int n) {
 	return GetEngine().GetKeyState().GetUp(n);
 }
 //XInputマネージャーの取得
-static inline XInputManager& GetXInputManager() {
+inline XInputManager& GetXInputManager() {
 	return GetEngine().GetXInputManager();
 }
 //XInputパッドの取得
-static inline XInputPad& Pad(int padNo)
+inline XInputPad& Pad(int padNo)
 {
 	return GetEngine().GetXInputManager().GetPad(padNo);
 }
 
 //マウスホイール回転数(ノッチ数)のリセット
-static inline void ResetMouseWheelNotch() {
+inline void ResetMouseWheelNotch() {
 	GetEngine().ResetMouseWheelNotch();
 }
 //マウスホイール回転量(縦)の取得
-static inline int GetMouseWheelNotch() { return GetEngine().GetMouseWheelNotch(); }
+inline int GetMouseWheelNotch() { return GetEngine().GetMouseWheelNotch(); }
 //マウスホイール回転量(横)の取得
-static inline int GetMouseWheel_H_Notch() { return GetEngine().GetMouseWheel_H_Notch(); }
+inline int GetMouseWheel_H_Notch() { return GetEngine().GetMouseWheel_H_Notch(); }
 
 //動作フレームレートを取得
-static inline int GetStandardFrameRate() { 
+inline int GetStandardFrameRate() { 
 	return GetEngine().GetStandardFrameRate(); 
 }
 //1動作フレームの動作時間(秒)
-static inline float GetDeltaTimeSec() {
+inline float GetDeltaTimeSec() {
 	return 1.0f / GetStandardFrameRate();
 }
 //1フレームの処理にかかった時間(秒)を取得
-static inline float GetRealDeltaTimeSec() {
+inline float GetRealDeltaTimeSec() {
 	return GetEngine().GetRealDeltaTimeSec();
 }
 
 //コリジョンマネージャーに判定を追加
-static inline RegColObj* AddCollisionObj(GameObj::Suicider::CCollisionObj* obj) {
+inline RegColObj* AddCollisionObj(GameObj::Suicider::CCollisionObj* obj) {
 	return GetEngine().GetCollisionObjManager()->AddCollisionObj(obj);
 }
 
 //マスターボリュームを設定
-static inline void SetMasterVolume(float vol) {
+inline void SetMasterVolume(float vol) {
 	GetEngine().GetSoundEngine().GetMasterVoice()->SetVolume(vol);
 }
-static inline float GetMasterVolume() {
+inline float GetMasterVolume() {
 	float vol;
 	GetEngine().GetSoundEngine().GetMasterVoice()->GetVolume(&vol);
 	return vol;
 }
 
 //線分の描画
-static inline void DrawLine3D(const CVector3& start, const CVector3& end, const CVector4& color, int HUDNum = -1) {
+inline void DrawLine3D(const CVector3& start, const CVector3& end, const CVector4& color, int HUDNum = -1) {
 	GetGraphicsEngine().GetPrimitiveRender().AddLine(start, end, color, true, HUDNum);
 }
-static inline void DrawLine2D(const CVector3& start, const CVector3& end, const CVector4& color, int HUDNum = -1) {
+inline void DrawLine2D(const CVector3& start, const CVector3& end, const CVector4& color, int HUDNum = -1) {
 	GetGraphicsEngine().GetPrimitiveRender().AddLine(start, end, color, false, HUDNum);
 }
 //四角形の描画(2D)
-static inline void DrawQuad2D(const CVector3& min, const CVector3& max, const CVector4& color, int HUDNum = -1) {
+inline void DrawQuad2D(const CVector3& min, const CVector3& max, const CVector4& color, int HUDNum = -1) {
 	GetGraphicsEngine().GetPrimitiveRender().AddQuad(min, max, color, HUDNum);
 }
 
 //デバッグ情報を描画するか設定
-static inline void SetIsDebugDraw(bool enable) { GetEngine().SetIsDebugDraw(enable); }
-static inline bool GetIsDebugDraw() { return GetEngine().GetIsDebugDraw(); }
+inline void SetIsDebugDraw(bool enable) { GetEngine().SetIsDebugDraw(enable); }
+inline bool GetIsDebugDraw() { return GetEngine().GetIsDebugDraw(); }
 //debug操作を有効にするか設定
-static inline void SetIsDebugInput(bool enable) { GetEngine().SetIsDebugInput(enable); }
-static inline bool GetIsDebugInput() { return GetEngine().GetIsDebugInput(); }
+inline void SetIsDebugInput(bool enable) { GetEngine().SetIsDebugInput(enable); }
+inline bool GetIsDebugInput() { return GetEngine().GetIsDebugInput(); }
 
 //ゲームループを抜ける
-static inline void BreakGameLoop() { GetEngine().BreakGameLoop(); }
+inline void BreakGameLoop() { GetEngine().BreakGameLoop(); }
 
 }

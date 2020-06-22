@@ -39,12 +39,12 @@ constexpr inline auto enButtonLB = enButtonLB1;
 enum enLR {
 	L, R, enLRNUM,
 };
-static constexpr enLR LR[] = { L,R };
+inline constexpr enLR LR[] = { L,R };
 
 //スティック入力の最大値
-static constexpr float STICK_INPUT_MAX = 32768.0f;
+inline constexpr float STICK_INPUT_MAX = 32768.0f;
 //トリガー入力の最大値
-static constexpr float TRRIGER_INPUT_MAX = 255.0f;
+inline constexpr float TRRIGER_INPUT_MAX = 255.0f;
 
 class XInputPad
 {
@@ -143,7 +143,7 @@ public:
 		return m_pad[n];
 	}
 private:
-	static const int MAX_CONTROLLERS = 4;
+	static constexpr int MAX_CONTROLLERS = 4;
 
 	XInputPad m_pad[MAX_CONTROLLERS];
 };

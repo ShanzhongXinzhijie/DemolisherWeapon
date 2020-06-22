@@ -4,14 +4,14 @@ namespace DemolisherWeapon {
 	namespace Error
 	{	
 		//メッセージボックスだしてプログラムを止める
-		static inline void Box(const char* str) {
+		inline void Box(const char* str) {
 #ifndef DW_MASTER
 			MessageBox(NULL, str, "Error", MB_OK);
 			std::abort();
 #endif
 		}
 		//警告メッセージを出力
-		static inline void WarningMessage(const char* str) {
+		inline void WarningMessage(const char* str) {
 #ifndef DW_MASTER
 			OutputDebugStringA(str);
 #endif

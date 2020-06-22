@@ -1,7 +1,7 @@
 #pragma once
 
 namespace DemolisherWeapon {
-	static const int MAX_CHANNEL = 8;
+	inline constexpr int MAX_CHANNEL = 8;
 
 	class WAVManager
 	{
