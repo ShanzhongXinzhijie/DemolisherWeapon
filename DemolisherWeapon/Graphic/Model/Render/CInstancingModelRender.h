@@ -64,7 +64,8 @@ namespace GameObj {
 			const CMatrix& SRTMatrix, const CVector3& scale,
 			const CVector3& minAABB, const CVector3& maxAABB, 
 			void *param_ptr,
-			const std::shared_ptr<InstanceWatcher>& watcher
+			bool **rtn_isDraw
+			//const std::shared_ptr<InstanceWatcher>& watcher
 		) {
 			if (m_instanceIndex >= m_instanceMax) {
 #ifndef DW_MASTER
@@ -86,7 +87,9 @@ namespace GameObj {
 			}
 
 			//監視者登録
-			m_insWatchers[m_instanceIndex] = watcher;
+			//m_insWatchers[m_instanceIndex] = watcher;
+			*rtn_isDraw = &m_drawInstanceMask[m_instanceIndex];
+			m_drawInstanceMask[m_instanceIndex] = true;//描画するものとして扱う
 
 			m_instanceIndex++;
 		}
@@ -221,7 +224,7 @@ namespace GameObj {
 		bool m_isFrustumCull = false;//視錐台カリングするか?
 
 		//インスタンスたちを監視する
-		std::unique_ptr<std::weak_ptr<InstanceWatcher>[]> m_insWatchers;
+		//std::unique_ptr<std::weak_ptr<InstanceWatcher>[]> m_insWatchers;
 		
 		//ユーザー設定の描画前処理
 		std::function<void()> m_preDrawFunc = nullptr;
@@ -343,7 +346,7 @@ namespace GameObj {
 
 			//インスタンシングモデルに送る
 			if (m_isDraw) {
-				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix, m_scale, m_minAABB, m_maxAABB, m_ptrParam, m_watcher);
+				m_model[m_playingAnimNum]->AddDrawInstance(m_worldMatrix, m_worldMatrixOld, m_SRTMatrix, m_scale, m_minAABB, m_maxAABB, m_ptrParam, &m_insIsDrawPtr);// m_watcher);
 			}
 
 			//更新してなければ
@@ -392,8 +395,10 @@ namespace GameObj {
 		}
 
 		//描画するか設定
+		//※実行タイミングによってはダングリングポインタへのアクセスが発生します(面倒なので放置)
 		void SetIsDraw(bool enable) {
 			m_isDraw = enable;
+			if (m_insIsDrawPtr) { *m_insIsDrawPtr = enable; }
 		}
 		bool GetIsDraw() const{
 			return m_isDraw;
@@ -413,7 +418,7 @@ namespace GameObj {
 		}		
 
 	private:
-		std::shared_ptr<InstanceWatcher> m_watcher;
+		bool* m_insIsDrawPtr = nullptr;//std::shared_ptr<InstanceWatcher> m_watcher;
 
 		bool m_isInit = false;
 		bool m_isDraw = true;

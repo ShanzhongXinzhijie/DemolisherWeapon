@@ -51,9 +51,9 @@ namespace GameObj {
 
 	void InstancingModel::PreLoopUpdate() {
 		//ループ前にインスタンス数のリセット
-		for (int i = 0; i < m_instanceIndex; i++) {//m_instanceMax
-			m_insWatchers[i].reset();
-		}
+		//for (int i = 0; i < m_instanceIndex; i++) {//m_instanceMax
+		//	m_insWatchers[i].reset();
+		//}
 		m_instanceIndex = 0;
 	}
 
@@ -110,7 +110,8 @@ namespace GameObj {
 				int drawNum = 0;
 				for (int i = 0; i < m_instanceIndex; i++) {
 					//描画しない
-					if (m_insWatchers[i].expired() || !m_insWatchers[i].lock()->GetIsDraw()) { m_drawInstanceMask[i] = false; continue; }
+					//if (m_insWatchers[i].expired() || !m_insWatchers[i].lock()->GetIsDraw()) { m_drawInstanceMask[i] = false; continue; }
+					if (!m_drawInstanceMask[i]) { continue; }
 
 					//視錐台カリング
 					if (m_isFrustumCull) {
@@ -179,7 +180,7 @@ namespace GameObj {
 		m_worldMatrixCache.reset();
 		m_worldMatrixOldCache.reset();
 
-		m_insWatchers.reset();
+		//m_insWatchers.reset();
 
 		m_instanceData.clear();
 	}
@@ -212,7 +213,7 @@ namespace GameObj {
 		m_worldMatrixOldCache = std::make_unique<CMatrix[]>(m_instanceMax);
 
 		//インスタンスたちを監視する
-		m_insWatchers = std::make_unique<std::weak_ptr<InstanceWatcher>[]>(m_instanceMax);
+		//m_insWatchers = std::make_unique<std::weak_ptr<InstanceWatcher>[]>(m_instanceMax);
 		
 		//StructuredBufferの確保
 		D3D11_BUFFER_DESC desc;
@@ -237,11 +238,11 @@ namespace GameObj {
 	}
 	
 	CInstancingModelRender::CInstancingModelRender(bool isRegister) : IQSGameObject(isRegister) {
-		m_watcher = std::make_shared<InstanceWatcher>();
-		m_watcher->Watch(this);
+		//m_watcher = std::make_shared<InstanceWatcher>();
+		//m_watcher->Watch(this);
 	}
 	CInstancingModelRender::~CInstancingModelRender() {
-		m_watcher->Watch(nullptr);
+		//m_watcher->Watch(nullptr);
 	}
 	InstancingModelManager CInstancingModelRender::m_s_instancingModelManager;
 }
