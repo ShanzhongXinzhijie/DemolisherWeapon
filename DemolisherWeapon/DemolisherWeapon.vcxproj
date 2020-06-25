@@ -270,6 +270,8 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="DirectX12\DX12Test.h" />
+    <ClInclude Include="Render\DX12Render.h" />
     <ClInclude Include="Graphic\IDrawer.h" />
     <ClInclude Include="Render\HUDRender.h" />
     <ClInclude Include="Macro\Macro.h" />
@@ -373,6 +375,8 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DirectX12\DX12Test.cpp" />
+    <ClCompile Include="Render\DX12Render.cpp" />
     <ClCompile Include="Render\HUDRender.cpp" />
     <ClCompile Include="Render\PreRenderRender.cpp" />
     <ClCompile Include="Render\InitRender.cpp" />
