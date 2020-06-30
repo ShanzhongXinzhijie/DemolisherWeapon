@@ -62,6 +62,8 @@ struct InitEngineParameter {
 	//シェーダのファイルパスをエンジンのものに置き換えるか?
 	//※デバッグ用 DW_MASTER時無効
 	bool isShaderPathReplaceForEngineFilePath = false;
+	//更新があればシェーダーの再コンパイルを行うか?
+	bool isShaderRecompile = true;
 
 	//低スペック用設定をセット
 	void SetLowSpecSetting() {
