@@ -88,8 +88,8 @@ namespace GameObj {
 
 			//ŠÄ‹Ò“o˜^
 			//m_insWatchers[m_instanceIndex] = watcher;
-			*rtn_isDraw = &m_drawInstanceMask[m_instanceIndex];
-			m_drawInstanceMask[m_instanceIndex] = true;//•`‰æ‚·‚é‚à‚Ì‚Æ‚µ‚Äˆµ‚¤
+			*rtn_isDraw = &m_isDraw[m_instanceIndex];
+			m_isDraw[m_instanceIndex] = true;//•`‰æ‚·‚é‚à‚Ì‚Æ‚µ‚Äˆµ‚¤
 
 			m_instanceIndex++;
 		}
@@ -217,6 +217,7 @@ namespace GameObj {
 		ID3D11ShaderResourceView*	m_worldMatrixSRVOld = nullptr;
 
 		//‹‘äƒJƒŠƒ“ƒO—p
+		std::unique_ptr<bool[]>		m_isDraw;
 		std::unique_ptr<bool[]>		m_drawInstanceMask;
 		std::unique_ptr<CVector3[]> m_minAABB, m_maxAABB;
 		std::unique_ptr<CMatrix[]>	m_worldMatrixCache;
