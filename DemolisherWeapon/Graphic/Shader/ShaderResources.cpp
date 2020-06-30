@@ -504,6 +504,12 @@ bool ShaderResources::Load(
 				SShaderResourcePtr resource = std::make_unique<SShaderResource>();
 				if (!LoadShaderResource(path.c_str(), pDefines, entryFuncName, shaderType, resource.get())) {
 					//失敗
+					if (!m_isRecompile) {
+						char str[512];
+						strcpy_s(str, "シェーダーファイルが無い\n");
+						strcat_s(str, path.c_str());
+						MessageBox(NULL, str, "Error", MB_OK);
+					}
 					//return false;
 				}
 				else {

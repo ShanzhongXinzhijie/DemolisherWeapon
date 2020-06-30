@@ -210,6 +210,34 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(m_pd3dDeviceContext);
 	m_spriteBatchPMA = std::make_unique<DirectX::SpriteBatch>(m_pd3dDeviceContext);
 
+	//ロード画面描画
+	{
+		//背景色
+		//float ClearColor[4] = { 0.0f,0.3f,0.95f,1.0f };
+		//m_pd3dDeviceContext->ClearRenderTargetView(m_backBuffer, ClearColor);
+		//m_pd3dDeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+		//描画先をバックバッファにする
+		SetBackBufferToRenderTarget();
+		
+		//2D用の設定にする
+		SetViewport(0.0f, 0.0f, GetFrameBuffer_W(), GetFrameBuffer_H());
+
+		//テキスト
+		GetSpriteBatch()->Begin();// DirectX::SpriteSortMode::SpriteSortMode_Deferred, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
+		GetSpriteFont()->DrawString(
+			GetEngine().GetGraphicsEngine().GetSpriteBatch(),
+			L"ピョピグプフヒネプを実行中\n"
+			L"初回起動時は時間がかかります...(すごく)",
+			{ 0.5f * GetFrameBuffer_W(), 0.5f * GetFrameBuffer_H() },
+			{ 1.0f,1.0f,1.0f,1.0f }, 0.0f, DirectX::XMFLOAT2(0.5f, 0.5f), 0.5f
+		);
+		GetSpriteBatch()->End();
+
+		//バックバッファを表へ
+		SwapBackBuffer();
+	}
+
 	//フルスクリーン描画プリミティブ初期化	
 	m_fullscreen.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, m_vertex, 4, m_index);
 

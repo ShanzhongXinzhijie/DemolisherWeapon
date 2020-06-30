@@ -1,5 +1,6 @@
 #include "DWstdafx.h"
 #include "Engine.h"
+#include "graphic/shader/ShaderPreloader.h"
 
 namespace DemolisherWeapon {
 
@@ -160,6 +161,11 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	//アンビエントライト
 	SetAmbientLight(initParam.defaultAmbientLight);
+
+	//シェーダーのプリロード
+	if (initParam.isPreloadPresetShader) {
+		new GameObj::Suicider::ShaderPreloader;
+	}
 }
 
 void Engine::ChangeWindowSize(int screenWidth, int screenHeight) {

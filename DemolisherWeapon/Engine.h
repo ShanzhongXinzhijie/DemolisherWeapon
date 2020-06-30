@@ -64,6 +64,8 @@ struct InitEngineParameter {
 	bool isShaderPathReplaceForEngineFilePath = false;
 	//更新があればシェーダーの再コンパイルを行うか?
 	bool isShaderRecompile = true;
+	//起動時にプリセットシェーダーのプリロードを行うか?
+	bool isPreloadPresetShader = true;
 
 	//低スペック用設定をセット
 	void SetLowSpecSetting() {
