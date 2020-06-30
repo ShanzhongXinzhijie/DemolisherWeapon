@@ -123,6 +123,8 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 
 	//シェーダーのパス設定(デバッグ用)
 	ShaderResources::GetInstance().SetIsReplaceForEngineFilePath(initParam.isShaderPathReplaceForEngineFilePath);
+	//シェーダーの再コンパイル設定
+	ShaderResources::GetInstance().SetIsRecompile(initParam.isShaderRecompile);
 
 	//書き込み先になるレンダリングターゲットを作成。
 	ID3D11Texture2D* pBackBuffer = NULL;

@@ -145,6 +145,13 @@ public:
 #endif
 	}
 
+	/// <summary>
+	/// 更新があればシェーダーの再コンパイルを行うか設定
+	/// </summary>
+	void SetIsRecompile(bool isRecompile) {
+		m_isRecompile = isRecompile;
+	}
+
 private:
 	/// <summary>
 	/// シェーダープログラム
@@ -172,6 +179,8 @@ private:
 #ifndef DW_MASTER
 	bool m_replaceForEngineFilePath = false;//ファイルパスをエンジン下に置き換えるか?
 #endif
+
+	bool m_isRecompile = true;//更新があればシェーダーの再コンパイルを行うか
 
 private:
 	//シェーダプログラムをロード

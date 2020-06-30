@@ -448,7 +448,6 @@ bool ShaderResources::Load(
 	}
 	//コンパイルしてない!
 	if (!isCompiled) {
-		//メタファイルの読み込み
 		{
 			//メタファイルへのファイルパスを作成
 #ifndef DW_MASTER
@@ -456,39 +455,42 @@ bool ShaderResources::Load(
 #else
 			std::string path("Preset/shader/meta/master/");
 #endif
-			path += hashString;
-			path += ".dwsmeta";
-			{
-				//メタファイルがあるか?
-				std::ifstream ifs(path);
-				if (ifs) {
-					//メタファイルはあります
-					isMeta = true;
-					
-					//更新日時ロード
-					bool isLoad = false;
-					std::string lastwritetimeString;
-					long long lastwritetime = 0;
-					while (!ifs.eof())
-					{
-						std::getline(ifs, lastwritetimeString);
-						lastwritetime = std::stoll(lastwritetimeString);
-						isLoad = true;
-						break;
-					}
-
-					if (isLoad && lastwritetime == std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(filePath).time_since_epoch()).count()) {
-						//更新日時が一致する場合はファイルからblobを読み込む
+			//メタファイルの読み込み
+			if (m_isRecompile) {
+				path += hashString;
+				path += ".dwsmeta";
+				{
+					//メタファイルがあるか?
+					std::ifstream ifs(path);
+					if (ifs) {
+						//メタファイルはあります
 						isMeta = true;
-					}
-					else {
-						//更新日時が一致しない場合はファイルがないものとして扱う
-						isMeta = false;
+
+						//更新日時ロード
+						bool isLoad = false;
+						std::string lastwritetimeString;
+						long long lastwritetime = 0;
+						while (!ifs.eof())
+						{
+							std::getline(ifs, lastwritetimeString);
+							lastwritetime = std::stoll(lastwritetimeString);
+							isLoad = true;
+							break;
+						}
+
+						if (isLoad && lastwritetime == std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(filePath).time_since_epoch()).count()) {
+							//更新日時が一致する場合はファイルからblobを読み込む
+							isMeta = true;
+						}
+						else {
+							//更新日時が一致しない場合はファイルがないものとして扱う
+							isMeta = false;
+						}
 					}
 				}
 			}
 			//メタファイルあり
-			if (isMeta) {
+			if (isMeta || !m_isRecompile) {
 				//ファイルパス作成
 #ifndef DW_MASTER
 				path = "Preset/shader/meta/debug/";
