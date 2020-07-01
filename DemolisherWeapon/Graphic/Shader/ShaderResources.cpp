@@ -21,6 +21,7 @@ namespace {
 		FILE* fp = nullptr;
 		errno_t err = fopen_s(&fp, filePath, "rb");
 		DW_ERRORBOX(err != 0, "<ShaderResources.cpp>ReadFile\nファイルが開けませんでした。");
+		if (err != 0) { fileSize = -1; return nullptr; }
 		fseek(fp, 0, SEEK_END);
 		fpos_t fPos;
 		fgetpos(fp, &fPos);
@@ -368,7 +369,7 @@ bool ShaderResources::LoadShaderResource(const char* filePath, const D3D_SHADER_
 	return_resource->fileblob = ReadFile(filePath, filesize);
 	return_resource->fileblobSize = filesize;
 	//読み込み後の処理
-	if (!PostLoadShader(return_resource->fileblob.get(), return_resource->fileblobSize, shaderType, entryFuncName, pDefines, false, return_resource)) {
+	if (filesize < 0 || !PostLoadShader(return_resource->fileblob.get(), return_resource->fileblobSize, shaderType, entryFuncName, pDefines, false, return_resource)) {
 		//エラー!
 		return_resource->fileblob.reset();
 		return_resource->fileblobSize = 0;
