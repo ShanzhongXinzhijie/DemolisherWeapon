@@ -159,6 +159,8 @@ public:
 	}
 
 private:
+	bool m_isInit = false;
+
 	//[defferd.fx : lightCb]
 	struct SLightParam {
 		CVector3 eyePos;			//‹ü‚ÌˆÊ’uB

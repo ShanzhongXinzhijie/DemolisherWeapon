@@ -96,6 +96,8 @@ void LightManager::Init() {
 		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_pointLightsSB, &srvdesc, &m_pointLightsSRV);
 
 	}
+
+	m_isInit = true;
 }
 
 void LightManager::Release() {
@@ -104,9 +106,14 @@ void LightManager::Release() {
 	m_directionLightSRV->Release();
 	m_pointLightsSB->Release();
 	m_pointLightsSRV->Release();
+	m_isInit = false;
 }
 
 void LightManager::UpdateStructuredBuffers() {
+	if (!m_isInit) {
+		return;
+	}
+
 	//ディレクションライトの更新
 	{
 		int i = 0;
@@ -161,6 +168,10 @@ void LightManager::UpdateStructuredBuffers() {
 }
 
 void LightManager::UpdateConstantBuffer() {
+	if (!m_isInit) {
+		return;
+	}
+
 	//カメラ位置更新
 	if (GetMainCamera()) {
 		m_lightParam.eyePos = GetMainCamera()->GetPos();

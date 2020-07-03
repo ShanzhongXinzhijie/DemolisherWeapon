@@ -28,8 +28,10 @@ public:
 	Effekseer::Manager* GetManager() { return m_manager; }
 
 private:
-	static const int MAX_SPRITE = 12000;
-	static const int MAX_MONO_VOICE = 64, MAX_STER_VOICE = 64;
+	static constexpr int MAX_SPRITE = 12000;
+	static constexpr int MAX_MONO_VOICE = 64, MAX_STER_VOICE = 64;
+
+	bool m_isInit = false;
 
 	::EffekseerRenderer::Renderer* m_renderer = nullptr;
 	::EffekseerSound::Sound* m_sound = nullptr;

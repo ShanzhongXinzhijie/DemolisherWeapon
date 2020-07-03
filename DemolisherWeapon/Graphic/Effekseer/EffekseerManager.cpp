@@ -12,7 +12,6 @@ EffekseerManager::~EffekseerManager()
 }
 
 void EffekseerManager::Init() {
-
 	// 描画管理インスタンスの生成
 	m_renderer = ::EffekseerRendererDX11::Renderer::Create(GetEngine().GetGraphicsEngine().GetD3DDevice(), GetEngine().GetGraphicsEngine().GetD3DDeviceContext(), MAX_SPRITE);
 	// サウンド管理インスタンスの生成
@@ -41,6 +40,8 @@ void EffekseerManager::Init() {
 
 	// 座標系の指定(RHで右手系、LHで左手系)
 	m_manager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
+
+	m_isInit = true;
 }
 
 void EffekseerManager::Release() {
@@ -58,9 +59,15 @@ void EffekseerManager::Release() {
 	if (m_sound) m_sound->Destroy();
 	// 描画用インスタンスを破棄
 	if (m_renderer) m_renderer->Destroy();
+
+	m_isInit = false;
 }
 
 void EffekseerManager::Update() {
+	if (!m_isInit) { 
+		return; 
+	}
+
 	if (GetMainCamera()) {
 		// 3Dサウンド用リスナー設定の更新
 
@@ -81,6 +88,9 @@ void EffekseerManager::Update() {
 }
 
 void EffekseerManager::Draw() {
+	if (!m_isInit) {
+		return;
+	}
 
 #ifndef DW_MASTER
 	if (!GetMainCamera()) {
