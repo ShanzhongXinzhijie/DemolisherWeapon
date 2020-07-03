@@ -100,6 +100,9 @@ void AmbientOcclusionRender::Render() {
 
 	if (!m_enable) { return; }
 
+	//GPUイベントの開始
+	GetGraphicsEngine().BeginGPUEvent(L"AmbientOcclusionRender");
+
 	ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 #ifndef DW_MASTER
@@ -150,6 +153,9 @@ void AmbientOcclusionRender::Render() {
 	}
 
 	m_gaussBlur.Blur();
+
+	//GPUイベントの終了
+	GetGraphicsEngine().EndGPUEvent();
 }
 
 ID3D11ShaderResourceView*& AmbientOcclusionRender::GetAmbientOcclusionSRV() {

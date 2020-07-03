@@ -9,7 +9,7 @@ namespace GameObj {
 class CSkinModelRender : public IQSGameObject{
 
 public:
-	CSkinModelRender();
+	CSkinModelRender(bool isRegister = true);
 
 private:
 	void PreLoopUpdate()override final;

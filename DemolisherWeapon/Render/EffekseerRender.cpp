@@ -4,6 +4,9 @@
 namespace DemolisherWeapon {
 
 	void EffekseerRender::Render() {
+		//GPUイベントの開始
+		GetGraphicsEngine().BeginGPUEvent(L"EffekseerRender");
+
 		//レンダーターゲットとか設定		
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(
 			1,
@@ -16,6 +19,9 @@ namespace DemolisherWeapon {
 
 		//レンダーターゲット解除
 		GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+
+		//GPUイベントの終了
+		GetGraphicsEngine().EndGPUEvent();
 	}
 
 }

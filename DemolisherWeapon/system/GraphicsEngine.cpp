@@ -137,6 +137,8 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 
 	//シェーダーのパス設定(デバッグ用)
 	ShaderResources::GetInstance().SetIsReplaceForEngineFilePath(initParam.isShaderPathReplaceForEngineFilePath);
+	//シェーダーの再コンパイル設定
+	ShaderResources::GetInstance().SetIsRecompile(initParam.isShaderRecompile);
 
 	//書き込み先になるレンダリングターゲットを作成。
 	ID3D11Texture2D* pBackBuffer = NULL;
@@ -221,6 +223,34 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	m_spriteFont = std::make_unique<DirectX::SpriteFont>(m_pd3dDevice, L"Preset/Font/myfile.spritefont");
 	m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(m_pd3dDeviceContext);
 	m_spriteBatchPMA = std::make_unique<DirectX::SpriteBatch>(m_pd3dDeviceContext);
+
+	//ロード画面描画
+	{
+		//背景色
+		//float ClearColor[4] = { 0.0f,0.3f,0.95f,1.0f };
+		//m_pd3dDeviceContext->ClearRenderTargetView(m_backBuffer, ClearColor);
+		//m_pd3dDeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+		//描画先をバックバッファにする
+		SetBackBufferToRenderTarget();
+		
+		//2D用の設定にする
+		SetViewport(0.0f, 0.0f, GetFrameBuffer_W(), GetFrameBuffer_H());
+
+		//テキスト
+		GetSpriteBatch()->Begin();// DirectX::SpriteSortMode::SpriteSortMode_Deferred, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
+		GetSpriteFont()->DrawString(
+			GetEngine().GetGraphicsEngine().GetSpriteBatch(),
+			L"ピョピグプフヒネプを実行中\n"
+			L"初回起動時は時間がかかります...(すごく)",
+			{ 0.5f * GetFrameBuffer_W(), 0.5f * GetFrameBuffer_H() },
+			{ 1.0f,1.0f,1.0f,1.0f }, 0.0f, DirectX::XMFLOAT2(0.5f, 0.5f), 0.5f
+		);
+		GetSpriteBatch()->End();
+
+		//バックバッファを表へ
+		SwapBackBuffer();
+	}
 
 	//フルスクリーン描画プリミティブ初期化	
 	m_fullscreen.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, m_vertex, 4, m_index);
@@ -431,19 +461,24 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 	m_motionBlurRender.Resize();	
 	m_ConvertLinearToSRGB.Resize();
 	m_primitiveRender.Resize();		
+	//HUDリサイズ
+	for (auto& hud : m_HUDRender) {
+		if (hud) {
+			hud->Resize({ (float)HUDWidth, (float)HUDHeight });
+		}
+	}
 
 	//画面分割変更
-	if (isChangeSplitScreen) {
-		
+	if (isChangeSplitScreen) {		
 		//再確保
 		m_finalRender[0].reset();
 		m_finalRender[1].reset();
 		m_preRenderRender[0].reset();
 		m_preRenderRender[1].reset();
-		m_HUDRender[0].reset();
-		m_HUDRender[1].reset();
 		m_cameraSwitchRender[0].reset();
 		m_cameraSwitchRender[1].reset();
+		m_HUDRender[0].reset();
+		m_HUDRender[1].reset();
 
 		if (m_isSplitScreen) {
 			//画面分割時初期化
@@ -471,15 +506,7 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 			m_preRenderRender[0] = std::make_unique<PreRenderRender>();
 			m_preRenderRender[1] = std::make_unique<PreRenderRender>();
 			m_preRenderRender[0]->Init(0);
-			m_preRenderRender[1]->Init(1);
-
-			//HUD描画レンダー
-			for (int i = 0; i < 2; i++) {
-				CVector2 areaMin, areaMax;
-				m_finalRender[i]->GetDrawArea(areaMin, areaMax);
-				m_HUDRender[i] = std::make_unique<HUDRender>();
-				m_HUDRender[i]->Init(i, areaMin, areaMax, { (float)HUDWidth, (float)HUDHeight });
-			}
+			m_preRenderRender[1]->Init(1);			
 
 			//カメラ切り替えレンダーの初期化
 			m_cameraSwitchRender[0] = std::make_unique<CameraSwitchRender>();
@@ -497,14 +524,14 @@ void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBuffer
 			//描画前処理レンダー
 			m_preRenderRender[0] = std::make_unique<PreRenderRender>();
 			m_preRenderRender[0]->Init(0);
+		}
 
-			//HUD描画レンダー
-			for (int i = 0; i < 1; i++) {
-				CVector2 areaMin, areaMax;
-				m_finalRender[i]->GetDrawArea(areaMin, areaMax);
-				m_HUDRender[i] = std::make_unique<HUDRender>();
-				m_HUDRender[i]->Init(i, areaMin, areaMax, { (float)HUDWidth, (float)HUDHeight });
-			}
+		//HUDレンダー
+		for (int i = 0; i < (m_isSplitScreen ? 2 : 1); i++) {
+			CVector2 areaMin, areaMax;
+			m_finalRender[i]->GetDrawArea(areaMin, areaMax);
+			m_HUDRender[i] = std::make_unique<HUDRender>();
+			m_HUDRender[i]->Init(i, areaMin, areaMax, { (float)HUDWidth, (float)HUDHeight });
 		}
 
 		//画面分割数分実行

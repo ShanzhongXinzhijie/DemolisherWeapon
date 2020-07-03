@@ -152,8 +152,8 @@ namespace GameObj {
 		StreamingVoiceContext m_voiceContext;
 		OVERLAPPED m_ovlCurrentRequest = { 0 };
 
-		static const int STREAMING_BUFFER_SIZE = 65536;
-		static const int MAX_BUFFER_COUNT = 3;
+		static constexpr int STREAMING_BUFFER_SIZE = 65536;
+		static constexpr int MAX_BUFFER_COUNT = 3;
 		static_assert((STREAMING_BUFFER_SIZE % 2048) == 0, "Streaming size must be 2K aligned to use for async I/O");
 
 		BYTE m_buffers[MAX_BUFFER_COUNT][STREAMING_BUFFER_SIZE] = {0};

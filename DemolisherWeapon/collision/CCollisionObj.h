@@ -9,7 +9,7 @@ enum EnCollisionTimer {
 	enNoTimer = -1,
 };
 
-static constexpr int CCollisionObjFilter = 64;
+inline constexpr int CCollisionObjFilter = 64;
 
 namespace GameObj {
 namespace Suicider {

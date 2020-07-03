@@ -355,6 +355,7 @@
     <ClInclude Include="Render\PreRenderRender.h" />
     <ClInclude Include="Render\InitRender.h" />
     <ClInclude Include="Graphic\Shader\StructuredBuffer.h" />
+    <ClInclude Include="Graphic\Shader\ShaderPreloader.h" />
     <ClInclude Include="Timer\CDeleteTimer.h" />
     <ClInclude Include="Graphic\Particle\CParticle.h" />
     <ClInclude Include="DWVersion.h" />
@@ -458,6 +459,7 @@
     <ClCompile Include="Render\PreRenderRender.cpp" />
     <ClCompile Include="Render\InitRender.cpp" />
     <ClCompile Include="Graphic\Shader\StructuredBuffer.cpp" />
+    <ClCompile Include="Graphic\Shader\ShaderPreloader.cpp" />
     <ClCompile Include="Timer\CDeleteTimer.cpp" />
     <ClCompile Include="Graphic\Particle\CParticle.cpp" />
     <ClCompile Include="Graphic\FrustumCulling.cpp" />

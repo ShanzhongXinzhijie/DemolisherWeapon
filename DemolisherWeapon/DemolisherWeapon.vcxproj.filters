@@ -108,6 +108,7 @@
     <ClInclude Include="Render\PreRenderRender.h" />
     <ClInclude Include="Render\HUDRender.h" />
     <ClInclude Include="Macro\Macro.h" />
+    <ClInclude Include="Graphic\Shader\ShaderPreloader.h" />
     <ClInclude Include="DirectX12\DX12Test.h" />
     <ClInclude Include="Render\DX12Render.h" />
   </ItemGroup>

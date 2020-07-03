@@ -51,9 +51,9 @@ namespace GameObj {
 
 	void InstancingModel::PreLoopUpdate() {
 		//ループ前にインスタンス数のリセット
-		for (int i = 0; i < m_instanceIndex; i++) {//m_instanceMax
-			m_insWatchers[i].reset();
-		}
+		//for (int i = 0; i < m_instanceIndex; i++) {//m_instanceMax
+		//	m_insWatchers[i].reset();
+		//}
 		m_instanceIndex = 0;
 	}
 
@@ -110,7 +110,8 @@ namespace GameObj {
 				int drawNum = 0;
 				for (int i = 0; i < m_instanceIndex; i++) {
 					//描画しない
-					if (m_insWatchers[i].expired() || !m_insWatchers[i].lock()->GetIsDraw()) { m_drawInstanceMask[i] = false; continue; }
+					//if (m_insWatchers[i].expired() || !m_insWatchers[i].lock()->GetIsDraw()) { m_drawInstanceMask[i] = false; continue; }
+					if (!m_isDraw[i]) { m_drawInstanceMask[i] = false; continue; }
 
 					//視錐台カリング
 					if (m_isFrustumCull) {
@@ -174,12 +175,13 @@ namespace GameObj {
 		if (m_worldMatrixSBOld) { m_worldMatrixSBOld->Release(); m_worldMatrixSBOld = nullptr; }
 		if (m_worldMatrixSRVOld) { m_worldMatrixSRVOld->Release(); m_worldMatrixSRVOld = nullptr; }
 
+		m_isDraw.reset();
 		m_drawInstanceMask.reset();
 		m_minAABB.reset(); m_maxAABB.reset();
 		m_worldMatrixCache.reset();
 		m_worldMatrixOldCache.reset();
 
-		m_insWatchers.reset();
+		//m_insWatchers.reset();
 
 		m_instanceData.clear();
 	}
@@ -205,6 +207,7 @@ namespace GameObj {
 		m_instancingWorldMatrix = std::make_unique<CMatrix[]>(m_instanceMax);
 		m_instancingWorldMatrixOld = std::make_unique<CMatrix[]>(m_instanceMax);
 		//視錐台カリング用
+		m_isDraw = std::make_unique<bool[]>(m_instanceMax);
 		m_drawInstanceMask = std::make_unique<bool[]>(m_instanceMax);
 		m_minAABB = std::make_unique<CVector3[]>(m_instanceMax);
 		m_maxAABB = std::make_unique<CVector3[]>(m_instanceMax);
@@ -212,7 +215,7 @@ namespace GameObj {
 		m_worldMatrixOldCache = std::make_unique<CMatrix[]>(m_instanceMax);
 
 		//インスタンスたちを監視する
-		m_insWatchers = std::make_unique<std::weak_ptr<InstanceWatcher>[]>(m_instanceMax);
+		//m_insWatchers = std::make_unique<std::weak_ptr<InstanceWatcher>[]>(m_instanceMax);
 		
 		//StructuredBufferの確保
 		D3D11_BUFFER_DESC desc;
@@ -236,12 +239,12 @@ namespace GameObj {
 		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_worldMatrixSBOld, &descSRV, &m_worldMatrixSRVOld);
 	}
 	
-	CInstancingModelRender::CInstancingModelRender() {
-		m_watcher = std::make_shared<InstanceWatcher>();
-		m_watcher->Watch(this);
+	CInstancingModelRender::CInstancingModelRender(bool isRegister) : IQSGameObject(isRegister) {
+		//m_watcher = std::make_shared<InstanceWatcher>();
+		//m_watcher->Watch(this);
 	}
 	CInstancingModelRender::~CInstancingModelRender() {
-		m_watcher->Watch(nullptr);
+		//m_watcher->Watch(nullptr);
 	}
 	InstancingModelManager CInstancingModelRender::m_s_instancingModelManager;
 }

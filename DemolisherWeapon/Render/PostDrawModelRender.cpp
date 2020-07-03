@@ -52,6 +52,9 @@ namespace DemolisherWeapon {
 			std::abort();
 		}
 #endif
+		//GPUイベントの開始
+		GetGraphicsEngine().BeginGPUEvent(L"PostDrawModelRender");
+
 		//ブレンドステート変更
 		ID3D11BlendState* oldBlendState = nullptr; FLOAT oldf[4]; UINT olduint;
 		GetGraphicsEngine().GetD3DDeviceContext()->OMGetBlendState(&oldBlendState, oldf, &olduint);
@@ -86,6 +89,9 @@ namespace DemolisherWeapon {
 			GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(oldBlendState, oldf, olduint);
 			oldBlendState->Release();
 		}		
+
+		//GPUイベントの終了
+		GetGraphicsEngine().EndGPUEvent();
 	}
 
 	void PostDrawModelRender::PostRender() {

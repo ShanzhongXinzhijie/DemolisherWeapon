@@ -44,7 +44,7 @@ protected:
 	//bool m_isUseTexZShader = false;
 	SkinModelEffectShader m_psDefaultShader;
 	Shader m_psZShader[2];//Z値出力用
-	SkinModelEffectShader m_psTriPlanarMapShader;//TriPlanarMapping用のシェーダ
+	SkinModelEffectShader m_psTriPlanarMapShader, m_psTriPlanarMapShaderYOnly;//TriPlanarMapping用のシェーダ
 
 	bool isSkining;//スキンモデルか？
 
@@ -66,7 +66,9 @@ public:
 		//マクロごとにピクセルシェーダを作成
 		m_psDefaultShader.Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
 		m_psTriPlanarMapShader.Load("Preset/shader/TriPlanarMapping.fx", "PS_TriPlanarMapping", Shader::EnType::PS);
-		
+		D3D_SHADER_MACRO macrosYOnly[] = { "Y_ONLY", "1", NULL, NULL };
+		m_psTriPlanarMapShaderYOnly.Load("Preset/shader/TriPlanarMapping.fx", "PS_TriPlanarMapping", Shader::EnType::PS, "Y_ONLY", macrosYOnly);
+
 		//マクロごとにZ値描画ピクセルシェーダを作成
 		D3D_SHADER_MACRO macrosZ[] = { "TEXTURE", "1", NULL, NULL };
 		m_psZShader[0].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
@@ -235,8 +237,8 @@ public:
 		return &m_psZShader[0];
 	}
 	//TriPlanarMapping用のシェーダを取得
-	SkinModelEffectShader* GetTriPlanarMappingPS() {
-		return &m_psTriPlanarMapShader;
+	SkinModelEffectShader* GetTriPlanarMappingPS(bool isYOnly) {
+		return isYOnly ? &m_psTriPlanarMapShaderYOnly : &m_psTriPlanarMapShader;
 	}
 
 	//名前を設定

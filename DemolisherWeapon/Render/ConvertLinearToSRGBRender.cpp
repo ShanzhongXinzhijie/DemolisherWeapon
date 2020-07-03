@@ -29,6 +29,9 @@ void ConvertLinearToSRGBRender::Release() {
 }
 
 void ConvertLinearToSRGBRender::Render() {
+	//GPUイベントの開始
+	GetGraphicsEngine().BeginGPUEvent(L"ConvertLinearToSRGBRender");
+
 	ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 	//SRVをセット	
@@ -59,6 +62,9 @@ void ConvertLinearToSRGBRender::Render() {
 
 	//レンダーターゲット解除
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->OMSetRenderTargets(0, NULL, NULL);
+
+	//GPUイベントの終了
+	GetGraphicsEngine().EndGPUEvent();
 }
 
 }

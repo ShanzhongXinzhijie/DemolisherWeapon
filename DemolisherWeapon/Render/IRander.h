@@ -42,5 +42,5 @@ private:
 };
 
 //ï`âÊèáä÷åW
-static const int DRAW_PRIORITY_MAX = 5;
-static const int DRAW_PRIORITY_DEFAULT = 2;
+inline constexpr int DRAW_PRIORITY_MAX = 5;
+inline constexpr int DRAW_PRIORITY_DEFAULT = 2;

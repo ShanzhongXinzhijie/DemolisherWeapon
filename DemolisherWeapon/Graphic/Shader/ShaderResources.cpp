@@ -21,6 +21,7 @@ namespace {
 		FILE* fp = nullptr;
 		errno_t err = fopen_s(&fp, filePath, "rb");
 		DW_ERRORBOX(err != 0, "<ShaderResources.cpp>ReadFile\nファイルが開けませんでした。");
+		if (err != 0) { fileSize = -1; return nullptr; }
 		fseek(fp, 0, SEEK_END);
 		fpos_t fPos;
 		fgetpos(fp, &fPos);
@@ -368,7 +369,7 @@ bool ShaderResources::LoadShaderResource(const char* filePath, const D3D_SHADER_
 	return_resource->fileblob = ReadFile(filePath, filesize);
 	return_resource->fileblobSize = filesize;
 	//読み込み後の処理
-	if (!PostLoadShader(return_resource->fileblob.get(), return_resource->fileblobSize, shaderType, entryFuncName, pDefines, false, return_resource)) {
+	if (filesize < 0 || !PostLoadShader(return_resource->fileblob.get(), return_resource->fileblobSize, shaderType, entryFuncName, pDefines, false, return_resource)) {
 		//エラー!
 		return_resource->fileblob.reset();
 		return_resource->fileblobSize = 0;
@@ -448,7 +449,6 @@ bool ShaderResources::Load(
 	}
 	//コンパイルしてない!
 	if (!isCompiled) {
-		//メタファイルの読み込み
 		{
 			//メタファイルへのファイルパスを作成
 #ifndef DW_MASTER
@@ -456,39 +456,42 @@ bool ShaderResources::Load(
 #else
 			std::string path("Preset/shader/meta/master/");
 #endif
-			path += hashString;
-			path += ".dwsmeta";
-			{
-				//メタファイルがあるか?
-				std::ifstream ifs(path);
-				if (ifs) {
-					//メタファイルはあります
-					isMeta = true;
-					
-					//更新日時ロード
-					bool isLoad = false;
-					std::string lastwritetimeString;
-					long long lastwritetime = 0;
-					while (!ifs.eof())
-					{
-						std::getline(ifs, lastwritetimeString);
-						lastwritetime = std::stoll(lastwritetimeString);
-						isLoad = true;
-						break;
-					}
-
-					if (isLoad && lastwritetime == std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(filePath).time_since_epoch()).count()) {
-						//更新日時が一致する場合はファイルからblobを読み込む
+			//メタファイルの読み込み
+			if (m_isRecompile) {
+				path += hashString;
+				path += ".dwsmeta";
+				{
+					//メタファイルがあるか?
+					std::ifstream ifs(path);
+					if (ifs) {
+						//メタファイルはあります
 						isMeta = true;
-					}
-					else {
-						//更新日時が一致しない場合はファイルがないものとして扱う
-						isMeta = false;
+
+						//更新日時ロード
+						bool isLoad = false;
+						std::string lastwritetimeString;
+						long long lastwritetime = 0;
+						while (!ifs.eof())
+						{
+							std::getline(ifs, lastwritetimeString);
+							lastwritetime = std::stoll(lastwritetimeString);
+							isLoad = true;
+							break;
+						}
+
+						if (isLoad && lastwritetime == std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(filePath).time_since_epoch()).count()) {
+							//更新日時が一致する場合はファイルからblobを読み込む
+							isMeta = true;
+						}
+						else {
+							//更新日時が一致しない場合はファイルがないものとして扱う
+							isMeta = false;
+						}
 					}
 				}
 			}
 			//メタファイルあり
-			if (isMeta) {
+			if (isMeta || !m_isRecompile) {
 				//ファイルパス作成
 #ifndef DW_MASTER
 				path = "Preset/shader/meta/debug/";
@@ -502,6 +505,12 @@ bool ShaderResources::Load(
 				SShaderResourcePtr resource = std::make_unique<SShaderResource>();
 				if (!LoadShaderResource(path.c_str(), pDefines, entryFuncName, shaderType, resource.get())) {
 					//失敗
+					if (!m_isRecompile) {
+						char str[512];
+						strcpy_s(str, "シェーダーファイルが無い\n");
+						strcat_s(str, path.c_str());
+						MessageBox(NULL, str, "Error", MB_OK);
+					}
 					//return false;
 				}
 				else {

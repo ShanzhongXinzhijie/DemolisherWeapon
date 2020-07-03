@@ -153,6 +153,9 @@ void FinalRender::Init(const CVector2 screen_min, const CVector2 screen_max, boo
 	m_drawSpace.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, m_vertex, 4, m_index);
 }
 void FinalRender::Render() {
+	//GPUイベントの開始
+	GetGraphicsEngine().BeginGPUEvent(L"FinalRender");
+
 	//描画先をバックバッファにする
 	GetEngine().GetGraphicsEngine().SetBackBufferToRenderTarget();
 
@@ -250,6 +253,9 @@ void FinalRender::Render() {
 
 	//ビューポート戻す
 	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->RSSetViewports(1, &oldviewport);
+
+	//GPUイベントの終了
+	GetGraphicsEngine().EndGPUEvent();
 }
 
 float FinalRender::Calc_k4(float fov) {

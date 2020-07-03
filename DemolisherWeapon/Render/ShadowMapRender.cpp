@@ -18,6 +18,9 @@ void ShadowMapRender::Release() {
 void ShadowMapRender::Render() {
 	if (m_setting == enOFF) { return; }
 
+	//GPUイベントの開始
+	GetGraphicsEngine().BeginGPUEvent(L"ShadowMapRender");
+
 	/*for (auto& list : m_prePostActionList) {
 		list->PreDraw();
 	}*/
@@ -77,6 +80,9 @@ void ShadowMapRender::Render() {
 	/*for (auto& list : m_prePostActionList) {
 		list->PostDraw();
 	}*/
+
+	//GPUイベントの終了
+	GetGraphicsEngine().EndGPUEvent();
 }
 void ShadowMapRender::PostRender() {
 	for (auto& list : m_drawModelList) {

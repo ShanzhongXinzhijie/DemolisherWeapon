@@ -28,12 +28,12 @@ namespace DemolisherWeapon {
 
 		//ビルボードモデル読み込み
 		if (m_isIns) {
-			m_insModel = std::make_unique<GameObj::CInstancingModelRender>();
+			m_insModel = std::make_unique<GameObj::CInstancingModelRender>(m_isRegister);
 			std::wstring_view string[1]; string[0] = identifiers;
 			m_insModel->Init(instancingNum, L"Preset/modelData/billboard.cmo", nullptr, 0, enFbxUpAxisZ, enFbxRightHanded, string);
 		}
 		else {
-			m_model = std::make_unique<GameObj::CSkinModelRender>();
+			m_model = std::make_unique<GameObj::CSkinModelRender>(m_isRegister);
 			m_model->Init(L"Preset/modelData/billboard.cmo");
 		}
 

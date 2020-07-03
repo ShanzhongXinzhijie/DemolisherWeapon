@@ -129,8 +129,11 @@ namespace DemolisherWeapon {
 		void SetDefaultPS();
 		void SetDefaultPSZ();
 
-		//TriPlanarMapping用のシェーダを設定
-		void SetTriPlanarMappingPS();
+		/// <summary>
+		/// TriPlanarMappingシェーダを設定
+		/// </summary>
+		/// <param name="isYOnly">マッピングを縦方向に限定するか</param>
+		void SetTriPlanarMappingPS(bool isYOnly = false);
 		//TriPlanarMapping時のUV座標へのスケールを設定
 		void SetTriPlanarMappingUVScale(float texScale) {
 			m_materialParam.triPlanarMapUVScale = texScale;

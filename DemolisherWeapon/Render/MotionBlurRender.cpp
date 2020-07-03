@@ -80,13 +80,19 @@ void MotionBlurRender::Resize() {
 	ge.GetD3DDevice()->CreateUnorderedAccessView(ge.GetFRT().GetTex(0), &uavDesc, &m_outputUAV);	
 }
 
-void MotionBlurRender::Render() {
-
+void MotionBlurRender::Render() 
+{
 	if (!m_isEnable) { return; }
+	
+	//GPUイベントの開始
+	GetGraphicsEngine().BeginGPUEvent(L"MotionBlurRender");
 
 	ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 	PSBlur(rc);
 	CSBlur(rc);
+
+	//GPUイベントの終了
+	GetGraphicsEngine().EndGPUEvent();
 }
 
 void MotionBlurRender::PSBlur(ID3D11DeviceContext* rc){		

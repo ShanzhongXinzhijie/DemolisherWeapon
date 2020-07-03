@@ -4,6 +4,8 @@ namespace DemolisherWeapon {
 	class CBillboard 
 	{
 	public:
+		CBillboard(bool isRegister = true) : m_isRegister(isRegister) {}
+
 		/// <summary>
 		/// 初期化
 		/// </summary>
@@ -123,17 +125,19 @@ namespace DemolisherWeapon {
 		}
 
 	private:
-		bool m_isInit = false;
-		bool m_isIns = false;
+		bool m_isInit = false;//初期化済みか
+		bool m_isRegister = true;//モデルをGOManagerに登録するか
+		bool m_isIns = false;//インスタンシング描画か
+
+		//モデル
 		std::unique_ptr<GameObj::CSkinModelRender> m_model;
 		std::unique_ptr<GameObj::CInstancingModelRender> m_insModel;
 
-		static inline bool m_s_isShaderLoaded = false;
-		enum EnShaderType{
-			enNormal, enInstancing, enShaderTypeNum
-		};
-		static inline Shader m_s_vsShader[enShaderTypeNum], m_s_vsZShader[enShaderTypeNum];
-
 		float m_aspect = 1.0f;//アスペクト比(縦に対する横の比率)
+
+		//ビルボードシェーダー
+		static inline bool m_s_isShaderLoaded = false;
+		enum EnShaderType { enNormal, enInstancing, enShaderTypeNum };
+		static inline Shader m_s_vsShader[enShaderTypeNum], m_s_vsZShader[enShaderTypeNum];
 	};
 }

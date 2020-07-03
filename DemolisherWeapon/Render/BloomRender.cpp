@@ -130,6 +130,9 @@ namespace DemolisherWeapon {
 	{
 		if (!m_enable) { return; }
 
+		//GPUイベントの開始
+		GetGraphicsEngine().BeginGPUEvent(L"BloomRender");
+
 		ID3D11DeviceContext* rc = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
 		//描画先をクリア
@@ -221,5 +224,8 @@ namespace DemolisherWeapon {
 			GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(oldBlendState, oldf, olduint);
 			oldBlendState->Release();
 		}
+
+		//GPUイベントの終了
+		GetGraphicsEngine().EndGPUEvent();
 	}
 }

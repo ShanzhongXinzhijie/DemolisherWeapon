@@ -1,7 +1,5 @@
 #pragma once
-
 #include <unordered_map>
-
 #include "../util/Util.h"
 
 namespace DemolisherWeapon {
@@ -129,25 +127,20 @@ private:
 //ゲームオブジェクト登録クラス
 struct GORegister
 {
-	GORegister(bool enable, IGameObject* go) {
-		isEnable = enable;
-		gameObject = go;
-	}
+	GORegister(IGameObject* go, bool isQuickStart) 
+		: isEnableGO(true), isNoPendingkill(true), m_isQuickStartGO(isQuickStart), gameObject(go)
+	{}
 
-	bool isEnable = false;
-	IGameObject* gameObject = nullptr;
+	bool isEnableGO = false;//ゲームオブジェクトが有効状態か
+	bool isStartedGO = false;//ゲームオブジェクトがStart関数を実行済みか
+	bool isNoPendingkill = false;//実質削除状態でない
 
 private:
-	bool m_nowOnHell = false;
+	IGameObject* gameObject = nullptr;
+	bool nowOnHell = false;//GameObjectManagerからの削除マーク用
 
-	//地獄に到着
-	void ArriveHell() {
-		m_nowOnHell = true;
-	}
-	//地獄にいるか?
-	bool GetNowOnHell() const{
-		return m_nowOnHell;
-	}
+	bool m_isQuickStartGO = false;
+	bool GetIsStart();
 
 //　GameObjectManagerから操作できる	
 	friend GameObjectManager;
@@ -163,26 +156,7 @@ class IGameObject : public IDW_Class
 {
 public:
 	IGameObject(bool isRegister = true, bool quickStart = false);
-	virtual ~IGameObject() {
-		//有効でないんだ！
-		if (IsRegistered()) { m_register->isEnable = false; }
-		//ステータス更新(死んだぞ！)
-		m_status.m_isDead = true;
-		CastStatus();
-		//デスリスナーに通知
-		GODeathListener::SDeathParam param;
-		param.gameObject = this;
-		auto it = m_deathListeners.begin();
-		while (it != m_deathListeners.end()) {
-			if ((*it).enable) {
-				(*it).listener->RunFunction(param);
-				it++;
-			}
-			else {
-				it = m_deathListeners.erase(it);//削除
-			}
-		}
-	};
+	virtual ~IGameObject();
 
 	IGameObject(const IGameObject& go) = delete;//コピーコンストラクタ
 	IGameObject& operator=(const IGameObject&) = delete;
@@ -194,16 +168,24 @@ private:
 	//開始
 	void SetIsStart() {
 		m_isStart = true;
+		m_register->isStartedGO = true;
+		OffIsRunVFunc(enStart);//実行リストから消す
 	}
 	//登録
 	void RegisterRegister(GORegister* regi) {
 		m_register = regi;
 	}
 
+	//レジスターを取得
+	GORegister* GetRegister()const {
+		return m_register;
+	}
+
 	//ステータスをレシーバーに送る
 	void CastStatus() {
 		auto it = m_statusCaster.begin();
-		while (it != m_statusCaster.end()) {
+		auto endit = m_statusCaster.end();
+		while (it != endit) {
 			if ((*it).GetAlive()) {
 				(*it).Cast(m_status);
 				it++;
@@ -221,6 +203,7 @@ private:
 	//DeleteGOされた
 	void お前はもう死んでいる() {
 		m_isDead = true;
+		UpdateRegisterIsEnable();
 	}
 
 public:
@@ -234,13 +217,33 @@ public:
 	}
 
 	//有効化
+	//TODO レジスターを参照
 	void SetEnable(bool e){
 		m_enable = e;
+		UpdateRegisterIsEnable();
 	}
 	//有効なのか？
 	bool GetEnable() const{
-		//if (m_goToHell) { return false; }
 		return m_enable && !m_isDead;
+	}
+
+	//仮想関数たちの列挙子
+	enum VirtualFuncs {
+		enStart,
+		enPreLoopUpdate,
+		enPreUpdate,
+		enUpdate,
+		enPostUpdate,
+		enPostLoopUpdate,
+		enPostLoopPostUpdate,
+		enPre3DRender,
+		enHUDRender,
+		enPostRender,
+		enVirtualFuncNum
+	};
+	//仮想関数がオーバーライドされているか?
+	bool GetIsOverrideVFunc(VirtualFuncs funcType)const {
+		return m_isRunFunc[funcType];
 	}
 
 	//開始しているのか？
@@ -254,6 +257,11 @@ public:
 		}
 		return m_isStart;
 	}
+
+	//クイックスタート設定か取得
+	bool GetIsQuickStart()const {
+		return m_quickStart;
+	}
 	
 	//登録されているか?
 	bool IsRegistered() const{
@@ -261,11 +269,6 @@ public:
 			return true;
 		}
 		return false;
-	}
-
-	//レジスターを取得
-	GORegister* GetRegister()const {
-		return m_register;
 	}
 
 	//ステータスレシーバーを登録
@@ -302,43 +305,73 @@ public:
 	//名前をつける
 	void SetName(const wchar_t* objectName);
 
+private:
+	//仮想関数の実行をやめる
+	void OffIsRunVFunc(VirtualFuncs type);
+	//レジスターのIsEnableを更新
+	void UpdateRegisterIsEnable() {
+		m_register->isEnableGO = GetEnable();
+	}
+
 public:
 	//仮想関数
 
 	//処理開始時に実行
 	//戻り値がfalseだと処理開始しない
-	virtual bool Start() { return true; };
+	virtual bool Start() {
+		OffIsRunVFunc(enStart);
+		return true; 
+	}
 
 	//ゲームループ前に実行
-	virtual void PreLoopUpdate() {};
+	virtual void PreLoopUpdate() {
+		OffIsRunVFunc(enPreLoopUpdate);
+	}
 	
 	//ゲームループ内で実行
-	virtual void PreUpdate() {};
-	virtual void Update() {};
-	virtual void PostUpdate() {};
+	virtual void PreUpdate() {
+		OffIsRunVFunc(enPreUpdate);
+	}
+	virtual void Update() {
+		OffIsRunVFunc(enUpdate);
+	}
+	virtual void PostUpdate() {
+		OffIsRunVFunc(enPostUpdate);
+	}
 
 	//ゲームループ後に実行
-	virtual void PostLoopUpdate() {};
-	virtual void PostLoopPostUpdate() {};
+	virtual void PostLoopUpdate() {
+		OffIsRunVFunc(enPostLoopUpdate);
+	}
+	virtual void PostLoopPostUpdate() {
+		OffIsRunVFunc(enPostLoopPostUpdate);
+	}
 
 	//3D描画前に実行(画面ごと)
 	//int num 実行中の画面番号
-	virtual void Pre3DRender(int num) {};
+	virtual void Pre3DRender(int num) {
+		OffIsRunVFunc(enPre3DRender);
+	}
 
 	//この関数内でHUDに2Dグラフィックを描画
 	//int HUDNum 描画対象のHUDの番号
-	//TODO HUDのレンダーターゲット作る
-	virtual void HUDRender(int HUDNum) {};
+	virtual void HUDRender(int HUDNum) {
+		OffIsRunVFunc(enHUDRender);
+	}
 
 	//2Dグラフィックをこの関数内で描画してください
 	//※CFont,CSpriteなど
-	virtual void PostRender() {};
+	virtual void PostRender() {
+		OffIsRunVFunc(enPostRender);
+	}
 
 private:
 	bool m_isDead = false;//実質死亡
 	bool m_enable = true;
 	bool m_isStart = false;
 	bool m_quickStart = false;
+
+	bool m_isRunFunc[enVirtualFuncNum];//仮想関数がオーバーライドされているか?(実行するか)
 
 	GORegister* m_register = nullptr;//マネージャーに登録されているか(ポインタ)
 	
@@ -374,102 +407,34 @@ class GameObjectManager {
 public:
 	~GameObjectManager() {
 		for (auto& go : m_gameObjectList) {
-			if (go.isEnable) { go.gameObject->RegisterRegister(nullptr); }
+			if (go.isNoPendingkill) { go.gameObject->RegisterRegister(nullptr); }
 		}
 	}
 
-	void Start() {
-		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetEnable() && !go.gameObject->GetIsStart()) {
-				if (go.gameObject->Start()) {
-					go.gameObject->SetIsStart();
-				}
-			}
-		}
-	}
-	void PreLoopUpdate() {
-		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
-				go.gameObject->PreLoopUpdate();
-			}
-		}
-	}
-	void Update() {
-		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
-				go.gameObject->PreUpdate();
-			}
-		}
-		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
-				go.gameObject->Update();
-			}
-		}
-		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
-				go.gameObject->PostUpdate();
-			}
-		}
-	}
-	void PostLoopUpdate() {
-		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
-				go.gameObject->PostLoopUpdate();
-			}
-		}
-		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
-				go.gameObject->PostLoopPostUpdate();
-			}
-		}		
-	}
-	void Pre3DRender(int num) {
-		for (auto& go : m_gameObjectList) {
-			if (go.isEnable && go.gameObject->GetEnable() && go.gameObject->GetIsStart()) {
-				go.gameObject->Pre3DRender(num);
-			}
-		}
-	}
+	void Start();
+	void PreLoopUpdate();
+	void Update();
+	void PostLoopUpdate();
+	void Pre3DRender(int num);
 	void HUDRender(int HUDNum);
 	void PostRender();
 
 	//死の処理
-	void Hell() {
+	void Hell();
 
-		//m_gameObjectMapの削除
-		{
-			auto it = m_gameObjectMap.begin();
-			while (it != m_gameObjectMap.end()) {
-				if (!(*it).second->isEnable) {
-					it = m_gameObjectMap.erase(it);//削除
-				}
-				else {
-					++it;
-				}
-			}
-		}
-
-		//m_gameObjectListの削除
-		{
-			auto it = m_gameObjectList.begin();
-			while (it != m_gameObjectList.end()) {
-				if (!(*it).isEnable) {
-					if ((*it).GetNowOnHell()) {//二回目で削除
-						it = m_gameObjectList.erase(it);//削除
-					}
-					else {
-						(*it).ArriveHell();
-						++it;
-					}
-				}
-				else {
-					++it;
-				}
-			}
-		}
-	}
+private:
+	//関数実行リストからゲームオブジェクト参照を削除
+	void DeleteFromFuncList();
 
 public:
+	//このフレーム中にGOが削除された
+	void EnableIsDeleteGOThisFrame() {
+		m_isDeleteGOThisFrame = true;
+	}
+	//このフレーム中に仮想関数の実行確認がされた
+	void EnableIsCheckVFuncThisFrame(IGameObject::VirtualFuncs ind) {
+		m_isCheckVFuncThisFrame[ind] = true;
+	}
 
 	//ゲームオブジェクトの登録
 	void AddGameObj(IGameObject* go) {
@@ -478,8 +443,16 @@ public:
 		//二重登録を防ぐ
 		if (go->IsRegistered()) { return; }
 
-		m_gameObjectList.emplace_back(true, go);
+		//ゲームオブジェクトをリスト登録
+		m_gameObjectList.emplace_back(go,go->GetIsQuickStart());
+		//ゲームオブジェクトへGORegisterを登録
 		go->RegisterRegister(&m_gameObjectList.back());
+
+		//実行関数リストへゲームオブジェクトを登録
+		//TODO クイックスタートリスト
+		for (auto& list : m_runFuncGOList) {
+			list.emplace_back(&m_gameObjectList.back());
+		}
 	}
 
 	//ゲームオブジェクトに名前をつける
@@ -509,7 +482,7 @@ public:
 			auto& regiGo = it->second;
 
 			//有効か？
-			if (regiGo->isEnable && regiGo->gameObject->GetEnable()) {
+			if (regiGo->isNoPendingkill && regiGo->isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo->gameObject);
 				if (p != nullptr) {
@@ -525,7 +498,7 @@ public:
 	{
 		for (auto& regiGo : m_gameObjectList) {
 			//有効か？
-			if (regiGo.isEnable && regiGo.gameObject->GetEnable()) {
+			if (regiGo.isNoPendingkill && regiGo.isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo.gameObject);
 				if (p != nullptr) {
@@ -545,7 +518,7 @@ public:
 			auto& regiGo = it->second;		
 
 			//有効か？
-			if (regiGo->isEnable && regiGo->gameObject->GetEnable()) {
+			if (regiGo->isNoPendingkill && regiGo->isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo->gameObject);
 				if (p != nullptr) {
@@ -562,7 +535,7 @@ public:
 	{
 		for (auto& regiGo : m_gameObjectList) {
 			//有効か？
-			if (regiGo.isEnable && regiGo.gameObject->GetEnable()) {
+			if (regiGo.isNoPendingkill && regiGo.isEnableGO) {
 				//見つけた。
 				T* p = dynamic_cast<T*>(regiGo.gameObject);
 				if (p != nullptr) {
@@ -575,9 +548,22 @@ public:
 		}
 	}
 
+#ifndef DW_MASTER
+	/// <summary>
+	/// 登録されているGameObjの数を取得
+	/// </summary>
+	size_t GetGameObjNum()const{
+		return m_gameObjectList.size();
+	}
+#endif
+
 private:
-	std::list<GORegister> m_gameObjectList;
-	std::unordered_multimap<int, GORegister*> m_gameObjectMap;
+	std::list<GORegister> m_gameObjectList;//ゲームオブジェクトのリスト
+	std::list<GORegister*> m_runFuncGOList[IGameObject::enVirtualFuncNum];//各関数を実行するゲームオブジェクトのリスト
+	std::unordered_multimap<int, GORegister*> m_gameObjectMap;//名前付きゲームオブジェクトの辞書
+
+	bool m_isDeleteGOThisFrame = false;//このフレーム中にGOが削除されたか?
+	bool m_isCheckVFuncThisFrame[IGameObject::enVirtualFuncNum] = {};//このフレーム中に仮想関数の実行確認がされたか?
 };
 
 //ゲームオブジェクトの生成と削除のマネージャー
