@@ -1,5 +1,6 @@
 #include "DWstdafx.h"
 #include "GraphicsEngine.h"
+#include "DirectX12/DX12Test.h"
 
 namespace DemolisherWeapon {
 
@@ -74,6 +75,17 @@ void GraphicsEngine::Release()
 
 	m_FRT.Release();
 }
+
+#ifdef DW_DX12
+void GraphicsEngine::InitDx12(HWND hWnd, const InitEngineParameter& initParam) {
+	FRAME_BUFFER_W = (float)initParam.frameBufferWidth;
+	FRAME_BUFFER_H = (float)initParam.frameBufferHeight;
+
+	DX12Test::GetIns().Init(hWnd, initParam);
+
+	m_renderManager.AddRender(-2, &m_dx12Render);
+}
+#endif
 
 void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 {

@@ -185,6 +185,7 @@ private:
 			delete instance; instance = nullptr;
 		}
 	}
+//
 
 public:
 

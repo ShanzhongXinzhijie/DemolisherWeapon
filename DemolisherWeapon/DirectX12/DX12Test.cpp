@@ -1,5 +1,6 @@
 #include "DWstdafx.h"
 #include "DX12Test.h"
+#include "DirectX12/d3dx12.h"
 
 namespace DemolisherWeapon {
 
@@ -15,7 +16,7 @@ namespace DemolisherWeapon {
 		return m_d3dDevice->GetDescriptorHandleIncrementSize(type);
 	}
 
-	bool DX12Test::DX12Init(HWND hWnd, const InitEngineParameter& initParam) {
+	bool DX12Test::Init(HWND hWnd, const InitEngineParameter& initParam) {
 		using namespace Microsoft::WRL;
 
 		UINT dxgiFactoryFlags = 0;
@@ -117,7 +118,7 @@ namespace DemolisherWeapon {
 		m_currentBackBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 
 		//RTV用のデスクリプタヒープ作成
-		auto rtvDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, FRAME_COUNT, false, m_rtvDescriptorHeap);
+		m_rtvDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, FRAME_COUNT, false, m_rtvDescriptorHeap);
 
 		//RTV作成
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -127,11 +128,11 @@ namespace DemolisherWeapon {
 				return false;
 			}
 			m_d3dDevice->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
-			rtvHandle.ptr += rtvDescriptorSize;
+			rtvHandle.ptr += m_rtvDescriptorSize;
 		}
 
 		//DSV用のデスクリプタヒープ作成
-		auto dsvDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false, m_dsvDescriptorHeap);
+		m_dsvDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false, m_dsvDescriptorHeap);
 
 		//DSV作成
 		/*{
@@ -263,4 +264,69 @@ namespace DemolisherWeapon {
 		CloseHandle(m_fenceEvent);
 	}
 
+	void DX12Test::Render() {
+		//前フレームの描画完了を待つ
+		if (!WaitForPreviousFrame()) {
+			return;
+		}
+
+		//これから使うコマンドリスト・アロケータをリセットして使用可能に
+		if (FAILED(m_commandAllocator[m_currentBackBufferIndex]->Reset())) {
+			return;
+		}
+		if (FAILED(m_commandList->Reset(m_commandAllocator[m_currentBackBufferIndex].Get(), nullptr))) {
+			return;
+		}
+
+		//リソースバリアを設定
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+		//レンダーターゲットを設定
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+		rtvHandle.ptr += m_currentBackBufferIndex * m_rtvDescriptorSize;
+		m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+		//レンダーターゲットを塗りつぶし
+		CVector4 clearColor = { 1.0f, 0.2f, 0.4f, 1.0f };
+		static int cnt = 0;
+		cnt++;
+		if (cnt < 30) {
+			clearColor = { 1.0f, 0.2f, 0.4f, 1.0f };
+		}else
+		if (cnt < 60) {
+			clearColor = { 0.4f, 0.2f, 1.0f, 1.0f };
+		}
+		else {
+			cnt = 0;
+		}
+		m_commandList->ClearRenderTargetView(rtvHandle, clearColor.v, 0, nullptr);
+
+		//リソースバリアを設定
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+
+		//コマンドリストを閉じる
+		if (FAILED(m_commandList->Close())) {
+			return;
+		}
+
+		//コマンドリスト実行
+		ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
+		m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+		//スワップチェイン
+		if (FAILED(m_swapChain->Present(1, 0))) {
+			return;
+		}
+
+		//フェンスのインクリメント
+		/*fenceValue[currentFrameIndex] = masterFenceValue;
+		if (FAILED(commandQueue->Signal(fence.Get(), fenceValue[currentFrameIndex]))) {
+			return;
+		}
+		++masterFenceValue;*/
+
+		if (FAILED(m_commandQueue->Signal(m_fence.Get(), m_fenceValue[m_currentBackBufferIndex]))) {
+			return;
+		}
+	}
 }

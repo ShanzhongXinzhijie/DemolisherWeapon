@@ -141,13 +141,19 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	m_physics.Init();
 
 	//DirectXの初期化。
+#ifdef DW_DX12
+	m_graphicsEngine.InitDx12(m_hWnd, initParam);
+#else
 	m_graphicsEngine.Init(m_hWnd, initParam);
+#endif
 
 	//XAudio2の初期化
 	m_soundEngine.Init();
 
 	//Effekseerの初期化
+#ifndef DW_DX12
 	m_effekseer.Init();
+#endif
 
 	//ゲームループの初期化
 	m_gameLoop.Init(initParam.limitFps, initParam.standardFps, initParam.variableFpsMaxSec);
@@ -279,15 +285,18 @@ void GameLoop::Run() {
 
 		//描画/////////////////////////////////////////////		
 
+#ifndef DW_DX12
 		//バックバッファをクリア
 		GetEngine().GetGraphicsEngine().ClearBackBuffer();
 
 		//3D用のビューポートにする
 		GetEngine().GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W(), GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H());
-		
+#endif
+
 		//レンダリング
 		GetEngine().GetGraphicsEngine().RunRenderManager();
 
+#ifndef DW_DX12
 		//2D用の設定にする
 		GetEngine().GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().GetFrameBuffer_W(), GetEngine().GetGraphicsEngine().GetFrameBuffer_H());
 
@@ -303,6 +312,7 @@ void GameLoop::Run() {
 
 		//バックバッファを表へ
 		GetEngine().GetGraphicsEngine().SwapBackBuffer();
+#endif
 
 		///////////////////////////////////////////////////
 
@@ -317,7 +327,9 @@ void GameLoop::Run() {
 		tttt += m_fpscounter->GetFrameTimeSec();
 		if (tttt > 2.8f) {
 			tttt = 0.0f;
+#ifndef DW_DX12
 			ShaderResources::GetInstance().HotReload();
+#endif
 		}
 #endif
 

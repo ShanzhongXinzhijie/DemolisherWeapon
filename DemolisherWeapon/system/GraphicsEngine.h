@@ -19,6 +19,8 @@
 #include"Render/PreRenderRender.h"
 #include"Render/HUDRender.h"
 
+#include"Render/DX12Render.h"
+
 #include"Camera/CameraManager.h"
 #include"Graphic/Light/Lights.h"
 #include"Graphic/CPrimitive.h"
@@ -44,6 +46,12 @@ public:
 	 *@param[in]	hWnd		ウィンドウハンドル。
 	 */
 	void Init(HWND hWnd, const InitEngineParameter& initParam);
+
+#ifdef DW_DX12
+	void InitDx12(HWND hWnd, const InitEngineParameter& initParam);
+	DX12Render m_dx12Render;
+#endif
+
 	/*!
 	 *@brief	解放。
 	 */
