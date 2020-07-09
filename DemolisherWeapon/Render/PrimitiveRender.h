@@ -1,6 +1,5 @@
 #pragma once
 #include "IRander.h"
-#include "DirectXTK/Inc/PrimitiveBatch.h"
 
 namespace DemolisherWeapon {
 

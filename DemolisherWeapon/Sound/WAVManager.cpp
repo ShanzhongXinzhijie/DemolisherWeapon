@@ -1,6 +1,5 @@
 #include "DWstdafx.h"
 #include "WAVManager.h"
-#include "DirectXTK/Audio/WAVFileReader.h"
 
 namespace DemolisherWeapon {
 

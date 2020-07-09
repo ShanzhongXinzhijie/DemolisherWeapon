@@ -1,8 +1,6 @@
 #include "DWstdafx.h"
 #include "CSound.h"
 
-#include "DirectXTK/Src/PlatformHelpers.h"
-
 namespace DemolisherWeapon {
 
 namespace GameObj {

@@ -1,6 +1,5 @@
 #include "DWstdafx.h"
 #include "PrimitiveRender.h"
-#include "DirectXTK/Src/PlatformHelpers.h"
 
 namespace DemolisherWeapon {
 	

@@ -208,6 +208,7 @@
     <ClCompile Include="Render\HUDRender.cpp" />
     <ClCompile Include="DirectX12\DX12Test.cpp" />
     <ClCompile Include="Render\DX12Render.cpp" />
+    <ClCompile Include="Graphic\Shader\ShaderPreloader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
