@@ -74,6 +74,10 @@ void GraphicsEngine::Release()
 	}
 
 	m_FRT.Release();
+
+#ifdef DW_DX12
+	DX12Test::GetIns().Release();
+#endif
 }
 
 #ifdef DW_DX12

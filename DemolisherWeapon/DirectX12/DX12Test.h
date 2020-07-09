@@ -24,13 +24,13 @@ namespace DemolisherWeapon {
 			}
 			return *instance;
 		}
-	private:
 		//インスタンスの削除
 		static void DeleteIns() {
 			if (instance) {
 				delete instance; instance = nullptr;
 			}
 		}
+	private:
 		static inline DX12Test* instance = nullptr;
 	//
 
@@ -44,6 +44,11 @@ namespace DemolisherWeapon {
 		/// DirectX12の終了処理
 		/// </summary>
 		void Release();
+
+		/// <summary>
+		/// デバッグ用レポートの出力
+		/// </summary>
+		void Report();
 
 		/// <summary>
 		/// ディスクリプタヒープの作成

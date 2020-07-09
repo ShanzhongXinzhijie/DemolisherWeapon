@@ -179,6 +179,9 @@ namespace DemolisherWeapon {
 			if (FAILED(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator[i])))) {
 				return false;
 			}
+			wchar_t name[32];
+			swprintf_s(name, L"m_commandAllocator[%d]", i);
+			m_commandAllocator[i]->SetName(name);
 		}
 
 		// コマンドリストを作成する.
@@ -262,6 +265,19 @@ namespace DemolisherWeapon {
 	void DX12Test::Release(){
 		WaitForGpu();
 		CloseHandle(m_fenceEvent);
+		//Report();
+	}
+
+	void DX12Test::Report() {
+#ifndef DW_MASTER
+		//Release忘れの出力
+		ID3D12DebugDevice* debugInterface;
+		if (SUCCEEDED(m_d3dDevice->QueryInterface(&debugInterface)))
+		{
+			HRESULT hr = debugInterface->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL | D3D12_RLDO_IGNORE_INTERNAL);
+			debugInterface->Release();
+		}
+#endif
 	}
 
 	void DX12Test::Render() {

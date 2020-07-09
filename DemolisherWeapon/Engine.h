@@ -211,14 +211,15 @@ public:
 	}
 
 	void PostGameLoop() {
-		//DeleteInstance();
-
 		//Photon削除
 		//通信を切断するため
 		m_photon.reset();
 		//fpsカウンター削除
 		//Sleepの精度をもとに戻すため
 		m_gameLoop.Release();
+
+		//DeleteInstance();
+		return;
 	}
 
 	//ウィンドウサイズ変更
