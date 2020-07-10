@@ -7,7 +7,9 @@ namespace DemolisherWeapon {
 		DirectX::SpriteFont* Load(const wchar_t* path) {
 			int key = Util::MakeHash(path);
 			if (m_fontmap.count(key) == 0) {
+#ifndef DW_DX12_TEMPORARY
 				m_fontmap.emplace(key, std::make_unique<DirectX::SpriteFont>(GetEngine().GetGraphicsEngine().GetD3DDevice(), path));
+#endif
 			}
 			return m_fontmap[key].get();
 		}

@@ -6,6 +6,8 @@ namespace DemolisherWeapon {
 
 ModelEffect::enShaderMode ModelEffect::m_s_shadermode = enNormalShader;
 
+#ifndef DW_DX12_TEMPORARY
+
 void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 {
 	//シェーダーモードにおうじたシェーダをセット
@@ -64,4 +66,5 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 	deviceContext->PSSetConstantBuffers(enSkinModelCBReg_Material, 1, &m_materialParamCB);
 }
 
+#endif
 }

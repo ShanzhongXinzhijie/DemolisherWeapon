@@ -180,15 +180,14 @@ void DefferdRender::Render() {
 
 void DefferdRender::SetAmbientCubeMap(const wchar_t* filePass) {
 
-	ID3D11ShaderResourceView* tex = nullptr;
-	HRESULT hr = DirectX::CreateDDSTextureFromFile(GetEngine().GetGraphicsEngine().GetD3DDevice(), filePass, nullptr, &tex);
-	if (FAILED(hr)) {
+	TextueData texData = CreateTexture(filePass);
+	if (!texData.isLoaded()) {
 		Error::Box("SetAmbientCubeMapのテクスチャ読み込みに失敗しました");
 		return;
 	}
 
 	if (m_ambientCube) { m_ambientCube->Release(); }
-	m_ambientCube = tex;
+	m_ambientCube = texData.textureView.Get(); m_ambientCube->AddRef();
 }
 
 }

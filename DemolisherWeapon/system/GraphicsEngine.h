@@ -19,6 +19,7 @@
 #include"Render/PreRenderRender.h"
 #include"Render/HUDRender.h"
 
+#include"DirectX12/DX12Test.h"
 #include"Render/DX12Render.h"
 
 #include"Camera/CameraManager.h"
@@ -41,21 +42,27 @@ public:
 	GraphicsEngine();
 	~GraphicsEngine();
 
-	/*!
-	 *@brief	初期化。
-	 *@param[in]	hWnd		ウィンドウハンドル。
-	 */
-	void Init(HWND hWnd, const InitEngineParameter& initParam);
-
 #ifdef DW_DX12
+	/// <summary>
+	/// 初期化(directx12)
+	/// </summary>
+	/// <param name="hWnd">ウィンドウハンドル</param>
+	/// <param name="initParam">初期化パラメータ</param>
 	void InitDx12(HWND hWnd, const InitEngineParameter& initParam);
-	DX12Render m_dx12Render;
+#else
+	/// <summary>
+	/// 初期化(directx11)
+	/// </summary>
+	/// <param name="hWnd">ウィンドウハンドル</param>
+	/// <param name="initParam">初期化パラメータ</param>
+	void Init(HWND hWnd, const InitEngineParameter& initParam);
 #endif
 
 	/*!
 	 *@brief	解放。
 	 */
 	void Release();
+
 	/*!
 	 *@brief	D3D11デバイスを取得。
 	 */
@@ -70,6 +77,24 @@ public:
 	{
 		return m_pd3dDeviceContext;
 	}
+
+#ifdef DW_DX12
+	/// <summary>
+	/// D3D12デバイスを取得
+	/// </summary>
+	ID3D12Device* GetD3D12Device()
+	{
+		return m_directx12.GetD3DDevice();
+	}
+
+	/// <summary>
+	/// コマンドキューを取得
+	/// </summary>
+	ID3D12CommandQueue* GetCommandQueue()
+	{
+		return m_directx12.GetCommandQueue();
+	}
+#endif
 
 	//フレームバッファサイズの変更
 	void ChangeFrameBufferSize(	int frameBufferWidth, int frameBufferHeight,
@@ -318,6 +343,20 @@ private:
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatchPMA;
 	float m_layerDepthCnt = 0.0f;
+
+#ifdef DW_DX12
+	//Directx12
+	DX12Render m_dx12Render;
+	DX12Test m_directx12;
+
+	//DirectXTK12
+	std::unique_ptr<DirectX::DescriptorHeap> m_xtk12_resourceDescriptors;
+	enum Descriptors
+	{
+		MyFont,
+		Count
+	};
+#endif
 
 	//フルスクリーン描画プリミティブ
 	CPrimitive m_fullscreen;

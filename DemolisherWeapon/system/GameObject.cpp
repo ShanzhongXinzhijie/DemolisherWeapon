@@ -124,6 +124,8 @@ namespace DemolisherWeapon {
 		}
 	}
 	void GameObjectManager::HUDRender(int HUDNum) {
+#ifndef DW_DX12_TEMPORARY
+
 		GetGraphicsEngine().GetSpriteBatch()->Begin(DirectX::SpriteSortMode_BackToFront);
 		GetGraphicsEngine().GetSpriteBatchPMA()->Begin(DirectX::SpriteSortMode_BackToFront, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
 
@@ -136,8 +138,12 @@ namespace DemolisherWeapon {
 		GetGraphicsEngine().GetSpriteBatch()->End();
 		GetGraphicsEngine().GetSpriteBatchPMA()->End();
 		//GetEngine().GetGraphicsEngine().ResetLayerDepthCnt();
+
+#endif
 	}
 	void GameObjectManager::PostRender() {
+#ifndef DW_DX12_TEMPORARY
+
 		GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin(DirectX::SpriteSortMode_BackToFront);
 		GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->Begin(DirectX::SpriteSortMode_BackToFront, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
 
@@ -150,6 +156,8 @@ namespace DemolisherWeapon {
 		GetEngine().GetGraphicsEngine().GetSpriteBatch()->End();
 		GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->End();
 		GetEngine().GetGraphicsEngine().ResetLayerDepthCnt();
+
+#endif
 	}
 	void GameObjectManager::Hell() {
 		//m_gameObjectMap�̍폜

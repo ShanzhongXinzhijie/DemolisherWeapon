@@ -169,7 +169,10 @@ void FinalRender::Render() {
 	//SRV‚ðƒZƒbƒg
 	if (GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD0)) {
 		if (!m_gridTex) {
-			HRESULT hr = DirectX::CreateWICTextureFromFile(GetEngine().GetGraphicsEngine().GetD3DDevice(), L"Asset/modelData/grid.png", nullptr, &m_gridTex, 0);
+			TextueData Tex = CreateTexture(L"Asset/modelData/grid.png");
+			if (Tex.isLoaded()) {
+				m_gridTex = Tex.textureView.Get(); m_gridTex->AddRef();
+			}
 		}
 		rc->PSSetShaderResources(0, 1, &m_gridTex);
 	}

@@ -54,8 +54,11 @@ namespace DemolisherWeapon {
 		ge.GetD3DDevice()->CreateBuffer(&bufferDesc, nullptr, &m_cb);
 
 		//干渉縞テクスチャ
-		HRESULT hr = DirectX::CreateDDSTextureFromFile(ge.GetD3DDevice(), L"Preset/sprite/Blackbody_Enumerated_6500K.dds", nullptr, &m_interferenceFringesSRV);
-		
+		TextueData tex = CreateTexture(L"Preset/sprite/Blackbody_Enumerated_6500K.dds");
+		if (tex.isLoaded()) {
+			m_interferenceFringesSRV = tex.textureView.Get(); m_interferenceFringesSRV->AddRef();
+		}
+
 		//ガウスブラー
 		m_gaussBlur.Init(m_SRV, 1.5f);
 

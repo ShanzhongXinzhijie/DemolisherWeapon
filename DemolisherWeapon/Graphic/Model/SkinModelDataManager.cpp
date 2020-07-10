@@ -7,6 +7,8 @@ namespace DemolisherWeapon {
 
 std::unique_ptr<DirectX::Model> SkinModelDataManager::CreateModel(const wchar_t* filePath, const Skeleton& skeleton)
 {
+#ifndef DW_DX12_TEMPORARY
+
 	//ボーンを発見したときのコールバック関数。
 	auto onFindBone = [&](
 		const wchar_t* boneName,
@@ -64,6 +66,10 @@ std::unique_ptr<DirectX::Model> SkinModelDataManager::CreateModel(const wchar_t*
 		HRESULT hr = GetGraphicsEngine().GetD3DDevice()->GetDeviceRemovedReason();
 		std::abort();
 	}
+#endif
+
+#else
+	return {};
 #endif
 }
 

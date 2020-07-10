@@ -152,7 +152,7 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	m_soundEngine.Init();
 
 	//Effekseer‚Ì‰Šú‰»
-#ifndef DW_DX12
+#ifndef DW_DX12_TEMPORARY
 	m_effekseer.Init();
 #endif
 
@@ -302,7 +302,7 @@ void GameLoop::Run() {
 		//ƒŒƒ“ƒ_ƒŠƒ“ƒO
 		GetEngine().GetGraphicsEngine().RunRenderManager();
 
-#ifndef DW_DX12
+#ifndef DW_DX12_TEMPORARY
 		//2D—p‚ÌÝ’è‚É‚·‚é
 		GetEngine().GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().GetFrameBuffer_W(), GetEngine().GetGraphicsEngine().GetFrameBuffer_H());
 
@@ -333,7 +333,7 @@ void GameLoop::Run() {
 		tttt += m_fpscounter->GetFrameTimeSec();
 		if (tttt > 2.8f) {
 			tttt = 0.0f;
-#ifndef DW_DX12
+#ifndef DW_DX12_TEMPORARY
 			ShaderResources::GetInstance().HotReload();
 #endif
 		}

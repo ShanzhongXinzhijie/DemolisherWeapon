@@ -1,9 +1,11 @@
 #pragma once
 
 namespace DemolisherWeapon {
+	struct InitEngineParameter;
 
 	class DX12Test
 	{
+	/*
 	//シングルトン
 	private:
 		DX12Test(){}
@@ -33,8 +35,14 @@ namespace DemolisherWeapon {
 	private:
 		static inline DX12Test* instance = nullptr;
 	//
+	*/
 
 	public:
+		DX12Test() = default;
+		~DX12Test() {
+			Release();
+		}
+
 		/// <summary>
 		/// DiretX12の初期化
 		/// </summary>
@@ -89,6 +97,22 @@ namespace DemolisherWeapon {
 			}
 			WaitForSingleObject(m_fenceEvent, INFINITE);
 			return true;
+		}
+
+		/// <summary>
+		/// D3D12デバイスを取得
+		/// </summary>
+		ID3D12Device* GetD3DDevice()
+		{
+			return m_d3dDevice.Get();
+		}
+
+		/// <summary>
+		/// コマンドキューを取得
+		/// </summary>
+		ID3D12CommandQueue* GetCommandQueue()
+		{
+			return m_commandQueue.Get();
 		}
 
 	private:

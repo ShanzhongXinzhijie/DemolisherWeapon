@@ -9,6 +9,9 @@ namespace DemolisherWeapon {
 	}
 
 GraphicsEngine::GraphicsEngine()
+#ifdef DW_DX12
+	: m_dx12Render(&m_directx12)
+#endif
 {
 	
 }
@@ -76,7 +79,7 @@ void GraphicsEngine::Release()
 	m_FRT.Release();
 
 #ifdef DW_DX12
-	DX12Test::GetIns().Release();
+	m_directx12.Release();
 #endif
 }
 
@@ -85,12 +88,33 @@ void GraphicsEngine::InitDx12(HWND hWnd, const InitEngineParameter& initParam) {
 	FRAME_BUFFER_W = (float)initParam.frameBufferWidth;
 	FRAME_BUFFER_H = (float)initParam.frameBufferHeight;
 
-	DX12Test::GetIns().Init(hWnd, initParam);
+	//DirectX12初期化
+	m_directx12.Init(hWnd, initParam);
 
+	//sprite初期化
+	{
+		m_xtk12_resourceDescriptors = std::make_unique<DirectX::DescriptorHeap>(GetD3D12Device(), Descriptors::Count);
+
+		DirectX::ResourceUploadBatch resourceUpload(GetD3D12Device());
+
+		resourceUpload.Begin();
+
+		m_spriteFont = std::make_unique<DirectX::SpriteFont>(GetD3D12Device(), resourceUpload,
+			L"Preset/Font/myfile.spritefont",
+			m_xtk12_resourceDescriptors->GetCpuHandle(Descriptors::MyFont),
+			m_xtk12_resourceDescriptors->GetGpuHandle(Descriptors::MyFont));
+
+		auto uploadResourcesFinished = resourceUpload.End(GetCommandQueue());//TODO 別のコマンドキュー作るべきか?
+
+		uploadResourcesFinished.wait();
+	}
+
+	//レンダーの登録
 	m_renderManager.AddRender(-2, &m_dx12Render);
 }
 #endif
 
+#ifndef DW_DX12
 void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 {
 	FRAME_BUFFER_W = (float)initParam.frameBufferWidth;
@@ -399,6 +423,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 	m_pd3dDeviceContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&m_pUserAnotation);
 #endif
 }
+#endif
 
 void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBufferWidth3D, int frameBufferHeight3D, int HUDWidth, int HUDHeight, EnSplitScreenMode screenMode, float* splitScreenSize) {
 	//サイズ変更

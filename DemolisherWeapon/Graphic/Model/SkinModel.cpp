@@ -371,6 +371,8 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		}
 	}
 
+#ifndef DW_DX12_TEMPORARY
+
 	//描画。
 	m_modelDx->Draw(
 		d3dDeviceContext,
@@ -385,6 +387,8 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		pDepthStencilState ? pDepthStencilState : m_pDepthStencilState,
 		instanceNum*m_instanceNum
 	);
+
+#endif
 
 	//ユーザー設定の描画後処理実行
 	for (auto& func : m_postDrawFunc) {

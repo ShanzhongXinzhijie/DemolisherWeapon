@@ -4,6 +4,7 @@
 namespace DemolisherWeapon {
 	
 	void PrimitiveRender::Init() {
+#ifndef DW_DX12_TEMPORARY
 		ID3D11Device* d3dDevice = GetEngine().GetGraphicsEngine().GetD3DDevice();		
 
 		m_effect = std::make_unique<DirectX::BasicEffect>(d3dDevice);
@@ -23,7 +24,7 @@ namespace DemolisherWeapon {
 		);
 
 		m_batch = std::make_unique<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>>(GetEngine().GetGraphicsEngine().GetD3DDeviceContext());
-	
+#endif
 		//2Dカメラ初期化
 		m_2dCamera.SetPos({ GetGraphicsEngine().GetFrameBuffer_W() / 2.0f,-GetGraphicsEngine().GetFrameBuffer_H() / 2.0f,-(m_2dCamera.GetNear() + m_2dCamera.GetFar()) / 2.0f });
 		m_2dCamera.SetTarget({ GetGraphicsEngine().GetFrameBuffer_W() / 2.0f,-GetGraphicsEngine().GetFrameBuffer_H() / 2.0f,0.0f });
@@ -42,6 +43,7 @@ namespace DemolisherWeapon {
 	}
 
 	void PrimitiveRender::Render() {
+#ifndef DW_DX12_TEMPORARY
 		if (!m_isDraw3D) { return; }
 		
 		bool isDraw = false;
@@ -93,6 +95,7 @@ namespace DemolisherWeapon {
 
 		//GPUイベントの終了
 		GetGraphicsEngine().EndGPUEvent();
+#endif
 	}
 	void PrimitiveRender::PostRender() {
 		if (!m_isDraw3D) { return; }
@@ -102,6 +105,7 @@ namespace DemolisherWeapon {
 	}
 
 	void PrimitiveRender::Render2D() {
+#ifndef DW_DX12_TEMPORARY
 		if (!m_isDraw2D) { return; }
 
 		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();		
@@ -136,6 +140,7 @@ namespace DemolisherWeapon {
 
 		//描画終了
 		m_batch->End();
+#endif
 	}
 	void PrimitiveRender::PostRender2D() {
 		if (!m_isDraw2D) { return; }
@@ -146,6 +151,7 @@ namespace DemolisherWeapon {
 	}
 
 	void PrimitiveRender::RenderHUD(int HUDNum) {
+#ifndef DW_DX12_TEMPORARY
 		m_clearedHUD = false;
 
 		if (m_isDrawHUD.size() <= HUDNum || !m_isDrawHUD[HUDNum]) { return; }
@@ -186,6 +192,7 @@ namespace DemolisherWeapon {
 
 		//描画終了
 		m_batch->End();
+#endif
 	}
 	void PrimitiveRender::PostRenderHUD() {
 		if (m_clearedHUD) { return; }//消去済み

@@ -102,6 +102,8 @@ public:
 			m_materialParamCB->Release();
 		}
 	}
+
+#ifndef DW_DX12_TEMPORARY
 	void __cdecl Apply(ID3D11DeviceContext* deviceContext) override;
 
 	void __cdecl GetVertexShaderBytecode(void const** pShaderByteCode, size_t* pByteCodeLength) override
@@ -110,6 +112,7 @@ public:
 		*pShaderByteCode = m_vsDefaultShader.GetShader(SkinModelEffectShader::enALL).GetByteCode();
 		*pByteCodeLength = m_vsDefaultShader.GetShader(SkinModelEffectShader::enALL).GetByteCodeSize();
 	}
+#endif
 
 	//スキンモデルかどうか取得
 	bool GetIsSkining()const {
@@ -342,10 +345,11 @@ public:
 *@brief
 *  エフェクトファクトリ。
 */
+#ifndef DW_DX12_TEMPORARY
 class SkinModelEffectFactory : public DirectX::EffectFactory {
 public:
-	SkinModelEffectFactory(ID3D11Device* device) :
-		EffectFactory(device) {}
+	SkinModelEffectFactory(ID3D11Device* device) : EffectFactory(device) {}
+
 	std::shared_ptr<DirectX::IEffect> __cdecl CreateEffect(const EffectInfo& info, ID3D11DeviceContext* deviceContext)override
 	{
 		//モデルエフェクト作成
@@ -401,5 +405,6 @@ public:
 		return DirectX::EffectFactory::CreateTexture(name, deviceContext, textureView);
 	}
 };
+#endif
 
 }

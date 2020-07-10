@@ -132,11 +132,13 @@ public:
 	*/
 	void FindMesh(OnFindMesh onFindMesh) const
 	{
+#ifndef DW_DX12_TEMPORARY
 		for (auto& modelMeshs : m_modelDx->meshes) {
 			for (std::unique_ptr<DirectX::ModelMeshPart>& mesh : modelMeshs->meshParts) {
 				onFindMesh(mesh);
 			}
 		}
+#endif
 	}
 	/// <summary>
 	/// メッシュの集合を検索する。
@@ -153,10 +155,12 @@ public:
 	*/
 	void FindMaterial(OnFindMaterial onFindMaterial) const
 	{
+#ifndef DW_DX12_TEMPORARY
 		FindMesh([&](auto& mesh) {
 			ModelEffect* effect = reinterpret_cast<ModelEffect*>(mesh->effect.get());
 			onFindMaterial(effect);
 		});
+#endif
 	}
 
 	//マテリアル設定を初期化して有効化

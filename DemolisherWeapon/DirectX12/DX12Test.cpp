@@ -341,6 +341,7 @@ namespace DemolisherWeapon {
 		}
 		++masterFenceValue;*/
 
+		//フェンスの値変更
 		if (FAILED(m_commandQueue->Signal(m_fence.Get(), m_fenceValue[m_currentBackBufferIndex]))) {
 			return;
 		}

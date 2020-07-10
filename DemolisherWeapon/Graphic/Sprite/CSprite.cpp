@@ -18,7 +18,7 @@ namespace DemolisherWeapon {
 		Release();
 
 		//ファクトリからテクスチャ読み込み
-		const TextureFactory::TextueData* texdata = nullptr;
+		const TextueData* texdata = nullptr;
 		if (!TextureFactory::GetInstance().Load(fileName, &m_tex, &m_srv, &texdata)) {
 			//失敗
 			Release();
@@ -93,8 +93,9 @@ namespace DemolisherWeapon {
 
 		layerDepth *= 0.999f; layerDepth += 0.001f;
 		layerDepth -= GetEngine().GetGraphicsEngine().AddAndGetLayerDepthCnt();
-
+#ifndef DW_DX12_TEMPORARY
 		m_spriteBatch->Draw(m_srv, pos.vec, &m_sourceRectangle, color, rotation, DirectX::XMFLOAT2(pivot.x*m_width, pivot.y*m_height), DirectX::XMFLOAT2(scale.x, scale.y), effects, layerDepth);
+#endif
 	}
 
 }

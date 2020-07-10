@@ -102,11 +102,13 @@ namespace DemolisherWeapon {
 		GetGraphicsEngine().GetD3DDeviceContext()->PSSetShader((ID3D11PixelShader*)m_ps.GetBody(), NULL, 0);
 		//入力レイアウトを設定。
 		GetGraphicsEngine().GetD3DDeviceContext()->IASetInputLayout(m_vs.GetInputLayout());
+#ifndef DW_DX12_TEMPORARY
 		//サンプラステートを設定。
 		auto samp = GetGraphicsEngine().GetCommonStates().LinearClamp();
 		GetGraphicsEngine().GetD3DDeviceContext()->PSSetSamplers(0, 1, &samp);
 		//ブレンドステートを設定
 		GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(GetGraphicsEngine().GetCommonStates().AlphaBlend(), nullptr, 0xFFFFFFFF);
+#endif
 		//ラスタライザーステートを設定
 		GetGraphicsEngine().ResetRasterizerState();
 

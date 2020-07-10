@@ -5,6 +5,7 @@ namespace DemolisherWeapon {
 	namespace Physics2 {
 
 		void MeshData::CreateFromSkinModel(const SkinModel& model, const CMatrix* offsetMatrix) {
+#ifndef DW_DX12_TEMPORARY
 			//バイアス行列の作成
 			CMatrix mBias, mBiasScr;
 			CoordinateSystemBias::GetBias(mBias, mBiasScr, model.GetFBXUpAxis(), model.GetFBXCoordinateSystem());
@@ -75,6 +76,7 @@ namespace DemolisherWeapon {
 					deviceContext->Unmap(mesh->indexBuffer.Get(), 0);
 				}
 			});
+#endif
 		}
 
 	}

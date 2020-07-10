@@ -1,11 +1,37 @@
 #pragma once
 
 namespace DemolisherWeapon {
+
+	/// <summary>
+	/// テクスチャデータ
+	/// </summary>
+	struct TextueData {
+	public:
+#ifdef DW_DX12
+		Microsoft::WRL::ComPtr<ID3D12Resource> d3d12texture;
+#endif
+		Microsoft::WRL::ComPtr<ID3D11Resource> texture;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureView;
+//#endif
+		bool isDDS = false;//ファイルソースが.ddsかどうか
+		UINT width = 0, height = 0;//解像度
+
+		//ロード済み?
+		bool isLoaded()const {
+			return (width > 0 && height > 0) ? true : false;
+		}
+	};
+
+	/// <summary>
+	/// テクスチャを作成する
+	/// </summary>
+	TextueData CreateTexture(std::experimental::filesystem::path filepath, bool generateMipmaps = false);
+
 	/// <summary>
 	/// テクスチャ(ビルボード)のFlyweightFactory
 	/// </summary>
 	class TextureFactory {
-		//シングルトン
+	//シングルトン
 	private:
 		TextureFactory() = default;
 		~TextureFactory() { Release(); }
@@ -32,20 +58,9 @@ namespace DemolisherWeapon {
 				delete instance; instance = nullptr;
 			}
 		}
+	//
 
 	public:
-		//テクスチャデータ
-		struct TextueData {
-		private:
-			ID3D11Resource* texture = nullptr;
-			ID3D11ShaderResourceView* textureView = nullptr;
-		public:
-			bool isDDS = false;
-			UINT width = 0, height = 0;
-
-			friend TextureFactory;
-		};
-
 		/// <summary>
 		/// テクスチャのロード
 		/// </summary>

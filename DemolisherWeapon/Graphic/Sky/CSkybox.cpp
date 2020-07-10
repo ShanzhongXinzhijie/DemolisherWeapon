@@ -13,12 +13,13 @@ namespace GameObj {
 		if (m_isInit) { return; }
 
 		//テクスチャ
-		ID3D11ShaderResourceView* tex = nullptr;
-		HRESULT hr = DirectX::CreateDDSTextureFromFile(GetEngine().GetGraphicsEngine().GetD3DDevice(), filePass, nullptr, &tex);
-		if (FAILED(hr)) {
+		ID3D11ShaderResourceView* texSRV = nullptr;
+		TextueData texData = CreateTexture(filePass);
+		if (!texData.isLoaded()) {
 			Error::Box("CSkyboxのテクスチャ読み込みに失敗しました");
 			return;
 		}
+		texSRV = texData.textureView.Get(); texSRV->AddRef();
 
 		//モデル
 		m_skyModel.Init(L"Preset/modelData/sky.cmo");
@@ -31,7 +32,7 @@ namespace GameObj {
 		//モデルにテクスチャとシェーダ設定
 		m_skyModel.GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
-				mat->SetAlbedoTexture(tex);
+				mat->SetAlbedoTexture(texSRV);
 				mat->SetAlbedoScale(ambientScale);
 				mat->SetVS(&m_vsShader);
 				mat->SetPS(&m_psShader);
@@ -41,10 +42,10 @@ namespace GameObj {
 
 		//環境キューブマップを設定
 		if (isSetAmbientCube) {
-			SetAmbientCubeMap(tex, ambientScale);
+			SetAmbientCubeMap(texSRV, ambientScale);
 		}
 
-		if (tex) { tex->Release(); }
+		if (texSRV) { texSRV->Release(); }
 
 		//設定
 		m_skyModel.SetDrawPriority(DRAW_PRIORITY_MAX-1);

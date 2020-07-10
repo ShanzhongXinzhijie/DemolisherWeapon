@@ -58,6 +58,8 @@ void CFpsCounter::Draw() {
 		m_max = 0.0f, m_min = 100000.0f;
 	}
 
+#ifndef DW_DX12_TEMPORARY
+
 	GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin(DirectX::SpriteSortMode::SpriteSortMode_Deferred, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
 
 	wchar_t output[256];
@@ -74,6 +76,8 @@ void CFpsCounter::Draw() {
 	GetEngine().GetGraphicsEngine().GetSpriteFont()->DrawString(GetEngine().GetGraphicsEngine().GetSpriteBatch(), output, { 0.0f,0.0f }, {1.0f,1.0f,1.0f,0.75f}, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), 0.4f); //DirectX::XMVectorScale(m_font->MeasureString(output), 0.0f));
 
 	GetEngine().GetGraphicsEngine().GetSpriteBatch()->End();
+
+#endif
 }
 
 }

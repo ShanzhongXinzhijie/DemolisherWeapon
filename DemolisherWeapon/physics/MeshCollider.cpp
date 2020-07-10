@@ -7,11 +7,8 @@ namespace DemolisherWeapon {
 	MeshCollider::MeshCollider()
 	{
 	}
-
-
 	MeshCollider::~MeshCollider()
 	{
-
 	}
 
 	/*!
@@ -20,6 +17,8 @@ namespace DemolisherWeapon {
 	 */
 	void MeshCollider::CreateFromSkinModel(const SkinModel& model, const CMatrix* offsetMatrix)
 	{
+#ifndef DW_DX12_TEMPORARY
+
 		CMatrix mBias, mBiasScr;
 
 		CoordinateSystemBias::GetBias(mBias, mBiasScr, model.GetFBXUpAxis(), model.GetFBXCoordinateSystem());
@@ -109,6 +108,8 @@ namespace DemolisherWeapon {
 		//btAdjustInternalEdgeContacts‚Ì‚â‚Â
 		m_triInfomap = std::make_unique<btTriangleInfoMap>();
 		btGenerateInternalEdgeInfo(m_meshShape.get(), m_triInfomap.get());
+
+#endif
 	}
 
 }

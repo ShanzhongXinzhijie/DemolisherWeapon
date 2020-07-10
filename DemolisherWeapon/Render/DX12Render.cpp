@@ -5,6 +5,6 @@
 namespace DemolisherWeapon {
 
 	void DX12Render::Render() {
-		DX12Test::GetIns().Render();
+		m_dx12ref->Render();
 	}
 }
