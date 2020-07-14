@@ -1,57 +1,28 @@
 #pragma once
+#include"GraphicsAPI/IGraphicsAPI.h"
 
 namespace DemolisherWeapon {
 	struct InitEngineParameter;
 
-	class DX12Test
+	class DX12Test : public IGraphicsAPI
 	{
-	/*
-	//シングルトン
-	private:
-		DX12Test(){}
-		~DX12Test() {
-			Release();
-		}
-	public:
-		DX12Test(const DX12Test&) = delete;
-		DX12Test& operator=(const DX12Test&) = delete;
-		DX12Test(DX12Test&&) = delete;
-		DX12Test& operator=(DX12Test&&) = delete;
-	public:
-		//インスタンスを取得
-		static DX12Test& GetIns()
-		{
-			if (instance == nullptr) {
-				instance = new DX12Test;
-			}
-			return *instance;
-		}
-		//インスタンスの削除
-		static void DeleteIns() {
-			if (instance) {
-				delete instance; instance = nullptr;
-			}
-		}
-	private:
-		static inline DX12Test* instance = nullptr;
-	//
-	*/
-
 	public:
 		DX12Test() = default;
-		~DX12Test() {
-			Release();
-		}
 
 		/// <summary>
 		/// DiretX12の初期化
 		/// </summary>
-		bool Init(HWND hWnd, const InitEngineParameter& initParam);
+		bool Init(HWND hWnd, const InitEngineParameter& initParam)override;
 
 		/// <summary>
 		/// DirectX12の終了処理
 		/// </summary>
-		void Release();
+		void Release()override;
+
+		/// <summary>
+		/// フレームバッファサイズの変更(再設定)
+		/// </summary>
+		void ChangeFrameBufferSize()override {};
 
 		/// <summary>
 		/// デバッグ用レポートの出力
@@ -72,26 +43,28 @@ namespace DemolisherWeapon {
 		void Render();
 
 		//前フレームの描画完了を待つ
-		bool WaitForPreviousFrame()
-		{
+		bool WaitForPreviousFrame(){
+			//待つ
 			if (m_fence->GetCompletedValue() < m_fenceValue[m_currentBackBufferIndex]) {
 				if (FAILED(m_fence->SetEventOnCompletion(m_fenceValue[m_currentBackBufferIndex], m_fenceEvent))) {
 					return false;
 				}
 				WaitForSingleObject(m_fenceEvent, INFINITE);
 			}
-			m_fenceValue[m_currentBackBufferIndex]++;
+			//描画バッファ入れ替え
 			m_currentBackBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
 			return true;
 		}
 
 		//GPUのすべての処理の終わりを待つ
-		bool WaitForGpu()
-		{
+		bool WaitForGpu(){
+			//ふやす
 			m_fenceValue[m_currentBackBufferIndex]++;
+			//フェンスの値変更
 			if (FAILED(m_commandQueue->Signal(m_fence.Get(), m_fenceValue[m_currentBackBufferIndex]))) {
 				return false;
 			}
+			//待つ
 			if (FAILED(m_fence->SetEventOnCompletion(m_fenceValue[m_currentBackBufferIndex], m_fenceEvent))) {
 				return false;
 			}
@@ -102,7 +75,7 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// D3D12デバイスを取得
 		/// </summary>
-		ID3D12Device* GetD3DDevice()
+		ID3D12Device* GetD3D12Device()
 		{
 			return m_d3dDevice.Get();
 		}
@@ -115,6 +88,43 @@ namespace DemolisherWeapon {
 			return m_commandQueue.Get();
 		}
 
+		/// <summary>
+		/// コマンドリストを取得
+		/// </summary>
+		ID3D12GraphicsCommandList* GetCommandList()
+		{
+			return m_commandList.Get();
+		}
+
+		/// <summary>
+		/// バックバッファのクリア
+		/// </summary>
+		void ClearBackBuffer()override
+		{
+			//バックバッファを灰色で塗りつぶす。
+			float ClearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+			rtvHandle.ptr += m_currentBackBufferIndex * m_rtvDescriptorSize;
+			GetCommandList()->ClearRenderTargetView(rtvHandle, ClearColor, 0, nullptr);
+			//デプスのクリア
+			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+			GetCommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		}
+
+		/// <summary>
+		/// ビューポートの設定
+		/// </summary>
+		void SetViewport(float topLeftX, float topLeftY, float width, float height)override
+		{
+			m_viewport.Width = width;
+			m_viewport.Height = height;
+			m_viewport.TopLeftX = topLeftX;
+			m_viewport.TopLeftY = topLeftY;
+			m_viewport.MinDepth = 0.0f;
+			m_viewport.MaxDepth = 1.0f;
+			GetCommandList()->RSSetViewports(1, &m_viewport);
+		}
+
 	private:
 		static constexpr int FRAME_COUNT = 2;
 
@@ -125,6 +135,7 @@ namespace DemolisherWeapon {
 		Microsoft::WRL::ComPtr<ID3D12Resource> m_renderTargets[FRAME_COUNT];
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtvDescriptorHeap;
 		UINT m_rtvDescriptorSize = 0;
+		Microsoft::WRL::ComPtr<ID3D12Resource> m_depthStencilBuffer;
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_dsvDescriptorHeap;
 		UINT m_dsvDescriptorSize = 0;
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator[FRAME_COUNT];
@@ -132,6 +143,8 @@ namespace DemolisherWeapon {
 		Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
 		HANDLE m_fenceEvent;
 		UINT64 m_fenceValue[FRAME_COUNT];
+
+		D3D12_VIEWPORT m_viewport;//ビューポート
 	};
 
 }

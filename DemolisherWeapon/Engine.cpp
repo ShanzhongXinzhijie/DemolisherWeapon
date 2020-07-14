@@ -135,18 +135,14 @@ void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpC
 //ゲームの初期化。
 void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, InitEngineParameter initParam)
 {
-	//ウィンドウを初期化。
+	//ウィンドウを初期化
 	InitWindow(hInstance, hPrevInstance, lpCmdLine, nCmdShow, appName, initParam);
 
 	//Bulletの初期化
 	m_physics.Init();
 
-	//DirectXの初期化。
-#ifdef DW_DX12
-	m_graphicsEngine.InitDx12(m_hWnd, initParam);
-#else
+	//グラフィックス関係の初期化
 	m_graphicsEngine.Init(m_hWnd, initParam);
-#endif
 
 	//XAudio2の初期化
 	m_soundEngine.Init();
@@ -291,14 +287,6 @@ void GameLoop::Run() {
 
 		//描画/////////////////////////////////////////////		
 
-#ifndef DW_DX12
-		//バックバッファをクリア
-		GetEngine().GetGraphicsEngine().ClearBackBuffer();
-
-		//3D用のビューポートにする
-		GetEngine().GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().Get3DFrameBuffer_W(), GetEngine().GetGraphicsEngine().Get3DFrameBuffer_H());
-#endif
-
 		//レンダリング
 		GetEngine().GetGraphicsEngine().RunRenderManager();
 
@@ -307,10 +295,11 @@ void GameLoop::Run() {
 		GetEngine().GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().GetFrameBuffer_W(), GetEngine().GetGraphicsEngine().GetFrameBuffer_H());
 
 		//2Dプリミティブの描画
-		GetGraphicsEngine().GetPrimitiveRender().Render2D();
-		GetGraphicsEngine().GetPrimitiveRender().PostRender2D();
+		GetGraphicsEngine().GetPrimitiveRender().Render2D();//描画
+		GetGraphicsEngine().GetPrimitiveRender().PostRender2D();//後始末
 
 		//ゲームオブジェクトによるポスト描画
+		//(スプライトとかの描画)
 		m_gameObjectManager_Ptr->PostRender();
 		
 		//FPS表示		

@@ -15,7 +15,7 @@ namespace DemolisherWeapon {
 			DirectX::ResourceUploadBatch resourceUpload(GetGraphicsEngine().GetD3D12Device());
 			resourceUpload.Begin();
 			hr = DirectX::CreateDDSTextureFromFile(GetGraphicsEngine().GetD3D12Device(), resourceUpload, filepath.c_str(), texdata.d3d12texture.ReleaseAndGetAddressOf(), generateMipmaps);
-			auto uploadResourcesFinished = resourceUpload.End(GetGraphicsEngine().GetCommandQueue());
+			auto uploadResourcesFinished = resourceUpload.End(GetGraphicsEngine().GetXTK12CommandQueue());
 			uploadResourcesFinished.wait();
 #else
 			if (generateMipmaps) {
@@ -33,7 +33,7 @@ namespace DemolisherWeapon {
 			DirectX::ResourceUploadBatch resourceUpload(GetGraphicsEngine().GetD3D12Device());
 			resourceUpload.Begin();
 			hr = DirectX::CreateWICTextureFromFile(GetGraphicsEngine().GetD3D12Device(), resourceUpload, filepath.c_str(), texdata.d3d12texture.ReleaseAndGetAddressOf(), generateMipmaps);
-			auto uploadResourcesFinished = resourceUpload.End(GetGraphicsEngine().GetCommandQueue());
+			auto uploadResourcesFinished = resourceUpload.End(GetGraphicsEngine().GetXTK12CommandQueue());
 			uploadResourcesFinished.wait();
 #else
 			if (generateMipmaps) {

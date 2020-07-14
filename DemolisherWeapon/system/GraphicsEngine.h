@@ -19,7 +19,8 @@
 #include"Render/PreRenderRender.h"
 #include"Render/HUDRender.h"
 
-#include"DirectX12/DX12Test.h"
+#include"GraphicsAPI/DirectX12/DX12Test.h"
+#include"GraphicsAPI/DirectX11/DX11Test.h"
 #include"Render/DX12Render.h"
 
 #include"Camera/CameraManager.h"
@@ -42,21 +43,12 @@ public:
 	GraphicsEngine();
 	~GraphicsEngine();
 
-#ifdef DW_DX12
 	/// <summary>
-	/// 初期化(directx12)
+	/// 初期化
 	/// </summary>
 	/// <param name="hWnd">ウィンドウハンドル</param>
 	/// <param name="initParam">初期化パラメータ</param>
-	void InitDx12(HWND hWnd, const InitEngineParameter& initParam);
-#else
-	/// <summary>
-	/// 初期化(directx11)
-	/// </summary>
-	/// <param name="hWnd">ウィンドウハンドル</param>
-	/// <param name="initParam">初期化パラメータ</param>
-	void Init(HWND hWnd, const InitEngineParameter& initParam);
-#endif
+	bool Init(HWND hWnd, const InitEngineParameter& initParam);
 
 	/*!
 	 *@brief	解放。
@@ -68,23 +60,24 @@ public:
 	 */
 	ID3D11Device* GetD3DDevice()
 	{
-		return m_pd3dDevice;
+		return m_dx11->GetD3DDevice();
 	}
 	/*!
 	 *@brief	D3D11デバイスコンテキストを取得。
 	 */
 	ID3D11DeviceContext* GetD3DDeviceContext()
 	{
-		return m_pd3dDeviceContext;
+		return m_dx11->GetD3DDeviceContext();
 	}
 
+	
 #ifdef DW_DX12
 	/// <summary>
 	/// D3D12デバイスを取得
 	/// </summary>
 	ID3D12Device* GetD3D12Device()
 	{
-		return m_directx12.GetD3DDevice();
+		return m_dx12->GetD3D12Device();
 	}
 
 	/// <summary>
@@ -92,9 +85,24 @@ public:
 	/// </summary>
 	ID3D12CommandQueue* GetCommandQueue()
 	{
-		return m_directx12.GetCommandQueue();
+		return m_dx12->GetCommandQueue();
 	}
-#endif
+	/// <summary>
+	/// DirectXTK12用コマンドキューを取得
+	/// </summary>
+	ID3D12CommandQueue* GetXTK12CommandQueue()
+	{
+		return m_xtk12_commandQueue.Get();
+	}
+
+	/// <summary>
+	/// コマンドリストを取得
+	/// </summary>
+	ID3D12GraphicsCommandList* GetCommandList()
+	{
+		return m_dx12->GetCommandList();
+	}
+#endif	
 
 	//フレームバッファサイズの変更
 	void ChangeFrameBufferSize(	int frameBufferWidth, int frameBufferHeight,
@@ -140,10 +148,13 @@ public:
 	void SetUseVSync(bool b) {
 		m_useVSync = b;
 	}
+	bool GetUseVSync() {
+		return m_useVSync;
+	}
 
 	//ラスタライザーステートをリセット
 	void ResetRasterizerState() {
-		m_pd3dDeviceContext->RSSetState(m_rasterizerState);
+		m_dx11->ResetRasterizerState();
 	}
 
 	//バックバッファをクリア
@@ -268,13 +279,7 @@ public:
 	//ビューポート設定
 	void SetViewport(float topLeftX, float topLeftY, float width, float height)
 	{
-		m_viewport.Width = width;
-		m_viewport.Height = height;
-		m_viewport.TopLeftX = topLeftX;
-		m_viewport.TopLeftY = topLeftY;
-		m_viewport.MinDepth = 0.0f;
-		m_viewport.MaxDepth = 1.0f;
-		m_pd3dDeviceContext->RSSetViewports(1, &m_viewport);
+		m_graphicsAPI->SetViewport(topLeftX, topLeftY, width, height);
 	}
 
 	/// <summary>
@@ -309,6 +314,12 @@ public:
 	}
 
 private:
+	bool InnerInitDX11(HWND hWnd, const InitEngineParameter& initParam);
+#ifdef DW_DX12
+	bool InnerInitDX12(HWND hWnd, const InitEngineParameter& initParam);
+#endif
+
+private:
 
 	float FRAME_BUFFER_W = 1280.0f;				//フレームバッファの幅。
 	float FRAME_BUFFER_H = 720.0f;				//フレームバッファの高さ。
@@ -323,18 +334,10 @@ private:
 	EnSplitScreenMode m_isSplitScreen = enNoSplit;//画面分割設定
 
 	bool m_useVSync = false;//垂直同期するか
-
-	D3D_FEATURE_LEVEL		m_featureLevel;				//Direct3D デバイスのターゲットとなる機能セット。
-	ID3D11Device*			m_pd3dDevice = NULL;		//D3D11デバイス。
-	IDXGISwapChain*			m_pSwapChain = NULL;		//スワップチェイン。
-	ID3D11DeviceContext*	m_pd3dDeviceContext = NULL;	//D3D11デバイスコンテキスト。
-	ID3D11RenderTargetView* m_backBuffer = NULL;		//バックバッファ。
-	ID3D11RasterizerState*	m_rasterizerState = NULL;	//ラスタライザステート。
-	ID3D11Texture2D*		m_depthStencil = NULL;		//デプスステンシル。
-	ID3D11DepthStencilView* m_depthStencilView = NULL;	//デプスステンシルビュー。
-	ID3D11DepthStencilState* m_depthStencilState = nullptr;
-
-	D3D11_VIEWPORT m_viewport;//ビューポート
+	
+	std::unique_ptr<IGraphicsAPI> m_graphicsAPI;//グラフィックスAPI
+	DX11Test* m_dx11 = nullptr;
+	DX12Test* m_dx12 = nullptr;
 
 	std::unique_ptr<DirectX::CommonStates> m_commonStates;//コモンステート
 
@@ -347,15 +350,15 @@ private:
 #ifdef DW_DX12
 	//Directx12
 	DX12Render m_dx12Render;
-	DX12Test m_directx12;
 
 	//DirectXTK12
-	std::unique_ptr<DirectX::DescriptorHeap> m_xtk12_resourceDescriptors;
 	enum Descriptors
 	{
 		MyFont,
 		Count
 	};
+	std::unique_ptr<DirectX::DescriptorHeap> m_xtk12_resourceDescriptors;
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_xtk12_commandQueue;
 #endif
 
 	//フルスクリーン描画プリミティブ

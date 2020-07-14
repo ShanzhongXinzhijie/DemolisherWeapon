@@ -7,10 +7,12 @@ namespace DemolisherWeapon {
         public IRander
     {
     public:
-        DX12Render(DX12Test* dx12ref):m_dx12ref(dx12ref){}
+        void Init(DX12Test* dx12ref) {
+            m_dx12ref = dx12ref;
+        }
         void Render()override;
     private:
-        DX12Test* m_dx12ref;
+        DX12Test* m_dx12ref = nullptr;
     };
 
 }

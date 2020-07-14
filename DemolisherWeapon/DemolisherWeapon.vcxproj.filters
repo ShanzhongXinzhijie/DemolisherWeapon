@@ -109,8 +109,11 @@
     <ClInclude Include="Render\HUDRender.h" />
     <ClInclude Include="Macro\Macro.h" />
     <ClInclude Include="Graphic\Shader\ShaderPreloader.h" />
-    <ClInclude Include="DirectX12\DX12Test.h" />
     <ClInclude Include="Render\DX12Render.h" />
+    <ClInclude Include="GraphicsAPI\DirectX12\d3dx12.h" />
+    <ClInclude Include="GraphicsAPI\DirectX12\DX12Test.h" />
+    <ClInclude Include="GraphicsAPI\IGraphicsAPI.h" />
+    <ClInclude Include="GraphicsAPI\DirectX11\DX11Test.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -206,9 +209,10 @@
     <ClCompile Include="Graphic\Shader\StructuredBuffer.cpp" />
     <ClCompile Include="Render\PreRenderRender.cpp" />
     <ClCompile Include="Render\HUDRender.cpp" />
-    <ClCompile Include="DirectX12\DX12Test.cpp" />
     <ClCompile Include="Render\DX12Render.cpp" />
     <ClCompile Include="Graphic\Shader\ShaderPreloader.cpp" />
+    <ClCompile Include="GraphicsAPI\DirectX12\DX12Test.cpp" />
+    <ClCompile Include="GraphicsAPI\DirectX11\DX11Test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

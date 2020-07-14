@@ -1,17 +1,15 @@
 #include "DWstdafx.h"
 #include "GraphicsEngine.h"
-#include "DirectX12/DX12Test.h"
+#include "GraphicsAPI/DirectX12/DX12Test.h"
+#include "GraphicsAPI/DirectX11/DX11Test.h"
 
 namespace DemolisherWeapon {
 
-	namespace {
-		static constexpr int oneloopOffset = 5000;
-	}
+namespace {
+	constexpr int oneloopOffset = 5000;
+}
 
 GraphicsEngine::GraphicsEngine()
-#ifdef DW_DX12
-	: m_dx12Render(&m_directx12)
-#endif
 {
 	
 }
@@ -22,20 +20,15 @@ GraphicsEngine::~GraphicsEngine()
 
 void GraphicsEngine::ClearBackBuffer()
 {
-	//バックバッファを灰色で塗りつぶす。
-	float ClearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-	m_pd3dDeviceContext->ClearRenderTargetView(m_backBuffer, ClearColor);
-	m_pd3dDeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);	
+	m_graphicsAPI->ClearBackBuffer();
 }
 void GraphicsEngine::SetBackBufferToRenderTarget()
 {
-	//描き込み先をバックバッファにする。
-	m_pd3dDeviceContext->OMSetRenderTargets(1, &m_backBuffer, m_depthStencilView);
+	m_dx11->SetBackBufferToRenderTarget();
 }
 void GraphicsEngine::SwapBackBuffer()
 {
-	//バックバッファとフロントバッファを入れ替える。
-	m_pSwapChain->Present(m_useVSync?1:0, 0);
+	m_dx11->SwapBackBuffer();
 }
 void GraphicsEngine::RunRenderManager() {
 	m_renderManager.Render();
@@ -43,198 +36,17 @@ void GraphicsEngine::RunRenderManager() {
 
 void GraphicsEngine::Release()
 {
-	if (m_depthStencilState) {
-		m_depthStencilState->Release();
-		m_depthStencilState = nullptr;
-	}
-	if (m_rasterizerState != NULL) {
-		m_rasterizerState->Release();
-		m_rasterizerState = NULL;
-	}
-	if (m_depthStencil != NULL) {
-		m_depthStencil->Release();
-		m_depthStencil = NULL;
-	}
-	if (m_depthStencilView != NULL) {
-		m_depthStencilView->Release();
-		m_depthStencilView = NULL;
-	}
-	if (m_backBuffer != NULL) {
-		m_backBuffer->Release();
-		m_backBuffer = NULL;
-	}
-	if (m_pSwapChain != NULL) {
-		m_pSwapChain->Release();
-		m_pSwapChain = NULL;
-	}
-	if (m_pd3dDeviceContext != NULL) {
-		m_pd3dDeviceContext->Release();
-		m_pd3dDeviceContext = NULL;
-	}
-	if (m_pd3dDevice != NULL) {
-		m_pd3dDevice->Release();
-		m_pd3dDevice = NULL;
-	}
-
 	m_FRT.Release();
-
-#ifdef DW_DX12
-	m_directx12.Release();
-#endif
-}
-
-#ifdef DW_DX12
-void GraphicsEngine::InitDx12(HWND hWnd, const InitEngineParameter& initParam) {
-	FRAME_BUFFER_W = (float)initParam.frameBufferWidth;
-	FRAME_BUFFER_H = (float)initParam.frameBufferHeight;
-
-	//DirectX12初期化
-	m_directx12.Init(hWnd, initParam);
-
-	//sprite初期化
-	{
-		m_xtk12_resourceDescriptors = std::make_unique<DirectX::DescriptorHeap>(GetD3D12Device(), Descriptors::Count);
-
-		DirectX::ResourceUploadBatch resourceUpload(GetD3D12Device());
-
-		resourceUpload.Begin();
-
-		m_spriteFont = std::make_unique<DirectX::SpriteFont>(GetD3D12Device(), resourceUpload,
-			L"Preset/Font/myfile.spritefont",
-			m_xtk12_resourceDescriptors->GetCpuHandle(Descriptors::MyFont),
-			m_xtk12_resourceDescriptors->GetGpuHandle(Descriptors::MyFont));
-
-		auto uploadResourcesFinished = resourceUpload.End(GetCommandQueue());//TODO 別のコマンドキュー作るべきか?
-
-		uploadResourcesFinished.wait();
-	}
-
-	//レンダーの登録
-	m_renderManager.AddRender(-2, &m_dx12Render);
-}
-#endif
-
-#ifndef DW_DX12
-void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
-{
-	FRAME_BUFFER_W = (float)initParam.frameBufferWidth;
-	FRAME_BUFFER_H = (float)initParam.frameBufferHeight;
 	
-	//スワップチェインを作成するための情報を設定する。
-	DXGI_SWAP_CHAIN_DESC sd;
-	ZeroMemory(&sd, sizeof(sd));
-	sd.BufferCount = 2;									//スワップチェインのバッファ数。通常は１。
-	sd.BufferDesc.Width = (UINT)FRAME_BUFFER_W;			//フレームバッファの幅。
-	sd.BufferDesc.Height = (UINT)FRAME_BUFFER_H;		//フレームバッファの高さ。
-	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	//フレームバッファのフォーマット。R8G8B8A8の32bit。
-	sd.BufferDesc.RefreshRate.Numerator = initParam.refleshRate;//モニタのリフレッシュレート。(バックバッファとフロントバッファを入れ替えるタイミングとなる。)
-	sd.BufferDesc.RefreshRate.Denominator = 1;			//２にしたら30fpsになる。1でいい。
-	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	//サーフェスまたはリソースを出力レンダー ターゲットとして使用します。
-	sd.OutputWindow = hWnd;								//出力先のウィンドウハンドル。
-	sd.SampleDesc.Count = 1;							//1でいい。
-	sd.SampleDesc.Quality = 0;							//MSAAなし。0でいい。
-	sd.Windowed = initParam.isWindowMode ? TRUE : FALSE;//ウィンドウモード。TRUEでよい。
+	m_graphicsAPI.reset();
+	m_dx11 = nullptr;
+	m_dx12 = nullptr;
+}
 
-	//利用するDirectXの機能セット。
-	//この配列はD3D11CreateDeviceAndSwapChainの引数として使う。
-	D3D_FEATURE_LEVEL featureLevels[] =
-	{
-		D3D_FEATURE_LEVEL_12_1,
-		D3D_FEATURE_LEVEL_12_0,
-		D3D_FEATURE_LEVEL_11_1,
-		D3D_FEATURE_LEVEL_11_0,
-	};
-
-	//D3Dデバイスとスワップチェインを作成する。
-	D3D11CreateDeviceAndSwapChain(
-		NULL,											//NULLでいい。
-		D3D_DRIVER_TYPE_HARDWARE,						//D3Dデバイスがアクセスするドライバーの種類。
-														//基本的にD3D_DRIVER_TYPE_HARDWAREを指定すればよい。
-		NULL,											//NULLでいい。
-		0,												//０でいい。
-		featureLevels,									//D3Dデバイスのターゲットとなる機能セットを指定する。
-		sizeof(featureLevels) / sizeof(featureLevels[0]),	//機能セットの数。
-		D3D11_SDK_VERSION,								//使用するDirectXのバージョン。
-														//D3D11_SDK_VERSIONを指定すればよい。
-		&sd,											//スワップチェインを作成するための情報。
-		&m_pSwapChain,									//作成したスワップチェインのアドレスの格納先。
-		&m_pd3dDevice,									//作成したD3Dデバイスのアドレスの格納先。
-		&m_featureLevel,								//使用される機能セットの格納先。
-		&m_pd3dDeviceContext							//作成したD3Dデバイスコンテキストのアドレスの格納先。
-	);
-
-	//シェーダーのパス設定(デバッグ用)
-	ShaderResources::GetInstance().SetIsReplaceForEngineFilePath(initParam.isShaderPathReplaceForEngineFilePath);
-	//シェーダーの再コンパイル設定
-	ShaderResources::GetInstance().SetIsRecompile(initParam.isShaderRecompile);
-
-	//書き込み先になるレンダリングターゲットを作成。
-	ID3D11Texture2D* pBackBuffer = NULL;
-	m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
-	m_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_backBuffer);
-	pBackBuffer->Release();
-	//深度ステンシルビューの作成。
-	{
-		//深度テクスチャの作成。
-		D3D11_TEXTURE2D_DESC texDesc;
-		ZeroMemory(&texDesc, sizeof(texDesc));
-		texDesc.Width = (UINT)FRAME_BUFFER_W;
-		texDesc.Height = (UINT)FRAME_BUFFER_H;
-		texDesc.MipLevels = 1;
-		texDesc.ArraySize = 1;
-		texDesc.Format = DXGI_FORMAT_D32_FLOAT;
-		texDesc.SampleDesc.Count = 1;
-		texDesc.SampleDesc.Quality = 0;
-		texDesc.Usage = D3D11_USAGE_DEFAULT;
-		texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		texDesc.CPUAccessFlags = 0;
-		texDesc.MiscFlags = 0;
-		m_pd3dDevice->CreateTexture2D(&texDesc, NULL, &m_depthStencil);
-		//深度ステンシルビューを作成。
-		D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-		ZeroMemory(&descDSV, sizeof(descDSV));
-		descDSV.Format = texDesc.Format;
-		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		descDSV.Texture2D.MipSlice = 0;
-		m_pd3dDevice->CreateDepthStencilView(m_depthStencil, &descDSV, &m_depthStencilView);
-	}
-
-	//ラスタライザを初期化。
-	D3D11_RASTERIZER_DESC desc = {};
-	desc.CullMode = D3D11_CULL_FRONT;
-	desc.FillMode = D3D11_FILL_SOLID;
-	desc.DepthClipEnable = true;
-	desc.MultisampleEnable = true;
-	m_pd3dDevice->CreateRasterizerState(&desc, &m_rasterizerState);
-	m_pd3dDeviceContext->RSSetState(m_rasterizerState);
-
-	//ビューポートを初期化。
-	SetViewport(0.0f, 0.0f, FRAME_BUFFER_W, FRAME_BUFFER_H);
-
-	//ブレンドステート初期化
-	m_commonStates = std::make_unique<DirectX::CommonStates>(m_pd3dDevice);
-	m_pd3dDeviceContext->OMSetBlendState(m_commonStates->NonPremultiplied(), nullptr, 0xFFFFFFFF);
-
-	{
-		D3D11_DEPTH_STENCIL_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-		desc.DepthEnable = true;
-		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-		desc.StencilEnable = false;
-		desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-		desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-		desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-		desc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-		desc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-		desc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		desc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-		m_pd3dDevice->CreateDepthStencilState(&desc, &m_depthStencilState);
-		m_pd3dDeviceContext->OMSetDepthStencilState(m_depthStencilState, 0);
-	}
+bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam) {
+	//フレームバッファサイズ
+	FRAME_BUFFER_W = (float)initParam.frameBufferWidth;
+	FRAME_BUFFER_H = (float)initParam.frameBufferHeight;
 
 	//画面分割用の比率に
 	FRAME_BUFFER_3D_W = (float)initParam.frameBufferWidth3D;
@@ -247,10 +59,86 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		FRAME_BUFFER_3D_W *= 0.5f;
 	}
 
+	//グラフィックスAPIごとの初期化
+#ifdef DW_DX12
+	return InnerInitDX12(hWnd, initParam);
+#else
+	return InnerInitDX11(hWnd, initParam);
+#endif	
+}
+
+#ifdef DW_DX12
+bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initParam) {
+	//DirectX12初期化
+	m_graphicsAPI = std::make_unique<DX12Test>();
+	auto sucsses = m_graphicsAPI->Init(hWnd, initParam);
+	if (!sucsses) {
+		return false;
+	}
+	m_dx12 = dynamic_cast<DX12Test*>(m_graphicsAPI.get());
+
+	//sprite初期化
+	{
+		//ディスクリプタヒープ作る
+		m_xtk12_resourceDescriptors = std::make_unique<DirectX::DescriptorHeap>(m_dx12->GetD3D12Device(), Descriptors::Count);
+		// コマンドキューを作成
+		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+		auto hr = m_dx12->GetD3D12Device()->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_xtk12_commandQueue));
+		if (FAILED(hr)) {
+			return false;
+		}
+
+		//コマンドリスト作る
+		DirectX::ResourceUploadBatch resourceUpload(m_dx12->GetD3D12Device());
+		resourceUpload.Begin();
+
+		//フォント作成
+		m_spriteFont = std::make_unique<DirectX::SpriteFont>(m_dx12->GetD3D12Device(), resourceUpload,
+			L"Preset/Font/myfile.spritefont",
+			m_xtk12_resourceDescriptors->GetCpuHandle(Descriptors::MyFont),
+			m_xtk12_resourceDescriptors->GetGpuHandle(Descriptors::MyFont));
+
+		//コマンドリストをキューへ送る
+		auto uploadResourcesFinished = resourceUpload.End(m_xtk12_commandQueue.Get());
+
+		//処理終わり待つ
+		uploadResourcesFinished.wait();
+	}
+
+	//レンダーの登録
+	m_dx12Render.Init(dynamic_cast<DX12Test*>(m_graphicsAPI.get()));
+	m_renderManager.AddRender(-2, &m_dx12Render);
+
+	return true;
+}
+#endif
+
+bool GraphicsEngine::InnerInitDX11(HWND hWnd, const InitEngineParameter& initParam) {	
+	//DirectX11初期化
+	m_graphicsAPI = std::make_unique<DX11Test>();
+	auto sucsses = m_graphicsAPI->Init(hWnd, initParam);
+	if (!sucsses) {
+		return false;
+	}
+	m_dx11 = dynamic_cast<DX11Test*>(m_graphicsAPI.get());
+
+	//シェーダーのパス設定(デバッグ用)
+	ShaderResources::GetInstance().SetIsReplaceForEngineFilePath(initParam.isShaderPathReplaceForEngineFilePath);
+	//シェーダーの再コンパイル設定
+	ShaderResources::GetInstance().SetIsRecompile(initParam.isShaderRecompile);
+
+	//ビューポートを初期化。
+	SetViewport(0.0f, 0.0f, FRAME_BUFFER_W, FRAME_BUFFER_H);
+
+#ifdef DW_DX11
+	//ブレンドステート初期化
+	m_commonStates = std::make_unique<DirectX::CommonStates>(GetD3DDevice());
+	GetD3DDeviceContext()->OMSetBlendState(m_commonStates->NonPremultiplied(), nullptr, 0xFFFFFFFF);
+
 	//Sprite初期化
-	m_spriteFont = std::make_unique<DirectX::SpriteFont>(m_pd3dDevice, L"Preset/Font/myfile.spritefont");
-	m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(m_pd3dDeviceContext);
-	m_spriteBatchPMA = std::make_unique<DirectX::SpriteBatch>(m_pd3dDeviceContext);
+	m_spriteFont = std::make_unique<DirectX::SpriteFont>(GetD3DDevice(), L"Preset/Font/myfile.spritefont");
+	m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(GetD3DDeviceContext());
+	m_spriteBatchPMA = std::make_unique<DirectX::SpriteBatch>(GetD3DDeviceContext());
 
 	//ロード画面描画
 	{
@@ -279,6 +167,7 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 		//バックバッファを表へ
 		SwapBackBuffer();
 	}
+#endif
 
 	//フルスクリーン描画プリミティブ初期化	
 	m_fullscreen.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, m_vertex, 4, m_index);
@@ -420,48 +309,19 @@ void GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam)
 
 	//GPUイベント用
 #ifndef DW_MASTER
-	m_pd3dDeviceContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&m_pUserAnotation);
+	m_dx11->GetD3DDeviceContext()->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&m_pUserAnotation);
 #endif
+
+	return true;
 }
-#endif
 
 void GraphicsEngine::ChangeFrameBufferSize(int frameBufferWidth, int frameBufferHeight, int frameBufferWidth3D, int frameBufferHeight3D, int HUDWidth, int HUDHeight, EnSplitScreenMode screenMode, float* splitScreenSize) {
 	//サイズ変更
 	FRAME_BUFFER_W = (float)frameBufferWidth;
 	FRAME_BUFFER_H = (float)frameBufferHeight;
 	
-	//※スワップチェインを参照しているオブジェクトを削除してないとm_pSwapChain->ResizeBuffersができない
-	//バックバッファ死亡!!!死!!
-	if (m_backBuffer) { m_backBuffer->Release(); m_backBuffer = NULL; }
-
-	//スワップチェインサイズ変更
-	DXGI_SWAP_CHAIN_DESC sd;
-	m_pSwapChain->GetDesc(&sd);
-	HRESULT hr = m_pSwapChain->ResizeBuffers(0, (UINT)FRAME_BUFFER_W, (UINT)FRAME_BUFFER_H, sd.BufferDesc.Format, sd.Flags);
-
-	//バックバッファ再作成
-	ID3D11Texture2D* pBackBuffer = NULL;
-	m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
-	m_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_backBuffer);
-	pBackBuffer->Release();
-
-	//深度ステンシルの設定コピー
-	D3D11_TEXTURE2D_DESC texDesc;
-	m_depthStencil->GetDesc(&texDesc);
-	texDesc.Width = (UINT)FRAME_BUFFER_W;
-	texDesc.Height = (UINT)FRAME_BUFFER_H;	
-	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-	m_depthStencilView->GetDesc(&descDSV);
-	descDSV.Format = texDesc.Format;
-
-	//深度ステンシル死亡!!!死!!
-	if (m_depthStencil) { m_depthStencil->Release(); m_depthStencil = NULL; }
-	if (m_depthStencilView) { m_depthStencilView->Release(); m_depthStencilView = NULL; }
-	
-	//深度テクスチャ再作成
-	m_pd3dDevice->CreateTexture2D(&texDesc, NULL, &m_depthStencil);
-	//深度ステンシルビュー再作成
-	m_pd3dDevice->CreateDepthStencilView(m_depthStencil, &descDSV, &m_depthStencilView);
+	//グラフィックスApiごとの処理
+	m_graphicsAPI->ChangeFrameBufferSize();
 
 	//ビューポートを初期化。
 	SetViewport(0.0f, 0.0f, FRAME_BUFFER_W, FRAME_BUFFER_H);

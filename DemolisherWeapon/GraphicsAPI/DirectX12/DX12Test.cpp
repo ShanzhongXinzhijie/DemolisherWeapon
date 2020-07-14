@@ -1,6 +1,6 @@
 #include "DWstdafx.h"
 #include "DX12Test.h"
-#include "DirectX12/d3dx12.h"
+#include "GraphicsAPI/DirectX12/d3dx12.h"
 
 namespace DemolisherWeapon {
 
@@ -93,8 +93,8 @@ namespace DemolisherWeapon {
 		// スワップチェーンを作成
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.BufferCount = FRAME_COUNT;
-		swapChainDesc.Width = initParam.frameBufferWidth;
-		swapChainDesc.Height = initParam.frameBufferHeight;
+		swapChainDesc.Width = static_cast<UINT>(GetGraphicsEngine().GetFrameBuffer_W());
+		swapChainDesc.Height = static_cast<UINT>(GetGraphicsEngine().GetFrameBuffer_H());
 		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
@@ -135,7 +135,7 @@ namespace DemolisherWeapon {
 		m_dsvDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false, m_dsvDescriptorHeap);
 
 		//DSV作成
-		/*{
+		{
 			D3D12_CLEAR_VALUE dsvClearValue;
 			dsvClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 			dsvClearValue.DepthStencil.Depth = 1.0f;
@@ -144,8 +144,8 @@ namespace DemolisherWeapon {
 			CD3DX12_RESOURCE_DESC desc(
 				D3D12_RESOURCE_DIMENSION_TEXTURE2D,
 				0,
-				static_cast<UINT>(initParam.frameBufferWidth),
-				static_cast<UINT>(initParam.frameBufferHeight),
+				static_cast<UINT>(GetGraphicsEngine().GetFrameBuffer_W()),
+				static_cast<UINT>(GetGraphicsEngine().GetFrameBuffer_H()),
 				1,
 				1,
 				DXGI_FORMAT_D32_FLOAT,
@@ -167,12 +167,10 @@ namespace DemolisherWeapon {
 				return false;
 			}
 			//ディスクリプタを作成
-			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
-			m_d3dDevice->CreateDepthStencilView(
-				m_depthStencilBuffer.Get(), nullptr, dsvHandle
-			);
-		}*/
+			m_d3dDevice->CreateDepthStencilView(m_depthStencilBuffer.Get(), nullptr, dsvHandle);
+		}
 
 		// コマンドアロケータを作成する.
 		for (int i = 0; i < FRAME_COUNT; ++i) {
@@ -207,59 +205,6 @@ namespace DemolisherWeapon {
 		}
 
 		return true;
-
-		/*
-			/// <summary>
-			/// ///////////
-			/// </summary>
-			///
-			//メインレンダリングターゲットを作成。
-			float clearColor[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-			if (m_mainRenderTarget.Create(
-				initParam.frameBufferWidth,
-				initParam.frameBufferHeight,
-				1,
-				1,
-				DXGI_FORMAT_R32G32B32A32_FLOAT,
-				DXGI_FORMAT_D32_FLOAT,
-				clearColor) == false) {
-				TK_ASSERT(false, "メインレンダリングターゲットの作成に失敗しました。");
-				return false;
-			}
-
-			//CBR_SVRのディスクリプタのサイズを取得。
-			m_cbrSrvDescriptorSize = m_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-			//パイプラインステートを初期化。
-			CPipelineStatesDx12::Init();
-
-			//ポストエフェクトの初期化。
-			m_postEffect.Init(initParam.graphicsConfing);
-
-			m_copyFullScreenSprite.Init(
-				&m_mainRenderTarget.GetRenderTargetTexture(),
-				static_cast<float>(initParam.frameBufferWidth),
-				static_cast<float>(initParam.frameBufferHeight));
-			//ビューポートを初期化。
-			m_viewport.TopLeftX = 0;
-			m_viewport.TopLeftY = 0;
-			m_viewport.Width = static_cast<float>(initParam.frameBufferWidth);
-			m_viewport.Height = static_cast<float>(initParam.frameBufferHeight);
-			m_viewport.MinDepth = D3D12_MIN_DEPTH;
-			m_viewport.MaxDepth = D3D12_MAX_DEPTH;
-
-			//シザリング矩形を初期化。
-			m_scissorRect.left = 0;
-			m_scissorRect.top = 0;
-			m_scissorRect.right = initParam.frameBufferWidth;
-			m_scissorRect.bottom = initParam.frameBufferHeight;
-
-			//レンダリングコンテキストの作成。
-			auto giFactry = g_engine->GetGraphicsInstanceFactory();
-			m_renderContext = giFactry->CreateRenderContext();
-			auto& rcDx12 = m_renderContext->As<CRenderContextDx12>();
-			rcDx12.SetCommandList(m_commandList);
-			*/
 	}
 
 	void DX12Test::Release(){
@@ -300,7 +245,8 @@ namespace DemolisherWeapon {
 		//レンダーターゲットを設定
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 		rtvHandle.ptr += m_currentBackBufferIndex * m_rtvDescriptorSize;
-		m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+		m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
 		//レンダーターゲットを塗りつぶし
 		CVector4 clearColor = { 1.0f, 0.2f, 0.4f, 1.0f };
@@ -335,12 +281,7 @@ namespace DemolisherWeapon {
 		}
 
 		//フェンスのインクリメント
-		/*fenceValue[currentFrameIndex] = masterFenceValue;
-		if (FAILED(commandQueue->Signal(fence.Get(), fenceValue[currentFrameIndex]))) {
-			return;
-		}
-		++masterFenceValue;*/
-
+		m_fenceValue[m_currentBackBufferIndex]++;
 		//フェンスの値変更
 		if (FAILED(m_commandQueue->Signal(m_fence.Get(), m_fenceValue[m_currentBackBufferIndex]))) {
 			return;
