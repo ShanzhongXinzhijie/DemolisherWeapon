@@ -347,6 +347,8 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="Render\FinishRender.h" />
+    <ClInclude Include="Render\DirectXTKRender.h" />
     <ClInclude Include="GraphicsAPI\DirectX11\DX11Test.h" />
     <ClInclude Include="GraphicsAPI\DirectX12\d3dx12.h" />
     <ClInclude Include="GraphicsAPI\DirectX12\DX12Test.h" />
@@ -456,6 +458,8 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Render\FinishRender.cpp" />
+    <ClCompile Include="Render\DirectXTKRender.cpp" />
     <ClCompile Include="GraphicsAPI\DirectX11\DX11Test.cpp" />
     <ClCompile Include="GraphicsAPI\DirectX12\DX12Test.cpp" />
     <ClCompile Include="Render\DX12Render.cpp" />

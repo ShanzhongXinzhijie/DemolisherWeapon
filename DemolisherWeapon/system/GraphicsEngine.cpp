@@ -9,7 +9,7 @@ namespace {
 	constexpr int oneloopOffset = 5000;
 }
 
-GraphicsEngine::GraphicsEngine()
+GraphicsEngine::GraphicsEngine(): m_primitiveRender2D(&m_primitiveRender)
 {
 	
 }
@@ -43,7 +43,7 @@ void GraphicsEngine::Release()
 	m_dx12 = nullptr;
 }
 
-bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam) {
+bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam, GameObjectManager* gom, CFpsCounter* fc) {
 	//フレームバッファサイズ
 	FRAME_BUFFER_W = (float)initParam.frameBufferWidth;
 	FRAME_BUFFER_H = (float)initParam.frameBufferHeight;
@@ -63,6 +63,7 @@ bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam) {
 #ifdef DW_DX12
 	return InnerInitDX12(hWnd, initParam);
 #else
+	m_directxtkRender.Init(gom, fc);//初期化
 	return InnerInitDX11(hWnd, initParam);
 #endif	
 }
@@ -108,6 +109,18 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 	//レンダーの登録
 	m_dx12Render.Init(dynamic_cast<DX12Test*>(m_graphicsAPI.get()));
 	m_renderManager.AddRender(-2, &m_dx12Render);
+	/*
+	int screencnt = m_isSplitScreen ? 2 : 1;
+	int offset = oneloopOffset * (screencnt + 1);
+	//2dinit
+	m_renderManager.AddRender(offset + 1, &m_initRender2D);
+	//primrender2D
+	m_renderManager.AddRender(offset + 2, &m_primitiveRender2D);
+	//DirectXTKRender
+	m_renderManager.AddRender(offset + 3, &m_directxtkRender);
+	//finishrender
+	m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);
+	*/
 
 	return true;
 }
@@ -305,7 +318,16 @@ bool GraphicsEngine::InnerInitDX11(HWND hWnd, const InitEngineParameter& initPar
 
 		//HUD描画
 		m_renderManager.AddRender(1001 + offset, m_HUDRender[i].get());
-	}
+	}	
+	int offset = oneloopOffset * (screencnt + 1);
+	//2dinit
+	m_renderManager.AddRender(offset + 1, &m_initRender2D);
+	//primrender2D
+	m_renderManager.AddRender(offset + 2, &m_primitiveRender2D);
+	//DirectXTKRender
+	m_renderManager.AddRender(offset + 3, &m_directxtkRender);
+	//finishrender
+	m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);
 
 	//GPUイベント用
 #ifndef DW_MASTER

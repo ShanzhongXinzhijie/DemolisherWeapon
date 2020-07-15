@@ -135,6 +135,9 @@ void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpC
 //ゲームの初期化。
 void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, InitEngineParameter initParam)
 {
+	//ゲームループの初期化
+	m_gameLoop.Init(initParam.limitFps, initParam.standardFps, initParam.variableFpsMaxSec);
+
 	//ウィンドウを初期化
 	InitWindow(hInstance, hPrevInstance, lpCmdLine, nCmdShow, appName, initParam);
 
@@ -142,7 +145,7 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	m_physics.Init();
 
 	//グラフィックス関係の初期化
-	m_graphicsEngine.Init(m_hWnd, initParam);
+	m_graphicsEngine.Init(m_hWnd, initParam, &m_gameObjectManager, m_fpscounter.get());
 
 	//XAudio2の初期化
 	m_soundEngine.Init();
@@ -151,10 +154,7 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 #ifndef DW_DX12_TEMPORARY
 	m_effekseer.Init();
 #endif
-
-	//ゲームループの初期化
-	m_gameLoop.Init(initParam.limitFps, initParam.standardFps, initParam.variableFpsMaxSec);
-
+	
 	//コリジョンマネージャーの初期化
 	m_collisionManager = std::make_unique<GameObj::CollisionObjManager>();
 
@@ -289,25 +289,6 @@ void GameLoop::Run() {
 
 		//レンダリング
 		GetEngine().GetGraphicsEngine().RunRenderManager();
-
-#ifndef DW_DX12_TEMPORARY
-		//2D用の設定にする
-		GetEngine().GetGraphicsEngine().SetViewport(0.0f, 0.0f, GetEngine().GetGraphicsEngine().GetFrameBuffer_W(), GetEngine().GetGraphicsEngine().GetFrameBuffer_H());
-
-		//2Dプリミティブの描画
-		GetGraphicsEngine().GetPrimitiveRender().Render2D();//描画
-		GetGraphicsEngine().GetPrimitiveRender().PostRender2D();//後始末
-
-		//ゲームオブジェクトによるポスト描画
-		//(スプライトとかの描画)
-		m_gameObjectManager_Ptr->PostRender();
-		
-		//FPS表示		
-		m_fpscounter->Draw();
-
-		//バックバッファを表へ
-		GetEngine().GetGraphicsEngine().SwapBackBuffer();
-#endif
 
 		///////////////////////////////////////////////////
 

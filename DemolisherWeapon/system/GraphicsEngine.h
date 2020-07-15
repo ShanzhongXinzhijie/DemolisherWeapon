@@ -18,6 +18,8 @@
 #include"Render/InitRender.h"
 #include"Render/PreRenderRender.h"
 #include"Render/HUDRender.h"
+#include"Render/DirectXTKRender.h"
+#include"Render/finishrender.h"
 
 #include"GraphicsAPI/DirectX12/DX12Test.h"
 #include"GraphicsAPI/DirectX11/DX11Test.h"
@@ -48,7 +50,7 @@ public:
 	/// </summary>
 	/// <param name="hWnd">ウィンドウハンドル</param>
 	/// <param name="initParam">初期化パラメータ</param>
-	bool Init(HWND hWnd, const InitEngineParameter& initParam);
+	bool Init(HWND hWnd, const InitEngineParameter& initParam, GameObjectManager*, CFpsCounter*);
 
 	/*!
 	 *@brief	解放。
@@ -405,6 +407,10 @@ private:
 	std::unique_ptr<CameraSwitchRender> m_cameraSwitchRender[2];
 	std::unique_ptr<PreRenderRender> m_preRenderRender[2];
 	std::unique_ptr<HUDRender> m_HUDRender[2];
+	InitRender2D m_initRender2D;
+	PrimitiveRender2D m_primitiveRender2D;
+	DirectXTKRender m_directxtkRender;
+	SuperUltraSeriousRealTrueFinishRender m_SUSRTFinishRender;
 
 	//現在ターゲットになっている画面番号
 	int m_HUDNum = -1;

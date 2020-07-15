@@ -14,4 +14,15 @@ namespace DemolisherWeapon {
 		void Resize()override {};
 	};
 
+	class InitRender2D :
+		public IRander
+	{
+	public:
+		InitRender2D() = default;
+
+		void Render()override;
+
+		void Resize()override {};
+	};
+
 }

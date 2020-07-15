@@ -209,4 +209,10 @@ namespace DemolisherWeapon {
 			*it = false;
 		}
 	}
+
+	void PrimitiveRender2D::Render() {
+		//2Dプリミティブの描画
+		GetGraphicsEngine().GetPrimitiveRender().Render2D();//描画
+		GetGraphicsEngine().GetPrimitiveRender().PostRender2D();//後始末
+	}
 }

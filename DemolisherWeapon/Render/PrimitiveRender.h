@@ -20,6 +20,7 @@ namespace DemolisherWeapon {
 		//2D•`‰æ
 		void Render2D();
 		void PostRender2D();
+
 		//HUD•`‰æ
 		void RenderHUD(int HUDNum);
 		void PostRenderHUD();
@@ -115,6 +116,16 @@ namespace DemolisherWeapon {
 		//ŽlŠpŒ`
 		std::list<Line> m_quadList2D;
 		std::vector<std::list<Line>> m_quadListHUD;
+	};
+
+	class PrimitiveRender2D : public IRander {
+	public:
+		PrimitiveRender2D(PrimitiveRender* primrender):m_ptrPrimRender(primrender){}
+
+		void Render()override;
+
+	private:
+		PrimitiveRender* m_ptrPrimRender = nullptr;
 	};
 
 }

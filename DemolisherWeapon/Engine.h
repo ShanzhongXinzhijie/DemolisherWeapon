@@ -93,11 +93,13 @@ struct InitEngineParameter {
 
 class GameLoop {
 public:
-	GameLoop(GameObjectManager* gom, GONewDeleteManager* gonewdel, CPhysicsWorld* physics, EffekseerManager* effekseer) {
-		m_gameObjectManager_Ptr = gom;
-		m_goNewDeleteManager_Ptr = gonewdel;
-		m_physics_Ptr = physics;
-		m_effekseer_Ptr = effekseer;
+	GameLoop(GameObjectManager* gom, GONewDeleteManager* gonewdel, CPhysicsWorld* physics, EffekseerManager* effekseer, std::unique_ptr<CFpsCounter>& fpsCounter):
+		m_gameObjectManager_Ptr(gom),
+		m_goNewDeleteManager_Ptr(gonewdel),
+		m_physics_Ptr(physics),
+		m_effekseer_Ptr(effekseer),
+		m_fpscounter(fpsCounter)
+	{		
 	};
 
 	void Init(int maxfps, int stdfps, float variableFpsMaxSec) {
@@ -149,7 +151,7 @@ private:
 	float m_runframecnt = 1.0f;
 	bool m_noVariableFramerateOnce = true;
 	float m_variableFpsMaxSec = -1.0f;
-	std::unique_ptr<CFpsCounter> m_fpscounter;
+	std::unique_ptr<CFpsCounter>& m_fpscounter;
 
 	bool m_loopBreak = false;
 
@@ -165,7 +167,7 @@ class Engine
 {
 //シングルトン
 private:
-	Engine() : m_gameLoop(&m_gameObjectManager,&m_goNewDeleteManager,&m_physics,&m_effekseer) {};
+	Engine() : m_gameLoop(&m_gameObjectManager,&m_goNewDeleteManager,&m_physics,&m_effekseer,m_fpscounter) {};
 	~Engine() = default;
 public:
 	Engine(const Engine&) = delete;
@@ -337,6 +339,7 @@ private:
 	GameObjectManager m_gameObjectManager;
 	GONewDeleteManager m_goNewDeleteManager;
 	GameLoop m_gameLoop;
+	std::unique_ptr<CFpsCounter> m_fpscounter;
 
 	//入力クラス
 	CMouseCursor m_mouseCursorManager;

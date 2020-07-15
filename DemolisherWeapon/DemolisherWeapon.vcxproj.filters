@@ -114,6 +114,8 @@
     <ClInclude Include="GraphicsAPI\DirectX12\DX12Test.h" />
     <ClInclude Include="GraphicsAPI\IGraphicsAPI.h" />
     <ClInclude Include="GraphicsAPI\DirectX11\DX11Test.h" />
+    <ClInclude Include="Render\DirectXTKRender.h" />
+    <ClInclude Include="Render\FinishRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -213,6 +215,8 @@
     <ClCompile Include="Graphic\Shader\ShaderPreloader.cpp" />
     <ClCompile Include="GraphicsAPI\DirectX12\DX12Test.cpp" />
     <ClCompile Include="GraphicsAPI\DirectX11\DX11Test.cpp" />
+    <ClCompile Include="Render\DirectXTKRender.cpp" />
+    <ClCompile Include="Render\FinishRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

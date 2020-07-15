@@ -46,6 +46,7 @@ void CFpsCounter::Count() {
 void CFpsCounter::Draw() {
 	if (!m_isDebugDraw) { return; }
 
+	//表示する情報の更新
 	m_max = max(m_max, m_fps);
 	m_min = min(m_min, m_fps);
 	m_add += m_fps; m_avgcnt++; m_addTime += m_frametimeSec;
@@ -58,6 +59,7 @@ void CFpsCounter::Draw() {
 		m_max = 0.0f, m_min = 100000.0f;
 	}
 
+	//表示
 #ifndef DW_DX12_TEMPORARY
 
 	GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin(DirectX::SpriteSortMode::SpriteSortMode_Deferred, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
