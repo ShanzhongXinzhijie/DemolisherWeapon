@@ -2,6 +2,7 @@
 #include "DX12Test.h"
 #include "GraphicsAPI/DirectX12/d3dx12.h"
 
+#ifdef DW_DX12
 namespace DemolisherWeapon {
 
 	UINT DX12Test::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool isShaderVisible, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap) {
@@ -100,12 +101,28 @@ namespace DemolisherWeapon {
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapChainDesc.SampleDesc.Count = 1;
 
+		//フルスクリーン設定
+		DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc = {};
+		DXGI_SWAP_CHAIN_FULLSCREEN_DESC* fullscreenDescPtr = nullptr;
+		if (!initParam.isWindowMode) {
+			fullscreenDescPtr = &fullscreenDesc;//使う		
+
+			auto refleshRate = Util::GetRefreshRate(hWnd);//リフレッシュレートを取得
+			fullscreenDesc.RefreshRate.Numerator = refleshRate;
+			fullscreenDesc.RefreshRate.Denominator = 1;
+
+			fullscreenDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+			fullscreenDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+			fullscreenDesc.Windowed = false;
+		}
+
 		ComPtr<IDXGISwapChain1> swapChainTmp;
 		auto hr = dxgiFactory->CreateSwapChainForHwnd(
 			m_commandQueue.Get(),
 			hWnd,
 			&swapChainDesc,
-			nullptr,
+			fullscreenDescPtr,
 			nullptr,
 			&swapChainTmp
 		);
@@ -276,9 +293,7 @@ namespace DemolisherWeapon {
 		m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 		//スワップチェイン
-		if (FAILED(m_swapChain->Present(1, 0))) {
-			return;
-		}
+		m_swapChain->Present(GetGraphicsEngine().GetUseVSync() ? 1 : 0, 0);
 
 		//フェンスのインクリメント
 		m_fenceValue[m_currentBackBufferIndex]++;
@@ -287,4 +302,73 @@ namespace DemolisherWeapon {
 			return;
 		}
 	}
+
+	void DX12Test::SetBackBufferToRenderTarget() {		
+		//前フレームの描画完了を待つ
+		if (!WaitForPreviousFrame()) {
+			return;
+		}
+
+		//これから使うコマンドリスト・アロケータをリセットして使用可能に
+		if (FAILED(m_commandAllocator[m_currentBackBufferIndex]->Reset())) {
+			return;
+		}
+		if (FAILED(m_commandList->Reset(m_commandAllocator[m_currentBackBufferIndex].Get(), nullptr))) {
+			return;
+		}
+
+		//リソースバリアを設定
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+		//レンダーターゲットを設定
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+		rtvHandle.ptr += m_currentBackBufferIndex * m_rtvDescriptorSize;
+		m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);		
+	}
+
+	void DX12Test::ExecuteCommand() {
+		//リソースバリアを設定
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+
+		//コマンドリストを閉じる
+		if (FAILED(m_commandList->Close())) {
+			return;
+		}
+
+		//コマンドリスト実行
+		ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
+		m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+		//フェンスのインクリメント
+		m_fenceValue[m_currentBackBufferIndex]++;
+
+		//フェンスの値変更
+		if (FAILED(m_commandQueue->Signal(m_fence.Get(), m_fenceValue[m_currentBackBufferIndex]))) {
+			return;
+		}
+	}
+
+	void DX12Test::SwapBackBuffer() {
+		//バックバッファとフロントバッファを入れ替える。
+		m_swapChain->Present(GetGraphicsEngine().GetUseVSync() ? 1 : 0, 0);
+	}
+
+	void DX12Test::SetViewport(float topLeftX, float topLeftY, float width, float height) {
+		m_viewport.Width = width;
+		m_viewport.Height = height;
+		m_viewport.TopLeftX = topLeftX;
+		m_viewport.TopLeftY = topLeftY;
+		m_viewport.MinDepth = D3D12_MIN_DEPTH;
+		m_viewport.MaxDepth = D3D12_MAX_DEPTH;
+		GetCommandList()->RSSetViewports(1, &m_viewport);
+		GetGraphicsEngine().GetSpriteBatch()->SetViewport(m_viewport);
+		GetGraphicsEngine().GetSpriteBatchPMA()->SetViewport(m_viewport);
+
+		m_scissorRect.right = (LONG)(topLeftX + width);
+		m_scissorRect.bottom = (LONG)(topLeftY + height);
+		m_scissorRect.left = (LONG)topLeftX;
+		m_scissorRect.top = (LONG)topLeftY;
+		GetCommandList()->RSSetScissorRects(1, &m_scissorRect);
+	}
 }
+#endif

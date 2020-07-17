@@ -14,7 +14,11 @@ namespace DemolisherWeapon {
 
 		virtual void ChangeFrameBufferSize() = 0;
 
+		virtual void SetBackBufferToRenderTarget() = 0;
 		virtual void ClearBackBuffer() = 0;
+		virtual void SwapBackBuffer() = 0;
+		virtual void ExecuteCommand() = 0;
+
 		virtual void SetViewport(float topLeftX, float topLeftY, float width, float height) = 0;
 	};
 

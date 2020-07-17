@@ -27,6 +27,7 @@ struct InitEngineParameter {
 	float SDUnityChanScale = 1.0f;	//SDユニティちゃんの大きさ(距離の基準値になる)
 									//メモ: 1m = 78.74fくらい?(Unityちゃんが全長1.5mくらいになる
 
+	bool useFpsLimiter = true;		//フレームレートに上限を設定するか
 	int limitFps = 60;				//フレームレート上限
 	int standardFps = 60;			//動作フレームレート
 	float variableFpsMaxSec = 1.0f;	//1描画フレームあたりの処理時間がこの秒数を超えると、可変フレームレート無効化(-FLT_EPSILON以下で無効化無効)
@@ -40,8 +41,9 @@ struct InitEngineParameter {
 	int frameBufferHeight3D = 720;	//3D描画の解像度(高さ)
 	int HUDWidth = 1280;			//HUDの解像度(幅)
 	int HUDHeight = 720;			//HUDの解像度(高さ)
-	int refleshRate = 60;			//リフレッシュレート
-	bool isWindowMode = TRUE;		//ウィンドウモードか？
+	//int refleshRate = 60;			//リフレッシュレート
+	bool isWindowMode = true;		//ウィンドウモードか？
+	bool useVSync = false;			//垂直同期を使用するか
 
 	CVector3 defaultAmbientLight = {0.3f,0.3f,0.3f};//デフォルトのアンビエントライト
 
@@ -102,9 +104,9 @@ public:
 	{		
 	};
 
-	void Init(int maxfps, int stdfps, float variableFpsMaxSec) {
+	void Init(int maxfps, int stdfps, float variableFpsMaxSec, bool useFpsLimiter) {
 		m_fpscounter = std::make_unique<CFpsCounter>();
-		m_fpscounter->Init(maxfps, stdfps);
+		m_fpscounter->Init(maxfps, stdfps, useFpsLimiter);
 		m_variableFpsMaxSec = variableFpsMaxSec;
 	}
 

@@ -4,6 +4,10 @@
 
 namespace DemolisherWeapon {
 
+namespace {
+	wchar_t output[256];
+}
+
 CFpsCounter::CFpsCounter()
 {
 	QueryPerformanceFrequency(&nFreq);
@@ -59,13 +63,8 @@ void CFpsCounter::Draw() {
 		m_max = 0.0f, m_min = 100000.0f;
 	}
 
-	//表示
-#ifndef DW_DX12_TEMPORARY
-
-	GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin(DirectX::SpriteSortMode::SpriteSortMode_Deferred, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
-
-	wchar_t output[256];
-	swprintf_s(output, 
+	//テキスト作成
+	swprintf_s(output,
 		L"%.1fFPS\n"
 		"MAX:%.1f\n"
 		"MIN:%.1f\n"
@@ -75,11 +74,62 @@ void CFpsCounter::Draw() {
 		"ver.%ls",
 		m_fps, m_max, m_min, m_avg, m_runframecnt, static_cast<int>(GetRegisterGameObjectNum()), DW_VER);
 
-	GetEngine().GetGraphicsEngine().GetSpriteFont()->DrawString(GetEngine().GetGraphicsEngine().GetSpriteBatch(), output, { 0.0f,0.0f }, {1.0f,1.0f,1.0f,0.75f}, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), 0.4f); //DirectX::XMVectorScale(m_font->MeasureString(output), 0.0f));
+	//表示
+#ifndef DW_DX12
+	GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->Begin(DirectX::SpriteSortMode::SpriteSortMode_Deferred, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
 
-	GetEngine().GetGraphicsEngine().GetSpriteBatch()->End();
+	GetEngine().GetGraphicsEngine().GetSpriteFont()->DrawString(GetEngine().GetGraphicsEngine().GetSpriteBatchPMA(), output, { 0.0f,0.0f }, {1.0f,1.0f,1.0f,0.75f}, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), 0.4f); //DirectX::XMVectorScale(m_font->MeasureString(output), 0.0f));
 
+	GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->End();
+#else
+	
+	ID3D12DescriptorHeap* heaps[] = { GetGraphicsEngine().GetDirectXTK12DescriptorHeap()->Heap() };
+	GetGraphicsEngine().GetCommandList()->SetDescriptorHeaps(_countof(heaps), heaps);
+
+	GetGraphicsEngine().GetSpriteBatchPMA()->Begin(GetGraphicsEngine().GetCommandList(), DirectX::SpriteSortMode::SpriteSortMode_Deferred);
+
+	GetGraphicsEngine().GetSpriteFont()->DrawString(GetGraphicsEngine().GetSpriteBatchPMA(), output, { 0.0f,0.0f }, { 1.0f,1.0f,1.0f,0.75f }, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), 0.4f);
+
+	GetGraphicsEngine().GetSpriteBatchPMA()->End();//描画実行
+	
 #endif
+
+	/*
+	static bool isinied = false;
+	static Microsoft::WRL::ComPtr<ID3D12Resource> m_texture;
+	if(!isinied){
+		//ロード
+		DirectX::ResourceUploadBatch resourceUpload(GetGraphicsEngine().GetD3D12Device());
+
+		resourceUpload.Begin();
+
+		DirectX::ThrowIfFailed(
+			CreateWICTextureFromFile(GetGraphicsEngine().GetD3D12Device(), resourceUpload, L"BButton.png",
+				m_texture.ReleaseAndGetAddressOf()));
+
+		DirectX::CreateShaderResourceView(GetGraphicsEngine().GetD3D12Device(), m_texture.Get(), GetGraphicsEngine().GetDirectXTK12DescriptorHeap()->GetCpuHandle(GraphicsEngine::Descriptors::Sprite));
+
+		auto uploadResourcesFinished = resourceUpload.End(GetGraphicsEngine().GetXTK12CommandQueue());
+
+		uploadResourcesFinished.wait();
+
+		isinied = true;
+	}
+
+	//描画
+	ID3D12DescriptorHeap* heaps[] = { GetGraphicsEngine().GetDirectXTK12DescriptorHeap()->Heap(), GetGraphicsEngine().GetCommonStates().Heap() };
+	GetGraphicsEngine().GetCommandList()->SetDescriptorHeaps(_countof(heaps), heaps);
+
+	GetGraphicsEngine().GetSpriteBatch()->Begin(GetGraphicsEngine().GetCommandList());
+
+	GetGraphicsEngine().GetSpriteBatch()->Draw(
+		GetGraphicsEngine().GetDirectXTK12DescriptorHeap()->GetGpuHandle(GraphicsEngine::Descriptors::Sprite),
+		DirectX::GetTextureSize(m_texture.Get()),
+		DirectX::Colors::White
+	);
+
+	GetGraphicsEngine().GetSpriteBatch()->End();
+	*/
 }
 
 }

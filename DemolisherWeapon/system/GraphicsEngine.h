@@ -32,6 +32,7 @@
 namespace DemolisherWeapon {
 
 struct InitEngineParameter;
+class DX12Test;
 
 enum EnSplitScreenMode {
 	enNoSplit = 0,
@@ -83,11 +84,27 @@ public:
 	}
 
 	/// <summary>
+	/// コマンドリストを取得
+	/// </summary>
+	ID3D12GraphicsCommandList* GetCommandList()
+	{
+		return m_dx12->GetCommandList();
+	}
+	/*
+	/// <summary>
 	/// コマンドキューを取得
 	/// </summary>
 	ID3D12CommandQueue* GetCommandQueue()
 	{
 		return m_dx12->GetCommandQueue();
+	}
+	*/
+
+	/// <summary>
+	/// DirectXTK12のディスクリプタヒープクラスを取得
+	/// </summary>
+	DirectX::DescriptorHeap* GetDirectXTK12DescriptorHeap() {
+		return m_xtk12_resourceDescriptors.get();
 	}
 	/// <summary>
 	/// DirectXTK12用コマンドキューを取得
@@ -95,14 +112,6 @@ public:
 	ID3D12CommandQueue* GetXTK12CommandQueue()
 	{
 		return m_xtk12_commandQueue.Get();
-	}
-
-	/// <summary>
-	/// コマンドリストを取得
-	/// </summary>
-	ID3D12GraphicsCommandList* GetCommandList()
-	{
-		return m_dx12->GetCommandList();
 	}
 #endif	
 
@@ -165,6 +174,16 @@ public:
 	void SetBackBufferToRenderTarget();
 	//バックバッファとフロントバッファを入れ替える
 	void SwapBackBuffer();
+
+	//コマンドリストの実行
+	void ExecuteCommand();
+
+	//DirectXTKのコマンドリストの実行
+	void ExecuteCommandDirectXTK() {
+#ifdef DW_DX12
+		m_xtk12_graphicsMemory->Commit(m_xtk12_commandQueue.Get());
+#endif
+	}
 	
 	//レンダーマネージャーの描画
 	void RunRenderManager();
@@ -354,13 +373,17 @@ private:
 	DX12Render m_dx12Render;
 
 	//DirectXTK12
+	public:
 	enum Descriptors
 	{
 		MyFont,
+		Sprite,
 		Count
 	};
+	private:
 	std::unique_ptr<DirectX::DescriptorHeap> m_xtk12_resourceDescriptors;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_xtk12_commandQueue;
+	std::unique_ptr<DirectX::GraphicsMemory> m_xtk12_graphicsMemory;
 #endif
 
 	//フルスクリーン描画プリミティブ

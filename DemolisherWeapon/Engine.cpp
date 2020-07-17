@@ -136,7 +136,7 @@ void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpC
 void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, InitEngineParameter initParam)
 {
 	//ゲームループの初期化
-	m_gameLoop.Init(initParam.limitFps, initParam.standardFps, initParam.variableFpsMaxSec);
+	m_gameLoop.Init(initParam.limitFps, initParam.standardFps, initParam.variableFpsMaxSec, initParam.useFpsLimiter);
 
 	//ウィンドウを初期化
 	InitWindow(hInstance, hPrevInstance, lpCmdLine, nCmdShow, appName, initParam);

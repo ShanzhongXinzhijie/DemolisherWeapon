@@ -24,11 +24,14 @@ void GraphicsEngine::ClearBackBuffer()
 }
 void GraphicsEngine::SetBackBufferToRenderTarget()
 {
-	m_dx11->SetBackBufferToRenderTarget();
+	m_graphicsAPI->SetBackBufferToRenderTarget();
 }
 void GraphicsEngine::SwapBackBuffer()
 {
-	m_dx11->SwapBackBuffer();
+	m_graphicsAPI->SwapBackBuffer();
+}
+void GraphicsEngine::ExecuteCommand() {
+	m_graphicsAPI->ExecuteCommand();
 }
 void GraphicsEngine::RunRenderManager() {
 	m_renderManager.Render();
@@ -59,11 +62,16 @@ bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam, GameO
 		FRAME_BUFFER_3D_W *= 0.5f;
 	}
 
+	//垂直同期設定
+	m_useVSync = initParam.useVSync;
+
+	//レンダークラスに参照渡す
+	m_directxtkRender.Init(gom, fc);
+
 	//グラフィックスAPIごとの初期化
 #ifdef DW_DX12
 	return InnerInitDX12(hWnd, initParam);
 #else
-	m_directxtkRender.Init(gom, fc);//初期化
 	return InnerInitDX11(hWnd, initParam);
 #endif	
 }
@@ -80,6 +88,10 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 
 	//sprite初期化
 	{
+		m_commonStates = std::make_unique<DirectX::CommonStates>(m_dx12->GetD3D12Device());
+
+		DirectX::ResourceUploadBatch resourceUpload(m_dx12->GetD3D12Device());
+
 		//ディスクリプタヒープ作る
 		m_xtk12_resourceDescriptors = std::make_unique<DirectX::DescriptorHeap>(m_dx12->GetD3D12Device(), Descriptors::Count);
 		// コマンドキューを作成
@@ -88,16 +100,32 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 		if (FAILED(hr)) {
 			return false;
 		}
+		//なんか作る
+		m_xtk12_graphicsMemory = std::make_unique<DirectX::GraphicsMemory>(m_dx12->GetD3D12Device());
 
 		//コマンドリスト作る
-		DirectX::ResourceUploadBatch resourceUpload(m_dx12->GetD3D12Device());
 		resourceUpload.Begin();
-
+			
 		//フォント作成
 		m_spriteFont = std::make_unique<DirectX::SpriteFont>(m_dx12->GetD3D12Device(), resourceUpload,
 			L"Preset/Font/myfile.spritefont",
 			m_xtk12_resourceDescriptors->GetCpuHandle(Descriptors::MyFont),
-			m_xtk12_resourceDescriptors->GetGpuHandle(Descriptors::MyFont));
+			m_xtk12_resourceDescriptors->GetGpuHandle(Descriptors::MyFont));		
+
+		//スプライトバッチ作成		
+		DirectX::RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D32_FLOAT);//レンダーターゲットの情報がいる(バックバッファのものを使用)
+		{//alphaBlend
+			//パイプラインステート(ブレンドステートとかシェーダとか設定する)
+			DirectX::SpriteBatchPipelineStateDescription pd(rtState);
+			//状態の組み合わせごとにSpriteBatch(Pipeline State Object<PSO>)が必要
+			m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(m_dx12->GetD3D12Device(), resourceUpload, pd);			
+		}
+		{//PMABlend
+			//パイプラインステート(ブレンドステートとかシェーダとか設定する)
+			DirectX::SpriteBatchPipelineStateDescription pd(rtState, &DirectX::CommonStates::NonPremultiplied);
+			//状態の組み合わせごとにSpriteBatch(Pipeline State Object<PSO>)が必要
+			m_spriteBatchPMA = std::make_unique<DirectX::SpriteBatch>(m_dx12->GetD3D12Device(), resourceUpload, pd);			
+		}
 
 		//コマンドリストをキューへ送る
 		auto uploadResourcesFinished = resourceUpload.End(m_xtk12_commandQueue.Get());
@@ -107,20 +135,24 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 	}
 
 	//レンダーの登録
-	m_dx12Render.Init(dynamic_cast<DX12Test*>(m_graphicsAPI.get()));
-	m_renderManager.AddRender(-2, &m_dx12Render);
-	/*
+	//m_dx12Render.Init(dynamic_cast<DX12Test*>(m_graphicsAPI.get()));
+	//m_renderManager.AddRender(-2, &m_dx12Render);
+	
+	//初期化レンダー
+	m_renderManager.AddRender(-3, &m_initRender);
+
 	int screencnt = m_isSplitScreen ? 2 : 1;
 	int offset = oneloopOffset * (screencnt + 1);
 	//2dinit
-	m_renderManager.AddRender(offset + 1, &m_initRender2D);
+	m_renderManager.AddRender(offset + 1, &m_initRender2D);//ビューポート設定コマンドリストへ
 	//primrender2D
-	m_renderManager.AddRender(offset + 2, &m_primitiveRender2D);
+	//m_renderManager.AddRender(offset + 2, &m_primitiveRender2D);
+
 	//DirectXTKRender
 	m_renderManager.AddRender(offset + 3, &m_directxtkRender);
+
 	//finishrender
-	m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);
-	*/
+	m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);	
 
 	return true;
 }

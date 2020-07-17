@@ -1,6 +1,7 @@
 #pragma once
 #include"GraphicsAPI/IGraphicsAPI.h"
 
+#ifdef DW_DX12
 namespace DemolisherWeapon {
 	struct InitEngineParameter;
 
@@ -41,6 +42,9 @@ namespace DemolisherWeapon {
 
 		//テストレンダ
 		void Render();
+
+		//コマンドを実行する
+		void ExecuteCommand()override;
 
 		//前フレームの描画完了を待つ
 		bool WaitForPreviousFrame(){
@@ -112,18 +116,19 @@ namespace DemolisherWeapon {
 		}
 
 		/// <summary>
+		/// バックバッファをレンダーターゲットにするなど
+		/// </summary>
+		void SetBackBufferToRenderTarget()override;
+
+		/// <summary>
+		/// バックバッファのスワップなど
+		/// </summary>
+		void SwapBackBuffer()override;
+
+		/// <summary>
 		/// ビューポートの設定
 		/// </summary>
-		void SetViewport(float topLeftX, float topLeftY, float width, float height)override
-		{
-			m_viewport.Width = width;
-			m_viewport.Height = height;
-			m_viewport.TopLeftX = topLeftX;
-			m_viewport.TopLeftY = topLeftY;
-			m_viewport.MinDepth = 0.0f;
-			m_viewport.MaxDepth = 1.0f;
-			GetCommandList()->RSSetViewports(1, &m_viewport);
-		}
+		void SetViewport(float topLeftX, float topLeftY, float width, float height)override;
 
 	private:
 		static constexpr int FRAME_COUNT = 2;
@@ -145,6 +150,8 @@ namespace DemolisherWeapon {
 		UINT64 m_fenceValue[FRAME_COUNT];
 
 		D3D12_VIEWPORT m_viewport;//ビューポート
+		D3D12_RECT     m_scissorRect;//シザー矩形
 	};
 
 }
+#endif

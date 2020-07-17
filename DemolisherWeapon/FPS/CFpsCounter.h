@@ -9,8 +9,8 @@ public:
 	~CFpsCounter();
 
 	//‰Šú‰»
-	void Init(int maxfps, int stdfps) {
-		SetUseFpsLimiter(m_useFpsLimiter,maxfps);
+	void Init(int maxfps, int stdfps, bool useFpsLimiter) {
+		SetUseFpsLimiter(useFpsLimiter,maxfps);
 		SetStandardFrameRate(stdfps);
 	}
 

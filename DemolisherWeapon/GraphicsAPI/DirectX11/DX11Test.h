@@ -9,6 +9,8 @@ namespace DemolisherWeapon {
 		bool Init(HWND hWnd, const InitEngineParameter& initParam)override;
 		void Release()override;
 
+		void ExecuteCommand() {}
+
 		/// <summary>
 		/// フレームバッファサイズの変更(再設定)
 		/// </summary>
@@ -49,8 +51,15 @@ namespace DemolisherWeapon {
 			m_pd3dDeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 		}
 
-		void SetBackBufferToRenderTarget();
-		void SwapBackBuffer();
+		/// <summary>
+		/// バックバッファをレンダーターゲットにする
+		/// </summary>
+		void SetBackBufferToRenderTarget()override;
+
+		/// <summary>
+		/// バックバッファのスワップ
+		/// </summary>
+		void SwapBackBuffer()override;
 
 		/// <summary>
 		/// ビューポートの設定

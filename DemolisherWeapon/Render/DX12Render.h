@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef DW_DX12
 namespace DemolisherWeapon {
     class DX12Test;
 
@@ -16,3 +17,4 @@ namespace DemolisherWeapon {
     };
 
 }
+#endif
