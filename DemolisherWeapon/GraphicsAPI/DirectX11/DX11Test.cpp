@@ -14,6 +14,9 @@ namespace DemolisherWeapon {
 	}
 
 	bool DX11Test::Init(HWND hWnd, const InitEngineParameter& initParam) {
+		//リフレッシュレートを取得
+		auto refleshRate = Util::GetRefreshRate(hWnd);
+
 		//スワップチェインを作成するための情報を設定する。
 		DXGI_SWAP_CHAIN_DESC sd;
 		ZeroMemory(&sd, sizeof(sd));
@@ -21,7 +24,7 @@ namespace DemolisherWeapon {
 		sd.BufferDesc.Width = static_cast<UINT>(GetGraphicsEngine().GetFrameBuffer_W());	//フレームバッファの幅。
 		sd.BufferDesc.Height = static_cast<UINT>(GetGraphicsEngine().GetFrameBuffer_H());	//フレームバッファの高さ。
 		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	//フレームバッファのフォーマット。R8G8B8A8の32bit。
-		sd.BufferDesc.RefreshRate.Numerator = initParam.refleshRate;//モニタのリフレッシュレート。(バックバッファとフロントバッファを入れ替えるタイミングとなる。)
+		sd.BufferDesc.RefreshRate.Numerator = refleshRate;//モニタのリフレッシュレート。(バックバッファとフロントバッファを入れ替えるタイミングとなる。)
 		sd.BufferDesc.RefreshRate.Denominator = 1;			//２にしたら30fpsになる。1でいい。
 		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	//サーフェスまたはリソースを出力レンダー ターゲットとして使用します。
 		sd.OutputWindow = hWnd;								//出力先のウィンドウハンドル。

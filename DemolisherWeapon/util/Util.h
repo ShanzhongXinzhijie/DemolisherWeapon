@@ -36,6 +36,15 @@ public:
 	{
 		return hash ^ (hash2 + 0x9e3779b9 + (hash << 6) + (hash >> 2));
 	}
+
+	//リフレッシュレートを取得
+	static int GetRefreshRate(HWND hWnd) {
+		auto hdc = GetDC(hWnd);
+		int refleshRate = GetDeviceCaps(hdc, VREFRESH);
+		ReleaseDC(hWnd, hdc);
+		if (refleshRate <= 1) { refleshRate = 60; }
+		return refleshRate;
+	}
 };
 
 //ラスタライザーのDepthBias用
