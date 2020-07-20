@@ -649,6 +649,21 @@ inline void DrawLine2D(const CVector3& start, const CVector3& end, const CVector
 inline void DrawQuad2D(const CVector3& min, const CVector3& max, const CVector4& color, int HUDNum = -1) {
 	GetGraphicsEngine().GetPrimitiveRender().AddQuad(min, max, color, HUDNum);
 }
+//即時描画
+//線分
+inline void ImmediateDrawLine(const CVector3& start, const CVector3& end, const CVector4& color) {
+	GetGraphicsEngine().GetPrimitiveRender().DrawLine(start, end, color, true);
+}
+inline void ImmediateDrawLine(const CVector2& start, const CVector2& end, const CVector4& color) {
+	GetGraphicsEngine().GetPrimitiveRender().DrawLine(start, end, color, false);
+}
+//四角形
+inline void ImmediateDrawQuad(const CVector3& min, const CVector3& max, const CVector4& color) {
+	GetGraphicsEngine().GetPrimitiveRender().DrawQuad(min, max, color, true);
+}
+inline void ImmediateDrawQuad(const CVector2& min, const CVector2& max, const CVector4& color) {
+	GetGraphicsEngine().GetPrimitiveRender().DrawQuad(min, max, color, false);
+}
 
 //デバッグ情報を描画するか設定
 inline void SetIsDebugDraw(bool enable) { GetEngine().SetIsDebugDraw(enable); }

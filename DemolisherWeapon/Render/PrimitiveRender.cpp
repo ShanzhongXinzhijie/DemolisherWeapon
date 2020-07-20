@@ -68,7 +68,7 @@ namespace DemolisherWeapon {
 
 		//d3dContext->OMSetBlendState(m_states->Opaque(), nullptr, 0xFFFFFFFF);
 		//d3dContext->OMSetDepthStencilState(m_states->DepthNone(), 0);
-		//d3dContext->RSSetState(m_states->CullNone());
+		d3dContext->RSSetState(GetGraphicsEngine().GetCommonStates().CullNone());
 
 		//s—ñÝ’è
 		m_effect->SetView(GetMainCamera()->GetViewMatrix());
@@ -110,7 +110,7 @@ namespace DemolisherWeapon {
 
 		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();		
 
-		d3dContext->OMSetBlendState(GetGraphicsEngine().GetCommonStates().Opaque(), nullptr, 0xFFFFFFFF);
+		d3dContext->OMSetBlendState(GetGraphicsEngine().GetCommonStates().AlphaBlend(), nullptr, 0xFFFFFFFF);
 		d3dContext->OMSetDepthStencilState(GetGraphicsEngine().GetCommonStates().DepthNone(), 0);
 		d3dContext->RSSetState(GetGraphicsEngine().GetCommonStates().CullNone());
 
@@ -158,7 +158,7 @@ namespace DemolisherWeapon {
 
 		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
 
-		d3dContext->OMSetBlendState(GetGraphicsEngine().GetCommonStates().Opaque(), nullptr, 0xFFFFFFFF);
+		d3dContext->OMSetBlendState(GetGraphicsEngine().GetCommonStates().AlphaBlend(), nullptr, 0xFFFFFFFF);
 		d3dContext->OMSetDepthStencilState(GetGraphicsEngine().GetCommonStates().DepthNone(), 0);
 		d3dContext->RSSetState(GetGraphicsEngine().GetCommonStates().CullNone());
 
@@ -208,6 +208,61 @@ namespace DemolisherWeapon {
 		for (auto it = m_isDrawHUD.begin(), e = m_isDrawHUD.end(); it != e; ++it) {
 			*it = false;
 		}
+	}
+
+	void PrimitiveRender::DrawLine(const CVector3& start, const CVector3& end, const CVector4& color, bool is3D) {
+		BeginDraw(is3D);
+		
+		//ü•ª•`‰æ
+		m_batch->DrawLine(DirectX::VertexPositionColor(start, color), DirectX::VertexPositionColor(end, color));
+
+		EndDraw();
+	}
+	void PrimitiveRender::DrawQuad(const CVector3& min, const CVector3& max, const CVector4& color, bool is3D) {
+		BeginDraw(is3D);
+
+		//ŽlŠpŒ`•`‰æ
+		m_batch->DrawQuad(
+			DirectX::VertexPositionColor(CVector3(min.x, min.y, 0.f), color),
+			DirectX::VertexPositionColor(CVector3(max.x, min.y, 0.f), color),
+			DirectX::VertexPositionColor(CVector3(max.x, max.y, 0.f), color),
+			DirectX::VertexPositionColor(CVector3(min.x, max.y, 0.f), color)
+		);
+
+		EndDraw();
+	}
+
+	void PrimitiveRender::BeginDraw(bool is3D) {
+#ifndef DW_DX12_TEMPORARY
+		ID3D11DeviceContext* d3dContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
+		
+		if (is3D) {
+			//s—ñÝ’è
+			m_effect->SetView(GetMainCamera()->GetViewMatrix());
+			m_effect->SetProjection(GetMainCamera()->GetProjMatrix());
+
+			d3dContext->RSSetState(GetGraphicsEngine().GetCommonStates().CullNone());
+		}
+		else {
+			//s—ñÝ’è
+			m_effect->SetView(m_2dCamera.GetViewMatrix());
+			m_effect->SetProjection(m_2dCamera.GetProjMatrix());
+
+			d3dContext->OMSetBlendState(GetGraphicsEngine().GetCommonStates().AlphaBlend(), nullptr, 0xFFFFFFFF);
+			d3dContext->OMSetDepthStencilState(GetGraphicsEngine().GetCommonStates().DepthNone(), 0);
+			d3dContext->RSSetState(GetGraphicsEngine().GetCommonStates().CullNone());
+		}
+
+		m_effect->Apply(d3dContext);
+		d3dContext->IASetInputLayout(m_inputLayout.Get());
+
+		//•`‰æŠJŽn
+		m_batch->Begin();
+#endif
+	}
+	void PrimitiveRender::EndDraw() {
+		//•`‰æI—¹
+		m_batch->End();
 	}
 
 	void PrimitiveRender2D::Render() {

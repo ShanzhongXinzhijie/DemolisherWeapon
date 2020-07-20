@@ -81,6 +81,14 @@ namespace DemolisherWeapon {
 			m_quadList2D.emplace_back(min*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), max*CVector3(m_2dCamera.GetWidth(), -m_2dCamera.GetHeight(), 0.0f), color);
 		}
 
+		//ë¶éûï`âÊópä÷êî
+		void DrawLine(const CVector3& start, const CVector3& end, const CVector4& color, bool is3D);
+		void DrawQuad(const CVector3& min, const CVector3& max, const CVector4& color, bool is3D);
+
+	private:
+		void BeginDraw(bool is3D);
+		void EndDraw();
+
 	private:
 		//PrimitiveBatchä÷åW
 		std::unique_ptr<DirectX::BasicEffect> m_effect;
