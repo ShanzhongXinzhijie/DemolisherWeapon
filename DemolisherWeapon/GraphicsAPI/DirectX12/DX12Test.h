@@ -1,7 +1,6 @@
 #pragma once
 #include"GraphicsAPI/IGraphicsAPI.h"
 
-#ifdef DW_DX12
 namespace DemolisherWeapon {
 	struct InitEngineParameter;
 
@@ -154,4 +153,3 @@ namespace DemolisherWeapon {
 	};
 
 }
-#endif

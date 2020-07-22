@@ -32,12 +32,17 @@
 namespace DemolisherWeapon {
 
 struct InitEngineParameter;
-class DX12Test;
 
 enum EnSplitScreenMode {
 	enNoSplit = 0,
 	enVertical_TwoSplit,
 	enSide_TwoSplit,
+};
+
+enum EnGraphicsAPI {
+	enDirectX11,
+	enDirectX12,
+	enNum,
 };
 
 class GraphicsEngine
@@ -53,28 +58,33 @@ public:
 	/// <param name="initParam">初期化パラメータ</param>
 	bool Init(HWND hWnd, const InitEngineParameter& initParam, GameObjectManager*, CFpsCounter*);
 
-	/*!
-	 *@brief	解放。
-	 */
+	/// <summary>
+	/// 開放
+	/// </summary>
 	void Release();
 
-	/*!
-	 *@brief	D3D11デバイスを取得。
-	 */
+	/// <summary>
+	/// 使用しているグラフィックスAPIの種類を取得
+	/// </summary>
+	EnGraphicsAPI GetUseAPI()const {
+		return m_useAPI;
+	}
+
+	/// <summary>
+	/// D3D11デバイスを取得
+	/// </summary>
 	ID3D11Device* GetD3DDevice()
 	{
 		return m_dx11->GetD3DDevice();
 	}
-	/*!
-	 *@brief	D3D11デバイスコンテキストを取得。
-	 */
+	/// <summary>
+	/// D3D11デバイスコンテキストを取得
+	/// </summary>
 	ID3D11DeviceContext* GetD3DDeviceContext()
 	{
 		return m_dx11->GetD3DDeviceContext();
 	}
-
 	
-#ifdef DW_DX12
 	/// <summary>
 	/// D3D12デバイスを取得
 	/// </summary>
@@ -100,6 +110,7 @@ public:
 	}
 	*/
 
+#ifdef DW_DX12
 	/// <summary>
 	/// DirectXTK12のディスクリプタヒープクラスを取得
 	/// </summary>
@@ -341,7 +352,6 @@ private:
 #endif
 
 private:
-
 	float FRAME_BUFFER_W = 1280.0f;				//フレームバッファの幅。
 	float FRAME_BUFFER_H = 720.0f;				//フレームバッファの高さ。
 	float FRAME_BUFFER_3D_W = 1280.0f;			//フレームバッファの幅(3D描画)
@@ -356,6 +366,7 @@ private:
 
 	bool m_useVSync = false;//垂直同期するか
 	
+	EnGraphicsAPI m_useAPI = enNum;
 	std::unique_ptr<IGraphicsAPI> m_graphicsAPI;//グラフィックスAPI
 	DX11Test* m_dx11 = nullptr;
 	DX12Test* m_dx12 = nullptr;
@@ -388,7 +399,7 @@ private:
 
 	//フルスクリーン描画プリミティブ
 	CPrimitive m_fullscreen;
-	CPrimitive::SVertex m_vertex[4] = {
+	SVertex m_vertex[4] = {
 		{
 			{-1.0f, -1.0f, 0.0f, 1.0f},
 			{0.0f, 1.0f}

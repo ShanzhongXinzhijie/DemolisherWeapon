@@ -2,7 +2,6 @@
 #include "DX12Test.h"
 #include "GraphicsAPI/DirectX12/d3dx12.h"
 
-#ifdef DW_DX12
 namespace DemolisherWeapon {
 
 	UINT DX12Test::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool isShaderVisible, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap) {
@@ -361,9 +360,10 @@ namespace DemolisherWeapon {
 		m_viewport.MinDepth = D3D12_MIN_DEPTH;
 		m_viewport.MaxDepth = D3D12_MAX_DEPTH;
 		GetCommandList()->RSSetViewports(1, &m_viewport);
+#ifdef DW_DX12_TEMPORARY
 		GetGraphicsEngine().GetSpriteBatch()->SetViewport(m_viewport);
 		GetGraphicsEngine().GetSpriteBatchPMA()->SetViewport(m_viewport);
-
+#endif
 		m_scissorRect.right = (LONG)(topLeftX + width);
 		m_scissorRect.bottom = (LONG)(topLeftY + height);
 		m_scissorRect.left = (LONG)topLeftX;
@@ -371,4 +371,3 @@ namespace DemolisherWeapon {
 		GetCommandList()->RSSetScissorRects(1, &m_scissorRect);
 	}
 }
-#endif

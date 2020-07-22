@@ -39,7 +39,7 @@ namespace DemolisherWeapon {
 		Shader m_vs, m_ps;
 		CPrimitive m_drawSpace;
 		CVector2 m_screen_min, m_screen_max;
-		CPrimitive::SVertex m_vertex[4];
+		SVertex m_vertex[4];
 		unsigned long m_index[4] = { 0,1,2,3 };
 	};
 }

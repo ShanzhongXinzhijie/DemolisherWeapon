@@ -102,7 +102,7 @@ private:
 	};
 
 	CPrimitive m_drawSpace;
-	CPrimitive::SVertex m_vertex[4];
+	SVertex m_vertex[4];
 	unsigned long m_index[4] = { 0,1,2,3 };
 
 	//•`‰æ”ÍˆÍ

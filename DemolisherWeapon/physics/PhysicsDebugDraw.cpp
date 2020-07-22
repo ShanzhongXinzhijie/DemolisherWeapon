@@ -9,7 +9,6 @@ namespace DemolisherWeapon {
 
 	void PhysicsDebugDraw::Init()
 	{
-
 		//ラインストリップのテスト。
 		m_primitive.Init(D3D_PRIMITIVE_TOPOLOGY_LINELIST, static_cast<int>(m_vertexBuffer.size()), &m_vertexBuffer[0]);
 		
@@ -67,7 +66,7 @@ namespace DemolisherWeapon {
 		rc->IASetInputLayout(m_vs.GetInputLayout());
 
 		//頂点をセット
-		rc->UpdateSubresource(m_primitive.GetVertexBuffer(), 0, nullptr, &m_vertexBuffer[0], 0, 0);
+		m_primitive.UpdateVertex(&m_vertexBuffer[0]);
 
 		m_primitive.Draw(m_numLine * 2);
 	}

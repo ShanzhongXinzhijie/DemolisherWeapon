@@ -37,10 +37,10 @@ void GraphicsEngine::RunRenderManager() {
 	m_renderManager.Render();
 }
 
-void GraphicsEngine::Release()
-{
+void GraphicsEngine::Release() {
 	m_FRT.Release();
 	
+	m_useAPI = enNum;
 	m_graphicsAPI.reset();
 	m_dx11 = nullptr;
 	m_dx12 = nullptr;
@@ -79,6 +79,7 @@ bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam, GameO
 #ifdef DW_DX12
 bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initParam) {
 	//DirectX12èâä˙âª
+	m_useAPI = enDirectX12;
 	m_graphicsAPI = std::make_unique<DX12Test>();
 	auto sucsses = m_graphicsAPI->Init(hWnd, initParam);
 	if (!sucsses) {
@@ -160,6 +161,7 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 
 bool GraphicsEngine::InnerInitDX11(HWND hWnd, const InitEngineParameter& initParam) {	
 	//DirectX11èâä˙âª
+	m_useAPI = enDirectX11;
 	m_graphicsAPI = std::make_unique<DX11Test>();
 	auto sucsses = m_graphicsAPI->Init(hWnd, initParam);
 	if (!sucsses) {
