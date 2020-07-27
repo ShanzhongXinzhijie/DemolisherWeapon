@@ -77,16 +77,12 @@ void CPrimitive::Draw(int numVertex) {
 			}
 		}
 		if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
-			//commandList->SetPipelineState(pso.Get());
-			//commandList->SetGraphicsRootSignature(rootSignature.Get());
-			//commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
-
 			//トポロジーを設定
 			GetGraphicsEngine().GetCommandList()->IASetPrimitiveTopology(m_topology);
 			
 			//描画
 			if (m_indexBuffer->GetIndexNum() > 0) {
-				GetGraphicsEngine().GetCommandList()->DrawIndexedInstanced(m_indexBuffer->GetIndexNum(), 1, 0, numVertex, 0);
+				GetGraphicsEngine().GetCommandList()->DrawIndexedInstanced(m_indexBuffer->GetIndexNum(), 1, 0, 0, 0);
 			}
 			else {
 				GetGraphicsEngine().GetCommandList()->DrawInstanced(numVertex, 1, 0, 0);
@@ -138,6 +134,7 @@ void VertexBufferDX11::Update(SVertex* vertex) {
 
 void VertexBufferDX12::Init(int numVertex, SVertex* vertex) {
 	const auto fullVertsSize = numVertex * sizeof(SVertex);
+	m_fullVertsSize = fullVertsSize;
 
 	//バッファ
 	if (FAILED(GetGraphicsEngine().GetD3D12Device()->CreateCommittedResource(
@@ -173,6 +170,18 @@ void VertexBufferDX12::Attach() {
 
 void VertexBufferDX12::Update(SVertex* vertex) {
 	//TODO
+	//頂点情報を更新する処理
+	//DW_ERRORBOX(true,"VertexBufferDX12::Update 現在使用不可")
+
+	//中身のコピー
+	void* pVertexDataBegin;
+	const D3D12_RANGE readRange = { 0, 0 };
+	if (FAILED(m_vertexBuffer->Map(0, &readRange, &pVertexDataBegin))) {
+		DW_ERRORBOX(true, "VertexBufferDX12:頂点のコピーに失敗しました")
+			return;
+	}
+	memcpy(pVertexDataBegin, vertex, m_fullVertsSize);
+	m_vertexBuffer->Unmap(0, nullptr);
 }
 
 void IndexBufferDX11::Init(int numIndex, unsigned long* index) {

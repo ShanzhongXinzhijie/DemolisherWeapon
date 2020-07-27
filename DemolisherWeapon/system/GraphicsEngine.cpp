@@ -136,9 +136,10 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 	}
 
 	//レンダーの登録
-	//m_dx12Render.Init(dynamic_cast<DX12Test*>(m_graphicsAPI.get()));
-	//m_renderManager.AddRender(-2, &m_dx12Render);
+	m_dx12Render.Init(m_dx12);
+	m_renderManager.AddRender(-2, &m_dx12Render);
 	
+	/*
 	//初期化レンダー
 	m_renderManager.AddRender(-3, &m_initRender);
 
@@ -154,6 +155,7 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 
 	//finishrender
 	m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);	
+	*/
 
 	return true;
 }

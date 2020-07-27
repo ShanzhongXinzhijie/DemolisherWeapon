@@ -40,6 +40,7 @@ namespace DemolisherWeapon {
 		UINT CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool isShaderVisible, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap);
 
 		//テストレンダ
+		bool RenderInit();
 		void Render();
 
 		//コマンドを実行する
@@ -150,6 +151,13 @@ namespace DemolisherWeapon {
 
 		D3D12_VIEWPORT m_viewport;//ビューポート
 		D3D12_RECT     m_scissorRect;//シザー矩形
+
+		//テスト描画
+		bool m_isInitTest = false;
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;//ルートシグネチャ
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;//パイプラインステートオブジェクト
+		Shader m_vs, m_ps;
+		CPrimitive m_square;
 	};
 
 }

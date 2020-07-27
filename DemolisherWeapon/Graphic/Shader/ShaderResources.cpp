@@ -129,7 +129,9 @@ namespace {
  */
 ShaderResources::ShaderResources()
 {
-	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateClassLinkage(&m_pClassLinkage);
+	if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
+		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateClassLinkage(&m_pClassLinkage);
+	}
 }
 /*!
  *@brief	デストラクタ。
@@ -146,7 +148,10 @@ void ShaderResources::Release()
 	m_shaderResourceMap.clear();
 	m_shaderProgramMap.clear();
 
-	m_pClassLinkage->Release();
+	if (m_pClassLinkage) {
+		m_pClassLinkage->Release();
+		m_pClassLinkage = nullptr;
+	}
 }
 
 void ShaderResources::SShaderResource::Release(bool fullRelease) {
@@ -174,7 +179,6 @@ void ShaderResources::SShaderResource::Release(bool fullRelease) {
 		blobOut->Release();
 		blobOut = nullptr;
 	}
-	fileblob.reset(); fileblobSize = 0;
 
 #ifndef DW_MASTER
 	if (fullRelease) {
@@ -200,55 +204,58 @@ void ShaderResources::LoadShaderProgram(const char* filePath, SShaderProgramPtr&
 }
 
 bool ShaderResources::PostLoadShader(void* blob, size_t blobSize, EnType shaderType, const char* entryFuncName, const D3D_SHADER_MACRO* pDefines, bool isHotReload, SShaderResource* resource) {
-	HRESULT hr = S_OK;
+	
+	if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
+		HRESULT hr = S_OK;
 
-	//シェーダータイプに合わせて作成
-	resource->type = shaderType;
-	ID3D11Device* pD3DDevice = GetEngine().GetGraphicsEngine().GetD3DDevice();
-	switch (shaderType) {
-	case EnType::VS: {
-		//頂点シェーダー。
-		hr = pD3DDevice->CreateVertexShader(blob, blobSize, m_pClassLinkage, (ID3D11VertexShader**)&resource->shader);
-		if (FAILED(hr)) {
-			return false;
+		//シェーダータイプに合わせて作成
+		resource->type = shaderType;
+		ID3D11Device* pD3DDevice = GetEngine().GetGraphicsEngine().GetD3DDevice();
+		switch (shaderType) {
+		case EnType::VS: {
+			//頂点シェーダー。
+			hr = pD3DDevice->CreateVertexShader(blob, blobSize, m_pClassLinkage, (ID3D11VertexShader**)&resource->shader);
+			if (FAILED(hr)) {
+				return false;
+			}
+			//入力レイアウトを作成。
+			hr = CreateInputLayoutDescFromVertexShaderSignature(blob, blobSize, pD3DDevice, &resource->inputLayout);
+			if (FAILED(hr)) {
+				return false;
+			}
+		}break;
+		case EnType::PS: {
+			//ピクセルシェーダー。
+			hr = pD3DDevice->CreatePixelShader(blob, blobSize, m_pClassLinkage, (ID3D11PixelShader**)&resource->shader);
+			if (FAILED(hr)) {
+				return false;
+			}
+		}break;
+		case EnType::CS: {
+			//コンピュートシェーダー。
+			hr = pD3DDevice->CreateComputeShader(blob, blobSize, m_pClassLinkage, (ID3D11ComputeShader**)&resource->shader);
+			if (FAILED(hr)) {
+				return false;
+			}
+		}break;
 		}
-		//入力レイアウトを作成。
-		hr = CreateInputLayoutDescFromVertexShaderSignature(blob, blobSize, pD3DDevice, &resource->inputLayout);
-		if (FAILED(hr)) {
-			return false;
-		}
-	}break;
-	case EnType::PS: {
-		//ピクセルシェーダー。
-		hr = pD3DDevice->CreatePixelShader(blob, blobSize, m_pClassLinkage, (ID3D11PixelShader**)&resource->shader);
-		if (FAILED(hr)) {
-			return false;
-		}
-	}break;
-	case EnType::CS: {
-		//コンピュートシェーダー。
-		hr = pD3DDevice->CreateComputeShader(blob, blobSize, m_pClassLinkage, (ID3D11ComputeShader**)&resource->shader);
-		if (FAILED(hr)) {
-			return false;
-		}
-	}break;
-	}
 
-	//動的リンク関係
-	{
-		ID3D11ShaderReflection* pReflector = nullptr;
-		hr = D3DReflect(blob, blobSize, IID_ID3D11ShaderReflection, (void**)&pReflector);
-		if (FAILED(hr)) {
+		//動的リンク関係
+		{
+			ID3D11ShaderReflection* pReflector = nullptr;
+			hr = D3DReflect(blob, blobSize, IID_ID3D11ShaderReflection, (void**)&pReflector);
+			if (FAILED(hr)) {
+				if (pReflector) { pReflector->Release(); }
+				return false;
+			}
+			//インターフェイスインスタンスの数を取得
+			resource->numInterfaces = pReflector->GetNumInterfaceSlots();
+			//配列確保
+			if (resource->numInterfaces > 0) {
+				resource->dynamicLinkageArray = (ID3D11ClassInstance**)malloc(sizeof(ID3D11ClassInstance*) * resource->numInterfaces);
+			}
 			if (pReflector) { pReflector->Release(); }
-			return false;
 		}
-		//インターフェイスインスタンスの数を取得
-		resource->numInterfaces = pReflector->GetNumInterfaceSlots();
-		//配列確保
-		if (resource->numInterfaces > 0) {
-			resource->dynamicLinkageArray = (ID3D11ClassInstance**)malloc(sizeof(ID3D11ClassInstance*) * resource->numInterfaces);
-		}
-		if (pReflector) { pReflector->Release(); }
 	}
 
 	//返す
@@ -365,14 +372,20 @@ bool ShaderResources::CompileShader(const SShaderProgram* shaderProgram, const c
 bool ShaderResources::LoadShaderResource(const char* filePath, const D3D_SHADER_MACRO* pDefines, const char* entryFuncName, EnType shaderType, SShaderResource* return_resource) {
 	return_resource->Release(false);
 	
+	//ファイルから読み込む
 	int filesize;
-	return_resource->fileblob = ReadFile(filePath, filesize);
-	return_resource->fileblobSize = filesize;
+	std::unique_ptr<char[]> fileblob = ReadFile(filePath, filesize);
+
+	//blob作成してファイルから読み込んだデータをコピー
+	if (FAILED(D3DCreateBlob(filesize, &return_resource->blobOut))) {
+		return false;
+	}
+	memcpy_s(return_resource->blobOut->GetBufferPointer(), return_resource->blobOut->GetBufferSize(), fileblob.get(), filesize);
+
 	//読み込み後の処理
-	if (filesize < 0 || !PostLoadShader(return_resource->fileblob.get(), return_resource->fileblobSize, shaderType, entryFuncName, pDefines, false, return_resource)) {
+	if (filesize < 0 || !PostLoadShader(return_resource->GetBufferPointer(), return_resource->GetBufferSize(), shaderType, entryFuncName, pDefines, false, return_resource)) {
 		//エラー!
-		return_resource->fileblob.reset();
-		return_resource->fileblobSize = 0;
+		return_resource->blobOut->Release();
 		return false;
 	}
 	return true;

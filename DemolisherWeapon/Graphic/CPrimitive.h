@@ -6,6 +6,13 @@ namespace DemolisherWeapon {
 struct SVertex {
 	float position[4] = { 0.0f, 0.0f ,0.0f ,0.0f };
 	float uv[2] = { 0.0f,0.0f };
+
+	//頂点レイアウト
+	static inline D3D12_INPUT_ELEMENT_DESC vertexLayout[] =
+	{
+		{ "SV_Position", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 16, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	};
 };
 
 //頂点バッファ
@@ -34,6 +41,7 @@ public:
 private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_vertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
+	unsigned long long m_fullVertsSize = 0;
 };
 
 //インデックスバッファ

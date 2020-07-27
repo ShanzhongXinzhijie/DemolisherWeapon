@@ -145,7 +145,7 @@ void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	m_physics.Init();
 
 	//グラフィックス関係の初期化
-	m_graphicsEngine.Init(m_hWnd, initParam, &m_gameObjectManager, m_fpscounter.get());
+	DW_ERRORBOX(!m_graphicsEngine.Init(m_hWnd, initParam, &m_gameObjectManager, m_fpscounter.get()),"グラフィックスエンジンの初期化に失敗しました")
 
 	//XAudio2の初期化
 	m_soundEngine.Init();

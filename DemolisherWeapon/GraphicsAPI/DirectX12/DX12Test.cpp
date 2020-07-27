@@ -241,7 +241,81 @@ namespace DemolisherWeapon {
 #endif
 	}
 
+	bool DX12Test::RenderInit() {
+		if (m_isInitTest)return true;
+
+		//シェーダのロード
+		m_vs.Load("Preset/shader/primitive.fx", "VSMain", Shader::EnType::VS);
+		m_ps.Load("Preset/shader/primitive.fx", "PSMainColor", Shader::EnType::PS);
+		//ルートシグネチャの作成
+		CD3DX12_ROOT_PARAMETER rootParameters[1];
+		rootParameters[0].InitAsConstants(16, 0, 0);
+		D3D12_ROOT_SIGNATURE_DESC rsDesc = {
+			_countof(rootParameters),
+			rootParameters,
+			0,
+			nullptr,
+			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+		};
+		Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob;
+		if (FAILED(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &signatureBlob, nullptr))) {
+			return false;
+		}
+		if (FAILED(m_d3dDevice->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)))) {
+			return false;
+		}
+		//パイプラインステートオブジェクトの作成
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+		psoDesc.pRootSignature = m_rootSignature.Get();
+		psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_vs.GetBlob());
+		psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_ps.GetBlob());
+		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		psoDesc.SampleMask = 0xffffffff;
+		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		//psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+		psoDesc.InputLayout.pInputElementDescs = SVertex::vertexLayout;
+		psoDesc.InputLayout.NumElements = sizeof(SVertex::vertexLayout) / sizeof(D3D12_INPUT_ELEMENT_DESC);
+		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		psoDesc.NumRenderTargets = 1;
+		psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+		psoDesc.SampleDesc = { 1, 0 };
+		//if (isWarp) {
+		//	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG;
+		//}
+		if (FAILED(m_d3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pso)))) {
+			return false;
+		}
+		//プリミティブ
+		SVertex vertex[4];
+		unsigned long index[4] = { 1,0,3,2 };
+		vertex[0] = {
+			{0.2f * 2.0f - 1.0f, 0.1f * 2.0f - 1.0f, 0.0f, 1.0f},
+			{0.0f, 1.0f}
+		};
+		vertex[1] = {
+			{0.7f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
+			{1.0f, 1.0f}
+		};
+		vertex[2] = {
+			{0.3f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f}
+		};
+		vertex[3] = {
+			{0.7f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
+			{1.0f, 0.0f}
+		};
+		m_square.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, 4, index);
+
+		m_isInitTest = true;
+
+		return true;
+	}
+
 	void DX12Test::Render() {
+		RenderInit();
+
 		//前フレームの描画完了を待つ
 		if (!WaitForPreviousFrame()) {
 			return;
@@ -269,15 +343,52 @@ namespace DemolisherWeapon {
 		static int cnt = 0;
 		cnt++;
 		if (cnt < 30) {
-			clearColor = { 1.0f, 0.2f, 0.4f, 1.0f };
+			//clearColor = { 1.0f, 0.2f, 0.4f, 1.0f };
 		}else
 		if (cnt < 60) {
-			clearColor = { 0.4f, 0.2f, 1.0f, 1.0f };
+			//clearColor = { 0.4f, 0.2f, 1.0f, 1.0f };
 		}
 		else {
 			cnt = 0;
 		}
 		m_commandList->ClearRenderTargetView(rtvHandle, clearColor.v, 0, nullptr);
+
+		//デプスのクリア
+		GetCommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+		SetViewport(0.0f, 0.0f, GetGraphicsEngine().Get3DFrameBuffer_W(), GetGraphicsEngine().Get3DFrameBuffer_H());
+
+		//四角形の描画
+		SVertex vertex[4];
+		if (cnt%2 < 1) {
+			vertex[0] = {
+					{0.3f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
+					{0.0f, 1.0f}
+			};
+		}
+		else {
+			vertex[0] = {
+				{0.2f * 2.0f - 1.0f, 0.1f * 2.0f - 1.0f, 0.0f, 1.0f},
+				{0.0f, 1.0f}
+			};
+		}
+		vertex[1] = {
+			{0.7f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
+			{1.0f, 1.0f}
+		};
+		vertex[2] = {
+			{0.3f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f}
+		};
+		vertex[3] = {
+			{0.7f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
+			{1.0f, 0.0f}
+		};
+		m_square.UpdateVertex(vertex);
+		m_commandList->SetPipelineState(m_pso.Get());
+		m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+		//commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
+		m_square.DrawIndexed();
 
 		//リソースバリアを設定
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
