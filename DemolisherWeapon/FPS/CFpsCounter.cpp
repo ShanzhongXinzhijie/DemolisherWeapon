@@ -81,8 +81,7 @@ void CFpsCounter::Draw() {
 	GetEngine().GetGraphicsEngine().GetSpriteFont()->DrawString(GetEngine().GetGraphicsEngine().GetSpriteBatchPMA(), output, { 0.0f,0.0f }, {1.0f,1.0f,1.0f,0.75f}, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), 0.4f); //DirectX::XMVectorScale(m_font->MeasureString(output), 0.0f));
 
 	GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->End();
-#else
-	
+#else	
 	ID3D12DescriptorHeap* heaps[] = { GetGraphicsEngine().GetDirectXTK12DescriptorHeap()->Heap() };
 	GetGraphicsEngine().GetCommandList()->SetDescriptorHeaps(_countof(heaps), heaps);
 
@@ -90,8 +89,7 @@ void CFpsCounter::Draw() {
 
 	GetGraphicsEngine().GetSpriteFont()->DrawString(GetGraphicsEngine().GetSpriteBatchPMA(), output, { 0.0f,0.0f }, { 1.0f,1.0f,1.0f,0.75f }, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), 0.4f);
 
-	GetGraphicsEngine().GetSpriteBatchPMA()->End();//•`‰æÀs
-	
+	GetGraphicsEngine().GetSpriteBatchPMA()->End();//•`‰æÀs	
 #endif
 
 	/*

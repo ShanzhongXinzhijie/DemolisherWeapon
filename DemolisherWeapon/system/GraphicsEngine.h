@@ -110,6 +110,13 @@ public:
 	}
 	*/
 
+	/// <summary>
+	/// DirectX12クラスを取得
+	/// </summary>
+	DX12Test& GetDX12() {
+		return *m_dx12;
+	}
+
 #ifdef DW_DX12
 	/// <summary>
 	/// DirectXTK12のディスクリプタヒープクラスを取得

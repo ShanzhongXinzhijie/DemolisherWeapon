@@ -188,6 +188,9 @@ namespace DemolisherWeapon {
 			m_d3dDevice->CreateDepthStencilView(m_depthStencilBuffer.Get(), nullptr, dsvHandle);
 		}
 
+		//CBV_SRV_UAV用のデスクリプタヒープ作成
+		m_srvsDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, CBV_SRV_UAV_MAXNUM, true, m_srvsDescriptorHeap);
+
 		// コマンドアロケータを作成する.
 		for (int i = 0; i < FRAME_COUNT; ++i) {
 			if (FAILED(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator[i])))) {
@@ -246,15 +249,24 @@ namespace DemolisherWeapon {
 
 		//シェーダのロード
 		m_vs.Load("Preset/shader/primitive.fx", "VSMain", Shader::EnType::VS);
-		m_ps.Load("Preset/shader/primitive.fx", "PSMainColor", Shader::EnType::PS);
+		m_ps.Load("Preset/shader/primitive.fx", "PSMain", Shader::EnType::PS);
 		//ルートシグネチャの作成
+		//CD3DX12_ROOT_PARAMETER rootParameters[1];
+		//rootParameters[0].InitAsConstants(16, 0, 0);
+
+		D3D12_DESCRIPTOR_RANGE descRange[] = {
+		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0) };
+
 		CD3DX12_ROOT_PARAMETER rootParameters[1];
-		rootParameters[0].InitAsConstants(16, 0, 0);
+		rootParameters[0].InitAsDescriptorTable(_countof(descRange), descRange);
+
+		D3D12_STATIC_SAMPLER_DESC staticSampler[] = { CD3DX12_STATIC_SAMPLER_DESC(0) };
+
 		D3D12_ROOT_SIGNATURE_DESC rsDesc = {
 			_countof(rootParameters),
 			rootParameters,
-			0,
-			nullptr,
+			_countof(staticSampler),
+			staticSampler,
 			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
 		};
 		Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob;
@@ -308,6 +320,8 @@ namespace DemolisherWeapon {
 		};
 		m_square.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, 4, index);
 
+		m_texture = CreateTexture(L"smoke.dds");
+
 		m_isInitTest = true;
 
 		return true;
@@ -356,11 +370,16 @@ namespace DemolisherWeapon {
 		//デプスのクリア
 		GetCommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
+		//ディスクリプタヒープの設定
+		ID3D12DescriptorHeap* heapList[] = { m_srvsDescriptorHeap.Get() };
+		m_commandList->SetDescriptorHeaps(_countof(heapList), heapList);
+
+		//ビューポート設定
 		SetViewport(0.0f, 0.0f, GetGraphicsEngine().Get3DFrameBuffer_W(), GetGraphicsEngine().Get3DFrameBuffer_H());
 
 		//四角形の描画
 		SVertex vertex[4];
-		if (cnt%2 < 1) {
+		if (cnt < 30) {
 			vertex[0] = {
 					{0.3f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
 					{0.0f, 1.0f}
@@ -387,6 +406,7 @@ namespace DemolisherWeapon {
 		m_square.UpdateVertex(vertex);
 		m_commandList->SetPipelineState(m_pso.Get());
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+		m_commandList->SetGraphicsRootDescriptorTable(0, m_texture.descriptorHandle);
 		//commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
 		m_square.DrawIndexed();
 

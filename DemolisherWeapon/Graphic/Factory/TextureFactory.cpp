@@ -12,11 +12,16 @@ namespace DemolisherWeapon {
 			//DDS
 			texdata.isDDS = true;
 #ifdef DW_DX12
+			//ÉäÉ\Å[ÉXì«Ç›çûÇ›
 			DirectX::ResourceUploadBatch resourceUpload(GetGraphicsEngine().GetD3D12Device());
 			resourceUpload.Begin();
 			hr = DirectX::CreateDDSTextureFromFile(GetGraphicsEngine().GetD3D12Device(), resourceUpload, filepath.c_str(), texdata.d3d12texture.ReleaseAndGetAddressOf(), generateMipmaps);
 			auto uploadResourcesFinished = resourceUpload.End(GetGraphicsEngine().GetXTK12CommandQueue());
 			uploadResourcesFinished.wait();
+			//SRVçÏê¨
+			if (SUCCEEDED(hr)) {
+				texdata.descriptorHandle = GetGraphicsEngine().GetDX12().CreateSRV(texdata.d3d12texture.Get());
+			}
 #else
 			if (generateMipmaps) {
 				hr = DirectX::CreateDDSTextureFromFile(GetGraphicsEngine().GetD3DDevice(), GetGraphicsEngine().GetD3DDeviceContext(), filepath.c_str(), &texdata.texture, &texdata.textureView);
@@ -35,6 +40,10 @@ namespace DemolisherWeapon {
 			hr = DirectX::CreateWICTextureFromFile(GetGraphicsEngine().GetD3D12Device(), resourceUpload, filepath.c_str(), texdata.d3d12texture.ReleaseAndGetAddressOf(), generateMipmaps);
 			auto uploadResourcesFinished = resourceUpload.End(GetGraphicsEngine().GetXTK12CommandQueue());
 			uploadResourcesFinished.wait();
+			//SRVçÏê¨
+			if (SUCCEEDED(hr)) {
+				texdata.descriptorHandle = GetGraphicsEngine().GetDX12().CreateSRV(texdata.d3d12texture.Get());
+			}
 #else
 			if (generateMipmaps) {
 				hr = DirectX::CreateWICTextureFromFile(GetGraphicsEngine().GetD3DDevice(), GetGraphicsEngine().GetD3DDeviceContext(), filepath.c_str(), &texdata.texture, &texdata.textureView);

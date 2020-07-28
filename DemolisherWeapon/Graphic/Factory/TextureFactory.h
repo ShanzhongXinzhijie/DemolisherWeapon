@@ -9,6 +9,7 @@ namespace DemolisherWeapon {
 	public:
 #ifdef DW_DX12
 		Microsoft::WRL::ComPtr<ID3D12Resource> d3d12texture;
+		D3D12_GPU_DESCRIPTOR_HANDLE descriptorHandle;
 #endif
 		Microsoft::WRL::ComPtr<ID3D11Resource> texture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureView;
@@ -25,7 +26,7 @@ namespace DemolisherWeapon {
 	/// <summary>
 	/// テクスチャを作成する
 	/// </summary>
-	TextueData CreateTexture(std::experimental::filesystem::path filepath, bool generateMipmaps = false);
+	inline TextueData CreateTexture(std::experimental::filesystem::path filepath, bool generateMipmaps = false);
 
 	/// <summary>
 	/// テクスチャ(ビルボード)のFlyweightFactory
