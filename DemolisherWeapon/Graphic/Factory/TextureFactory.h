@@ -7,13 +7,14 @@ namespace DemolisherWeapon {
 	/// </summary>
 	struct TextueData {
 	public:
-#ifdef DW_DX12
+		//DirectX12
 		Microsoft::WRL::ComPtr<ID3D12Resource> d3d12texture;
 		D3D12_GPU_DESCRIPTOR_HANDLE descriptorHandle;
-#endif
+		//DirectX11
 		Microsoft::WRL::ComPtr<ID3D11Resource> texture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureView;
-//#endif
+
+		//プロパティ
 		bool isDDS = false;//ファイルソースが.ddsかどうか
 		UINT width = 0, height = 0;//解像度
 
