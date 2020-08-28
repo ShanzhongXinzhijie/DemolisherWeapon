@@ -30,7 +30,7 @@ namespace DemolisherWeapon {
 	inline TextueData CreateTexture(std::experimental::filesystem::path filepath, bool generateMipmaps = false);
 
 	/// <summary>
-	/// テクスチャ(ビルボード)のFlyweightFactory
+	/// テクスチャのFlyweightFactory
 	/// </summary>
 	class TextureFactory {
 	//シングルトン
@@ -72,6 +72,8 @@ namespace DemolisherWeapon {
 		/// <param name="return_textureData">テクスチャのデータが返ってくる</param>
 		/// <param name="generateMipmaps">ミップマップを生成するか?</param>
 		bool Load(std::experimental::filesystem::path filepath, ID3D11Resource** return_texture = nullptr, ID3D11ShaderResourceView** return_textureView = nullptr, const TextueData** return_textureData = nullptr, bool generateMipmaps = false);
+
+		bool Load(std::experimental::filesystem::path filepath, const TextueData** return_textureData = nullptr, bool generateMipmaps = false);
 
 		/// <summary>
 		/// テクスチャの開放

@@ -82,7 +82,7 @@ void CFpsCounter::Draw() {
 
 	GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->End();
 #else	
-	ID3D12DescriptorHeap* heaps[] = { GetGraphicsEngine().GetDirectXTK12DescriptorHeap()->Heap() };
+	ID3D12DescriptorHeap* heaps[] = { GetGraphicsEngine().GetDirectXTK12DescriptorHeap() };
 	GetGraphicsEngine().GetCommandList()->SetDescriptorHeaps(_countof(heaps), heaps);
 
 	GetGraphicsEngine().GetSpriteBatchPMA()->Begin(GetGraphicsEngine().GetCommandList(), DirectX::SpriteSortMode::SpriteSortMode_Deferred);

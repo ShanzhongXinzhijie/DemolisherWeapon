@@ -21,6 +21,7 @@
 #include"Render/DirectXTKRender.h"
 #include"Render/finishrender.h"
 
+#include"GraphicsAPI/DirectX12/DescriptorHeapXTK12.h"
 #include"GraphicsAPI/DirectX12/DX12Test.h"
 #include"GraphicsAPI/DirectX11/DX11Test.h"
 #include"Render/DX12Render.h"
@@ -119,10 +120,13 @@ public:
 
 #ifdef DW_DX12
 	/// <summary>
-	/// DirectXTK12のディスクリプタヒープクラスを取得
+	/// DirectXTK12のディスクリプタヒープを取得
 	/// </summary>
-	DirectX::DescriptorHeap* GetDirectXTK12DescriptorHeap() {
-		return m_xtk12_resourceDescriptors.get();
+	auto GetDirectXTK12DescriptorHeap() {
+		return m_xtk12_resourceDescriptors.Heap();
+	}
+	int CreateDirectXTK12DescriptorNumber(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE& gpuHandle) {
+		return m_xtk12_resourceDescriptors.CreateDescriptorNumber(cpuHandle, gpuHandle);
 	}
 	/// <summary>
 	/// DirectXTK12用コマンドキューを取得
@@ -390,16 +394,8 @@ private:
 	//Directx12
 	DX12Render m_dx12Render;
 
-	//DirectXTK12
-	public:
-	enum Descriptors
-	{
-		MyFont,
-		Sprite,
-		Count
-	};
-	private:
-	std::unique_ptr<DirectX::DescriptorHeap> m_xtk12_resourceDescriptors;
+	//DirectXTK12	
+	DescriptorHeapXTK12 m_xtk12_resourceDescriptors;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_xtk12_commandQueue;
 	std::unique_ptr<DirectX::GraphicsMemory> m_xtk12_graphicsMemory;
 #endif

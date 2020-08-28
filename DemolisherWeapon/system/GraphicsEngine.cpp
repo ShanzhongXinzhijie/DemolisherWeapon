@@ -44,6 +44,8 @@ void GraphicsEngine::Release() {
 	m_graphicsAPI.reset();
 	m_dx11 = nullptr;
 	m_dx12 = nullptr;
+
+	m_xtk12_resourceDescriptors.Release();
 }
 
 bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam, GameObjectManager* gom, CFpsCounter* fc) {
@@ -94,7 +96,8 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 		DirectX::ResourceUploadBatch resourceUpload(m_dx12->GetD3D12Device());
 
 		//ディスクリプタヒープ作る
-		m_xtk12_resourceDescriptors = std::make_unique<DirectX::DescriptorHeap>(m_dx12->GetD3D12Device(), Descriptors::Count);
+		m_xtk12_resourceDescriptors.Init(m_dx12->GetD3D12Device(), initParam.xtk12DescriptorsMaxnum);
+
 		// コマンドキューを作成
 		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 		auto hr = m_dx12->GetD3D12Device()->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_xtk12_commandQueue));
@@ -108,10 +111,16 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 		resourceUpload.Begin();
 			
 		//フォント作成
-		m_spriteFont = std::make_unique<DirectX::SpriteFont>(m_dx12->GetD3D12Device(), resourceUpload,
+		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+		m_xtk12_resourceDescriptors.CreateDescriptorNumber(cpuHandle,gpuHandle);
+		m_spriteFont = std::make_unique<DirectX::SpriteFont>(
+			m_dx12->GetD3D12Device(), 
+			resourceUpload,
 			L"Preset/Font/myfile.spritefont",
-			m_xtk12_resourceDescriptors->GetCpuHandle(Descriptors::MyFont),
-			m_xtk12_resourceDescriptors->GetGpuHandle(Descriptors::MyFont));		
+			cpuHandle,
+			gpuHandle
+		);
 
 		//スプライトバッチ作成		
 		DirectX::RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D32_FLOAT);//レンダーターゲットの情報がいる(バックバッファのものを使用)
@@ -136,10 +145,10 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 	}
 
 	//レンダーの登録
-	m_dx12Render.Init(m_dx12);
-	m_renderManager.AddRender(-2, &m_dx12Render);
+	//m_dx12Render.Init(m_dx12);
+	//m_renderManager.AddRender(-2, &m_dx12Render);
 	
-	/*
+	
 	//初期化レンダー
 	m_renderManager.AddRender(-3, &m_initRender);
 
@@ -155,7 +164,7 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 
 	//finishrender
 	m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);	
-	*/
+	
 
 	return true;
 }
