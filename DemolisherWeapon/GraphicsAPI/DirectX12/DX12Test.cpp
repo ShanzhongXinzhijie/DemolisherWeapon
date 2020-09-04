@@ -2,7 +2,24 @@
 #include "DX12Test.h"
 #include "GraphicsAPI/DirectX12/d3dx12.h"
 
+#include<comdef.h>
+
 namespace DemolisherWeapon {
+	
+	struct MeshTest
+	{
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;
+		Shader m_vs, m_ps;
+		CMeshParts m_mesh;
+
+		struct ConstantBuffer {
+			CMatrix mWorld;
+			CMatrix mView;
+			CMatrix mProj;
+		};
+		ConstantBuffer m_cbData;
+		ConstantBufferDx12<ConstantBuffer> m_cb;
+	};	
 
 	UINT DX12Test::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool isShaderVisible, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap) {
 		D3D12_DESCRIPTOR_HEAP_DESC desc = {};
@@ -76,7 +93,17 @@ namespace DemolisherWeapon {
 
 		//D3D12デバイスの作成
 		for (auto fuatureLevel : featureLevels) {
-			if (SUCCEEDED(D3D12CreateDevice(dxgiAdapter.Get(), fuatureLevel, IID_PPV_ARGS(&m_d3dDevice)))) {
+			HRESULT hr;
+			try
+			{
+				hr = D3D12CreateDevice(dxgiAdapter.Get(), fuatureLevel, IID_PPV_ARGS(&m_d3dDevice));
+			}
+			catch (const _com_error& ce)
+			{
+				DW_ERRORBOX(true,ce.ErrorMessage())
+			}
+
+			if (SUCCEEDED(hr)) {
 				break;
 			}
 		}
@@ -250,12 +277,15 @@ namespace DemolisherWeapon {
 		//シェーダのロード
 		m_vs.Load("Preset/shader/primitive.fx", "VSMain", Shader::EnType::VS);
 		m_ps.Load("Preset/shader/primitive.fx", "PSMain", Shader::EnType::PS);
+		
 		//ルートシグネチャの作成
 		//CD3DX12_ROOT_PARAMETER rootParameters[1];
 		//rootParameters[0].InitAsConstants(16, 0, 0);
 
 		D3D12_DESCRIPTOR_RANGE descRange[] = {
-		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0) };
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0),
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0)
+		};
 
 		CD3DX12_ROOT_PARAMETER rootParameters[1];
 		rootParameters[0].InitAsDescriptorTable(_countof(descRange), descRange);
@@ -276,6 +306,7 @@ namespace DemolisherWeapon {
 		if (FAILED(m_d3dDevice->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)))) {
 			return false;
 		}
+
 		//パイプラインステートオブジェクトの作成
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 		psoDesc.pRootSignature = m_rootSignature.Get();
@@ -299,6 +330,7 @@ namespace DemolisherWeapon {
 		if (FAILED(m_d3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pso)))) {
 			return false;
 		}
+
 		//プリミティブ
 		SVertex vertex[4];
 		unsigned long index[4] = { 1,0,3,2 };
@@ -319,11 +351,46 @@ namespace DemolisherWeapon {
 			{1.0f, 0.0f}
 		};
 		m_square.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, 4, index);
+		m_texture = CreateTexture(L"smoke.dds");		
 
-		m_texture = CreateTexture(L"smoke.dds");
+		//モデル
+		m_meshTest = new MeshTest;
+		tkEngine::CTkmFile tkmFile;
+		tkmFile.Load("testNonSkin.tkm");
+		m_meshTest->m_mesh.InitFromTkmFile(tkmFile);
+		m_meshTest->m_vs.Load("Preset/shader/ModelDX12Test.fx", "VSMainNonSkin", Shader::EnType::VS);
+		m_meshTest->m_ps.Load("Preset/shader/ModelDX12Test.fx", "PSMain", Shader::EnType::PS);
+		{
+			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+			psoDesc.pRootSignature = m_rootSignature.Get();
+			psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_meshTest->m_vs.GetBlob());
+			psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_meshTest->m_ps.GetBlob());
+			psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+			psoDesc.SampleMask = 0xffffffff;
+			psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+			psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+			psoDesc.InputLayout.pInputElementDescs = tkEngine::CTkmFile::SVertex::vertexLayout;
+			psoDesc.InputLayout.NumElements = sizeof(tkEngine::CTkmFile::SVertex::vertexLayout) / sizeof(D3D12_INPUT_ELEMENT_DESC);
+			psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+			psoDesc.NumRenderTargets = 1;
+			psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+			psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+			psoDesc.SampleDesc = { 1, 0 };
+			HRESULT hr = m_d3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_meshTest->m_pso));
+			if (FAILED(hr)) {
+				return false;
+			}
+		}		
+		m_meshTest->m_cb.Init(sizeof(m_meshTest->m_cbData));
+		m_meshTest->m_cb.CreateConstantBufferView(CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), ++m_srvIndex, m_srvsDescriptorSize));
+		
+		SetMainCamera(&m_camera);
+		m_camera.SetPos(CVector3::Back() * 300.0f);
+		m_camera.SetFar(10000.0f);
 
+		//初期化完了
 		m_isInitTest = true;
-
 		return true;
 	}
 
@@ -378,37 +445,55 @@ namespace DemolisherWeapon {
 		SetViewport(0.0f, 0.0f, GetGraphicsEngine().Get3DFrameBuffer_W(), GetGraphicsEngine().Get3DFrameBuffer_H());
 
 		//四角形の描画
-		SVertex vertex[4];
-		if (cnt < 30) {
-			vertex[0] = {
-					{0.3f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
+		{
+			//頂点の更新
+			SVertex vertex[4];
+			if (cnt < 30) {
+				vertex[0] = {
+						{0.3f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
+						{0.0f, 1.0f}
+				};
+			}
+			else {
+				vertex[0] = {
+					{0.2f * 2.0f - 1.0f, 0.1f * 2.0f - 1.0f, 0.0f, 1.0f},
 					{0.0f, 1.0f}
+				};
+			}
+			vertex[1] = {
+				{0.7f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
+				{1.0f, 1.0f}
 			};
-		}
-		else {
-			vertex[0] = {
-				{0.2f * 2.0f - 1.0f, 0.1f * 2.0f - 1.0f, 0.0f, 1.0f},
-				{0.0f, 1.0f}
+			vertex[2] = {
+				{0.3f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
+				{0.0f, 0.0f}
 			};
+			vertex[3] = {
+				{0.7f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
+				{1.0f, 0.0f}
+			};
+			m_square.UpdateVertex(vertex);
+
+			m_commandList->SetPipelineState(m_pso.Get());
+			m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+			m_commandList->SetGraphicsRootDescriptorTable(0, m_texture.descriptorHandle);
+			//commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
+			//m_square.DrawIndexed();
 		}
-		vertex[1] = {
-			{0.7f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
-			{1.0f, 1.0f}
-		};
-		vertex[2] = {
-			{0.3f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
-			{0.0f, 0.0f}
-		};
-		vertex[3] = {
-			{0.7f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
-			{1.0f, 0.0f}
-		};
-		m_square.UpdateVertex(vertex);
-		m_commandList->SetPipelineState(m_pso.Get());
+
+		//TODO 定数バッファ　バッファリングすべき
+		static float rot = 0;
+		rot += CMath::RadToDeg(0.001f);
+		m_meshTest->m_cbData.mWorld.MakeRotationX(rot);
+		m_meshTest->m_cbData.mView = GetMainCamera()->GetViewMatrix();
+		m_meshTest->m_cbData.mProj = GetMainCamera()->GetProjMatrix();
+		m_meshTest->m_cb.Update(&m_meshTest->m_cbData);
+
+		//モデルの描画
+		m_commandList->SetPipelineState(m_meshTest->m_pso.Get());
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 		m_commandList->SetGraphicsRootDescriptorTable(0, m_texture.descriptorHandle);
-		//commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
-		m_square.DrawIndexed();
+		m_meshTest->m_mesh.Draw();
 
 		//リソースバリアを設定
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));

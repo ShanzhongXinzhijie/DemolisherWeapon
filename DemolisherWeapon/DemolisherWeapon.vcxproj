@@ -347,7 +347,10 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="Graphic\Shader\ConstantBuffer.h" />
     <ClInclude Include="GraphicsAPI\DirectX12\DescriptorHeapXTK12.h" />
+    <ClInclude Include="util\Noncopyable.h" />
+    <ClInclude Include="Graphic\Model\Model.h" />
     <ClInclude Include="Graphic\Model\tkTkmFile.h" />
     <ClInclude Include="Render\FinishRender.h" />
     <ClInclude Include="Render\DirectXTKRender.h" />
@@ -460,6 +463,8 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Graphic\Shader\ConstantBuffer.cpp" />
+    <ClCompile Include="Graphic\Model\Model.cpp" />
     <ClCompile Include="Graphic\Model\tkTkmFile.cpp" />
     <ClCompile Include="Render\FinishRender.cpp" />
     <ClCompile Include="Render\DirectXTKRender.cpp" />
@@ -641,6 +646,11 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\shader\modelDisolve.fx">
+      <FileType>Document</FileType>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Preset\shader\ModelDX12Test.fx">
       <FileType>Document</FileType>
     </CustomBuild>
   </ItemGroup>

@@ -32,16 +32,11 @@ private:
 	static enShaderMode m_s_shadermode ;//シェーダーモード
 
 protected:
-	//使用中のシェーダーのポインタ
-	//SKEShaderPtr m_pVSShader; Shader* m_pVSZShader = nullptr;
-	//SKEShaderPtr m_pPSShader; Shader* m_pPSZShader = nullptr;
-
 	//デフォルトバーテックスシェーダ
 	SkinModelEffectShader m_vsDefaultShader;
 	Shader m_vsZShader;//Z値出力用
 
 	//デフォルトピクセルシェーダ
-	//bool m_isUseTexZShader = false;
 	SkinModelEffectShader m_psDefaultShader;
 	Shader m_psZShader[2];//Z値出力用
 	SkinModelEffectShader m_psTriPlanarMapShader, m_psTriPlanarMapShaderYOnly;//TriPlanarMapping用のシェーダ
@@ -49,16 +44,13 @@ protected:
 	bool isSkining;//スキンモデルか？
 
 	//テクスチャ
-	ID3D11ShaderResourceView* m_defaultAlbedoTex = nullptr;// , *m_pAlbedoTex = nullptr;
-	ID3D11ShaderResourceView* m_defaultNormalTex = nullptr;//, *m_pNormalTex = nullptr;
-	ID3D11ShaderResourceView* m_defaultLightingTex = nullptr;//, *m_pLightingTex = nullptr;
+	ID3D11ShaderResourceView* m_defaultAlbedoTex = nullptr;
+	ID3D11ShaderResourceView* m_defaultNormalTex = nullptr;
+	ID3D11ShaderResourceView* m_defaultLightingTex = nullptr;
 	
 	MaterialSetting* m_ptrUseMaterialSetting = nullptr;	//使用するマテリアル設定
 	MaterialSetting m_defaultMaterialSetting;	//マテリアル設定(デフォルト)
-	//MaterialParam m_materialParam;			//マテリアルパラメータ
 	ID3D11Buffer* m_materialParamCB = nullptr;	//マテリアルパラメータ用の定数バッファ
-
-	//bool m_enableMotionBlur = true;//モーションブラー有効か？
 
 public:
 	ModelEffect()
@@ -277,20 +269,7 @@ public:
 
 	//使うマテリアル設定を適応
 	void SetUseMaterialSetting(MaterialSetting& matset) {
-		m_ptrUseMaterialSetting = &matset;
-		/*m_materialParam = matset.GetMaterialParam();
-		
-		m_pVSShader = matset.GetVS();
-		m_pVSZShader = matset.GetVSZ(); 
-		m_pPSShader = matset.GetPS();
-		m_pPSZShader = matset.GetPSZ();
-
-		m_pAlbedoTex = matset.GetAlbedoTexture();
-		m_pNormalTex = matset.GetNormalTexture();
-		m_pLightingTex = matset.GetLightingTexture();
-
-		m_enableMotionBlur = matset.GetIsMotionBlur();
-		m_isUseTexZShader = matset.GetIsUseTexZShader();*/		
+		m_ptrUseMaterialSetting = &matset;	
 	}
 	void SetDefaultMaterialSetting() {
 		SetUseMaterialSetting(m_defaultMaterialSetting);

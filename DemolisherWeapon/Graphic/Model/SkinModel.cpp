@@ -2,7 +2,7 @@
 #include "SkinModel.h"
 #include "SkinModelShaderConst.h"
 #include "Graphic/FrustumCulling.h"
-
+#include "Model.h"
 #include <filesystem>
 
 namespace DemolisherWeapon {
@@ -16,7 +16,7 @@ SkinModel::~SkinModel()
 		m_cb->Release();
 	}
 }
-void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate, bool isUseFlyweightFactory)
+void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate, bool isUseFlyweightFactory)
 {
 	//FBX情報を設定
 	m_enFbxUpAxis = enFbxUpAxis;
@@ -28,7 +28,7 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	m_biasMatrix.Mul(mBiasScr, m_biasMatrix);
 
 	//スケルトンのデータを読み込む。
-	bool hasSkeleton = InitSkeleton(filePath);
+	bool hasSkeleton = InitSkeleton(filePath.c_str());
 
 	//視錐台カリングする
 	m_isFrustumCull = true;
@@ -36,17 +36,52 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	//定数バッファの作成。
 	InitConstantBuffer();
 
-	//SkinModelDataManagerを使用してCMOファイルのロード。
-	if (isUseFlyweightFactory) {
-		//モデルプールを使用
-		m_modelDx = m_skinModelDataManager.Load(filePath, m_skeleton);
+	//拡張子がtkmか判定
+	if(_wcsicmp(filePath.extension().c_str(),L".tkm") == 0){
+		//TKMファイルのロード
+		if (isUseFlyweightFactory) {
+			//モデルプールを使用
+			DW_WARNING_BOX(true, "まだ無理")
+		}
+		else {
+			//パスをcharへ変換...
+			size_t iReturnValue;
+			size_t size = wcslen(filePath.c_str()) + 1;
+			std::unique_ptr<char[]> charPath = std::make_unique<char[]>(size);
+			errno_t err = wcstombs_s(
+				&iReturnValue,
+				charPath.get(),
+				size, //上のサイズ
+				filePath.c_str(), 
+				size-1 //コピーする最大文字数
+			);
+			if (err != 0) {
+				DW_ERRORBOX(true, "wcstombs_s errno:%d", err)
+			}
+
+			//モデルを新規作成
+			m_modelData = std::make_unique<CModel>();
+			m_modelData->LoadTkmFile(charPath.get());
+			m_modelData->CreateMeshParts();
+			m_model = m_modelData.get();
+		}
 	}
 	else {
-		//モデルを新規作成
-		m_modelDxData = m_skinModelDataManager.CreateModel(filePath, m_skeleton);
-		m_modelDx = m_modelDxData.get();
+		//SkinModelDataManagerを使用してCMOファイルのロード。
+		if (isUseFlyweightFactory) {
+			//モデルプールを使用
+			m_modelDx = m_skinModelDataManager.Load(filePath.c_str(), m_skeleton);
+		}
+		else {
+			//モデルを新規作成
+			m_modelDxData = m_skinModelDataManager.CreateModel(filePath.c_str(), m_skeleton);
+			m_modelDx = m_modelDxData.get();
+		}
 	}
 
+	if (m_model) {
+		//TODO
+	}
 	if (m_modelDx) {
 		//マテリアル設定の確保
 		FindMaterial(
@@ -107,8 +142,7 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	UpdateBoundingBoxWithWorldMatrix();
 
 	//ファイル名記録
-	std::experimental::filesystem::path ps = filePath;
-	m_modelName = ps.stem();
+	m_modelName = filePath.stem();
 }
 bool SkinModel::InitSkeleton(const wchar_t* filePath)
 {
@@ -371,8 +405,12 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		}
 	}
 
-#ifndef DW_DX12_TEMPORARY
+	//描画
+	if (m_model) {
+		m_model->Draw();
+	}
 
+#ifndef DW_DX12_TEMPORARY
 	//描画。
 	m_modelDx->Draw(
 		d3dDeviceContext,
@@ -387,7 +425,6 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		pDepthStencilState ? pDepthStencilState : m_pDepthStencilState,
 		instanceNum*m_instanceNum
 	);
-
 #endif
 
 	//ユーザー設定の描画後処理実行

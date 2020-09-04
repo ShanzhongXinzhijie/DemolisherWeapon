@@ -1,5 +1,7 @@
 #pragma once
 
+#include"model/tktkmfile.h"
+
 namespace DemolisherWeapon {
 
 //í∏ì_ç\ë¢ëÃ
@@ -19,25 +21,26 @@ struct SVertex {
 class IVertexBuffer {
 public:
 	virtual ~IVertexBuffer() {}
-	virtual void Init(int numVertex, SVertex* vertex) = 0;
+	virtual void Init(int numVertex, unsigned int vertexStride, void* vertex) = 0;
 	virtual void Attach() = 0;
-	virtual void Update(SVertex* vertex) = 0;
+	virtual void Update(void* vertex) = 0;
 };
 //directx11
 class VertexBufferDX11 : public IVertexBuffer {
 public:
-	void Init(int numVertex, SVertex* vertex)override;
+	void Init(int numVertex, unsigned int vertexStride, void* vertex)override;
 	void Attach()override;
-	void Update(SVertex* vertex)override;
+	void Update(void* vertex)override;
 private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
+	unsigned int m_vertexSize = 0;
 };
 //directx12
 class VertexBufferDX12 : public IVertexBuffer {
 public:
-	void Init(int numVertex, SVertex* vertex);
+	void Init(int numVertex, unsigned int vertexStride, void* vertexoverride);
 	void Attach()override;
-	void Update(SVertex* vertex)override;
+	void Update(void* vertex)override;
 private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_vertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;

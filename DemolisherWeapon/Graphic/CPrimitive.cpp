@@ -30,7 +30,7 @@ void CPrimitive::Init(D3D_PRIMITIVE_TOPOLOGY topology, int numVertex, SVertex* v
 	if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
 		m_vertexBuffer = std::make_unique<VertexBufferDX12>();
 	}
-	m_vertexBuffer->Init(numVertex, vertex);
+	m_vertexBuffer->Init(numVertex, sizeof(SVertex), vertex);
 
 	//インデックスバッファの作成
 	if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
@@ -103,11 +103,13 @@ void CPrimitive::DrawIndexed() {
 	Draw(-1);	
 }
 
-void VertexBufferDX11::Init(int numVertex, SVertex* vertex) {
+void VertexBufferDX11::Init(int numVertex, unsigned int vertexStride, void* vertex) {
+	m_vertexSize = vertexStride;
+
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = numVertex * sizeof(SVertex);
+	bd.ByteWidth = numVertex * vertexStride;
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
 	D3D11_SUBRESOURCE_DATA InitData;
@@ -118,22 +120,21 @@ void VertexBufferDX11::Init(int numVertex, SVertex* vertex) {
 }
 void VertexBufferDX11::Attach() {
 	//頂点バッファを設定
-	unsigned int vertexSize = sizeof(SVertex);
 	unsigned int offset = 0;
 	GetGraphicsEngine().GetD3DDeviceContext()->IASetVertexBuffers(
 		0,
 		1,
 		m_vertexBuffer.GetAddressOf(),
-		&vertexSize,
+		&m_vertexSize,
 		&offset
 	);
 }
-void VertexBufferDX11::Update(SVertex* vertex) {
+void VertexBufferDX11::Update(void* vertex) {
 	GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(m_vertexBuffer.Get(), 0, nullptr, vertex, 0, 0);
 }
 
-void VertexBufferDX12::Init(int numVertex, SVertex* vertex) {
-	const auto fullVertsSize = numVertex * sizeof(SVertex);
+void VertexBufferDX12::Init(int numVertex, unsigned int vertexStride, void* vertex) {
+	const auto fullVertsSize = numVertex * vertexStride;
 	m_fullVertsSize = fullVertsSize;
 
 	//バッファ
@@ -151,7 +152,7 @@ void VertexBufferDX12::Init(int numVertex, SVertex* vertex) {
 
 	//ビュー
 	m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
-	m_vertexBufferView.StrideInBytes = sizeof(SVertex);
+	m_vertexBufferView.StrideInBytes = vertexStride;
 	m_vertexBufferView.SizeInBytes = (UINT)fullVertsSize;
 
 	//中身のコピー
@@ -167,12 +168,7 @@ void VertexBufferDX12::Init(int numVertex, SVertex* vertex) {
 void VertexBufferDX12::Attach() {
 	GetGraphicsEngine().GetCommandList()->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 }
-
-void VertexBufferDX12::Update(SVertex* vertex) {
-	//TODO
-	//頂点情報を更新する処理
-	//DW_ERRORBOX(true,"VertexBufferDX12::Update 現在使用不可")
-
+void VertexBufferDX12::Update(void* vertex) {
 	//中身のコピー
 	void* pVertexDataBegin;
 	const D3D12_RANGE readRange = { 0, 0 };

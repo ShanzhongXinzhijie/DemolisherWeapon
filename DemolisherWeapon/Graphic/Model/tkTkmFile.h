@@ -7,14 +7,9 @@
 /// </remarks>
 
 #pragma once
+#include"util/Noncopyable.h"
 
-namespace tkEngine {
-	
-	struct Noncopyable {
-		Noncopyable() = default;
-		Noncopyable(const Noncopyable&) = delete;
-		Noncopyable& operator=(const Noncopyable&) = delete;
-	};
+namespace DemolisherWeapon::tkEngine {
 
 	/// <summary>
 	/// リソースのインターフェースクラス。
@@ -24,7 +19,12 @@ namespace tkEngine {
 		/// <summary>
 		/// デストラクタ。
 		/// </summary>
-		virtual ~IResource();
+		virtual ~IResource() {
+			if (m_loadThread) {
+				//読み込みスレッドが終わるまで待機。
+				m_loadThread->join();
+			}
+		}
 		/// <summary>
 		/// サブクラスで実装する読み込み処理の本体。
 		/// </summary>
@@ -42,7 +42,11 @@ namespace tkEngine {
 		/// 非同期ロード。
 		/// </summary>
 		/// <param name="filePath"></param>
-		void LoadAsync(const char* filePath);
+		void LoadAsync(const char* filePath) {
+			m_filePath = filePath;
+			m_loadThread = std::make_unique<std::thread>(
+				[&]() {	Load(m_filePath.c_str());  });
+		}
 		/// <summary>
 		/// 読み込み終了判定。
 		/// </summary>
@@ -96,6 +100,18 @@ namespace tkEngine {
 			CVector2 uv;			//UV座標。
 			int indices[4];			//スキンインデックス。
 			CVector4 skinWeights;	//スキンウェイト。
+
+			//頂点レイアウト
+			static inline D3D12_INPUT_ELEMENT_DESC vertexLayout[] =
+			{
+				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+				{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+				{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+				{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+				{ "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_SINT, 0, 56, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+				{ "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 72, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+			};
 		};
 		/// <summary>
 		/// 32ビットのインデックスバッファ。
@@ -116,7 +132,7 @@ namespace tkEngine {
 			bool isFlatShading;							//フラットシェーディング？
 			std::vector< SMaterial > materials;				//マテリアルの配列。
 			std::vector< SVertex >	vertexBuffer;			//頂点バッファ。
-			std::vector<SIndexBuffer32> indexBuffer32Array;	//インデックスバッファの配列。マテリアルの数分だけインデックスバッファはあるよ。
+			std::vector< SIndexBuffer32> indexBuffer32Array;	//インデックスバッファの配列。マテリアルの数分だけインデックスバッファはあるよ。
 			std::vector< SIndexbuffer16> indexBuffer16Array;
 		};
 		

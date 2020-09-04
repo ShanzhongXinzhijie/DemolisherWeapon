@@ -1,9 +1,11 @@
 #pragma once
 #include"GraphicsAPI/IGraphicsAPI.h"
 #include"Graphic/Factory/TextureFactory.h"
+#include"Graphic/Model/Model.h"
 
 namespace DemolisherWeapon {
 	struct InitEngineParameter;
+	struct MeshTest;
 
 	class DX12Test : public IGraphicsAPI
 	{
@@ -189,6 +191,10 @@ namespace DemolisherWeapon {
 		Shader m_vs, m_ps;
 		CPrimitive m_square;
 		TextueData m_texture;
+
+		//メッシュ描画のテスト
+		MeshTest* m_meshTest = nullptr;
+		GameObj::PerspectiveCamera m_camera;
 	};
 
 }

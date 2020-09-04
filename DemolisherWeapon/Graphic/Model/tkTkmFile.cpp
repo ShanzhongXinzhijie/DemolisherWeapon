@@ -1,15 +1,13 @@
 #include "DWstdafx.h"
 #include "tkTkmFile.h"
 
-namespace tkEngine {
-
-	using namespace DemolisherWeapon;
+namespace DemolisherWeapon::tkEngine {
 
 	//法線スムージング。
 	class NormalSmoothing {
 	private:
 		struct SSmoothVertex {
-			CVector3 newNormal = g_vec3Zero;
+			CVector3 newNormal;
 			CTkmFile::SVertex* vertex = nullptr;
 		};
 		struct SFace {
@@ -22,7 +20,7 @@ namespace tkEngine {
 		{
 			//ステップ１面法線を計算していく。
 			auto numPolygon = indexBuffer.indices.size() / 3;
-			vector< SFace> faces;
+			std::vector<SFace> faces;
 			faces.reserve(numPolygon);
 			{
 				
@@ -39,7 +37,7 @@ namespace tkEngine {
 					//法線を計算する。
 					CVector3 v0tov1 = vert_1.pos - vert_0.pos;
 					CVector3 v0tov2 = vert_2.pos - vert_0.pos;
-					CVector3 normal = Cross(v0tov1, v0tov2);
+					CVector3 normal = CVector3::GetCross(v0tov1, v0tov2);
 					normal.Normalize();
 					SFace face;
 					face.normal = normal;
@@ -63,7 +61,7 @@ namespace tkEngine {
 			if(mesh.isFlatShading == 0)
 			{
 				//重複している頂点の法線を平均化
-				vector<SSmoothVertex> smoothVertex;
+				std::vector<SSmoothVertex> smoothVertex;
 				smoothVertex.reserve(mesh.vertexBuffer.size());
 				for (auto& v : mesh.vertexBuffer) {
 					smoothVertex.push_back({ v.normal, &v });
@@ -169,7 +167,7 @@ namespace tkEngine {
 			for (int i = 0; i < 3; ++i) {
 				auto V1 = cp1[i] - cp0[i];
 				auto V2 = cp2[i] - cp1[i];
-				auto ABC = Cross(V1, V2);
+				auto ABC = CVector3::GetCross(V1, V2);
 	
 				if (ABC.x == 0.0f) {
 					// やばいす！
@@ -262,8 +260,9 @@ namespace tkEngine {
 				texFilePath.replace(replaseStartPos, replaceLen, "dds");
 				
 				//テクスチャをロード。
-				auto texFileFp = fopen(texFilePath.c_str(), "rb");
-				if (texFileFp != nullptr) {
+				FILE* texFileFp = nullptr;
+				errno_t err = fopen_s(&texFileFp, texFilePath.c_str(), "rb");
+				if (err == 0) {
 					//ファイルサイズを取得。
 					fseek(texFileFp, 0L, SEEK_END);		
 					fileSize = ftell(texFileFp);
@@ -274,7 +273,12 @@ namespace tkEngine {
 					fclose(texFileFp);
 				}
 				else {
-					TK_WARNING_MESSAGE_BOX("テクスチャのロードに失敗しました。%s", texFilePath.c_str());
+					if (err == ENOENT) {
+						DW_WARNING_BOX(true, "テクスチャのロードに失敗しました。ファイルがないンゴねぇ\n%s", texFilePath.c_str());
+					}
+					else {
+						DW_WARNING_BOX(true, "テクスチャのロードに失敗しました。errno:%d \n%s", err, texFilePath.c_str());
+					}
 				}
 			}
 		};
@@ -300,9 +304,15 @@ namespace tkEngine {
 	}
 	void CTkmFile::LoadImplement(const char* filePath)
 	{
-		FILE* fp = fopen(filePath, "rb");
-		if (fp == nullptr) {
-			TK_WARNING_MESSAGE_BOX("tkmファイルが開けません。ファイルパスが間違っていないか確認してください。%s", filePath);
+		FILE* fp = nullptr;
+		errno_t err = fopen_s(&fp, filePath, "rb");
+		if (err != 0) {
+			if (err == ENOENT) {
+				DW_WARNING_BOX(true, "tkmファイルが開けません。ファイルがないンゴねぇ\n%s", filePath);
+			}
+			else {
+				DW_WARNING_BOX(true, "tkmファイルが開けません。errno:%d \n%s", err, filePath);
+			}
 			return ;
 		}
 		//tkmファイルのヘッダーを読み込み。
@@ -310,7 +320,7 @@ namespace tkEngine {
 		fread(&header, sizeof(header), 1, fp);
 		if (header.version != tkmFileFormat::VERSION) {
 			//tkmファイルのバージョンが違う。
-			TK_WARNING_MESSAGE_BOX("tkmファイルのバージョンが異なっています。");
+			DW_WARNING_BOX(true, "tkmファイルのバージョンが異なっています。");
 		}
 		//メッシュ情報をロードしていく。
 		m_meshParts.resize(header.numMeshParts);
@@ -336,10 +346,10 @@ namespace tkEngine {
 				auto& vertex = meshParts.vertexBuffer[vertNo];
 				vertex.pos.Set(vertexTmp.pos[0], vertexTmp.pos[1], vertexTmp.pos[2]);
 			//	vertex.normal.Set(vertexTmp.normal[0], vertexTmp.normal[1], vertexTmp.normal[2]);
-				vertex.normal = g_vec3Zero;
-				vertex.tangent = g_vec3Zero;
-				vertex.binormal = g_vec3Zero;
-				vertex.uv.Set(vertexTmp.uv[0], vertexTmp.uv[1]);
+				vertex.normal = CVector3::Zero();
+				vertex.tangent = CVector3::Zero();
+				vertex.binormal = CVector3::Zero();
+				vertex.uv = { vertexTmp.uv[0], vertexTmp.uv[1] };
 				vertex.skinWeights.Set(vertexTmp.weights[0], vertexTmp.weights[1], vertexTmp.weights[2], vertexTmp.weights[3]);
 				vertex.indices[0] = vertexTmp.indices[0] != -1 ? vertexTmp.indices[0] : 0;
 				vertex.indices[1] = vertexTmp.indices[1] != -1 ? vertexTmp.indices[1] : 0;
