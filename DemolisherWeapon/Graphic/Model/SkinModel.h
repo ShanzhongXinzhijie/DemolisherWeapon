@@ -158,6 +158,7 @@ public:
 	*/
 	void FindMaterial(OnFindMaterial onFindMaterial) const
 	{
+		//TODO 読み込んだファイルの種類で警告出す
 #ifndef DW_DX12_TEMPORARY
 		FindMesh([&](auto& mesh) {
 			ModelEffect* effect = reinterpret_cast<ModelEffect*>(mesh->effect.get());

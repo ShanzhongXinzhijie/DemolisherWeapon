@@ -4,6 +4,33 @@
 namespace DemolisherWeapon{
 
 	/// <summary>
+	/// マテリアル
+	/// </summary>
+	class IMaterial {
+	public:
+		IMaterial(bool isSkinModel, const tkEngine::CTkmFile::SMaterial& tkmMat, int number = -1);
+		virtual ~IMaterial(){}
+
+		/// <summary>
+		/// マテリアルを適用する
+		/// </summary>
+		virtual void Apply() = 0;
+
+	protected:
+		MaterialData m_materialData;
+	};
+	class MaterialDX11 : public IMaterial {
+	public:
+		using IMaterial::IMaterial;
+		void Apply()override;
+	};
+	class MaterialDX12 : public IMaterial {
+	public:
+		using IMaterial::IMaterial;
+		void Apply()override;
+	};
+
+	/// <summary>
 	/// メッシュパーツ
 	/// </summary>
 	class CMeshParts {
@@ -14,7 +41,7 @@ namespace DemolisherWeapon{
 		struct SMesh {
 			std::unique_ptr<IVertexBuffer>					m_vertexBuffer;		//頂点バッファ。
 			std::vector<std::unique_ptr<IIndexBuffer>>		m_indexBufferArray;	//インデックスバッファ。
-			std::vector<std::unique_ptr<MaterialSetting>>	m_materials;		//マテリアル。
+			std::vector<std::unique_ptr<IMaterial>>			m_materials;		//マテリアル。
 			std::vector<int>								m_skinFlags;		//スキンを持っているかどうかのフラグ。
 		};
 
@@ -77,6 +104,21 @@ namespace DemolisherWeapon{
 		/// 描画
 		/// </summary>
 		void Draw();
+		/*
+		(
+		ID3D11DeviceContext* deviceContext,
+		int instanceNum
+
+		//ここから事前設定
+		bool wireframe,
+		D3D11_CULL_MODE reverseCull,
+		const CommonStates& states,
+		ID3D11BlendState* blendState,
+		ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw, ID3D11RasterizerState* pRasterizerStateNone,
+		ID3D11DepthStencilState* pDepthStencilState,
+
+		)
+		*/
 
 		/// <summary>
 		/// tkmファイルを取得。

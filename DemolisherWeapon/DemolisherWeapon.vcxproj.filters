@@ -121,6 +121,7 @@
     <ClInclude Include="Graphic\Model\Model.h" />
     <ClInclude Include="util\Noncopyable.h" />
     <ClInclude Include="Graphic\Shader\ConstantBuffer.h" />
+    <ClInclude Include="Graphic\Model\ModelDrawMode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />

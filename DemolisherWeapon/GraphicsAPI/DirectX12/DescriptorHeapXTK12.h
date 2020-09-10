@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef DW_DX12
 namespace DemolisherWeapon {
 
 	/// <summary>
@@ -34,3 +35,4 @@ namespace DemolisherWeapon {
 	};
 
 }
+#endif

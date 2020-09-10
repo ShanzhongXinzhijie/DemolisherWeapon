@@ -1,7 +1,110 @@
 #include "DWstdafx.h"
 #include "Model.h"
+#include "Graphic/Model/SkinModelShaderConst.h"
 
 namespace DemolisherWeapon {
+
+	namespace {
+		/// <summary>
+		/// パスをwhar_tへ変換...
+		/// </summary>
+		/// <param name="c"></param>
+		/// <param name="wchar_nonMake"></param>
+		void ConvertWchar(const char* c, std::unique_ptr<wchar_t[]>& wchar_nonMake) {
+			size_t iReturnValue;
+			size_t size = strlen(c) + 1;
+			wchar_nonMake = std::make_unique<wchar_t[]>(size);
+			errno_t err = mbstowcs_s(
+				&iReturnValue,
+				wchar_nonMake.get(),
+				size, //上のサイズ
+				c,
+				size - 1 //コピーする最大文字数
+			);
+			if (err != 0) {
+				DW_ERRORBOX(true, "mbstowcs_s errno:%d", err)
+			}
+		}
+	}
+
+	IMaterial::IMaterial(bool isSkinModel, const tkEngine::CTkmFile::SMaterial& tkmMat,int number){
+		//名前設定
+		std::wstring name = L"TKM_Material_" + std::to_wstring(number);
+		//テクスチャ初期化
+		std::unique_ptr<wchar_t[]> path;
+		ConvertWchar(tkmMat.albedoMapFileName.c_str(), path);
+		m_materialData.InitAlbedoTexture(path.get());
+		ConvertWchar(tkmMat.albedoMapFileName.c_str(), path);
+		m_materialData.InitNormalTexture(path.get());
+		ConvertWchar(tkmMat.albedoMapFileName.c_str(), path);
+		m_materialData.InitLightingTexture(path.get());
+		//初期化
+		m_materialData.Init(isSkinModel, name);
+	}
+
+	void MaterialDX11::Apply() {
+		auto deviceContext = GetGraphicsEngine().GetD3DDeviceContext();
+		auto m_ptrUseMaterialSetting = &m_materialData.GetUsingMaterialSetting();
+
+		//シェーダーモードにおうじたシェーダをセット
+		switch (GetGraphicsEngine().GetModelDrawMode().GetShaderMode()) {
+		case ModelDrawMode::enZShader://Z値の描画
+
+			//頂点シェーダ
+			deviceContext->VSSetShader((ID3D11VertexShader*)m_ptrUseMaterialSetting->GetVSZ()->GetBody(), NULL, 0);
+
+			//ピクセルシェーダ
+			if (m_ptrUseMaterialSetting->GetPSZ() == m_materialData.GetDefaultPSZ(false)) {
+				deviceContext->PSSetShader((ID3D11PixelShader*)m_materialData.GetDefaultPSZ(m_ptrUseMaterialSetting->GetIsUseTexZShader())->GetBody(), NULL, 0);
+			}
+			else {
+				deviceContext->PSSetShader((ID3D11PixelShader*)m_ptrUseMaterialSetting->GetPSZ()->GetBody(), NULL, 0);
+			}
+
+			break;
+
+		default://通常描画
+
+			//デフォルトシェーダのマクロを切り替える
+			int macroind = 0;
+			if (m_ptrUseMaterialSetting->GetIsMotionBlur()) { macroind |= SkinModelEffectShader::enMotionBlur; }
+			if (m_ptrUseMaterialSetting->GetNormalTexture()) { macroind |= SkinModelEffectShader::enNormalMap; }
+			if (m_ptrUseMaterialSetting->GetAlbedoTexture()) { macroind |= SkinModelEffectShader::enAlbedoMap; }
+			if (m_ptrUseMaterialSetting->GetLightingTexture()) { macroind |= SkinModelEffectShader::enLightingMap; }
+			if (m_ptrUseMaterialSetting->GetTranslucentTexture()) { macroind |= SkinModelEffectShader::enTranslucentMap; }
+
+			//頂点シェーダ
+			deviceContext->VSSetShader((ID3D11VertexShader*)m_ptrUseMaterialSetting->GetVS().Get(macroind)->GetBody(), NULL, 0);
+
+			//ピクセルシェーダ
+			deviceContext->PSSetShader((ID3D11PixelShader*)m_ptrUseMaterialSetting->GetPS().Get(macroind)->GetBody(), NULL, 0);
+
+			break;
+		}
+
+		//テクスチャ
+		if (m_ptrUseMaterialSetting->GetAlbedoTexture()) {
+			deviceContext->PSSetShaderResources(enSkinModelSRVReg_AlbedoTexture, 1, m_ptrUseMaterialSetting->GetAddressOfAlbedoTexture());
+		}
+		if (m_ptrUseMaterialSetting->GetNormalTexture()) {
+			deviceContext->PSSetShaderResources(enSkinModelSRVReg_NormalTexture, 1, m_ptrUseMaterialSetting->GetAddressOfNormalTexture());
+		}
+		if (m_ptrUseMaterialSetting->GetLightingTexture()) {
+			deviceContext->PSSetShaderResources(enSkinModelSRVReg_LightngTexture, 1, m_ptrUseMaterialSetting->GetAddressOfLightingTexture());
+		}
+		if (m_ptrUseMaterialSetting->GetTranslucentTexture()) {
+			deviceContext->PSSetShaderResources(enSkinModelSRVReg_TranslucentTexture, 1, m_ptrUseMaterialSetting->GetAddressOfTranslucentTexture());
+		}
+
+		//定数バッファ
+		deviceContext->UpdateSubresource(m_materialData.GetConstantBufferDX11().Get(), 0, NULL, &m_ptrUseMaterialSetting->GetMaterialParam(), 0, 0);
+		deviceContext->PSSetConstantBuffers(enSkinModelCBReg_Material, 1, m_materialData.GetConstantBufferDX11().GetAddressOf());
+	}
+
+	void MaterialDX12::Apply() {
+		//ここでマテリアルの処理
+		//ディスクリプタ設定?
+	}
 
 	void CMeshParts::InitFromTkmFile(const tkEngine::CTkmFile& tkmFile) {
 		m_meshs.resize(tkmFile.GetNumMesh());
@@ -94,11 +197,21 @@ namespace DemolisherWeapon {
 			}
 		}
 		//マテリアルを作成。
+		int ind = 0;
 		mesh->m_materials.reserve(tkmMesh.materials.size());
 		for (auto& tkmMat : tkmMesh.materials) {
-			auto mat = std::make_unique<MaterialSetting>();
-			//mat->InitFromTkmMaterila(tkmMat);//初期化
+			//作成
+			std::unique_ptr<IMaterial> mat;
+			if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
+				 mat = std::make_unique<MaterialDX11>(mesh->m_skinFlags[ind], tkmMat, ind);
+			}
+			if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
+				mat = std::make_unique<MaterialDX12>(mesh->m_skinFlags[ind], tkmMat, ind);
+			}
+			//保存
 			mesh->m_materials.push_back(std::move(mat));
+
+			ind++;
 		}
 
 		m_meshs[meshNo] = std::move(mesh);
@@ -112,10 +225,8 @@ namespace DemolisherWeapon {
 			for (int matNo = 0; matNo < mesh->m_materials.size(); matNo++) {
 				//インデックスバッファを設定
 				mesh->m_indexBufferArray[matNo]->Attach();
-
-				//TODO マテリアル無しで描画してみる
-				//ここでマテリアルの処理
-				//ディスクリプタ設定?
+				//マテリアルの設定
+				mesh->m_materials[matNo]->Apply();
 
 				if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
 					//トポロジーを設定

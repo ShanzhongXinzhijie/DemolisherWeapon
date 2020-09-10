@@ -30,6 +30,8 @@
 #include"Graphic/Light/Lights.h"
 #include"Graphic/CPrimitive.h"
 
+#include"Graphic/Model/ModelDrawMode.h"
+
 namespace DemolisherWeapon {
 
 struct InitEngineParameter;
@@ -248,6 +250,11 @@ public:
 		m_postDrawModelRender.AddDrawModel(sm, priority, blendmode, reverse);
 	}	
 
+	//モデル描画モードの取得
+	ModelDrawMode& GetModelDrawMode() {
+		return m_modelDrawMode;
+	}
+
 	//レンダーマネージャーの取得
 	RanderManager& GetRenderManager(){
 		return m_renderManager;
@@ -421,6 +428,9 @@ private:
 		},
 	};
 	unsigned long m_index[4] = { 0,1,2,3 };
+
+	//モデル描画モード
+	ModelDrawMode m_modelDrawMode;
 
 	//レンダー
 	int m_freeRenderPriority = -1;

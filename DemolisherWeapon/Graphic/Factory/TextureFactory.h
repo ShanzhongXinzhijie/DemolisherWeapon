@@ -7,9 +7,55 @@ namespace DemolisherWeapon {
 	/// </summary>
 	struct TextueData {
 	public:
+		TextueData() = default;
+		TextueData(const TextueData& texd) {
+			CopyFrom(texd);
+		}
+		TextueData& operator=(const TextueData& texd) {
+			CopyFrom(texd);
+			return *this;
+		}
+		void CopyFrom(const TextueData& mat) {
+			//DirectX12
+			if (mat.d3d12texture) {
+				mat.d3d12texture.Get()->AddRef();
+				d3d12texture.Attach(mat.d3d12texture.Get());
+			}
+			descriptorHandle = mat.descriptorHandle;
+
+			//DirectX11
+			if (mat.texture) {
+				mat.texture.Get()->AddRef();
+				texture.Attach(mat.texture.Get());
+			}
+			if (mat.textureView) {
+				mat.textureView.Get()->AddRef();
+				textureView.Attach(mat.textureView.Get());
+			}
+
+			//プロパティ
+			isDDS = mat.isDDS;
+			width = mat.width, height = mat.height;
+		}
+		bool operator==(const TextueData& rhs) const
+		{
+			bool judge =(d3d12texture.Get() == rhs.d3d12texture.Get())
+						&& (descriptorHandle.ptr == rhs.descriptorHandle.ptr)
+						&& (texture.Get() == rhs.texture.Get()) 
+						&& (textureView.Get() == rhs.textureView.Get())
+						&& (isDDS == rhs.isDDS)
+						&& (width == rhs.width)
+						&& (height == rhs.height);
+			return judge;
+		}
+		inline bool operator!=(const TextueData& rhs) const
+		{
+			return !(*this == rhs);
+		}
+
 		//DirectX12
 		Microsoft::WRL::ComPtr<ID3D12Resource> d3d12texture;
-		D3D12_GPU_DESCRIPTOR_HANDLE descriptorHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE descriptorHandle = { 0 };
 		//DirectX11
 		Microsoft::WRL::ComPtr<ID3D11Resource> texture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureView;

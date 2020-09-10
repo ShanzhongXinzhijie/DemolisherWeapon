@@ -16,22 +16,8 @@ namespace DemolisherWeapon {
 *@brief	モデルエフェクト。
 */
 class ModelEffect : public DirectX::IEffect {
-public:
-	//シェーダーモード
-	enum enShaderMode {
-		enNormalShader,
-		enZShader,
-	};
-
-	//シェーダーモードを設定
-	static void SetShaderMode(enShaderMode sm) {
-		m_s_shadermode = sm;
-	}
-
-private:
-	static enShaderMode m_s_shadermode ;//シェーダーモード
-
 protected:
+	/*
 	//デフォルトバーテックスシェーダ
 	SkinModelEffectShader m_vsDefaultShader;
 	Shader m_vsZShader;//Z値出力用
@@ -51,10 +37,13 @@ protected:
 	MaterialSetting* m_ptrUseMaterialSetting = nullptr;	//使用するマテリアル設定
 	MaterialSetting m_defaultMaterialSetting;	//マテリアル設定(デフォルト)
 	ID3D11Buffer* m_materialParamCB = nullptr;	//マテリアルパラメータ用の定数バッファ
+	*/
+	MaterialData m_matData;
 
 public:
 	ModelEffect()
 	{
+		/*
 		//マクロごとにピクセルシェーダを作成
 		m_psDefaultShader.Load("Preset/shader/model.fx", "PSMain_RenderGBuffer", Shader::EnType::PS);
 		m_psTriPlanarMapShader.Load("Preset/shader/TriPlanarMapping.fx", "PS_TriPlanarMapping", Shader::EnType::PS);
@@ -66,10 +55,6 @@ public:
 		m_psZShader[0].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS);
 		m_psZShader[1].Load("Preset/shader/model.fx", "PSMain_RenderZ", Shader::EnType::PS, "TEXTURE", macrosZ);
 		
-		//デフォルトのシェーダを設定
-		//m_pPSShader = &m_psDefaultShader;
-		//m_pPSZShader = &m_psZShader[0];
-
 		//マテリアル設定(m_defaultMaterialSetting)を初期化してやる
 		MaterialSettingInit(m_defaultMaterialSetting);
 
@@ -78,9 +63,11 @@ public:
 
 		//マテリアルパラメーターの定数バッファ
 		ShaderUtil::CreateConstantBuffer(sizeof(MaterialParam), &m_materialParamCB);
+		*/
 	}
 	virtual ~ModelEffect()
 	{
+		/*
 		if (m_defaultAlbedoTex) {
 			m_defaultAlbedoTex->Release();
 		}
@@ -93,6 +80,7 @@ public:
 		if (m_materialParamCB) {
 			m_materialParamCB->Release();
 		}
+		*/
 	}
 
 #ifndef DW_DX12_TEMPORARY
@@ -101,93 +89,75 @@ public:
 	void __cdecl GetVertexShaderBytecode(void const** pShaderByteCode, size_t* pByteCodeLength) override
 	{
 		//
-		*pShaderByteCode = m_vsDefaultShader.GetShader(SkinModelEffectShader::enALL).GetByteCode();
-		*pByteCodeLength = m_vsDefaultShader.GetShader(SkinModelEffectShader::enALL).GetByteCodeSize();
+		*pShaderByteCode = m_matData.m_vsDefaultShader.GetShader(SkinModelEffectShader::enALL).GetByteCode();
+		*pByteCodeLength = m_matData.m_vsDefaultShader.GetShader(SkinModelEffectShader::enALL).GetByteCodeSize();
 	}
 #endif
 
 	//スキンモデルかどうか取得
 	bool GetIsSkining()const {
-		return isSkining;
+		return m_matData.m_isSkining;
 	}
 
 	//マテリアル設定をこのインスタンスをベースに初期化してやる
 	//MaterialSetting& matset　初期化するセッティング
 	void MaterialSettingInit(MaterialSetting& matset) {
-		matset.Init(this);
+		matset.Init(&m_matData);
 	}
 	//デフォルトマテリアル設定の取得
 	MaterialSetting& GetDefaultMaterialSetting() {
-		return m_defaultMaterialSetting;
+		return m_matData.m_defaultMaterialSetting;
 	}
 
 	/// <summary>
 	/// アルベドテクスチャを設定
 	/// </summary>
 	/// <param name="tex">設定するテクスチャ</param>
-	/// <param name="defaultTex">デフォルトテクスチャとして設定するか?</param>
-	void SetAlbedoTexture(ID3D11ShaderResourceView* tex, bool defaultTex = false){
-		if (!m_defaultAlbedoTex && defaultTex) {
-			//デフォルトテクスチャ
-			m_defaultAlbedoTex = tex;
-			//m_pAlbedoTex = m_defaultAlbedoTex;
-		}
+	void SetAlbedoTexture(ID3D11ShaderResourceView* tex){
 		//テクスチャ変更
-		m_defaultMaterialSetting.SetAlbedoTexture(tex);		
+		m_matData.m_defaultMaterialSetting.SetAlbedoTexture(tex);
 	}
 	//アルベドテクスチャをデフォに戻す
 	void SetDefaultAlbedoTexture() {
-		m_defaultMaterialSetting.SetDefaultAlbedoTexture();
+		m_matData.m_defaultMaterialSetting.SetDefaultAlbedoTexture();
 	}
 	//デフォルトのアルベドテクスチャを取得
-	ID3D11ShaderResourceView* GetDefaultAlbedoTexture() const{
-		return m_defaultAlbedoTex;
+	ID3D11ShaderResourceView* GetDefaultAlbedoTexture() const {
+		return m_matData.m_albedo.textureView.Get();
 	}
 
 	/// <summary>
 	/// ノーマルマップを設定
 	/// </summary>
 	/// <param name="tex">設定するテクスチャ</param>
-	/// <param name="defaultTex">デフォルトテクスチャとして設定するか?</param>
-	void SetNormalTexture(ID3D11ShaderResourceView* tex, bool defaultTex = false) {
-		if (!m_defaultNormalTex && defaultTex) {
-			//デフォルトテクスチャ
-			m_defaultNormalTex = tex;
-			//m_pNormalTex = m_defaultNormalTex;
-		}
+	void SetNormalTexture(ID3D11ShaderResourceView* tex) {
 		//テクスチャ変更
-		m_defaultMaterialSetting.SetNormalTexture(tex);
+		m_matData.m_defaultMaterialSetting.SetNormalTexture(tex);
 	}
 	//ノーマルマップをデフォに戻す
 	void SetDefaultNormalTexture() {
-		m_defaultMaterialSetting.SetDefaultNormalTexture();
+		m_matData.m_defaultMaterialSetting.SetDefaultNormalTexture();
 	}
 	//デフォルトのノーマルマップを取得
 	ID3D11ShaderResourceView* GetDefaultNormalTexture() const {
-		return m_defaultNormalTex;
+		return m_matData.m_normal.textureView.Get();
 	}
 
 	/// <summary>
 	/// ライティングパラメータマップを設定
 	/// </summary>
 	/// <param name="tex">設定するテクスチャ</param>
-	/// <param name="defaultTex">デフォルトテクスチャとして設定するか?</param>
-	void SetLightingTexture(ID3D11ShaderResourceView* tex, bool defaultTex = false) {
-		if (!m_defaultLightingTex && defaultTex) {
-			//デフォルトテクスチャ
-			m_defaultLightingTex = tex;
-			//m_pLightingTex = m_defaultLightingTex;
-		}
+	void SetLightingTexture(ID3D11ShaderResourceView* tex) {
 		//テクスチャ変更
-		m_defaultMaterialSetting.SetLightingTexture(tex);
+		m_matData.m_defaultMaterialSetting.SetLightingTexture(tex);
 	}
 	//ライティングパラメータマップをデフォに戻す
 	void SetDefaultLightingTexture() {
-		m_defaultMaterialSetting.SetDefaultLightingTexture();
+		m_matData.m_defaultMaterialSetting.SetDefaultLightingTexture();
 	}
 	//デフォルトのライティングパラメータマップを取得
 	ID3D11ShaderResourceView* GetDefaultLightingTexture() const {
-		return m_defaultLightingTex;
+		return m_matData.m_lighting.textureView.Get();
 	}
 
 	/// <summary>
@@ -195,73 +165,73 @@ public:
 	/// </summary>
 	/// <param name="tex">設定するテクスチャ</param>
 	void SetTranslucentTexture(ID3D11ShaderResourceView* tex) {
-		m_defaultMaterialSetting.SetTranslucentTexture(tex);
+		m_matData.m_defaultMaterialSetting.SetTranslucentTexture(tex);
 	}
 
 	//シェーダを設定
 	void SetVS(Shader* vs) {
-		m_defaultMaterialSetting.SetVS(vs);
+		m_matData.m_defaultMaterialSetting.SetVS(vs);
 	}
 	void SetVSZ(Shader* vs) {
-		m_defaultMaterialSetting.SetVSZ(vs);
+		m_matData.m_defaultMaterialSetting.SetVSZ(vs);
 	}
 	void SetPS(Shader* ps) {
-		m_defaultMaterialSetting.SetPS(ps);
+		m_matData.m_defaultMaterialSetting.SetPS(ps);
 	}
 	//シェーダをデフォに戻す
 	void SetDefaultVS() {
-		m_defaultMaterialSetting.SetDefaultVS();
+		m_matData.m_defaultMaterialSetting.SetDefaultVS();
 	}
 	void SetDefaultVSZ() {
-		m_defaultMaterialSetting.SetDefaultVSZ();
+		m_matData.m_defaultMaterialSetting.SetDefaultVSZ();
 	}
 	void SetDefaultPS() {
-		m_defaultMaterialSetting.SetDefaultPS();
+		m_matData.m_defaultMaterialSetting.SetDefaultPS();
 	}
 	//デフォルトのシェーダを取得
 	SkinModelEffectShader* GetDefaultVS() {
-		return &m_vsDefaultShader;
+		return &m_matData.m_vsDefaultShader;
 	}
 	Shader* GetDefaultVSZ() {
-		return &m_vsZShader;
+		return &m_matData.m_vsZShader;
 	}
 	SkinModelEffectShader* GetDefaultPS() {
-		return &m_psDefaultShader;
+		return &m_matData.m_psDefaultShader;
 	}
 	Shader* GetDefaultPSZ() {
-		return &m_psZShader[0];
+		return &m_matData.m_psZShader[0];
 	}
 	//TriPlanarMapping用のシェーダを取得
 	SkinModelEffectShader* GetTriPlanarMappingPS(bool isYOnly) {
-		return isYOnly ? &m_psTriPlanarMapShaderYOnly : &m_psTriPlanarMapShader;
+		return isYOnly ? &m_matData.m_psTriPlanarMapShaderYOnly : &m_matData.m_psTriPlanarMapShader;
 	}
 
 	//名前を設定
 	void SetMatrialName(const wchar_t* matName)
 	{
-		m_defaultMaterialSetting.SetMatrialName(matName);
+		m_matData.m_defaultMaterialSetting.SetMatrialName(matName);
 	}
 	//名前を取得
 	const wchar_t* GetMatrialName()const {
-		return m_defaultMaterialSetting.GetMatrialName();
+		return m_matData.m_defaultMaterialSetting.GetMatrialName();
 	}
 	//名前の一致を判定
 	bool EqualMaterialName(const wchar_t* name) const
 	{
-		return m_defaultMaterialSetting.EqualMaterialName(name);
+		return m_matData.m_defaultMaterialSetting.EqualMaterialName(name);
 	}
 
 	//ライティングするかを設定
 	void SetLightingEnable(bool enable) {
-		m_defaultMaterialSetting.SetLightingEnable(enable);
+		m_matData.m_defaultMaterialSetting.SetLightingEnable(enable);
 	}
 	//自己発光色(エミッシブ)を設定
 	void SetEmissive(float emissive) {
-		m_defaultMaterialSetting.SetEmissive(emissive);
+		m_matData.m_defaultMaterialSetting.SetEmissive(emissive);
 	}
 	//アルベドにかけるスケールを設定
 	void SetAlbedoScale(const CVector4& scale) {
-		m_defaultMaterialSetting.SetAlbedoScale(scale);
+		m_matData.m_defaultMaterialSetting.SetAlbedoScale(scale);
 	}
 
 
@@ -269,54 +239,16 @@ public:
 
 	//使うマテリアル設定を適応
 	void SetUseMaterialSetting(MaterialSetting& matset) {
-		m_ptrUseMaterialSetting = &matset;	
+		m_matData.m_ptrUseMaterialSetting = &matset;
 	}
 	void SetDefaultMaterialSetting() {
-		SetUseMaterialSetting(m_defaultMaterialSetting);
+		SetUseMaterialSetting(m_matData.m_defaultMaterialSetting);
 	}
-};
-/*!
-*@brief
-*  スキンなしモデルエフェクト。
-*/
-class NonSkinModelEffect : public ModelEffect {
-public:
-	NonSkinModelEffect()
-	{
-		//マクロごとに頂点シェーダを作成
-		m_vsDefaultShader.Load("Preset/shader/model.fx", "VSMain", Shader::EnType::VS);
-		
-		//Z値描画シェーダを作成
-		m_vsZShader.Load("Preset/shader/model.fx", "VSMain_RenderZ", Shader::EnType::VS);
-
-		//デフォルトのシェーダを設定
-		//m_pVSShader = &m_vsDefaultShader;
-		//m_pVSZShader = &m_vsZShader;
-
-		//スキンモデルじゃない
-		isSkining = false;
-	}
-};
-/*!
-*@brief
-*  スキンモデルエフェクト。
-*/
-class SkinModelEffect : public ModelEffect {
-public:
-	SkinModelEffect()
-	{
-		//マクロごとに頂点シェーダを作成
-		m_vsDefaultShader.Load("Preset/shader/model.fx", "VSMainSkin", Shader::EnType::VS);
-		
-		//Z値描画シェーダを作成
-		m_vsZShader.Load("Preset/shader/model.fx", "VSMainSkin_RenderZ", Shader::EnType::VS);
-
-		//デフォルトのシェーダを設定
-		//m_pVSShader = &m_vsDefaultShader;
-		//m_pVSZShader = &m_vsZShader;
-
-		//スキンモデルである
-		isSkining = true;
+	/// <summary>
+	/// マテリアルデータを取得
+	/// </summary>
+	MaterialData& GetMatrialData() {
+		return m_matData;
 	}
 };
 
@@ -332,49 +264,43 @@ public:
 	std::shared_ptr<DirectX::IEffect> __cdecl CreateEffect(const EffectInfo& info, ID3D11DeviceContext* deviceContext)override
 	{
 		//モデルエフェクト作成
-		std::shared_ptr<ModelEffect> effect;
-		if (info.enableSkinning) {
-			//スキニングあり。
-			effect = std::make_shared<SkinModelEffect>();
-		}
-		else {
-			//スキニングなし。
-			effect = std::make_shared<NonSkinModelEffect>();
-		}
-
-		//名前設定
-		effect->GetDefaultMaterialSetting().SetMatrialName(info.name);
-
+		std::shared_ptr<ModelEffect> effect = std::make_shared<ModelEffect>();
+		
+		wchar_t fullName[MAX_PATH] = {};
+		
 		//アルベド
 		if (info.diffuseTexture && *info.diffuseTexture)
 		{
 			//テクスチャで設定
-			ID3D11ShaderResourceView* texSRV;
-			DirectX::EffectFactory::CreateTexture(info.diffuseTexture, deviceContext, &texSRV);
-			effect->SetAlbedoTexture(texSRV,true);
+			wcscpy_s(fullName, GetDirectory());
+			wcscat_s(fullName, info.diffuseTexture);
+			effect->GetMatrialData().InitAlbedoTexture(fullName);
 		}
 		else {
 			//ディフューズカラー(数値)で設定
-			effect->SetAlbedoScale({ info.diffuseColor.x,info.diffuseColor.y,info.diffuseColor.z,1.0f });
+			effect->GetMatrialData().InitAlbedoColor({ info.diffuseColor.x,info.diffuseColor.y,info.diffuseColor.z });
 		}
 
 		//ノーマル
 		if (info.normalTexture && *info.normalTexture)
 		{
 			//テクスチャで設定
-			ID3D11ShaderResourceView* texSRV;
-			DirectX::EffectFactory::CreateTexture(info.normalTexture, deviceContext, &texSRV);
-			effect->SetNormalTexture(texSRV, true);
+			wcscpy_s(fullName, GetDirectory());
+			wcscat_s(fullName, info.normalTexture);
+			effect->GetMatrialData().InitNormalTexture(fullName);
 		}
 
 		//ライティングパラメータ
 		if (info.specularTexture && *info.specularTexture)
 		{
 			//テクスチャで設定
-			ID3D11ShaderResourceView* texSRV;
-			DirectX::EffectFactory::CreateTexture(info.specularTexture, deviceContext, &texSRV);
-			effect->SetLightingTexture(texSRV, true);
+			wcscpy_s(fullName, GetDirectory());
+			wcscat_s(fullName, info.specularTexture);
+			effect->GetMatrialData().InitLightingTexture(fullName);
 		}
+
+		//初期化
+		effect->GetMatrialData().Init(info.enableSkinning, info.name);
 
 		return effect;
 	}

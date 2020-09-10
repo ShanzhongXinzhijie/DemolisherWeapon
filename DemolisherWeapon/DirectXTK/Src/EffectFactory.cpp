@@ -525,3 +525,7 @@ void EffectFactory::SetDirectory(_In_opt_z_ const wchar_t* path)
     else
         *pImpl->mPath = 0;
 }
+
+const wchar_t* EffectFactory::GetDirectory()const {
+	return pImpl->mPath;
+}

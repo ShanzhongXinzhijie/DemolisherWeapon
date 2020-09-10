@@ -632,6 +632,9 @@ namespace DirectX
 
         void __cdecl SetDirectory( _In_opt_z_ const wchar_t* path );
 
+		//’Ç‰Á
+		const wchar_t* GetDirectory()const;
+
     private:
         // Private implementation.
         class Impl;

@@ -28,8 +28,8 @@ namespace DemolisherWeapon {
 		m_srv = m_texdata->textureView.Get();
 		if (m_srv) { m_srv->AddRef(); }
 
-		GetGraphicsEngine().CreateDirectXTK12DescriptorNumber(m_cpuHandle, m_gpuHandle);
-		DirectX::CreateShaderResourceView(GetGraphicsEngine().GetD3D12Device(), m_texdata->d3d12texture.Get(), m_cpuHandle);
+		//GetGraphicsEngine().CreateDirectXTK12DescriptorNumber(m_cpuHandle, m_gpuHandle);
+		//DirectX::CreateShaderResourceView(GetGraphicsEngine().GetD3D12Device(), m_texdata->d3d12texture.Get(), m_cpuHandle);
 
 		//ファイルがDDSかどうかで乗算済みアルファ画像か判断
 		if (m_texdata->isDDS) {

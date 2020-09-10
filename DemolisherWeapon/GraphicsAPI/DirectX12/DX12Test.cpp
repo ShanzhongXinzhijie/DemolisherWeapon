@@ -351,7 +351,7 @@ namespace DemolisherWeapon {
 			{1.0f, 0.0f}
 		};
 		m_square.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, 4, index);
-		m_texture = CreateTexture(L"smoke.dds");		
+		m_texture = CreateTexture(L"utc_all2.dds");		
 
 		//ƒ‚ƒfƒ‹
 		m_meshTest = new MeshTest;

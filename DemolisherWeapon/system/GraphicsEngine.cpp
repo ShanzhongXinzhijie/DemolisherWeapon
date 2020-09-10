@@ -43,7 +43,9 @@ void GraphicsEngine::Release() {
 	m_dx11 = nullptr;
 	m_dx12 = nullptr;
 
+#ifdef DW_DX12
 	m_xtk12_resourceDescriptors.Release();
+#endif
 }
 
 bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam, GameObjectManager* gom, CFpsCounter* fc) {

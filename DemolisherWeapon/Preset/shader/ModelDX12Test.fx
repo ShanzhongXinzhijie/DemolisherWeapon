@@ -254,7 +254,7 @@ float4 PSMain( SPSIn psIn ) : SV_Target0
 	//}
 	//lig += ambientLight;
 	
-	float4 finalColor = float4(0.0f, 1.0f, 0.0f, 1.0f);
+    float4 finalColor = g_albedoMap.Sample(g_sampler, psIn.uv);
 	//finalColor.xyz = albedoColor.xyz * lig;
 
 	//finalColor.rgb *= saturate(dot(normal, float3(1, 0, 0)));

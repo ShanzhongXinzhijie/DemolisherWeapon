@@ -227,7 +227,7 @@ namespace DemolisherWeapon::tkEngine {
 		}
 	}
 
-	void CTkmFile::BuildMaterial(SMaterial& tkmMat, FILE* fp, const char* filePath)
+	void CTkmFile::BuildMaterial(SMaterial& tkmMat, FILE* fp)//, const char* filePath)
 	{
 		//アルベドのファイル名をロード。
 		tkmMat.albedoMapFileName = LoadTextureFileName(fp);
@@ -236,7 +236,7 @@ namespace DemolisherWeapon::tkEngine {
 		//スペキュラマップのファイル名をロード。
 		tkmMat.specularMapFileName = LoadTextureFileName(fp);
 
-		
+		/*
 		//これプラットフォームに依存するな・・・。マルチプラットフォームめんどくさ・・・。
 		std::string texFilePath = filePath;
 		auto loadTexture = [&](
@@ -286,7 +286,7 @@ namespace DemolisherWeapon::tkEngine {
 		loadTexture( tkmMat.albedoMapFileName, tkmMat.albedoMap, tkmMat.albedoMapSize );
 		loadTexture( tkmMat.normalMapFileName, tkmMat.normalMap, tkmMat.normalMapSize );
 		loadTexture( tkmMat.specularMapFileName, tkmMat.specularMap, tkmMat.specularMapSize );
-	
+		*/
 	}
 	void CTkmFile::BuildTangentAndBiNormal() 
 	{
@@ -335,7 +335,7 @@ namespace DemolisherWeapon::tkEngine {
 			//マテリアル情報を構築していく。
 			for (int materialNo = 0; materialNo < (int)meshPartsHeader.numMaterial; materialNo++) {
 				auto& material = meshParts.materials[materialNo];
-				BuildMaterial(material, fp, filePath);
+				BuildMaterial(material, fp);
 			}
 			
 			//続いて頂点バッファ。
