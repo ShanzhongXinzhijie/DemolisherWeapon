@@ -440,6 +440,10 @@ inline int GetScreenNum()
 	return GetEngine().GetGraphicsEngine().GetSplitScreenMode() ? 2 : 1 ;
 }
 
+//LUT‚Ìİ’è
+inline void SetLUT(int index, ID3D11ShaderResourceView* lut) {
+	GetGraphicsEngine().GetFinalRender(index).SetLUT(lut);
+}
 //˜c‹Èû·‚Ìg—p‚ğİ’è
 inline void SetIsLensDistortion(bool enable)
 {

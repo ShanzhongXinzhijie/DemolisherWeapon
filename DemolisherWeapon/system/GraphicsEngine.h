@@ -266,6 +266,11 @@ public:
 	PrimitiveRender& GetPrimitiveRender() {
 		return m_primitiveRender;
 	}
+	//ファイナルレンダーの取得
+	FinalRender& GetFinalRender(int index) {
+		return *m_finalRender[index];
+	}
+
 	//PhysicsDebugDrawRenderのモード設定	
 	void SetPhysicsDebugDrawMode(int debugMode) {
 #ifndef DW_MASTER	

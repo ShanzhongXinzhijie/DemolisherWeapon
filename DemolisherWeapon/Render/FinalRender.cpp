@@ -97,6 +97,7 @@ void FinalRender::Init(const CVector2 screen_min, const CVector2 screen_max, boo
 	D3D_SHADER_MACRO macros[MACRO_NUM + 1] = {
 			"LENS_DISTORTION", "0",
 			"ANTI_ALIASING", "0",
+			"LUT","0",
 			NULL, NULL
 	};
 	//マクロごとにシェーダを作成
@@ -179,6 +180,9 @@ void FinalRender::Render() {
 	else {
 		rc->PSSetShaderResources(0, 1, &GetEngine().GetGraphicsEngine().GetFRT().GetSRV());
 	}
+	if (m_LUT) {
+		rc->PSSetShaderResources(1, 1, &m_LUT);
+	}
 
 	//頂点シェーダーを設定
 	rc->VSSetShader((ID3D11VertexShader*)m_vs.GetBody(), NULL, 0);
@@ -187,6 +191,7 @@ void FinalRender::Render() {
 	int macroind = 0;
 	if (m_isLensDistortion) { macroind |= enLensDistortion; }
 	if (m_isAntiAliasing) { macroind |= enAntialiasing; }
+	if (m_LUT) { macroind |= enLUT; }
 	//ピクセルシェーダーを設定
 	rc->PSSetShader((ID3D11PixelShader*)m_ps[macroind].GetBody(), NULL, 0);
 	
@@ -250,6 +255,7 @@ void FinalRender::Render() {
 				NULL
 	};
 	rc->PSSetShaderResources(0, 1, view);
+	rc->PSSetShaderResources(1, 1, view);
 
 	//最終レンダーターゲットをクリア
 	GetEngine().GetGraphicsEngine().GetFRT().AllClear();

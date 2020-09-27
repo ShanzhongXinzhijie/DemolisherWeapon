@@ -1,4 +1,5 @@
 Texture2D<float4> Texture : register(t0);
+Texture2D<float3> LutTexture : register(t1);
 
 sampler Sampler : register(s0);
 
@@ -140,6 +141,30 @@ output += Texture.Sample(Sampler, In.uv + float2(-S, -L)) / 4.0; //GetLensDistor
 output += Texture.Sample(Sampler, In.uv + float2(-L, -S)) / 4.0; //GetLensDistortion(In.uv + float2(-L, -S)) / 4.0;
 */
 
+//LUT
+float4 ApplyLUT(float4 color)
+{
+	//LUTテクスチャサイズの取得
+	uint3 LUTSize;
+	LutTexture.GetDimensions(0, LUTSize.x, LUTSize.y, LUTSize.z);	
+	
+	float2 sampleP[2];
+	float2 lutScale = 1.0f / LUTSize.xy; //LUT解像度を0~1にするスケール値
+	
+	color.rgb = saturate(color.rgb) * (LUTSize.y - 1.0f); //LUTの縦解像度に色をスケーリング
+	float floorB = floor(color.b);
+	
+	sampleP[0] = (color.rg + 0.5f) * lutScale; //RG要素をUV値(0~1)に
+	sampleP[0].x += floorB * lutScale.y; //Blue要素分xをずらす
+	
+	sampleP[1] = sampleP[0]; //もう一つのサンプル座標
+	sampleP[1].x += lutScale.y; //Blue要素一つ分xをずらす
+	
+	//サンプリング
+	//ブルー要素一つ分ずらしたものと補完	
+	return float4(lerp(LutTexture.SampleLevel(Sampler, sampleP[0], 0), LutTexture.SampleLevel(Sampler, sampleP[1], 0), color.b - floorB), color.a);
+}
+
 //ピクセルシェーダ
 float4 PSMain(PSInput In) : SV_Target0
 {	
@@ -153,6 +178,11 @@ float4 PSMain(PSInput In) : SV_Target0
     float4 output = FlipTriAntialiasing(In.uv);
 #else
     float4 output = Texture.Sample(Sampler, In.uv);
+#endif
+	
+#if LUT
+	//LUTを適用
+	output = ApplyLUT(output);
 #endif
 
 #if LENS_DISTORTION

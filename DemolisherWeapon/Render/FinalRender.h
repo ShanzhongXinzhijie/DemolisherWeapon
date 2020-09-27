@@ -57,6 +57,13 @@ public:
 		return_max = m_screen_max;
 	}
 
+	//LUTを設定
+	void SetLUT(ID3D11ShaderResourceView* lut) {
+		if (m_LUT)m_LUT->Release();
+		m_LUT = lut;
+		if (m_LUT)m_LUT->AddRef();
+	}
+
 	//歪曲収差の係数を計算
 	static float Calc_k4(float fov);
 	//歪曲収差をかけた2D座標を取得
@@ -78,20 +85,22 @@ public:
 private:
 	//シェーダーマクロ
 	enum ShaderTypeMask {
-		enOFF = 0b00,			//全て無効
-		enLensDistortion = 0b01,
-		enAntialiasing = 0b10,
-		enALL = 0b11,			//全て有効
+		enOFF = 0b000,			//全て無効
+		enLensDistortion = 0b001,
+		enAntialiasing = 0b010,
+		enLUT = 0b100,
+		enALL = 0b111,			//全て有効
 		enNum,					//全パターンの数
 	};
 	//マクロの数
-	static constexpr int MACRO_NUM = 2;
+	static constexpr int MACRO_NUM = 3;
 
+	//シェーダ
 	Shader m_vs;
 	Shader m_ps[ShaderTypeMask::enNum];
 	ID3D11SamplerState* m_samplerState = nullptr;
-	ID3D11Buffer* m_cb = nullptr;
 
+	//定数バッファ
 	struct SPSConstantBuffer {
 		float k4;
 		float LENS_DISTORTION_UV_MAGNIFICATION;
@@ -100,7 +109,9 @@ private:
 
 		float resolution[2];
 	};
+	ID3D11Buffer* m_cb = nullptr;
 
+	//プリミティブ
 	CPrimitive m_drawSpace;
 	CPrimitive::SVertex m_vertex[4];
 	unsigned long m_index[4] = { 0,1,2,3 };
@@ -109,7 +120,11 @@ private:
 	CVector2 m_screen_min;
 	CVector2 m_screen_max;
 
+	//グリッドテクスチャ
 	ID3D11ShaderResourceView* m_gridTex = nullptr;
+
+	//LUT
+	ID3D11ShaderResourceView* m_LUT = nullptr;
 
 	//ピクセルシェーダ設定
 	static bool m_isLensDistortion;
