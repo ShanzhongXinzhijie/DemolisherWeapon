@@ -73,7 +73,7 @@ namespace DemolisherWeapon {
 	/// <summary>
 	/// テクスチャを作成する
 	/// </summary>
-	inline TextueData CreateTexture(std::experimental::filesystem::path filepath, bool generateMipmaps = false);
+	inline TextueData CreateTexture(std::filesystem::path filepath, bool generateMipmaps = false);
 
 	/// <summary>
 	/// テクスチャのFlyweightFactory
@@ -117,9 +117,9 @@ namespace DemolisherWeapon {
 		/// <param name="return_textureView">テクスチャSRVが返ってくる</param>
 		/// <param name="return_textureData">テクスチャのデータが返ってくる</param>
 		/// <param name="generateMipmaps">ミップマップを生成するか?</param>
-		bool Load(std::experimental::filesystem::path filepath, ID3D11Resource** return_texture = nullptr, ID3D11ShaderResourceView** return_textureView = nullptr, const TextueData** return_textureData = nullptr, bool generateMipmaps = false);
+		bool Load(std::filesystem::path filepath, ID3D11Resource** return_texture = nullptr, ID3D11ShaderResourceView** return_textureView = nullptr, const TextueData** return_textureData = nullptr, bool generateMipmaps = false);
 
-		bool Load(std::experimental::filesystem::path filepath, const TextueData** return_textureData = nullptr, bool generateMipmaps = false);
+		bool Load(std::filesystem::path filepath, const TextueData** return_textureData = nullptr, bool generateMipmaps = false);
 
 		/// <summary>
 		/// テクスチャの開放

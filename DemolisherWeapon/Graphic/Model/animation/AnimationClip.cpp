@@ -77,7 +77,7 @@ void AnimationClip::Load(const wchar_t* filePath, bool loop, EnChangeAnimationCl
 	}
 
 	//クリップ名記録
-	std::experimental::filesystem::path ps = filePath;
+	std::filesystem::path ps = filePath;
 	m_animationClipData->m_clipName = ps.stem();
 
 	//ファイルパス記録

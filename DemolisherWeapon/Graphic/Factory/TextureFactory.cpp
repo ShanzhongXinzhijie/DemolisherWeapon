@@ -3,7 +3,7 @@
 
 namespace DemolisherWeapon {
 
-	TextueData CreateTexture(std::experimental::filesystem::path filepath, bool generateMipmaps) {
+	TextueData CreateTexture(std::filesystem::path filepath, bool generateMipmaps) {
 		TextueData texdata;
 
 		//テクスチャ読み込み
@@ -119,7 +119,7 @@ namespace DemolisherWeapon {
 		m_textureMap.clear();
 	}
 
-	bool TextureFactory::Load(std::experimental::filesystem::path filepath, ID3D11Resource** return_texture, ID3D11ShaderResourceView** return_textureView, const TextueData** return_textureData, bool generateMipmaps) {
+	bool TextureFactory::Load(std::filesystem::path filepath, ID3D11Resource** return_texture, ID3D11ShaderResourceView** return_textureView, const TextueData** return_textureData, bool generateMipmaps) {
 		const TextueData* textureData;
 		if(!Load(filepath, &textureData)){
 			return false;
@@ -133,7 +133,7 @@ namespace DemolisherWeapon {
 		return true;
 	}
 
-	bool TextureFactory::Load(std::experimental::filesystem::path filepath, const TextueData** return_textureData, bool generateMipmaps) {
+	bool TextureFactory::Load(std::filesystem::path filepath, const TextueData** return_textureData, bool generateMipmaps) {
 		int index = Util::MakeHash(filepath.c_str());
 		if (m_textureMap.count(index) <= 0) {
 			//つくる
