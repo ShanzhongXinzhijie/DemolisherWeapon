@@ -28,7 +28,10 @@ void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, En
 	m_biasMatrix.Mul(mBiasScr, m_biasMatrix);
 
 	//スケルトンのデータを読み込む。
-	bool hasSkeleton = InitSkeleton(filePath.c_str());
+	bool hasSkeleton = false;
+	if (_wcsicmp(filePath.extension().c_str(), L".tkm") != 0) {
+		hasSkeleton = InitSkeleton(filePath.c_str());
+	}
 
 	//視錐台カリングする
 	m_isFrustumCull = true;
@@ -41,28 +44,11 @@ void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, En
 		//TKMファイルのロード
 		if (isUseFlyweightFactory) {
 			//モデルプールを使用
-			DW_WARNING_BOX(true, "まだ無理")
+			m_model = m_skinModelDataManager.LoadCModel(filePath.c_str(), m_skeleton);
 		}
 		else {
-			//パスをcharへ変換...
-			size_t iReturnValue;
-			size_t size = wcslen(filePath.c_str()) + 1;
-			std::unique_ptr<char[]> charPath = std::make_unique<char[]>(size);
-			errno_t err = wcstombs_s(
-				&iReturnValue,
-				charPath.get(),
-				size, //上のサイズ
-				filePath.c_str(), 
-				size-1 //コピーする最大文字数
-			);
-			if (err != 0) {
-				DW_ERRORBOX(true, "wcstombs_s errno:%d", err)
-			}
-
 			//モデルを新規作成
-			m_modelData = std::make_unique<CModel>();
-			m_modelData->LoadTkmFile(charPath.get());
-			m_modelData->CreateMeshParts();
+			m_modelData = m_skinModelDataManager.CreateCModel(filePath.c_str(), m_skeleton);
 			m_model = m_modelData.get();
 		}
 	}
@@ -81,14 +67,20 @@ void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, En
 
 	if (m_model) {
 		//TODO
+		//バウンディングボックスの取得・生成
+
+		m_isFrustumCull = false;//とりま
+		FindMeshCModel([&](const std::unique_ptr<SModelMesh>& mesh) {
+			//mesh->m_vertexBuffer[0]->
+		});
 	}
 	if (m_modelDx) {
 		//マテリアル設定の確保
-		FindMaterial(
+		/*FindMaterial(
 			[&](ModelEffect* mat) {
 			m_materialSetting.emplace_back();
 		}
-		);
+		);*/
 
 		//バウンディングボックスの取得・生成
 		bool isFirst = true;
@@ -156,7 +148,7 @@ bool SkinModel::InitSkeleton(const wchar_t* filePath)
 		char message[256];
 		sprintf_s(message, "SkinModel::InitSkeleton\nCMOファイルじゃない!\n%ls\n", filePath);
 		MessageBox(NULL, message, "Error", MB_OK);
-		std::abort();
+		//std::abort();
 #endif
 		return false;
 	}
@@ -372,20 +364,22 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	//ボーン行列をGPUに転送。
 	m_skeleton.SendBoneMatrixArrayToGPU();
 
-	//マテリアル設定の適応
+	//使うマテリアル設定の設定
 	if(isMatSetInit && isMatSetEnable){
 		//個別設定
 		int i = 0;
-		FindMaterial(
+		/*FindMaterial(
 			[&](ModelEffect* mat) {
 				mat->SetUseMaterialSetting(m_materialSetting[i]);
 				i++;
 			}
-		);
+		);*/
+		FindMaterialData([&](MaterialData& mat) {mat.SetUseMaterialSetting(m_materialSetting[i]); i++; });
 	}
 	else {
 		//全体設定
-		FindMaterial([&](ModelEffect* mat) { mat->SetDefaultMaterialSetting(); });
+		//FindMaterial([&](ModelEffect* mat) { mat->SetDefaultMaterialSetting(); });
+		FindMaterialData([&](MaterialData& mat) {mat.SetDefaultMaterialSetting(); });
 	}
 
 	//ユーザー設定の描画前処理実行
@@ -411,25 +405,52 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	}
 
 #ifndef DW_DX12_TEMPORARY
-	//描画。
-	m_modelDx->Draw(
-		d3dDeviceContext,
-		GetGraphicsEngine().GetCommonStates(),
-		m_worldMatrix,
-		GetMainCamera()->GetViewMatrix(),
-		GetMainCamera()->GetProjMatrix(),
-		false,
-		cullMode,
-		pBlendState,
-		m_pRasterizerStateCw, m_pRasterizerStateCCw, m_pRasterizerStateNone,
-		pDepthStencilState ? pDepthStencilState : m_pDepthStencilState,
-		instanceNum*m_instanceNum
-	);
+	//描画
+	if (m_modelDx) {
+		m_modelDx->Draw(
+			d3dDeviceContext,
+			GetGraphicsEngine().GetCommonStates(),
+			m_worldMatrix,
+			GetMainCamera()->GetViewMatrix(),
+			GetMainCamera()->GetProjMatrix(),
+			false,
+			cullMode,
+			pBlendState,
+			m_pRasterizerStateCw, m_pRasterizerStateCCw, m_pRasterizerStateNone,
+			pDepthStencilState ? pDepthStencilState : m_pDepthStencilState,
+			instanceNum * m_instanceNum
+		);
+	}
 #endif
 
 	//ユーザー設定の描画後処理実行
 	for (auto& func : m_postDrawFunc) {
 		func.second(this);
+	}
+}
+
+void SkinModel::FindMeshCModel(std::function<void(const std::unique_ptr<SModelMesh>&)> onFindMesh)const
+{
+	if (!m_model) {
+		DW_WARNING_BOX(true, "FindMesh:m_modelがNULL")
+			return;
+	}
+	m_model->FindMesh(onFindMesh);
+}
+
+void SkinModel::FindMaterialData(std::function<void(MaterialData&)> onFindMaterial) const
+{
+	if (m_modelDx) {
+		FindMaterial([&](ModelEffect* mat) {
+			onFindMaterial(mat->GetMatrialData());
+		});
+	}
+	if (m_model) {
+		FindMeshCModel([&](const std::unique_ptr<SModelMesh>& mesh) {
+			for (auto& mat : mesh->m_materials) {
+				onFindMaterial(mat->GetMaterialData());
+			}
+			});
 	}
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "tktkmfile.h"
 #include "Graphic/Factory/TextureFactory.h"
+#include "Graphic/Model/SkinModelEffectShader.h"
 //#include "Graphic/shader/ConstantBuffer.h"
 
 namespace DemolisherWeapon {
@@ -375,6 +376,15 @@ namespace DemolisherWeapon {
 		//使用中のマテリアル設定の取得
 		MaterialSetting& GetUsingMaterialSetting() {
 			return *m_ptrUseMaterialSetting;
+		}
+
+		//使うマテリアル設定
+		void SetUseMaterialSetting(MaterialSetting& matset) {
+			m_ptrUseMaterialSetting = &matset;
+		}
+		//モデルデータデフォルトのマテリアル設定を使用
+		void SetDefaultMaterialSetting() {
+			SetUseMaterialSetting(m_defaultMaterialSetting);
 		}
 
 	private:

@@ -82,12 +82,9 @@ namespace DemolisherWeapon::tkEngine {
 			std::string albedoMapFileName;			//アルベドマップのファイル名。
 			std::string normalMapFileName;			//法線マップのファイル名。
 			std::string specularMapFileName;		//スペキュラマップのファイル名。
-			//std::unique_ptr<char[]>	albedoMap;		//ロードされたアルベドマップ。(ddsファイル)
-			//unsigned int albedoMapSize;				//アルベドマップのサイズ。(ddsファイル)
-			//std::unique_ptr<char[]>	normalMap;		//ロードされた法線マップ。(ddsファイル)
-			//unsigned int normalMapSize;				//法線マップのサイズ。
-			//std::unique_ptr<char[]>	specularMap;	//ロードされたスペキュラマップ。(ddsファイル)
-			//unsigned int specularMapSize;			//スペキュラマップのサイズ。(ddsファイル)
+
+			std::string reflectionMapFileName;		//リフレクションマップのファイル名。
+			std::string refractionMapFileName;		//屈折マップのファイル名。
 		};
 		/// <summary>
 		/// 頂点。
@@ -111,6 +108,18 @@ namespace DemolisherWeapon::tkEngine {
 				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 				{ "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_SINT, 0, 56, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 				{ "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 72, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+			};
+
+			static constexpr int InputElementCount = 7;
+			static constexpr D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount] =
+			{
+				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_SINT, 0, 56, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 72, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			};
 		};
 		/// <summary>
@@ -188,3 +197,48 @@ namespace DemolisherWeapon::tkEngine {
 		std::vector< SMesh>	m_meshParts;		//メッシュパーツ。
 	};
 }
+
+/*namespace DemolisherWeapon {
+	class TkmBank {
+		//シングルトン
+		private:
+			TkmBank() = default;
+			~TkmBank() = default;
+		public:
+			TkmBank(const TkmBank&) = delete;
+			TkmBank& operator=(const TkmBank&) = delete;
+			TkmBank(TkmBank&&) = delete;
+			TkmBank& operator=(TkmBank&&) = delete;
+		public:
+			//インスタンスを取得
+			static TkmBank& GetInstance()
+			{
+				if (instance == nullptr) {
+					instance = new TkmBank;
+				}
+				return *instance;
+			}
+		private:
+			static TkmBank* instance;
+			//インスタンスの削除
+			static void DeleteInstance() {
+				if (instance) {
+					delete instance; instance = nullptr;
+				}
+			}
+		//
+
+	public:
+		//ロード
+		tkEngine::CTkmFile& Load(const char* path) {
+			int key = Util::MakeHash(path);
+			if (m_map.count(key) == 0) {
+				m_map.emplace(key, {});
+			}
+			return m_map[key];
+		}
+
+	private:
+		std::unordered_map<int, tkEngine::CTkmFile> m_map;
+	};
+}*/

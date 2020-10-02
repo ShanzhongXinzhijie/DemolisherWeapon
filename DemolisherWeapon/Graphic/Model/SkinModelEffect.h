@@ -241,6 +241,7 @@ public:
 	void SetUseMaterialSetting(MaterialSetting& matset) {
 		m_matData.m_ptrUseMaterialSetting = &matset;
 	}
+	//モデルデータデフォルトのマテリアル設定を使用
 	void SetDefaultMaterialSetting() {
 		SetUseMaterialSetting(m_matData.m_defaultMaterialSetting);
 	}

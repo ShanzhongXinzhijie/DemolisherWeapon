@@ -27,17 +27,34 @@ namespace DemolisherWeapon {
 		}
 	}
 
+	/*void VertexPositionNormalTangentColorTextureSkinning::SetBlendIndices(DirectX::XMUINT4 const& iindices)
+	{
+		this->indices = ((iindices.w & 0xff) << 24) | ((iindices.z & 0xff) << 16) | ((iindices.y & 0xff) << 8) | (iindices.x & 0xff);
+	}
+	void XM_CALLCONV VertexPositionNormalTangentColorTextureSkinning::SetBlendWeights(DirectX::FXMVECTOR iweights)
+	{
+		DirectX::PackedVector::XMUBYTEN4 packed;
+		XMStoreUByteN4(&packed, iweights);
+		this->weights = packed.v;
+	}*/
+
 	IMaterial::IMaterial(bool isSkinModel, const tkEngine::CTkmFile::SMaterial& tkmMat,int number){
 		//名前設定
 		std::wstring name = L"TKM_Material_" + std::to_wstring(number);
 		//テクスチャ初期化
 		std::unique_ptr<wchar_t[]> path;
-		ConvertWchar(tkmMat.albedoMapFileName.c_str(), path);
-		m_materialData.InitAlbedoTexture(path.get());
-		ConvertWchar(tkmMat.albedoMapFileName.c_str(), path);
-		m_materialData.InitNormalTexture(path.get());
-		ConvertWchar(tkmMat.albedoMapFileName.c_str(), path);
-		m_materialData.InitLightingTexture(path.get());
+		if (tkmMat.albedoMapFileName.size() > 0) {
+			ConvertWchar(tkmMat.albedoMapFileName.c_str(), path);
+			m_materialData.InitAlbedoTexture(path.get());
+		}
+		if (tkmMat.normalMapFileName.size() > 0) {
+			ConvertWchar(tkmMat.normalMapFileName.c_str(), path);
+			m_materialData.InitNormalTexture(path.get());
+		}
+		if (tkmMat.specularMapFileName.size() > 0) {
+			ConvertWchar(tkmMat.specularMapFileName.c_str(), path);
+			m_materialData.InitLightingTexture(path.get());
+		}
 		//初期化
 		m_materialData.Init(isSkinModel, name);
 	}
@@ -106,7 +123,35 @@ namespace DemolisherWeapon {
 		//ディスクリプタ設定?
 	}
 
-	void CMeshParts::InitFromTkmFile(const tkEngine::CTkmFile& tkmFile) {
+	void PipelineStateDX11::Init(MaterialData& mat) {
+		void const* shaderByteCode = mat.GetDefaultVS()->GetShader(SkinModelEffectShader::enALL).GetByteCode();
+		size_t byteCodeLength = mat.GetDefaultVS()->GetShader(SkinModelEffectShader::enALL).GetByteCodeSize();
+
+		if (mat.GetIsSkining())
+		{
+			auto hr = GetGraphicsEngine().GetD3DDevice()->CreateInputLayout(VertexPositionNormalTangentColorTextureSkinning::InputElements,
+				VertexPositionNormalTangentColorTextureSkinning::InputElementCount,
+				shaderByteCode, byteCodeLength,
+				m_inputLayout.ReleaseAndGetAddressOf());
+
+			DW_ERRORBOX(FAILED(hr),"PipelineStateDX11 入力レイアウトの作成に失敗")
+		}
+		else
+		{
+			auto hr = GetGraphicsEngine().GetD3DDevice()->CreateInputLayout(VertexPositionNormalTangentColorTexture::InputElements,
+				VertexPositionNormalTangentColorTexture::InputElementCount,
+				shaderByteCode, byteCodeLength,
+				m_inputLayout.ReleaseAndGetAddressOf());
+			
+			DW_ERRORBOX(FAILED(hr), "PipelineStateDX11 入力レイアウトの作成に失敗")
+		}
+	}
+	void PipelineStateDX11::Apply() {
+		//VertexBufferの前
+		GetGraphicsEngine().GetD3DDeviceContext()->IASetInputLayout(m_inputLayout.Get());
+	}
+
+	void CModelMeshParts::InitFromTkmFile(const tkEngine::CTkmFile& tkmFile) {
 		m_meshs.resize(tkmFile.GetNumMesh());
 		int meshNo = 0;
 		tkmFile.QueryMeshParts([&](const tkEngine::CTkmFile::SMesh& mesh) {
@@ -115,14 +160,56 @@ namespace DemolisherWeapon {
 		});
 	}
 
-	void CMeshParts::CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo)
+	void CModelMeshParts::CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo)
 	{
 		int numVertex = (int)tkmMesh.vertexBuffer.size();
 		int vertexStride = sizeof(tkEngine::CTkmFile::SVertex);
 
 		//メッシュ作成
-		auto mesh = std::make_unique<SMesh>();
+		auto mesh = std::make_unique<SModelMesh>();
 		mesh->m_skinFlags.reserve(tkmMesh.materials.size());
+
+		//頂点データ作成
+		int idx = 0;
+		VertexPositionNormalTangentColorTextureSkinning* vds = nullptr;
+		VertexPositionNormalTangentColorTexture* vd = nullptr;
+		for (auto& tkmvd : tkmMesh.vertexBuffer) {
+			if (tkmvd.skinWeights.x > 0.0f) {
+				//スキンあり
+				DW_ERRORBOX(vd != nullptr,"CModelMeshParts::CreateMeshFromTkmMesh\n頂点データ作成エラー\n※ご連絡ください")
+				if (!vds) {
+					vds = new VertexPositionNormalTangentColorTextureSkinning[numVertex];
+					mesh->m_vertexData = dynamic_cast<VertexPositionNormalTangentColorTexture*>(vds);
+					vertexStride = sizeof(VertexPositionNormalTangentColorTextureSkinning);
+				}
+
+				//コピー
+				vds[idx].position = tkmvd.pos;
+				vds[idx].normal = tkmvd.normal;
+				vds[idx].tangent = tkmvd.tangent;
+				vds[idx].textureCoordinate = tkmvd.uv;
+				for (int i = 0; i < 4; i++) {
+					vds[idx].indices[i] = tkmvd.indices[i];
+				}
+				vds[idx].weights = tkmvd.skinWeights;
+			}
+			else {
+				//すきんなし
+				DW_ERRORBOX(vds != nullptr, "CModelMeshParts::CreateMeshFromTkmMesh\n頂点データ作成エラー\n※ご連絡ください")
+				if (!vd) {
+					vd = new VertexPositionNormalTangentColorTexture[numVertex];
+					mesh->m_vertexData = vd;
+					vertexStride = sizeof(VertexPositionNormalTangentColorTexture);
+				}
+
+				//コピー
+				vd[idx].position = tkmvd.pos;
+				vd[idx].normal = tkmvd.normal;
+				vd[idx].tangent = tkmvd.tangent;
+				vd[idx].textureCoordinate = tkmvd.uv;
+			}
+			idx++;
+		}
 
 		//頂点バッファ作成
 		if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
@@ -131,11 +218,13 @@ namespace DemolisherWeapon {
 		if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
 			mesh->m_vertexBuffer = std::make_unique<VertexBufferDX12>();
 		}
-		mesh->m_vertexBuffer->Init(numVertex, vertexStride, (void*)&tkmMesh.vertexBuffer[0]);
+		//mesh->m_vertexBuffer->Init(numVertex, vertexStride, (void*)&tkmMesh.vertexBuffer[0]);
+		mesh->m_vertexBuffer->Init(numVertex, vertexStride, (void*)&mesh->m_vertexData[0]);
 
 		//スキンがあるか?
 		auto SetSkinFlag = [&](int index) {
-			if (tkmMesh.vertexBuffer[index].skinWeights.x > 0.0f) {
+			//if (false){//
+			if(tkmMesh.vertexBuffer[index].skinWeights.x > 0.0f) {
 				//スキンがある。
 				mesh->m_skinFlags.push_back(1);
 			}
@@ -197,19 +286,27 @@ namespace DemolisherWeapon {
 			}
 		}
 		//マテリアルを作成。
+		//パイプラインステートも
 		int ind = 0;
 		mesh->m_materials.reserve(tkmMesh.materials.size());
+		mesh->m_pipelineState.reserve(tkmMesh.materials.size());
 		for (auto& tkmMat : tkmMesh.materials) {
 			//作成
 			std::unique_ptr<IMaterial> mat;
+			std::unique_ptr<IPipelineState> pso;
+
 			if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
 				 mat = std::make_unique<MaterialDX11>(mesh->m_skinFlags[ind], tkmMat, ind);
+				 pso = std::make_unique<PipelineStateDX11>();
+				 pso->Init(mat->GetMaterialData());
 			}
 			if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
 				mat = std::make_unique<MaterialDX12>(mesh->m_skinFlags[ind], tkmMat, ind);
 			}
+
 			//保存
 			mesh->m_materials.push_back(std::move(mat));
+			mesh->m_pipelineState.push_back(std::move(pso));
 
 			ind++;
 		}
@@ -217,12 +314,17 @@ namespace DemolisherWeapon {
 		m_meshs[meshNo] = std::move(mesh);
 	}
 
-	void CMeshParts::Draw() {
+	void CModelMeshParts::Draw() {
 		for (auto& mesh : m_meshs) {
 			//頂点バッファを設定
 			mesh->m_vertexBuffer->Attach();
 			//マテリアルごとにドロー。
 			for (int matNo = 0; matNo < mesh->m_materials.size(); matNo++) {
+				//パイプラインステートを設定
+				mesh->m_pipelineState[matNo]->Apply();		
+				/*GetGraphicsEngine().GetD3DDeviceContext()->IASetInputLayout(
+					mesh->m_materials[matNo]->GetMaterialData().GetDefaultVS()->GetShader(SkinModelEffectShader::enALL).GetInputLayout()
+				);*/
 				//インデックスバッファを設定
 				mesh->m_indexBufferArray[matNo]->Attach();
 				//マテリアルの設定

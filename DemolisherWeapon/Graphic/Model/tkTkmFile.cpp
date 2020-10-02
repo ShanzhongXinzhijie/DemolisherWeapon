@@ -1,6 +1,10 @@
 #include "DWstdafx.h"
 #include "tkTkmFile.h"
 
+//namespace DemolisherWeapon {
+//	TkmBank* TkmBank::instance = nullptr;
+//}
+
 namespace DemolisherWeapon::tkEngine {
 
 	//法線スムージング。
@@ -212,7 +216,17 @@ namespace DemolisherWeapon::tkEngine {
 			fileName = localFileName;
 			free(localFileName);
 		}
-		
+
+		//.tgaは.ddsに
+		auto replaseStartPos = fileName.rfind(".tga");
+		if (replaseStartPos == std::string::npos) {
+			auto replaseStartPos = fileName.rfind(".TGA");
+		}
+		if (replaseStartPos != std::string::npos) {
+			auto replaceLen = fileName.length() - replaseStartPos;
+			fileName.replace(replaseStartPos, replaceLen, ".dds");
+		}
+
 		return fileName;
 	}
 	template<class T>
@@ -235,58 +249,10 @@ namespace DemolisherWeapon::tkEngine {
 		tkmMat.normalMapFileName = LoadTextureFileName(fp);
 		//スペキュラマップのファイル名をロード。
 		tkmMat.specularMapFileName = LoadTextureFileName(fp);
-
-		/*
-		//これプラットフォームに依存するな・・・。マルチプラットフォームめんどくさ・・・。
-		std::string texFilePath = filePath;
-		auto loadTexture = [&](
-			std::string& texFileName, 
-			std::unique_ptr<char[]>& ddsFileMemory, 
-			unsigned int& fileSize
-		) {
-			int filePathLength = static_cast<int>(texFilePath.length());
-			if (texFileName.length() > 0) {
-				//モデルのファイルパスからラストのフォルダ区切りを探す。
-				auto replaseStartPos = texFilePath.find_last_of('/');
-				if (replaseStartPos == std::string::npos) {
-					replaseStartPos = texFilePath.find_last_of('\\');
-				}
-				replaseStartPos += 1;
-				auto replaceLen = filePathLength - replaseStartPos;
-				texFilePath.replace(replaseStartPos, replaceLen, texFileName);
-				//拡張子をddsに変更する。
-				replaseStartPos = texFilePath.find_last_of('.') + 1;
-				replaceLen = texFilePath.length() - replaseStartPos;
-				texFilePath.replace(replaseStartPos, replaceLen, "dds");
-				
-				//テクスチャをロード。
-				FILE* texFileFp = nullptr;
-				errno_t err = fopen_s(&texFileFp, texFilePath.c_str(), "rb");
-				if (err == 0) {
-					//ファイルサイズを取得。
-					fseek(texFileFp, 0L, SEEK_END);		
-					fileSize = ftell(texFileFp);
-					fseek(texFileFp, 0L, SEEK_SET);
-
-					ddsFileMemory = std::make_unique<char[]>(fileSize);
-					fread(ddsFileMemory.get(), fileSize, 1, texFileFp);
-					fclose(texFileFp);
-				}
-				else {
-					if (err == ENOENT) {
-						DW_WARNING_BOX(true, "テクスチャのロードに失敗しました。ファイルがないンゴねぇ\n%s", texFilePath.c_str());
-					}
-					else {
-						DW_WARNING_BOX(true, "テクスチャのロードに失敗しました。errno:%d \n%s", err, texFilePath.c_str());
-					}
-				}
-			}
-		};
-		//テクスチャをロード。
-		loadTexture( tkmMat.albedoMapFileName, tkmMat.albedoMap, tkmMat.albedoMapSize );
-		loadTexture( tkmMat.normalMapFileName, tkmMat.normalMap, tkmMat.normalMapSize );
-		loadTexture( tkmMat.specularMapFileName, tkmMat.specularMap, tkmMat.specularMapSize );
-		*/
+		//リフレクションマップのファイル名をロード。
+		//tkmMat.reflectionMapFileName = LoadTextureFileName(fp);
+		//屈折マップのファイル名をロード。
+		//tkmMat.refractionMapFileName = LoadTextureFileName(fp);
 	}
 	void CTkmFile::BuildTangentAndBiNormal() 
 	{

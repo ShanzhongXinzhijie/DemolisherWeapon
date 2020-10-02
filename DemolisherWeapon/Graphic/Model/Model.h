@@ -1,7 +1,67 @@
 #pragma once
 #include"tktkmfile.h"
+#include"Graphic/Model/MaterialSetting.h"
+#include"Graphic/CPrimitive.h"
 
 namespace DemolisherWeapon{
+
+	struct VertexPositionNormalTangentColorTexture
+	{
+		VertexPositionNormalTangentColorTexture() = default;
+
+		CVector3 position;
+		CVector3 normal;
+		CVector4 tangent;
+		//uint32_t color;
+		CVector2 textureCoordinate;
+
+		//void __cdecl SetColor(XMFLOAT4 const& icolor) { SetColor(XMLoadFloat4(&icolor)); }
+		//void XM_CALLCONV SetColor(FXMVECTOR icolor);
+
+		static constexpr int InputElementCount = 4;
+		static constexpr D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount] =
+		{
+			{ "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL",      0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TANGENT",     0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			//{ "COLOR",       0, DXGI_FORMAT_R8G8B8A8_UNORM,     0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD",    0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			//{ "BINORMAL",    0, DXGI_FORMAT_R32G32B32_FLOAT,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+	};
+
+
+	// Vertex struct for Visual Studio Shader Designer (DGSL) holding position, normal,
+	// tangent, color (RGBA), texture mapping information, and skinning weights
+	struct VertexPositionNormalTangentColorTextureSkinning : public VertexPositionNormalTangentColorTexture
+	{
+		VertexPositionNormalTangentColorTextureSkinning() = default;
+
+		//uint32_t indices;
+		//uint32_t weights;
+		unsigned int indices[4];			
+		CVector4 weights;
+
+		//void __cdecl SetBlendIndices(DirectX::XMUINT4 const& iindices);
+
+		//void __cdecl SetBlendWeights(DirectX::XMFLOAT4 const& iweights) { SetBlendWeights(XMLoadFloat4(&iweights)); }
+		//void XM_CALLCONV SetBlendWeights(DirectX::FXMVECTOR iweights);
+
+		static constexpr int InputElementCount = 6;
+		static constexpr D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount] =
+		{
+			{ "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL",      0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TANGENT",     0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			//{ "COLOR",       0, DXGI_FORMAT_R8G8B8A8_UNORM,     0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD",    0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BLENDINDICES",0, DXGI_FORMAT_R32G32B32A32_UINT,      0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			//DXGI_FORMAT_R8G8B8A8_UINT
+			{ "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,     0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			//DXGI_FORMAT_R8G8B8A8_UNORM
+			//{ "BINORMAL",    0, DXGI_FORMAT_R32G32B32_FLOAT,	0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+	};
 
 	/// <summary>
 	/// マテリアル
@@ -15,6 +75,13 @@ namespace DemolisherWeapon{
 		/// マテリアルを適用する
 		/// </summary>
 		virtual void Apply() = 0;
+
+		/// <summary>
+		/// マテリアルデータを取得
+		/// </summary>
+		MaterialData& GetMaterialData() {
+			return m_materialData;
+		}
 
 	protected:
 		MaterialData m_materialData;
@@ -31,20 +98,47 @@ namespace DemolisherWeapon{
 	};
 
 	/// <summary>
+	/// PipelineState
+	/// </summary>
+	class IPipelineState {
+	public:
+		virtual ~IPipelineState() {}
+
+		virtual void Init(MaterialData& mat) = 0;
+		virtual void Apply() = 0;
+	};
+	class PipelineStateDX11 : public IPipelineState {
+	public:
+		void Init(MaterialData& mat)override;
+		void Apply()override;
+	private:
+		Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
+	};
+
+	/// <summary>
+	/// メッシュ
+	/// </summary>
+	struct SModelMesh {
+		~SModelMesh() {
+			if (m_vertexData) {
+				delete[] m_vertexData;
+			}
+		}
+
+		VertexPositionNormalTangentColorTexture* m_vertexData = nullptr;	//頂点データ
+
+		std::unique_ptr<IVertexBuffer>					m_vertexBuffer;		//頂点バッファ。
+		std::vector<std::unique_ptr<IIndexBuffer>>		m_indexBufferArray;	//インデックスバッファ。
+		std::vector<std::unique_ptr<IMaterial>>			m_materials;		//マテリアル。
+		std::vector<int>								m_skinFlags;		//スキンを持っているかどうかのフラグ。
+		std::vector<std::unique_ptr<IPipelineState>>	m_pipelineState;	//パイプラインステート
+	};
+
+	/// <summary>
 	/// メッシュパーツ
 	/// </summary>
-	class CMeshParts {
+	class CModelMeshParts {
 	public:
-		/// <summary>
-		/// メッシュ
-		/// </summary>
-		struct SMesh {
-			std::unique_ptr<IVertexBuffer>					m_vertexBuffer;		//頂点バッファ。
-			std::vector<std::unique_ptr<IIndexBuffer>>		m_indexBufferArray;	//インデックスバッファ。
-			std::vector<std::unique_ptr<IMaterial>>			m_materials;		//マテリアル。
-			std::vector<int>								m_skinFlags;		//スキンを持っているかどうかのフラグ。
-		};
-
 		/// <summary>
 		/// tkmファイルから初期化。
 		/// </summary>
@@ -56,7 +150,7 @@ namespace DemolisherWeapon{
 		/// </summary>
 		void Draw();
 
-		std::vector< std::unique_ptr<SMesh> > m_meshs;//メッシュ
+		std::vector< std::unique_ptr<SModelMesh> > m_meshs;//メッシュ
 
 	private:
 		void CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo);
@@ -121,6 +215,16 @@ namespace DemolisherWeapon{
 		*/
 
 		/// <summary>
+		/// メッシュの検索
+		/// </summary>
+		/// <param name="onFindMesh">発見したメッシュを引数に取る関数</param>
+		void FindMesh(std::function<void(const std::unique_ptr<SModelMesh>&)> onFindMesh) {
+			for (auto& mesh : m_meshParts.m_meshs) {
+				onFindMesh(mesh);
+			}
+		}
+
+		/// <summary>
 		/// tkmファイルを取得。
 		/// </summary>
 		/// <returns></returns>
@@ -131,6 +235,6 @@ namespace DemolisherWeapon{
 
 	private:
 		tkEngine::CTkmFile m_tkmFile;	//tkmファイル。
-		CMeshParts m_meshParts;			//メッシュパーツ。
+		CModelMeshParts m_meshParts;			//メッシュパーツ。
 	};
 }

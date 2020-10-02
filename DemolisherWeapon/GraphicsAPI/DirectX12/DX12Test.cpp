@@ -10,7 +10,7 @@ namespace DemolisherWeapon {
 	{
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;
 		Shader m_vs, m_ps;
-		CMeshParts m_mesh;
+		CModelMeshParts m_mesh;
 
 		struct ConstantBuffer {
 			CMatrix mWorld;
@@ -351,12 +351,16 @@ namespace DemolisherWeapon {
 			{1.0f, 0.0f}
 		};
 		m_square.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, 4, index);
-		m_texture = CreateTexture(L"utc_all2.dds");		
+		m_texture2 = CreateTexture(L"utc_all2.dds");		
+		m_texture = CreateTexture(L"utc_all2.dds");
+		const TextueData* return_textureData;
+		TextureFactory::GetInstance().Load(L"utc_all2.dds", &return_textureData, true);//TODO これのあとテクスチャロード不能?
+		m_texture = *return_textureData;
 
 		//モデル
 		m_meshTest = new MeshTest;
 		tkEngine::CTkmFile tkmFile;
-		tkmFile.Load("testNonSkin.tkm");
+		tkmFile.Load("sphere.tkm");
 		m_meshTest->m_mesh.InitFromTkmFile(tkmFile);
 		m_meshTest->m_vs.Load("Preset/shader/ModelDX12Test.fx", "VSMainNonSkin", Shader::EnType::VS);
 		m_meshTest->m_ps.Load("Preset/shader/ModelDX12Test.fx", "PSMain", Shader::EnType::PS);

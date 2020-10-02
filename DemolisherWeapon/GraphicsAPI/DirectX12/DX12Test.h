@@ -190,7 +190,7 @@ namespace DemolisherWeapon {
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;//パイプラインステートオブジェクト
 		Shader m_vs, m_ps;
 		CPrimitive m_square;
-		TextueData m_texture;
+		TextueData m_texture, m_texture2;
 
 		//メッシュ描画のテスト
 		MeshTest* m_meshTest = nullptr;

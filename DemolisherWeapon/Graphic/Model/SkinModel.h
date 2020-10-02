@@ -9,6 +9,7 @@
 namespace DemolisherWeapon {
 
 class CModel;
+struct SModelMesh;
 
 /*!
 *@brief	スキンモデルクラス。
@@ -128,13 +129,17 @@ public:
 		return m_skeleton;
 	}
 
-	/*!
-	*@brief	メッシュを検索する。
-	*@param[in] onFindMesh		メッシュが見つかったときのコールバック関数
-	*/
+	/// <summary>
+	/// メッシュを検索する。(DirectX::Model版)
+	/// </summary>
+	/// <param name="onFindMesh">メッシュが見つかったときのコールバック関数</param>
 	void FindMesh(OnFindMesh onFindMesh) const
 	{
 #ifndef DW_DX12_TEMPORARY
+		if (!m_modelDx) {
+			DW_WARNING_BOX(true, "FindMesh:m_modelDxがNULL")
+			return;
+		}
 		for (auto& modelMeshs : m_modelDx->meshes) {
 			for (std::unique_ptr<DirectX::ModelMeshPart>& mesh : modelMeshs->meshParts) {
 				onFindMesh(mesh);
@@ -142,6 +147,12 @@ public:
 		}
 #endif
 	}
+	/// <summary>
+	/// メッシュを検索する。(CModel版)
+	/// </summary>
+	/// <param name="onFindMesh">メッシュが見つかったときのコールバック関数</param>
+	void FindMeshCModel(std::function<void(const std::unique_ptr<SModelMesh>&)> onFindMesh) const;
+
 	/// <summary>
 	/// メッシュの集合を検索する。
 	/// </summary>
@@ -152,33 +163,47 @@ public:
 			onFindMeshes(modelMeshs);
 		}
 	}
-	/*!
-	*@brief	マテリアルを検索する。
-	*@param[in] onFindMaterial	マテリアルが見つかったときのコールバック関数
-	*/
+
+	/// <summary>
+	/// マテリアルを検索する。(DirectX::Model版)
+	/// </summary>
+	/// <param name="onFindMaterial">マテリアルが見つかったときのコールバック関数</param>
 	void FindMaterial(OnFindMaterial onFindMaterial) const
 	{
-		//TODO 読み込んだファイルの種類で警告出す
 #ifndef DW_DX12_TEMPORARY
-		FindMesh([&](auto& mesh) {
+		FindMesh([&](const std::unique_ptr<DirectX::ModelMeshPart>& mesh) {
 			ModelEffect* effect = reinterpret_cast<ModelEffect*>(mesh->effect.get());
 			onFindMaterial(effect);
 		});
 #endif
 	}
+	/// <summary>
+	/// マテリアルデータを検索する
+	/// </summary>
+	/// <param name="onFindMaterial">マテリアルデータが見つかったときのコールバック関数</param>
+	void FindMaterialData(std::function<void(MaterialData&)> onFindMaterial) const;
 
 	//マテリアル設定を初期化して有効化
 	void InitMaterialSetting() {
 		isMatSetInit = true;
 		isMatSetEnable = true;
 
+		bool isAllocated = m_materialSetting.size() > 0;
 		int i = 0;
-		FindMaterial(
-			[&](ModelEffect* mat) {
-				mat->MaterialSettingInit(m_materialSetting[i]);
+		FindMaterialData(
+			[&](MaterialData& mat) {
+				if (!isAllocated) { m_materialSetting.emplace_back(); }//マテリアル設定の確保
+				m_materialSetting[i].Init(&mat);//初期化
 				i++;
 			}
 		);
+		//FindMaterial(
+		//	[&](ModelEffect* mat) {
+		//		if (!isAllocated) { m_materialSetting.emplace_back(); }//マテリアル設定の確保
+		//		mat->MaterialSettingInit(m_materialSetting[i]);//初期化
+		//		i++;
+		//	}
+		//);
 	}
 	//マテリアル設定の有効・無効を設定
 	void SetMaterialSettingEnable(bool enable) {

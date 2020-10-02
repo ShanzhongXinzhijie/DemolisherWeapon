@@ -116,7 +116,8 @@ void VertexBufferDX11::Init(int numVertex, unsigned int vertexStride, void* vert
 	ZeroMemory(&InitData, sizeof(InitData));
 	InitData.pSysMem = vertex;
 
-	GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bd, &InitData, &m_vertexBuffer);
+	auto hr = GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bd, &InitData, &m_vertexBuffer);
+	DW_ERRORBOX(FAILED(hr), "VertexBufferDX11::Init 頂点バッファの作成に失敗")
 }
 void VertexBufferDX11::Attach() {
 	//頂点バッファを設定
@@ -191,7 +192,8 @@ void IndexBufferDX11::Init(int numIndex, unsigned long* index) {
 	ZeroMemory(&InitData, sizeof(InitData));
 	InitData.pSysMem = index;
 
-	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bd, &InitData, &m_indexBuffer);
+	auto hr = GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bd, &InitData, &m_indexBuffer);
+	DW_ERRORBOX(FAILED(hr), "IndexBufferDX11::Init インデックスバッファの作成に失敗")
 
 	m_numIndex = numIndex;
 }
