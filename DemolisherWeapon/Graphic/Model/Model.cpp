@@ -315,7 +315,7 @@ namespace DemolisherWeapon {
 		m_meshs[meshNo] = std::move(mesh);
 	}
 
-	void CModelMeshParts::Draw() {
+	void CModelMeshParts::Draw(int instanceNum) {
 		for (auto& mesh : m_meshs) {
 			//頂点バッファを設定
 			mesh->m_vertexBuffer->Attach();
@@ -333,15 +333,21 @@ namespace DemolisherWeapon {
 
 				if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
 					//トポロジーを設定
-					GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+					GetGraphicsEngine().GetD3DDeviceContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 					//描画
-					GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->DrawIndexed(mesh->m_indexBufferArray[matNo]->GetIndexNum(), 0, 0);
+					if (instanceNum == 1) {
+						GetGraphicsEngine().GetD3DDeviceContext()->DrawIndexed(mesh->m_indexBufferArray[matNo]->GetIndexNum(), 0, 0);
+					}
+					else {
+						//インスタンシング
+						GetGraphicsEngine().GetD3DDeviceContext()->DrawIndexedInstanced(mesh->m_indexBufferArray[matNo]->GetIndexNum(), instanceNum, 0, 0, 0);
+					}
 				}
 				if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
 					//トポロジーを設定
 					GetGraphicsEngine().GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 					//描画
-					GetGraphicsEngine().GetCommandList()->DrawIndexedInstanced(mesh->m_indexBufferArray[matNo]->GetIndexNum(), 1, 0, 0, 0);
+					GetGraphicsEngine().GetCommandList()->DrawIndexedInstanced(mesh->m_indexBufferArray[matNo]->GetIndexNum(), instanceNum, 0, 0, 0);
 				}
 			}
 		}
@@ -419,9 +425,9 @@ namespace DemolisherWeapon {
 		}
 		m_meshParts.InitFromTkmFile(m_tkmFile);
 	}
-	void CModel::Draw()
+	void CModel::Draw(int instanceNum)
 	{
-		m_meshParts.Draw();
+		m_meshParts.Draw(instanceNum);
 	}
 
 }

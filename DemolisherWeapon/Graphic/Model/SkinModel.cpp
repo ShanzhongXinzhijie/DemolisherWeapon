@@ -493,7 +493,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		d3dDeviceContext->PSSetSamplers(0, 1, &samplerState);
 
 		//•`‰æ
-		m_model->Draw();
+		m_model->Draw(instanceNum* m_instanceNum);
 	}
 
 #ifndef DW_DX12_TEMPORARY

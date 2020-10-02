@@ -497,7 +497,7 @@ namespace DemolisherWeapon {
 		m_commandList->SetPipelineState(m_meshTest->m_pso.Get());
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 		m_commandList->SetGraphicsRootDescriptorTable(0, m_texture.descriptorHandle);
-		m_meshTest->m_mesh.Draw();
+		m_meshTest->m_mesh.Draw(1);
 
 		//リソースバリアを設定
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));

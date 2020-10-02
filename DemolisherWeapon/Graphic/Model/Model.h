@@ -149,7 +149,7 @@ namespace DemolisherWeapon{
 		/// <summary>
 		/// 描画。
 		/// </summary>
-		void Draw();
+		void Draw(int instanceNum);
 
 		std::vector< std::unique_ptr<SModelMesh> > m_meshs;//メッシュ
 
@@ -198,22 +198,7 @@ namespace DemolisherWeapon{
 		/// <summary>
 		/// 描画
 		/// </summary>
-		void Draw();
-		/*
-		(
-		ID3D11DeviceContext* deviceContext,
-		int instanceNum
-
-		//ここから事前設定
-		bool wireframe,
-		D3D11_CULL_MODE reverseCull,
-		const CommonStates& states,
-		ID3D11BlendState* blendState,
-		ID3D11RasterizerState* pRasterizerStateCw, ID3D11RasterizerState* pRasterizerStateCCw, ID3D11RasterizerState* pRasterizerStateNone,
-		ID3D11DepthStencilState* pDepthStencilState,
-
-		)
-		*/
+		void Draw(int instanceNum);
 
 		/// <summary>
 		/// メッシュの検索
