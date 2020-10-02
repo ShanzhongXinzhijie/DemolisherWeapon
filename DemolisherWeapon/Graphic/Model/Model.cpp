@@ -220,6 +220,7 @@ namespace DemolisherWeapon {
 		}
 		//mesh->m_vertexBuffer->Init(numVertex, vertexStride, (void*)&tkmMesh.vertexBuffer[0]);
 		mesh->m_vertexBuffer->Init(numVertex, vertexStride, (void*)&mesh->m_vertexData[0]);
+		mesh->m_vertexNum = numVertex;
 
 		//ƒXƒLƒ“‚ª‚ ‚é‚©?
 		auto SetSkinFlag = [&](int index) {

@@ -125,6 +125,7 @@ namespace DemolisherWeapon{
 			}
 		}
 
+		int m_vertexNum = 0;
 		VertexPositionNormalTangentColorTexture* m_vertexData = nullptr;	//頂点データ
 
 		std::unique_ptr<IVertexBuffer>					m_vertexBuffer;		//頂点バッファ。

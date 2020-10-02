@@ -66,12 +66,25 @@ void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, En
 	}
 
 	if (m_model) {
-		//TODO
-		//バウンディングボックスの取得・生成
-
-		m_isFrustumCull = false;//とりま
+		//バウンディングボックスの生成
+		bool isFirst = true;
 		FindMeshCModel([&](const std::unique_ptr<SModelMesh>& mesh) {
-			//mesh->m_vertexBuffer[0]->
+			for (int i = 0; i < mesh->m_vertexNum; i++) {
+				if (isFirst) {
+					m_minAABB_Origin = mesh->m_vertexData[i].position;
+					m_maxAABB_Origin = mesh->m_vertexData[i].position;
+					isFirst = false;
+				}
+				else {
+					m_maxAABB_Origin.x = max(m_maxAABB_Origin.x, mesh->m_vertexData[i].position.x);
+					m_maxAABB_Origin.y = max(m_maxAABB_Origin.y, mesh->m_vertexData[i].position.y);
+					m_maxAABB_Origin.z = max(m_maxAABB_Origin.z, mesh->m_vertexData[i].position.z);
+
+					m_minAABB_Origin.x = min(m_minAABB_Origin.x, mesh->m_vertexData[i].position.x);
+					m_minAABB_Origin.y = min(m_minAABB_Origin.y, mesh->m_vertexData[i].position.y);
+					m_minAABB_Origin.z = min(m_minAABB_Origin.z, mesh->m_vertexData[i].position.z);
+				}
+			}
 		});
 	}
 	if (m_modelDx) {
@@ -115,19 +128,20 @@ void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, En
 				isFirst = false;
 			}
 		);
-		//中心と端までのベクトルを保存
-		m_centerAABB = m_minAABB_Origin + m_maxAABB_Origin; m_centerAABB /= 2.0f;
-		m_extentsAABB = m_maxAABB_Origin - m_centerAABB;
-		//モデル本来のバウンディングボックスを保存
-		m_modelBoxCenter = m_centerAABB, m_modelBoxExtents = m_extentsAABB;
-
-		//スキンモデルなら
-		if (hasSkeleton) {
-			//大きさを二倍に(アニメーションしても収まるサイズ)(ホントに収まるかはしらん)
-			CVector3 minBox = m_centerAABB - m_extentsAABB * 2.0f;
-			CVector3 maxBox = m_centerAABB + m_extentsAABB * 2.0f;
-			SetBoundingBox(minBox, maxBox);//設定
-		}
+	}
+	
+	//中心と端までのベクトルを保存
+	m_centerAABB = m_minAABB_Origin + m_maxAABB_Origin; m_centerAABB /= 2.0f;
+	m_extentsAABB = m_maxAABB_Origin - m_centerAABB;
+	//モデル本来のバウンディングボックスを保存
+	m_modelBoxCenter = m_centerAABB, m_modelBoxExtents = m_extentsAABB;
+	
+	//スキンモデルなら
+	if (hasSkeleton) {
+		//大きさを二倍に(アニメーションしても収まるサイズ)(ホントに収まるかはしらん)
+		CVector3 minBox = m_centerAABB - m_extentsAABB * 2.0f;
+		CVector3 maxBox = m_centerAABB + m_extentsAABB * 2.0f;
+		SetBoundingBox(minBox, maxBox);//設定
 	}
 
 	//バウンディングボックス初期化
