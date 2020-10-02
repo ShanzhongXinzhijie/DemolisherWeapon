@@ -250,9 +250,9 @@ namespace DemolisherWeapon::tkEngine {
 		//スペキュラマップのファイル名をロード。
 		tkmMat.specularMapFileName = LoadTextureFileName(fp);
 		//リフレクションマップのファイル名をロード。
-		//tkmMat.reflectionMapFileName = LoadTextureFileName(fp);
+		tkmMat.reflectionMapFileName = LoadTextureFileName(fp);
 		//屈折マップのファイル名をロード。
-		//tkmMat.refractionMapFileName = LoadTextureFileName(fp);
+		tkmMat.refractionMapFileName = LoadTextureFileName(fp);
 	}
 	void CTkmFile::BuildTangentAndBiNormal() 
 	{
