@@ -401,6 +401,84 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 
 	//描画
 	if (m_model) {
+		const DirectX::CommonStates& states = GetGraphicsEngine().GetCommonStates();
+
+		//アルファブレンドはないものとして描画... TODO
+		ID3D11BlendState* blendState = pBlendState;
+		ID3D11DepthStencilState* depthStencilState = pDepthStencilState ? pDepthStencilState : m_pDepthStencilState;
+		/*bool alpha = false, pmalpha = true;
+		if (alpha)
+		{
+			if (pmalpha)
+			{
+				blendState = states.AlphaBlend();
+				depthStencilState = states.DepthRead();
+			}
+			else
+			{
+				blendState = states.NonPremultiplied();
+				depthStencilState = states.DepthRead();
+			}
+		}
+		else*/
+		{
+			if (!blendState) {
+				blendState = states.Opaque();
+			}
+			if (!depthStencilState) {
+				depthStencilState = states.DepthDefault();
+			}
+		}
+		//ブレンドステートの設定
+		d3dDeviceContext->OMSetBlendState(blendState, nullptr, 0xFFFFFFFF);
+		//デプスステンシルステートの設定
+		d3dDeviceContext->OMSetDepthStencilState(depthStencilState, 0);
+		
+		//ラスタライザーステートの設定
+		bool ccw = true;//モデルのあれが反時計回りか? TODO
+		if (m_pRasterizerStateCw && m_pRasterizerStateCCw && m_pRasterizerStateNone) {
+			switch (cullMode)
+			{
+			case D3D11_CULL_NONE:
+				d3dDeviceContext->RSSetState(m_pRasterizerStateNone);
+				break;
+			case D3D11_CULL_FRONT:
+				d3dDeviceContext->RSSetState(ccw ? m_pRasterizerStateCCw : m_pRasterizerStateCw);
+				break;
+			case D3D11_CULL_BACK:
+				d3dDeviceContext->RSSetState(!ccw ? m_pRasterizerStateCCw : m_pRasterizerStateCw);
+				break;
+			default:
+				break;
+			}
+		}
+		else {
+			if (false) {
+				d3dDeviceContext->RSSetState(states.Wireframe());
+			}
+			else {
+				switch (cullMode)
+				{
+				case D3D11_CULL_NONE:
+					d3dDeviceContext->RSSetState(states.CullNone());
+					break;
+				case D3D11_CULL_FRONT:
+					d3dDeviceContext->RSSetState(ccw ? states.CullCounterClockwise() : states.CullClockwise());
+					break;
+				case D3D11_CULL_BACK:
+					d3dDeviceContext->RSSetState(!ccw ? states.CullCounterClockwise() : states.CullClockwise());
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		//サンプラーの設定
+		ID3D11SamplerState* samplerState = states.AnisotropicWrap();
+		d3dDeviceContext->PSSetSamplers(0, 1, &samplerState);
+
+		//描画
 		m_model->Draw();
 	}
 
