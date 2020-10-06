@@ -30,6 +30,7 @@ namespace DemolisherWeapon {
 	void PhysicsDebugDraw::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 	{
 		int baseIndex = m_numLine * 2;
+		if (baseIndex >= VERTEX_MAX) { return; }
 		m_vertexBuffer[baseIndex].position[0] = from.x();
 		m_vertexBuffer[baseIndex].position[1] = from.y();
 		m_vertexBuffer[baseIndex].position[2] = from.z();

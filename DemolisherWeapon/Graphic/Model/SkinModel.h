@@ -159,6 +159,10 @@ public:
 	/// <param name="onFindMeshes">メッシュの集合が見つかったときのコールバック関数</param>
 	void FindMeshes(std::function<void(const std::shared_ptr<DirectX::ModelMesh>&)> onFindMeshes)const 
 	{
+		if (!m_modelDx) {
+			DW_WARNING_BOX(true, "FindMeshes:m_modelDxがNULL")
+			return;
+		}
 		for (auto& modelMeshs : m_modelDx->meshes) {
 			onFindMeshes(modelMeshs);
 		}
@@ -371,6 +375,19 @@ public:
 	[[nodiscard]]
 	const EnFbxCoordinateSystem& GetFBXCoordinateSystem()const {
 		return m_enFbxCoordinate;
+	}
+
+	/// <summary>
+	/// DirectXTKのモデルをロード済みか?
+	/// </summary>
+	bool IsLoadedDirectXTKModel()const {
+		return m_modelDx != nullptr;
+	}
+	/// <summary>
+	/// モデルをロード済みか?
+	/// </summary>
+	bool IsLoadedModel()const {
+		return m_model != nullptr;
 	}
 
 private:

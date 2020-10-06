@@ -240,12 +240,13 @@ namespace DemolisherWeapon {
 			//インデックスのサイズが2byte
 			mesh->m_indexBufferArray.reserve(tkmMesh.indexBuffer16Array.size());
 			for (auto& tkIb : tkmMesh.indexBuffer16Array) {
-
-				std::vector<unsigned long> dstib;
+				//インデックスデータ作成
+				mesh->m_indexDataArray.emplace_back();
 				for (auto& srcib : tkIb.indices) {
-					dstib.emplace_back((unsigned long)srcib);
+					mesh->m_indexDataArray.back().emplace_back(srcib);
 				}
 
+				//インデックスバッファの初期化
 				std::unique_ptr<IIndexBuffer> ib;
 				if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
 					ib = std::make_unique<IndexBufferDX11>();
@@ -253,11 +254,12 @@ namespace DemolisherWeapon {
 				if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
 					ib = std::make_unique<IndexBufferDX12>();
 				}
-				ib->Init((int)tkIb.indices.size(), &dstib[0]);
+				ib->Init((int)tkIb.indices.size(), mesh->m_indexDataArray.back().data());
 
 				//スキンがあるかどうかを設定する。
 				SetSkinFlag(tkIb.indices[0]);
 
+				//配列にインデックスバッファを収める
 				mesh->m_indexBufferArray.push_back(std::move(ib));
 			}
 		}
@@ -265,12 +267,13 @@ namespace DemolisherWeapon {
 			//インデックスのサイズが4byte
 			mesh->m_indexBufferArray.reserve(tkmMesh.indexBuffer32Array.size());
 			for (auto& tkIb : tkmMesh.indexBuffer32Array) {
-
-				std::vector<unsigned long> dstib;
+				//インデックスデータ作成
+				mesh->m_indexDataArray.emplace_back();
 				for (auto& srcib : tkIb.indices) {
-					dstib.emplace_back((unsigned long)srcib);
+					mesh->m_indexDataArray.back().emplace_back(srcib);
 				}
 
+				//インデックスバッファの初期化
 				std::unique_ptr<IIndexBuffer> ib;
 				if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
 					ib = std::make_unique<IndexBufferDX11>();
@@ -278,11 +281,12 @@ namespace DemolisherWeapon {
 				if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
 					ib = std::make_unique<IndexBufferDX12>();
 				}
-				ib->Init((int)tkIb.indices.size(), &dstib[0]);
+				ib->Init((int)tkIb.indices.size(), mesh->m_indexDataArray.back().data());
 
 				//スキンがあるかどうかを設定する。
 				SetSkinFlag(tkIb.indices[0]);
 
+				//配列にインデックスバッファを収める
 				mesh->m_indexBufferArray.push_back(std::move(ib));
 			}
 		}

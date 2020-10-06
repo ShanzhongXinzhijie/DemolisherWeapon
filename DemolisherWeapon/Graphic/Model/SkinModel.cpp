@@ -18,6 +18,11 @@ SkinModel::~SkinModel()
 }
 void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate, bool isUseFlyweightFactory)
 {
+	if (m_model || m_modelDx) {
+		DW_ERRORBOX(true,"SkinModel::Init()ƒƒ[ƒhÏ‚İ‚Å‚·")
+		return;
+	}
+
 	//FBXî•ñ‚ğİ’è
 	m_enFbxUpAxis = enFbxUpAxis;
 	m_enFbxCoordinate = enFbxCoordinate;

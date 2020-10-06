@@ -54,6 +54,9 @@ public:
 	virtual void Init(int numIndex, unsigned long* index) = 0;
 	virtual void Attach() = 0;
 
+	//virtual void* OpenReadPointer() = 0;
+	//virtual void CloseReadPointer() = 0;
+
 	int GetIndexNum()const { return m_numIndex; }
 
 protected:
@@ -63,6 +66,9 @@ protected:
 class IndexBufferDX11 : public IIndexBuffer {
 	void Init(int numIndex, unsigned long* index)override;
 	void Attach()override;
+
+	//void* OpenReadPointer() override;
+	//void CloseReadPointer() override;
 private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
 };
@@ -70,6 +76,9 @@ private:
 class IndexBufferDX12 : public IIndexBuffer {
 	void Init(int numIndex, unsigned long* index)override;
 	void Attach()override;
+
+	//void* OpenReadPointer() override;
+	//void CloseReadPointer() override;
 private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_indexBuffer;
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView;

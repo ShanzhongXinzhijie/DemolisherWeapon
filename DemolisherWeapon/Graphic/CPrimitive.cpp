@@ -204,6 +204,27 @@ void IndexBufferDX11::Attach() {
 		0
 	);
 }
+//読み取りをするにはバッファ作成時の設定変える必要あり
+/*void* IndexBufferDX11::OpenReadPointer() {
+	D3D11_MAPPED_SUBRESOURCE subresource;
+	//インデックスバッファをロック。
+	//HRESULT hr = GetGraphicsEngine().GetD3DDeviceContext()->Map(m_indexBuffer.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &subresource);
+	ID3D11DeviceContext* deviceContext = GetEngine().GetGraphicsEngine().GetD3DDeviceContext();
+	HRESULT hr = deviceContext->Map(m_indexBuffer.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &subresource);
+	if (FAILED(hr)) {
+		DW_ERRORBOX(FAILED(hr), "IndexBufferDX11::OpenReadPointer インデックスバッファのマップに失敗")
+		return nullptr;
+	}
+	//D3D11_BUFFER_DESC bufferDesc;
+	//m_indexBuffer->GetDesc(&bufferDesc);	
+	//int stride = 2;//cmoファイルはインデックスバッファのサイズは2byte固定
+	//int indexCount = bufferDesc.ByteWidth / stride;
+	return subresource.pData;
+}
+void IndexBufferDX11::CloseReadPointer() {
+	//インデックスバッファをアンロック
+	GetGraphicsEngine().GetD3DDeviceContext()->Unmap(m_indexBuffer.Get(), 0);
+}*/
 
 void IndexBufferDX12::Init(int numIndex, unsigned long* index) {
 	const auto fullsize = sizeof(unsigned long) * numIndex;
@@ -231,7 +252,7 @@ void IndexBufferDX12::Init(int numIndex, unsigned long* index) {
 	const D3D12_RANGE readRange = { 0, 0 };
 	if (FAILED(m_indexBuffer->Map(0, &readRange, &pIndexDataBegin))) {
 		DW_ERRORBOX(true, "IndexBufferDX12:コピーに失敗しました")
-			return;
+		return;
 	}
 	memcpy(pIndexDataBegin, index, fullsize);
 	m_indexBuffer->Unmap(0, nullptr);
@@ -242,5 +263,22 @@ void IndexBufferDX12::Init(int numIndex, unsigned long* index) {
 void IndexBufferDX12::Attach() {
 	GetGraphicsEngine().GetCommandList()->IASetIndexBuffer(&m_indexBufferView);
 }
+//読み取りをするにはバッファ作成時の設定変える必要あり
+/*void* IndexBufferDX12::OpenReadPointer() {
+	D3D11_MAPPED_SUBRESOURCE subresource;
+	//インデックスバッファをロック
+	void* pIndexDataBegin;
+	HRESULT hr = m_indexBuffer->Map(0, nullptr, &pIndexDataBegin);
+	if (FAILED(hr)) {
+		DW_ERRORBOX(FAILED(hr), "IndexBufferDX12::OpenReadPointer インデックスバッファのマップに失敗")
+		return nullptr;
+	}
+	return pIndexDataBegin;
+}
+void IndexBufferDX12::CloseReadPointer() {
+	//インデックスバッファをアンロック
+	const D3D12_RANGE whiteRange = { 0, 0 };
+	m_indexBuffer->Unmap(0, &whiteRange);
+}*/
 
 }
