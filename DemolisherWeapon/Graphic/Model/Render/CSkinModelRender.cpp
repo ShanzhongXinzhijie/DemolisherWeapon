@@ -108,6 +108,22 @@ void CSkinModelRender::PostLoopUpdate() {
 	}
 }
 
+/*void CSkinModelRender::Init(const wchar_t* filePath,
+	AnimationClip* animationClips,
+	int numAnimationClips 
+) {
+	EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ;
+	EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded;
+
+	//.tkmÇÕç∂éËån?
+	const wchar_t* extension = wcsrchr(filePath, L'.');
+	if (_wcsicmp(extension, L".tkm") == 0) {
+		//fbxUpAxis = enFbxUpAxisY;
+		//fbxCoordinate = enFbxLeftHanded;
+	}
+
+	Init(filePath, animationClips, numAnimationClips, fbxUpAxis, fbxCoordinate);
+}*/
 void CSkinModelRender::Init(const wchar_t* filePath,
 	AnimationClip* animationClips,
 	int numAnimationClips,

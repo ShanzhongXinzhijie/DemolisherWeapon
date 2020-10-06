@@ -34,9 +34,9 @@ void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, En
 
 	//スケルトンのデータを読み込む。
 	bool hasSkeleton = false;
-	if (_wcsicmp(filePath.extension().c_str(), L".tkm") != 0) {
+	//if (_wcsicmp(filePath.extension().c_str(), L".tkm") != 0) {
 		hasSkeleton = InitSkeleton(filePath.c_str());
-	}
+	//}
 
 	//視錐台カリングする
 	m_isFrustumCull = true;
@@ -158,14 +158,17 @@ void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, En
 bool SkinModel::InitSkeleton(const wchar_t* filePath)
 {
 	//スケルトンのデータを読み込む。
-	//cmoファイルの拡張子をtksに変更する。
+	//ファイルの拡張子をtksに変更する。
 	std::wstring skeletonFilePath = filePath;
-	//文字列から.cmoファイル始まる場所を検索。
+	//文字列から(.cmo or .tkm)が始まる場所を検索。
 	int pos = (int)skeletonFilePath.find(L".cmo");
+	if (pos == std::wstring::npos) {
+		pos = (int)skeletonFilePath.find(L".tkm");
+	}
 	if (pos == std::wstring::npos) {
 #ifndef DW_MASTER
 		char message[256];
-		sprintf_s(message, "SkinModel::InitSkeleton\nCMOファイルじゃない!\n%ls\n", filePath);
+		sprintf_s(message, "SkinModel::InitSkeleton\nCMOでもTKMでもない!\n%ls\n", filePath);
 		MessageBox(NULL, message, "Error", MB_OK);
 		//std::abort();
 #endif
@@ -454,7 +457,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		d3dDeviceContext->OMSetDepthStencilState(depthStencilState, 0);
 		
 		//ラスタライザーステートの設定
-		bool ccw = true;//モデルのあれが反時計回りか? TODO
+		bool ccw = true;//モデルのあれが反時計回りか?
 		if (m_pRasterizerStateCw && m_pRasterizerStateCCw && m_pRasterizerStateNone) {
 			switch (cullMode)
 			{

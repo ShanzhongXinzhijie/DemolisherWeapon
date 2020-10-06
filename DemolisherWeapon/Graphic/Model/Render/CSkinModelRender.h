@@ -37,6 +37,10 @@ public:
 		EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,
 		bool isUseFlyweightFactory = true);
 
+	/*void Init(const wchar_t* filePath,
+		AnimationClip* animationClips = nullptr,
+		int numAnimationClips = 0);*/
+
 	void Init(const wchar_t* filePath, EnFbxUpAxis fbxUpAxis, EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded, bool isUseFlyweightFactory = true) {
 		Init(filePath, nullptr, 0, fbxUpAxis, fbxCoordinate, isUseFlyweightFactory);
 	};
