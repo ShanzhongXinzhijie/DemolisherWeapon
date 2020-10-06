@@ -19,9 +19,11 @@ namespace DemolisherWeapon {
 		//デバッグ表示のモードを設定する
 		void SetDebugMode(int debugMode)
 		{
+#ifndef DW_DX12_TEMPORARY
 			m_enable = true;
 			Init();
 			m_physicsDrawer.setDebugMode(debugMode);
+#endif
 		}
 
 		//デバッグ表示が有効か？

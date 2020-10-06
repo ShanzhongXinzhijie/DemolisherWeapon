@@ -34,7 +34,7 @@ void ShadowMapRender::Render() {
 	GetGraphicsEngine().GetD3DDeviceContext()->OMGetBlendState(&oldBlendState, oldf, &olduint);
 
 	//シェーダーをZ値書き込み様に
-	ModelEffect::SetShaderMode(ModelEffect::enZShader);	
+	GetGraphicsEngine().GetModelDrawMode().SetShaderMode(ModelDrawMode::enZShader);
 	
 	for (int i = 0; i < SHADOWMAP_NUM; i++) {		
 
@@ -60,7 +60,7 @@ void ShadowMapRender::Render() {
 	}	
 
 	//シェーダーを通常に
-	ModelEffect::SetShaderMode(ModelEffect::enNormalShader);
+	GetGraphicsEngine().GetModelDrawMode().SetShaderMode(ModelDrawMode::enNormalShader);
 	
 	//カメラ位置戻す
 	SetMainCamera(oldcam);

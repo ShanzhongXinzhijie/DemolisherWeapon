@@ -1,4 +1,5 @@
 #pragma once
+#include "Model.h"
 
 namespace DemolisherWeapon {
 
@@ -19,7 +20,8 @@ public:
 	/// <param name="skeleton">スケルトン</param>
 	/// <returns>作成したモデルデータ</returns>
 	std::unique_ptr<DirectX::Model> CreateModel(const wchar_t* filePath, const Skeleton& skeleton);
-	
+	std::unique_ptr<CModel> CreateCModel(const wchar_t* filePath, const Skeleton& skeleton);
+
 	/// <summary>
 	/// モデルをロード
 	/// (Mapにモデルが登録されます。すでに登録されている場合そこから参照を取る)
@@ -28,6 +30,7 @@ public:
 	/// <param name="sketon">スケルトン</param>
 	/// <returns>ロードしたモデルの参照</returns>
 	DirectX::Model* Load(const wchar_t* filePath, const Skeleton& sketon);
+	CModel* LoadCModel(const wchar_t* filePath, const Skeleton& sketon);
 
 	/*!
 	*@brief	モデルデータを全開放。
@@ -35,12 +38,10 @@ public:
 	void Release();
 
 private:
-	//ファイルパスをキー、DirectXModelのインスタンスを値とするマップ。
-	//辞書みたいなものです。
-	std::unordered_map<
-		std::wstring,					//wstringがキー。 
-		std::unique_ptr<DirectX::Model>	//これが値。
-	> m_directXModelMap;
+	//DirectX::Model版
+	std::unordered_map<std::wstring,std::unique_ptr<DirectX::Model>> m_directXModelMap;
+	//CModel版
+	std::unordered_map<std::wstring,std::unique_ptr<CModel>> m_cmodelMap;
 };
 
 }

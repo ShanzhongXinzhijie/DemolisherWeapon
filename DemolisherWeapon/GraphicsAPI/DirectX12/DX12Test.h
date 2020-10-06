@@ -1,9 +1,11 @@
 #pragma once
 #include"GraphicsAPI/IGraphicsAPI.h"
+#include"Graphic/Factory/TextureFactory.h"
+#include"Graphic/Model/Model.h"
 
-#ifdef DW_DX12
 namespace DemolisherWeapon {
 	struct InitEngineParameter;
+	struct MeshTest;
 
 	class DX12Test : public IGraphicsAPI
 	{
@@ -41,6 +43,7 @@ namespace DemolisherWeapon {
 		UINT CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool isShaderVisible, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap);
 
 		//テストレンダ
+		bool RenderInit();
 		void Render();
 
 		//コマンドを実行する
@@ -101,6 +104,26 @@ namespace DemolisherWeapon {
 		}
 
 		/// <summary>
+		/// SRVを作成
+		/// </summary>
+		/// <param name="resource">参照するリソース</param>
+		/// <returns>GPUディスクリプタハンドル</returns>
+		D3D12_GPU_DESCRIPTOR_HANDLE CreateSRV(ID3D12Resource* resource) {
+			m_srvIndex++;
+
+			/*
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.Format = m_textureDesc.Format;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MipLevels = m_textureDesc.MipLevels;
+			*/
+
+			GetD3D12Device()->CreateShaderResourceView(resource, nullptr, CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_srvIndex, m_srvsDescriptorSize));
+			return CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_srvIndex, m_srvsDescriptorSize);
+		}
+
+		/// <summary>
 		/// バックバッファのクリア
 		/// </summary>
 		void ClearBackBuffer()override
@@ -132,17 +155,26 @@ namespace DemolisherWeapon {
 
 	private:
 		static constexpr int FRAME_COUNT = 2;
+		static constexpr int CBV_SRV_UAV_MAXNUM = 1024;
 
 		Microsoft::WRL::ComPtr<ID3D12Device> m_d3dDevice;
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_commandQueue;
+
 		Microsoft::WRL::ComPtr<IDXGISwapChain3> m_swapChain;
 		int m_currentBackBufferIndex = 0;
+
 		Microsoft::WRL::ComPtr<ID3D12Resource> m_renderTargets[FRAME_COUNT];
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtvDescriptorHeap;
 		UINT m_rtvDescriptorSize = 0;
+
 		Microsoft::WRL::ComPtr<ID3D12Resource> m_depthStencilBuffer;
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_dsvDescriptorHeap;
 		UINT m_dsvDescriptorSize = 0;
+
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvsDescriptorHeap;
+		UINT m_srvsDescriptorSize = 0;
+		int m_srvIndex = -1;
+
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator[FRAME_COUNT];
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;
 		Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
@@ -151,7 +183,18 @@ namespace DemolisherWeapon {
 
 		D3D12_VIEWPORT m_viewport;//ビューポート
 		D3D12_RECT     m_scissorRect;//シザー矩形
+
+		//テスト描画
+		bool m_isInitTest = false;
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;//ルートシグネチャ
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;//パイプラインステートオブジェクト
+		Shader m_vs, m_ps;
+		CPrimitive m_square;
+		TextueData m_texture, m_texture2;
+
+		//メッシュ描画のテスト
+		MeshTest* m_meshTest = nullptr;
+		GameObj::PerspectiveCamera m_camera;
 	};
 
 }
-#endif

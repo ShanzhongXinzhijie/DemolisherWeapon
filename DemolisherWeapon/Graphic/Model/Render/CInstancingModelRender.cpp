@@ -89,7 +89,7 @@ namespace GameObj {
 		//インスタンシング用頂点シェーダをセット
 		m_model.GetSkinModel().FindMaterialSetting(
 			[&](MaterialSetting* mat) {
-				if (mat->GetModelEffect()->GetIsSkining()) {
+				if (mat->GetIsSkining()) {
 					//スキンモデル
 					mat->SetVS(&m_s_vsSkinShader);
 					mat->SetVSZ(&m_s_vsZSkinShader);

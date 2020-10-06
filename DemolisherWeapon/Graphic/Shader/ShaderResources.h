@@ -59,24 +59,19 @@ public:
 		//コンパイル済みシェーダーのデータ(バイトコード)
 	private:
 		ID3DBlob* blobOut = nullptr;
-		std::unique_ptr<char[]> fileblob;
-		size_t fileblobSize = 0;
 	public:
+		ID3DBlob* GetBlob()const {
+			return blobOut;
+		}
 		LPVOID GetBufferPointer()const {
 			if (blobOut) {
 				return blobOut->GetBufferPointer();
-			}
-			if (fileblob) {
-				return fileblob.get();
 			}
 			return nullptr;
 		}
 		SIZE_T GetBufferSize()const {
 			if (blobOut) {
 				return blobOut->GetBufferSize();
-			}
-			if (fileblob) {
-				return fileblobSize;
 			}
 			return 0;
 		}

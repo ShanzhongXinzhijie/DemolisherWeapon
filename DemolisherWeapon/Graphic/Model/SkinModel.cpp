@@ -2,7 +2,7 @@
 #include "SkinModel.h"
 #include "SkinModelShaderConst.h"
 #include "Graphic/FrustumCulling.h"
-
+#include "Model.h"
 #include <filesystem>
 
 namespace DemolisherWeapon {
@@ -16,8 +16,13 @@ SkinModel::~SkinModel()
 		m_cb->Release();
 	}
 }
-void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate, bool isUseFlyweightFactory)
+void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate, bool isUseFlyweightFactory)
 {
+	if (m_model || m_modelDx) {
+		DW_ERRORBOX(true,"SkinModel::Init()＜ロード済みです")
+		return;
+	}
+
 	//FBX情報を設定
 	m_enFbxUpAxis = enFbxUpAxis;
 	m_enFbxCoordinate = enFbxCoordinate;
@@ -28,7 +33,10 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	m_biasMatrix.Mul(mBiasScr, m_biasMatrix);
 
 	//スケルトンのデータを読み込む。
-	bool hasSkeleton = InitSkeleton(filePath);
+	bool hasSkeleton = false;
+	if (_wcsicmp(filePath.extension().c_str(), L".tkm") != 0) {
+		hasSkeleton = InitSkeleton(filePath.c_str());
+	}
 
 	//視錐台カリングする
 	m_isFrustumCull = true;
@@ -36,24 +44,61 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 	//定数バッファの作成。
 	InitConstantBuffer();
 
-	//SkinModelDataManagerを使用してCMOファイルのロード。
-	if (isUseFlyweightFactory) {
-		//モデルプールを使用
-		m_modelDx = m_skinModelDataManager.Load(filePath, m_skeleton);
+	//拡張子がtkmか判定
+	if(_wcsicmp(filePath.extension().c_str(),L".tkm") == 0){
+		//TKMファイルのロード
+		if (isUseFlyweightFactory) {
+			//モデルプールを使用
+			m_model = m_skinModelDataManager.LoadCModel(filePath.c_str(), m_skeleton);
+		}
+		else {
+			//モデルを新規作成
+			m_modelData = m_skinModelDataManager.CreateCModel(filePath.c_str(), m_skeleton);
+			m_model = m_modelData.get();
+		}
 	}
 	else {
-		//モデルを新規作成
-		m_modelDxData = m_skinModelDataManager.CreateModel(filePath, m_skeleton);
-		m_modelDx = m_modelDxData.get();
+		//SkinModelDataManagerを使用してCMOファイルのロード。
+		if (isUseFlyweightFactory) {
+			//モデルプールを使用
+			m_modelDx = m_skinModelDataManager.Load(filePath.c_str(), m_skeleton);
+		}
+		else {
+			//モデルを新規作成
+			m_modelDxData = m_skinModelDataManager.CreateModel(filePath.c_str(), m_skeleton);
+			m_modelDx = m_modelDxData.get();
+		}
 	}
 
+	if (m_model) {
+		//バウンディングボックスの生成
+		bool isFirst = true;
+		FindMeshCModel([&](const std::unique_ptr<SModelMesh>& mesh) {
+			for (int i = 0; i < mesh->m_vertexNum; i++) {
+				if (isFirst) {
+					m_minAABB_Origin = mesh->m_vertexData[i].position;
+					m_maxAABB_Origin = mesh->m_vertexData[i].position;
+					isFirst = false;
+				}
+				else {
+					m_maxAABB_Origin.x = max(m_maxAABB_Origin.x, mesh->m_vertexData[i].position.x);
+					m_maxAABB_Origin.y = max(m_maxAABB_Origin.y, mesh->m_vertexData[i].position.y);
+					m_maxAABB_Origin.z = max(m_maxAABB_Origin.z, mesh->m_vertexData[i].position.z);
+
+					m_minAABB_Origin.x = min(m_minAABB_Origin.x, mesh->m_vertexData[i].position.x);
+					m_minAABB_Origin.y = min(m_minAABB_Origin.y, mesh->m_vertexData[i].position.y);
+					m_minAABB_Origin.z = min(m_minAABB_Origin.z, mesh->m_vertexData[i].position.z);
+				}
+			}
+		});
+	}
 	if (m_modelDx) {
 		//マテリアル設定の確保
-		FindMaterial(
+		/*FindMaterial(
 			[&](ModelEffect* mat) {
 			m_materialSetting.emplace_back();
 		}
-		);
+		);*/
 
 		//バウンディングボックスの取得・生成
 		bool isFirst = true;
@@ -88,27 +133,27 @@ void SkinModel::Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoor
 				isFirst = false;
 			}
 		);
-		//中心と端までのベクトルを保存
-		m_centerAABB = m_minAABB_Origin + m_maxAABB_Origin; m_centerAABB /= 2.0f;
-		m_extentsAABB = m_maxAABB_Origin - m_centerAABB;
-		//モデル本来のバウンディングボックスを保存
-		m_modelBoxCenter = m_centerAABB, m_modelBoxExtents = m_extentsAABB;
-
-		//スキンモデルなら
-		if (hasSkeleton) {
-			//大きさを二倍に(アニメーションしても収まるサイズ)(ホントに収まるかはしらん)
-			CVector3 minBox = m_centerAABB - m_extentsAABB * 2.0f;
-			CVector3 maxBox = m_centerAABB + m_extentsAABB * 2.0f;
-			SetBoundingBox(minBox, maxBox);//設定
-		}
+	}
+	
+	//中心と端までのベクトルを保存
+	m_centerAABB = m_minAABB_Origin + m_maxAABB_Origin; m_centerAABB /= 2.0f;
+	m_extentsAABB = m_maxAABB_Origin - m_centerAABB;
+	//モデル本来のバウンディングボックスを保存
+	m_modelBoxCenter = m_centerAABB, m_modelBoxExtents = m_extentsAABB;
+	
+	//スキンモデルなら
+	if (hasSkeleton) {
+		//大きさを二倍に(アニメーションしても収まるサイズ)(ホントに収まるかはしらん)
+		CVector3 minBox = m_centerAABB - m_extentsAABB * 2.0f;
+		CVector3 maxBox = m_centerAABB + m_extentsAABB * 2.0f;
+		SetBoundingBox(minBox, maxBox);//設定
 	}
 
 	//バウンディングボックス初期化
 	UpdateBoundingBoxWithWorldMatrix();
 
 	//ファイル名記録
-	std::experimental::filesystem::path ps = filePath;
-	m_modelName = ps.stem();
+	m_modelName = filePath.stem();
 }
 bool SkinModel::InitSkeleton(const wchar_t* filePath)
 {
@@ -122,7 +167,7 @@ bool SkinModel::InitSkeleton(const wchar_t* filePath)
 		char message[256];
 		sprintf_s(message, "SkinModel::InitSkeleton\nCMOファイルじゃない!\n%ls\n", filePath);
 		MessageBox(NULL, message, "Error", MB_OK);
-		std::abort();
+		//std::abort();
 #endif
 		return false;
 	}
@@ -338,20 +383,22 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	//ボーン行列をGPUに転送。
 	m_skeleton.SendBoneMatrixArrayToGPU();
 
-	//マテリアル設定の適応
+	//使うマテリアル設定の設定
 	if(isMatSetInit && isMatSetEnable){
 		//個別設定
 		int i = 0;
-		FindMaterial(
+		/*FindMaterial(
 			[&](ModelEffect* mat) {
 				mat->SetUseMaterialSetting(m_materialSetting[i]);
 				i++;
 			}
-		);
+		);*/
+		FindMaterialData([&](MaterialData& mat) {mat.SetUseMaterialSetting(m_materialSetting[i]); i++; });
 	}
 	else {
 		//全体設定
-		FindMaterial([&](ModelEffect* mat) { mat->SetDefaultMaterialSetting(); });
+		//FindMaterial([&](ModelEffect* mat) { mat->SetDefaultMaterialSetting(); });
+		FindMaterialData([&](MaterialData& mat) {mat.SetDefaultMaterialSetting(); });
 	}
 
 	//ユーザー設定の描画前処理実行
@@ -371,28 +418,136 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		}
 	}
 
+	//描画
+	if (m_model) {
+		const DirectX::CommonStates& states = GetGraphicsEngine().GetCommonStates();
+
+		//アルファブレンドはないものとして描画... TODO
+		ID3D11BlendState* blendState = pBlendState;
+		ID3D11DepthStencilState* depthStencilState = pDepthStencilState ? pDepthStencilState : m_pDepthStencilState;
+		/*bool alpha = false, pmalpha = true;
+		if (alpha)
+		{
+			if (pmalpha)
+			{
+				blendState = states.AlphaBlend();
+				depthStencilState = states.DepthRead();
+			}
+			else
+			{
+				blendState = states.NonPremultiplied();
+				depthStencilState = states.DepthRead();
+			}
+		}
+		else*/
+		{
+			if (!blendState) {
+				blendState = states.Opaque();
+			}
+			if (!depthStencilState) {
+				depthStencilState = states.DepthDefault();
+			}
+		}
+		//ブレンドステートの設定
+		d3dDeviceContext->OMSetBlendState(blendState, nullptr, 0xFFFFFFFF);
+		//デプスステンシルステートの設定
+		d3dDeviceContext->OMSetDepthStencilState(depthStencilState, 0);
+		
+		//ラスタライザーステートの設定
+		bool ccw = true;//モデルのあれが反時計回りか? TODO
+		if (m_pRasterizerStateCw && m_pRasterizerStateCCw && m_pRasterizerStateNone) {
+			switch (cullMode)
+			{
+			case D3D11_CULL_NONE:
+				d3dDeviceContext->RSSetState(m_pRasterizerStateNone);
+				break;
+			case D3D11_CULL_FRONT:
+				d3dDeviceContext->RSSetState(ccw ? m_pRasterizerStateCCw : m_pRasterizerStateCw);
+				break;
+			case D3D11_CULL_BACK:
+				d3dDeviceContext->RSSetState(!ccw ? m_pRasterizerStateCCw : m_pRasterizerStateCw);
+				break;
+			default:
+				break;
+			}
+		}
+		else {
+			if (false) {
+				d3dDeviceContext->RSSetState(states.Wireframe());
+			}
+			else {
+				switch (cullMode)
+				{
+				case D3D11_CULL_NONE:
+					d3dDeviceContext->RSSetState(states.CullNone());
+					break;
+				case D3D11_CULL_FRONT:
+					d3dDeviceContext->RSSetState(ccw ? states.CullCounterClockwise() : states.CullClockwise());
+					break;
+				case D3D11_CULL_BACK:
+					d3dDeviceContext->RSSetState(!ccw ? states.CullCounterClockwise() : states.CullClockwise());
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		//サンプラーの設定
+		ID3D11SamplerState* samplerState = states.AnisotropicWrap();
+		d3dDeviceContext->PSSetSamplers(0, 1, &samplerState);
+
+		//描画
+		m_model->Draw(instanceNum* m_instanceNum);
+	}
+
 #ifndef DW_DX12_TEMPORARY
-
-	//描画。
-	m_modelDx->Draw(
-		d3dDeviceContext,
-		GetGraphicsEngine().GetCommonStates(),
-		m_worldMatrix,
-		GetMainCamera()->GetViewMatrix(),
-		GetMainCamera()->GetProjMatrix(),
-		false,
-		cullMode,
-		pBlendState,
-		m_pRasterizerStateCw, m_pRasterizerStateCCw, m_pRasterizerStateNone,
-		pDepthStencilState ? pDepthStencilState : m_pDepthStencilState,
-		instanceNum*m_instanceNum
-	);
-
+	//描画
+	if (m_modelDx) {
+		m_modelDx->Draw(
+			d3dDeviceContext,
+			GetGraphicsEngine().GetCommonStates(),
+			m_worldMatrix,
+			GetMainCamera()->GetViewMatrix(),
+			GetMainCamera()->GetProjMatrix(),
+			false,
+			cullMode,
+			pBlendState,
+			m_pRasterizerStateCw, m_pRasterizerStateCCw, m_pRasterizerStateNone,
+			pDepthStencilState ? pDepthStencilState : m_pDepthStencilState,
+			instanceNum * m_instanceNum
+		);
+	}
 #endif
 
 	//ユーザー設定の描画後処理実行
 	for (auto& func : m_postDrawFunc) {
 		func.second(this);
+	}
+}
+
+void SkinModel::FindMeshCModel(std::function<void(const std::unique_ptr<SModelMesh>&)> onFindMesh)const
+{
+	if (!m_model) {
+		DW_WARNING_BOX(true, "FindMesh:m_modelがNULL")
+			return;
+	}
+	m_model->FindMesh(onFindMesh);
+}
+
+void SkinModel::FindMaterialData(std::function<void(MaterialData&)> onFindMaterial) const
+{
+	if (m_modelDx) {
+		FindMaterial([&](ModelEffect* mat) {
+			onFindMaterial(mat->GetMatrialData());
+		});
+	}
+	if (m_model) {
+		FindMeshCModel([&](const std::unique_ptr<SModelMesh>& mesh) {
+			for (auto& mat : mesh->m_materials) {
+				onFindMaterial(mat->GetMaterialData());
+			}
+			});
 	}
 }
 

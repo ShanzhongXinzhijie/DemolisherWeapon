@@ -43,6 +43,10 @@ public:
 	{
 		return m_pShaderResource->inputLayout;
 	}
+
+	ID3DBlob* GetBlob()const {
+		return m_pShaderResource->GetBlob();
+	}
 	void* GetByteCode()const
 	{
 		return m_pShaderResource->GetBufferPointer();

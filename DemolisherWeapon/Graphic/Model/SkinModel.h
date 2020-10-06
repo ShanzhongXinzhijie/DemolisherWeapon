@@ -8,6 +8,9 @@
 
 namespace DemolisherWeapon {
 
+class CModel;
+struct SModelMesh;
+
 /*!
 *@brief	スキンモデルクラス。
 */
@@ -26,11 +29,11 @@ public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	/// <param name="filePath">ロードするcmoファイルのファイルパス</param>
+	/// <param name="filePath">ロードするcmoまたはtkmファイルのファイルパス</param>
 	/// <param name="enFbxUpAxis">fbxの上軸。デフォルトはenFbxUpAxisZ</param>
 	/// <param name="enFbxCoordinate">fbxの座標系。デフォルトはenFbxRightHanded</param>
 	/// <param name="isUseFlyweightFactory">モデルのロードにFlyweightFactoryを使用するか</param>
-	void Init(const wchar_t* filePath, EnFbxUpAxis enFbxUpAxis = enFbxUpAxisZ, EnFbxCoordinateSystem enFbxCoordinate = enFbxRightHanded, bool isUseFlyweightFactory = true);
+	void Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis = enFbxUpAxisZ, EnFbxCoordinateSystem enFbxCoordinate = enFbxRightHanded, bool isUseFlyweightFactory = true);
 	
 	/*!
 	*@brief	モデルをワールド座標系に変換するためのワールド行列を更新する。
@@ -126,13 +129,17 @@ public:
 		return m_skeleton;
 	}
 
-	/*!
-	*@brief	メッシュを検索する。
-	*@param[in] onFindMesh		メッシュが見つかったときのコールバック関数
-	*/
+	/// <summary>
+	/// メッシュを検索する。(DirectX::Model版)
+	/// </summary>
+	/// <param name="onFindMesh">メッシュが見つかったときのコールバック関数</param>
 	void FindMesh(OnFindMesh onFindMesh) const
 	{
 #ifndef DW_DX12_TEMPORARY
+		if (!m_modelDx) {
+			DW_WARNING_BOX(true, "FindMesh:m_modelDxがNULL")
+			return;
+		}
 		for (auto& modelMeshs : m_modelDx->meshes) {
 			for (std::unique_ptr<DirectX::ModelMeshPart>& mesh : modelMeshs->meshParts) {
 				onFindMesh(mesh);
@@ -141,40 +148,66 @@ public:
 #endif
 	}
 	/// <summary>
+	/// メッシュを検索する。(CModel版)
+	/// </summary>
+	/// <param name="onFindMesh">メッシュが見つかったときのコールバック関数</param>
+	void FindMeshCModel(std::function<void(const std::unique_ptr<SModelMesh>&)> onFindMesh) const;
+
+	/// <summary>
 	/// メッシュの集合を検索する。
 	/// </summary>
 	/// <param name="onFindMeshes">メッシュの集合が見つかったときのコールバック関数</param>
-	void FindMeshes(std::function<void(const std::shared_ptr<DirectX::ModelMesh>&)> onFindMeshes)const {
+	void FindMeshes(std::function<void(const std::shared_ptr<DirectX::ModelMesh>&)> onFindMeshes)const 
+	{
+		if (!m_modelDx) {
+			DW_WARNING_BOX(true, "FindMeshes:m_modelDxがNULL")
+			return;
+		}
 		for (auto& modelMeshs : m_modelDx->meshes) {
 			onFindMeshes(modelMeshs);
 		}
 	}
-	/*!
-	*@brief	マテリアルを検索する。
-	*@param[in] onFindMaterial	マテリアルが見つかったときのコールバック関数
-	*/
+
+	/// <summary>
+	/// マテリアルを検索する。(DirectX::Model版)
+	/// </summary>
+	/// <param name="onFindMaterial">マテリアルが見つかったときのコールバック関数</param>
 	void FindMaterial(OnFindMaterial onFindMaterial) const
 	{
 #ifndef DW_DX12_TEMPORARY
-		FindMesh([&](auto& mesh) {
+		FindMesh([&](const std::unique_ptr<DirectX::ModelMeshPart>& mesh) {
 			ModelEffect* effect = reinterpret_cast<ModelEffect*>(mesh->effect.get());
 			onFindMaterial(effect);
 		});
 #endif
 	}
+	/// <summary>
+	/// マテリアルデータを検索する
+	/// </summary>
+	/// <param name="onFindMaterial">マテリアルデータが見つかったときのコールバック関数</param>
+	void FindMaterialData(std::function<void(MaterialData&)> onFindMaterial) const;
 
 	//マテリアル設定を初期化して有効化
 	void InitMaterialSetting() {
 		isMatSetInit = true;
 		isMatSetEnable = true;
 
+		bool isAllocated = m_materialSetting.size() > 0;
 		int i = 0;
-		FindMaterial(
-			[&](ModelEffect* mat) {
-				mat->MaterialSettingInit(m_materialSetting[i]);
+		FindMaterialData(
+			[&](MaterialData& mat) {
+				if (!isAllocated) { m_materialSetting.emplace_back(); }//マテリアル設定の確保
+				m_materialSetting[i].Init(&mat);//初期化
 				i++;
 			}
 		);
+		//FindMaterial(
+		//	[&](ModelEffect* mat) {
+		//		if (!isAllocated) { m_materialSetting.emplace_back(); }//マテリアル設定の確保
+		//		mat->MaterialSettingInit(m_materialSetting[i]);//初期化
+		//		i++;
+		//	}
+		//);
 	}
 	//マテリアル設定の有効・無効を設定
 	void SetMaterialSettingEnable(bool enable) {
@@ -344,6 +377,19 @@ public:
 		return m_enFbxCoordinate;
 	}
 
+	/// <summary>
+	/// DirectXTKのモデルをロード済みか?
+	/// </summary>
+	bool IsLoadedDirectXTKModel()const {
+		return m_modelDx != nullptr;
+	}
+	/// <summary>
+	/// モデルをロード済みか?
+	/// </summary>
+	bool IsLoadedModel()const {
+		return m_model != nullptr;
+	}
+
 private:
 	/*!
 	*@brief	定数バッファの作成。
@@ -405,48 +451,52 @@ private:
 		//モーションブラースケール
 		float MotionBlurScale = MotionBlurRender::DEFAULT_MBLUR_SCALE;
 	};
+	ID3D11Buffer* m_cb = nullptr;//定数バッファ
+
+	//行列
 	CMatrix	m_worldMatrix;		//ワールド行列
 	CMatrix m_worldMatrixOld;	//前回のワールド行列
 	CMatrix m_biasMatrix;
 	bool m_isFirstWorldMatRef = true;
+
+	//シェーダー用設定	
+	float m_cb_t = 0.0f;//シェーダー用なんか		
+	int m_imposterPartNum[2] = {};//インポスター用分割数
+	float m_imposterScale = 1.0f, m_imposterRotY = 0.0f;//インポスター用	
+	float m_softParticleArea = 50.0f;//ソフトパーティクルが有効になる範囲
 
 	//マテリアル個別設定	
 	bool isMatSetInit = false;
 	bool isMatSetEnable = false;
 	std::vector<MaterialSetting> m_materialSetting;
 
-	EnFbxUpAxis			m_enFbxUpAxis = enFbxUpAxisZ;			//!<FBXの上方向。
-	EnFbxCoordinateSystem m_enFbxCoordinate = enFbxRightHanded;	//!<FBXの座標系
-	ID3D11Buffer*		m_cb = nullptr;							//!<定数バッファ。
-	Skeleton			m_skeleton;								//!<スケルトン。
-	DirectX::Model*		m_modelDx;								//!<DirectXTKが提供するモデルクラス。
-	std::unique_ptr<DirectX::Model> m_modelDxData;
-	std::wstring		m_modelName;							//!<モデルの名前。
+	//モデルファイル情報
+	EnFbxUpAxis			m_enFbxUpAxis = enFbxUpAxisZ;			//FBXの上方向
+	EnFbxCoordinateSystem m_enFbxCoordinate = enFbxRightHanded;	//FBXの座標系
+	std::wstring		m_modelName;							//モデルの名前
 
+	//DirectXTKが提供するモデルクラス
+	DirectX::Model* m_modelDx = nullptr;								
+	std::unique_ptr<DirectX::Model> m_modelDxData;
+
+	//このエンジンのモデルクラス
+	CModel* m_model = nullptr;
+	std::unique_ptr<CModel> m_modelData;
+
+	//スケルトン
+	Skeleton m_skeleton;
+
+	//描画設定
 	ID3D11DepthStencilState* m_pDepthStencilState = nullptr;//デプスステンシルステート
 	ID3D11RasterizerState* m_pRasterizerStateCw = nullptr;//ラスタライザステート
 	ID3D11RasterizerState* m_pRasterizerStateCCw = nullptr;
 	ID3D11RasterizerState* m_pRasterizerStateNone = nullptr;
 	float m_depthBias = 0.0f;//深度値バイアス	
-
 	D3D11_CULL_MODE m_cull = D3D11_CULL_FRONT;//面の向き
 
-	//シェーダー用なんか
-	float m_cb_t = 0.0f;
-	
-	//インポスター用
-	int m_imposterPartNum[2] = {};//分割数
-	float m_imposterScale = 1.0f, m_imposterRotY = 0.0f;
+	//インスタンス数
+	int m_instanceNum = 1;
 
-	//ソフトパーティクルが有効になる範囲
-	float m_softParticleArea = 50.0f;
-	
-	int m_instanceNum = 1;//インスタンス数
-
-	bool m_isCalcWorldMatrix = true;//ワールド行列を計算するか?
-
-	bool m_isFrustumCull = false;//視錐台カリングするか?
-	
 	//バウンディングボックス
 	CVector3 m_minAABB_Origin, m_maxAABB_Origin;
 	CVector3 m_centerAABB, m_extentsAABB;
@@ -458,7 +508,10 @@ private:
 	std::unordered_map<int, std::function<void(SkinModel*)>> m_preDrawFunc;//描画前に実行
 	std::unordered_map<int, std::function<void(SkinModel*)>> m_postDrawFunc;//描画後に実行
 
+	//設定
 	bool m_isDraw = true; //描画するか?
+	bool m_isCalcWorldMatrix = true;//ワールド行列を計算するか?
+	bool m_isFrustumCull = false;//視錐台カリングするか?
 
 	//モデルデータマネージャー
 	static SkinModelDataManager m_skinModelDataManager;

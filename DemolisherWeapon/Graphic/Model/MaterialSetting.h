@@ -1,11 +1,20 @@
 #pragma once
+#include "tktkmfile.h"
+#include "Graphic/Factory/TextureFactory.h"
+#include "Graphic/Model/SkinModelEffectShader.h"
+//#include "Graphic/shader/ConstantBuffer.h"
 
 namespace DemolisherWeapon {
 
 	class ModelEffect;
+	class IMaterial;
+	class MaterialData;
+	template<class T>class ConstantBufferDx12;
 
-	//定数バッファ　[model.fx:MaterialCb]
-	//マテリアルパラメーター
+	/// <summary>
+	/// マテリアルパラメーター
+	/// 定数バッファ　[model.fx:MaterialCb]
+	/// </summary>
 	struct MaterialParam {
 		CVector4 albedoScale = CVector4::One();	//アルベドにかけるスケール
 		float emissive = 0.0f;					//自己発光
@@ -17,18 +26,20 @@ namespace DemolisherWeapon {
 		float translucent = 0.0f;				//トランスルーセント(光の透過具合)
 	};
 
+	/// <summary>
+	/// マテリアル設定
+	/// </summary>
 	class MaterialSetting
 	{
 	public:
+		MaterialSetting() = default;
 
-		~MaterialSetting(){
-			if (m_pAlbedoTex) { m_pAlbedoTex->Release(); m_pAlbedoTex = nullptr; }
-			if (m_pNormalTex) { m_pNormalTex->Release(); m_pNormalTex = nullptr; }
-			if (m_pLightingTex) { m_pLightingTex->Release(); m_pLightingTex = nullptr; }
-			if (m_pTranslucentTex) { m_pTranslucentTex->Release(); m_pTranslucentTex = nullptr; }			
-		}
-
-		void Init(ModelEffect* modeleffect);
+		/// <summary>
+		/// 初期化
+		/// </summary>
+		/// <param name="modeleffect">親モデルエフェクト</param>
+		//void Init(ModelEffect* modeleffect);
+		void Init(MaterialData* materialData);
 
 		//名前を設定
 		void SetMatrialName(const wchar_t* matName)
@@ -141,105 +152,115 @@ namespace DemolisherWeapon {
 
 		//アルベドテクスチャを取得
 		ID3D11ShaderResourceView* GetAlbedoTexture()const {
-			return m_pAlbedoTex;
+			return m_albedo.textureView.Get();
 		}
 		ID3D11ShaderResourceView* const * GetAddressOfAlbedoTexture()const {
-			return &m_pAlbedoTex;
+			return m_albedo.textureView.GetAddressOf();
 		}
 		//アルベドテクスチャを設定
 		void SetAlbedoTexture(ID3D11ShaderResourceView* tex){
-
-			if (m_pAlbedoTex == tex) { return; }//既に
-
-			if (m_pAlbedoTex) { 
-				m_pAlbedoTex->Release();
+			TextueData texData;
+			if (tex) {
+				tex->AddRef();
+				texData.textureView.Attach(tex);
 			}
-			else {
+			SetAlbedoTexture(texData);
+		}
+		//アルベドテクスチャを設定
+		void SetAlbedoTexture(const TextueData& tex) {
+			if (m_albedo == tex) { return; }//既に
+
+			if (!m_albedo.isLoaded()) {
 				SetAlbedoScale(CVector4::One());//アルベドスケールを初期化
 			}
-			m_pAlbedoTex = tex;
-			if (m_pAlbedoTex) {
-				m_pAlbedoTex->AddRef();
-			}
+
+			m_albedo = tex;//コピー
 		}
 		//アルベドテクスチャをデフォに戻す
 		void SetDefaultAlbedoTexture();
 
 		//ノーマルマップを取得
 		ID3D11ShaderResourceView* GetNormalTexture()const {
-			return m_pNormalTex;
+			return m_normal.textureView.Get();
 		}
 		ID3D11ShaderResourceView* const * GetAddressOfNormalTexture()const {
-			return &m_pNormalTex;
+			return m_normal.textureView.GetAddressOf();
 		}
 		//ノーマルマップを設定
 		void SetNormalTexture(ID3D11ShaderResourceView* tex) {
-
-			if (m_pNormalTex == tex) { return; }//既に
-
-			if (m_pNormalTex) {
-				m_pNormalTex->Release();
+			TextueData texData;
+			if (tex) {
+				tex->AddRef();
+				texData.textureView.Attach(tex);
 			}
-			m_pNormalTex = tex;
-			if (m_pNormalTex) {
-				m_pNormalTex->AddRef();
-			}
+			SetNormalTexture(texData);
+		}
+		//ノーマルマップを設定
+		void SetNormalTexture(const TextueData& tex) {
+			if (m_normal == tex) { return; }//既に
+			m_normal = tex;//コピー
 		}
 		//ノーマルマップをデフォに戻す
 		void SetDefaultNormalTexture();
 
 		//ライティングパラメータマップを取得
 		ID3D11ShaderResourceView* GetLightingTexture()const {
-			return m_pLightingTex;
+			return m_lighting.textureView.Get();
 		}
 		ID3D11ShaderResourceView* const * GetAddressOfLightingTexture()const {
-			return &m_pLightingTex;
+			return m_lighting.textureView.GetAddressOf();
 		}
 		//ライティングパラメータマップを設定
 		void SetLightingTexture(ID3D11ShaderResourceView* tex) {
-
-			if (m_pLightingTex == tex) { return; }//既に
-
-			if (m_pLightingTex) {
-				m_pLightingTex->Release();
+			TextueData texData;
+			if (tex) {
+				tex->AddRef();
+				texData.textureView.Attach(tex);
 			}
-			else {
+			SetLightingTexture(texData);
+		}
+		//ライティングパラメータマップを設定
+		void SetLightingTexture(const TextueData& tex) {
+			if (m_lighting == tex) { return; }//既に
+
+			if (!m_lighting.isLoaded()) {
 				//初期化(これらのパラメータはテクスチャにかけるスケールとして使う)
 				SetEmissive(1.0f);
 				SetMetallic(1.0f);
 				SetShininess(1.0f);
 			}
-			m_pLightingTex = tex;
-			if (m_pLightingTex) {
-				m_pLightingTex->AddRef();
-			}
+
+			m_lighting = tex;//コピー
 		}
 		//ライティングパラメータマップをデフォに戻す
 		void SetDefaultLightingTexture();
 
 		//トランスルーセントマップを取得
 		ID3D11ShaderResourceView* GetTranslucentTexture()const {
-			return m_pTranslucentTex;
+			return m_translucent.textureView.Get();
 		}
 		ID3D11ShaderResourceView* const * GetAddressOfTranslucentTexture()const {
-			return &m_pTranslucentTex;
+			return m_translucent.textureView.GetAddressOf();
 		}
 		//トランスルーセントマップを設定
 		void SetTranslucentTexture(ID3D11ShaderResourceView* tex) {
-
-			if (m_pTranslucentTex == tex) { return; }//既に
-
-			if (m_pTranslucentTex) {
-				m_pTranslucentTex->Release();
+			TextueData texData;
+			if (tex) {
+				tex->AddRef();
+				texData.textureView.Attach(tex);
 			}
-			else {
+			SetTranslucentTexture(texData);
+		}
+		//トランスルーセントマップを設定
+		void SetTranslucentTexture(const TextueData& tex) {
+			if (m_translucent == tex) { return; }//既に
+
+			if (!m_translucent.isLoaded()) {
 				//初期化(これらのパラメータはテクスチャにかけるスケールとして使う)
 				SetTranslucent(1.0f);
 			}
-			m_pTranslucentTex = tex;
-			if (m_pTranslucentTex) {
-				m_pTranslucentTex->AddRef();
-			}
+
+			m_translucent = tex;//コピー
 		}
 
 		//モーションブラー有効かを設定
@@ -259,12 +280,15 @@ namespace DemolisherWeapon {
 			return m_isUseTexZShader;
 		}
 
-		ModelEffect* GetModelEffect() {
-			return m_isInit;
-		}
+		//スキンモデルか取得
+		bool GetIsSkining()const;
+
+		//ModelEffect* GetModelEffect() {
+		//	return m_isInit;
+		//}
 		
 	private:
-		ModelEffect *m_isInit = nullptr;
+		MaterialData* m_isInit = nullptr;//親
 
 		std::wstring m_materialName;  //マテリアル名
 		MaterialParam m_materialParam;//マテリアルパラメータ
@@ -277,14 +301,119 @@ namespace DemolisherWeapon {
 		Shader *m_pPSZShader = nullptr;
 
 		//テクスチャ
-		ID3D11ShaderResourceView* m_pAlbedoTex = nullptr;		
-		ID3D11ShaderResourceView* m_pNormalTex = nullptr;
-		ID3D11ShaderResourceView* m_pLightingTex = nullptr;
-		ID3D11ShaderResourceView* m_pTranslucentTex = nullptr;
+		TextueData m_albedo;
+		TextueData m_normal;
+		TextueData m_lighting;
+		TextueData m_translucent;
 
 		//設定
 		bool m_enableMotionBlur = true;
 		bool m_isUseTexZShader = false;
 	};
 
+	/// <summary>
+	/// マテリアルデータ
+	/// </summary>
+	class MaterialData {
+	public:
+		MaterialData() = default;
+
+		//初期化
+		void Init(bool isSkining, std::wstring_view name);
+		void InitAlbedoTexture(std::wstring_view path);
+		void InitAlbedoColor(const CVector3& rgb);
+		void InitNormalTexture(std::wstring_view path);
+		void InitLightingTexture(std::wstring_view path);
+
+		//デフォルトのシェーダを取得
+		SkinModelEffectShader* GetDefaultVS() {
+			return &m_vsDefaultShader;
+		}
+		Shader* GetDefaultVSZ() {
+			return &m_vsZShader;
+		}
+		SkinModelEffectShader* GetDefaultPS() {
+			return &m_psDefaultShader;
+		}
+		Shader* GetDefaultPSZ() {
+			return &m_psZShader[0];
+		}
+		Shader* GetDefaultPSZ(bool isTex) {
+			return &m_psZShader[isTex ? 1 : 0];
+		}
+		//TriPlanarMapping用のシェーダを取得
+		SkinModelEffectShader* GetTriPlanarMappingPS(bool isYOnly) {
+			return isYOnly ? &m_psTriPlanarMapShaderYOnly : &m_psTriPlanarMapShader;
+		}
+
+		//デフォルトのアルベドテクスチャを取得
+		TextueData& GetDefaultAlbedoTexture() {
+			return m_albedo;
+		}
+		//デフォルトのノーマルマップを取得
+		TextueData& GetDefaultNormalTexture() {
+			return m_normal;
+		}
+		//デフォルトのライティングパラメータマップを取得
+		TextueData& GetDefaultLightingTexture() {
+			return m_lighting;
+		}
+
+		//定数バッファの取得(DX11)
+		auto& GetConstantBufferDX11() {
+			return m_materialParamCBDX11;
+		}
+
+		//スキンモデルか取得
+		bool GetIsSkining()const {
+			return m_isSkining;
+		}
+
+		//デフォルトマテリアル設定の取得
+		MaterialSetting& GetDefaultMaterialSetting() {
+			return m_defaultMaterialSetting;
+		}
+		//使用中のマテリアル設定の取得
+		MaterialSetting& GetUsingMaterialSetting() {
+			return *m_ptrUseMaterialSetting;
+		}
+
+		//使うマテリアル設定
+		void SetUseMaterialSetting(MaterialSetting& matset) {
+			m_ptrUseMaterialSetting = &matset;
+		}
+		//モデルデータデフォルトのマテリアル設定を使用
+		void SetDefaultMaterialSetting() {
+			SetUseMaterialSetting(m_defaultMaterialSetting);
+		}
+
+	private:
+		//デフォルトバーテックスシェーダ
+		SkinModelEffectShader m_vsDefaultShader;
+		Shader m_vsZShader;//Z値出力用
+
+		//デフォルトピクセルシェーダ
+		SkinModelEffectShader m_psDefaultShader;
+		Shader m_psZShader[2];//Z値出力用
+		SkinModelEffectShader m_psTriPlanarMapShader, m_psTriPlanarMapShaderYOnly;//TriPlanarMapping用のシェーダ
+
+		//スキンモデルか？
+		bool m_isSkining;
+
+		//テクスチャ
+		TextueData m_albedo;
+		TextueData m_normal;
+		TextueData m_lighting;
+
+		//マテリアル設定
+		MaterialSetting* m_ptrUseMaterialSetting = nullptr;	//使用するマテリアル設定
+		MaterialSetting m_defaultMaterialSetting;	//マテリアル設定(デフォルト)
+
+		//マテリアルパラメータ用の定数バッファ
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_materialParamCBDX11;
+		std::unique_ptr<ConstantBufferDx12<MaterialParam>> m_materialParamCBDX12;
+
+		//フレンド
+		friend class ModelEffect;
+	};
 }

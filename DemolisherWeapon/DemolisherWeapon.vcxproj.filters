@@ -116,6 +116,12 @@
     <ClInclude Include="GraphicsAPI\DirectX11\DX11Test.h" />
     <ClInclude Include="Render\DirectXTKRender.h" />
     <ClInclude Include="Render\FinishRender.h" />
+    <ClInclude Include="GraphicsAPI\DirectX12\DescriptorHeapXTK12.h" />
+    <ClInclude Include="Graphic\Model\tkTkmFile.h" />
+    <ClInclude Include="Graphic\Model\Model.h" />
+    <ClInclude Include="util\Noncopyable.h" />
+    <ClInclude Include="Graphic\Shader\ConstantBuffer.h" />
+    <ClInclude Include="Graphic\Model\ModelDrawMode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -217,6 +223,9 @@
     <ClCompile Include="GraphicsAPI\DirectX11\DX11Test.cpp" />
     <ClCompile Include="Render\DirectXTKRender.cpp" />
     <ClCompile Include="Render\FinishRender.cpp" />
+    <ClCompile Include="Graphic\Model\tkTkmFile.cpp" />
+    <ClCompile Include="Graphic\Model\Model.cpp" />
+    <ClCompile Include="Graphic\Shader\ConstantBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
@@ -240,5 +249,6 @@
     <CustomBuild Include="Preset\shader\Imposter.fx" />
     <CustomBuild Include="Preset\shader\billboard.fx" />
     <CustomBuild Include="Preset\shader\modelDisolve.fx" />
+    <CustomBuild Include="Preset\shader\ModelDX12Test.fx" />
   </ItemGroup>
 </Project>

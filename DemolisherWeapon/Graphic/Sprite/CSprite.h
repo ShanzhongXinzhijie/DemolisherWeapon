@@ -53,7 +53,9 @@ namespace DemolisherWeapon {
 		//CVector2 m_screenSize;
 
 		ID3D11ShaderResourceView* m_srv = nullptr;
-		ID3D11Resource* m_tex = nullptr;
+		const TextueData* m_texdata = nullptr;
+		D3D12_CPU_DESCRIPTOR_HANDLE m_cpuHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE m_gpuHandle;
 
 		UINT m_width, m_height;
 

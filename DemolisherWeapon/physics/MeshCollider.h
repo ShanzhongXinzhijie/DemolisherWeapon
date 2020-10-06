@@ -46,6 +46,9 @@ namespace DemolisherWeapon {
 			return m_meshShape.get();
 		}
 
+	private:
+		void CreateIndexMesh(IndexBuffer* ib, VertexBuffer* vb);
+
 	private:		
 		std::vector<VertexBufferPtr>					m_vertexBufferArray;//頂点バッファの配列。
 		std::vector<IndexBufferPtr>						m_indexBufferArray;	//インデックスバッファの配列。

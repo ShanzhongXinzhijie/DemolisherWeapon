@@ -9,7 +9,6 @@ namespace DemolisherWeapon {
 
 	void PhysicsDebugDraw::Init()
 	{
-
 		//ラインストリップのテスト。
 		m_primitive.Init(D3D_PRIMITIVE_TOPOLOGY_LINELIST, static_cast<int>(m_vertexBuffer.size()), &m_vertexBuffer[0]);
 		
@@ -31,6 +30,7 @@ namespace DemolisherWeapon {
 	void PhysicsDebugDraw::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 	{
 		int baseIndex = m_numLine * 2;
+		if (baseIndex >= VERTEX_MAX) { return; }
 		m_vertexBuffer[baseIndex].position[0] = from.x();
 		m_vertexBuffer[baseIndex].position[1] = from.y();
 		m_vertexBuffer[baseIndex].position[2] = from.z();
@@ -67,7 +67,7 @@ namespace DemolisherWeapon {
 		rc->IASetInputLayout(m_vs.GetInputLayout());
 
 		//頂点をセット
-		rc->UpdateSubresource(m_primitive.GetVertexBuffer(), 0, nullptr, &m_vertexBuffer[0], 0, 0);
+		m_primitive.UpdateVertex(&m_vertexBuffer[0]);
 
 		m_primitive.Draw(m_numLine * 2);
 	}

@@ -1,7 +1,5 @@
 #include "DWstdafx.h"
 #include "GraphicsEngine.h"
-#include "GraphicsAPI/DirectX12/DX12Test.h"
-#include "GraphicsAPI/DirectX11/DX11Test.h"
 
 namespace DemolisherWeapon {
 
@@ -37,13 +35,17 @@ void GraphicsEngine::RunRenderManager() {
 	m_renderManager.Render();
 }
 
-void GraphicsEngine::Release()
-{
+void GraphicsEngine::Release() {
 	m_FRT.Release();
 	
+	m_useAPI = enNum;
 	m_graphicsAPI.reset();
 	m_dx11 = nullptr;
 	m_dx12 = nullptr;
+
+#ifdef DW_DX12
+	m_xtk12_resourceDescriptors.Release();
+#endif
 }
 
 bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam, GameObjectManager* gom, CFpsCounter* fc) {
@@ -79,6 +81,7 @@ bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam, GameO
 #ifdef DW_DX12
 bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initParam) {
 	//DirectX12初期化
+	m_useAPI = enDirectX12;
 	m_graphicsAPI = std::make_unique<DX12Test>();
 	auto sucsses = m_graphicsAPI->Init(hWnd, initParam);
 	if (!sucsses) {
@@ -93,7 +96,8 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 		DirectX::ResourceUploadBatch resourceUpload(m_dx12->GetD3D12Device());
 
 		//ディスクリプタヒープ作る
-		m_xtk12_resourceDescriptors = std::make_unique<DirectX::DescriptorHeap>(m_dx12->GetD3D12Device(), Descriptors::Count);
+		m_xtk12_resourceDescriptors.Init(m_dx12->GetD3D12Device(), initParam.xtk12DescriptorsMaxnum);
+
 		// コマンドキューを作成
 		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 		auto hr = m_dx12->GetD3D12Device()->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_xtk12_commandQueue));
@@ -107,10 +111,16 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 		resourceUpload.Begin();
 			
 		//フォント作成
-		m_spriteFont = std::make_unique<DirectX::SpriteFont>(m_dx12->GetD3D12Device(), resourceUpload,
+		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+		m_xtk12_resourceDescriptors.CreateDescriptorNumber(cpuHandle,gpuHandle);
+		m_spriteFont = std::make_unique<DirectX::SpriteFont>(
+			m_dx12->GetD3D12Device(), 
+			resourceUpload,
 			L"Preset/Font/myfile.spritefont",
-			m_xtk12_resourceDescriptors->GetCpuHandle(Descriptors::MyFont),
-			m_xtk12_resourceDescriptors->GetGpuHandle(Descriptors::MyFont));		
+			cpuHandle,
+			gpuHandle
+		);
 
 		//スプライトバッチ作成		
 		DirectX::RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D32_FLOAT);//レンダーターゲットの情報がいる(バックバッファのものを使用)
@@ -135,24 +145,26 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 	}
 
 	//レンダーの登録
-	//m_dx12Render.Init(dynamic_cast<DX12Test*>(m_graphicsAPI.get()));
-	//m_renderManager.AddRender(-2, &m_dx12Render);
+	m_dx12Render.Init(m_dx12);
+	m_renderManager.AddRender(-2, &m_dx12Render);
+	
 	
 	//初期化レンダー
-	m_renderManager.AddRender(-3, &m_initRender);
+	//m_renderManager.AddRender(-3, &m_initRender);
 
-	int screencnt = m_isSplitScreen ? 2 : 1;
-	int offset = oneloopOffset * (screencnt + 1);
-	//2dinit
-	m_renderManager.AddRender(offset + 1, &m_initRender2D);//ビューポート設定コマンドリストへ
-	//primrender2D
-	//m_renderManager.AddRender(offset + 2, &m_primitiveRender2D);
+	//int screencnt = m_isSplitScreen ? 2 : 1;
+	//int offset = oneloopOffset * (screencnt + 1);
+	////2dinit
+	//m_renderManager.AddRender(offset + 1, &m_initRender2D);//ビューポート設定コマンドリストへ
+	////primrender2D
+	////m_renderManager.AddRender(offset + 2, &m_primitiveRender2D);
 
-	//DirectXTKRender
-	m_renderManager.AddRender(offset + 3, &m_directxtkRender);
+	////DirectXTKRender
+	//m_renderManager.AddRender(offset + 3, &m_directxtkRender);
 
-	//finishrender
-	m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);	
+	////finishrender
+	//m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);	
+	//
 
 	return true;
 }
@@ -160,6 +172,7 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 
 bool GraphicsEngine::InnerInitDX11(HWND hWnd, const InitEngineParameter& initParam) {	
 	//DirectX11初期化
+	m_useAPI = enDirectX11;
 	m_graphicsAPI = std::make_unique<DX11Test>();
 	auto sucsses = m_graphicsAPI->Init(hWnd, initParam);
 	if (!sucsses) {

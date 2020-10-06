@@ -21,6 +21,7 @@
 #include"Render/DirectXTKRender.h"
 #include"Render/finishrender.h"
 
+#include"GraphicsAPI/DirectX12/DescriptorHeapXTK12.h"
 #include"GraphicsAPI/DirectX12/DX12Test.h"
 #include"GraphicsAPI/DirectX11/DX11Test.h"
 #include"Render/DX12Render.h"
@@ -29,15 +30,22 @@
 #include"Graphic/Light/Lights.h"
 #include"Graphic/CPrimitive.h"
 
+#include"Graphic/Model/ModelDrawMode.h"
+
 namespace DemolisherWeapon {
 
 struct InitEngineParameter;
-class DX12Test;
 
 enum EnSplitScreenMode {
 	enNoSplit = 0,
 	enVertical_TwoSplit,
 	enSide_TwoSplit,
+};
+
+enum EnGraphicsAPI {
+	enDirectX11,
+	enDirectX12,
+	enNum,
 };
 
 class GraphicsEngine
@@ -53,28 +61,33 @@ public:
 	/// <param name="initParam">初期化パラメータ</param>
 	bool Init(HWND hWnd, const InitEngineParameter& initParam, GameObjectManager*, CFpsCounter*);
 
-	/*!
-	 *@brief	解放。
-	 */
+	/// <summary>
+	/// 開放
+	/// </summary>
 	void Release();
 
-	/*!
-	 *@brief	D3D11デバイスを取得。
-	 */
+	/// <summary>
+	/// 使用しているグラフィックスAPIの種類を取得
+	/// </summary>
+	EnGraphicsAPI GetUseAPI()const {
+		return m_useAPI;
+	}
+
+	/// <summary>
+	/// D3D11デバイスを取得
+	/// </summary>
 	ID3D11Device* GetD3DDevice()
 	{
 		return m_dx11->GetD3DDevice();
 	}
-	/*!
-	 *@brief	D3D11デバイスコンテキストを取得。
-	 */
+	/// <summary>
+	/// D3D11デバイスコンテキストを取得
+	/// </summary>
 	ID3D11DeviceContext* GetD3DDeviceContext()
 	{
 		return m_dx11->GetD3DDeviceContext();
 	}
-
 	
-#ifdef DW_DX12
 	/// <summary>
 	/// D3D12デバイスを取得
 	/// </summary>
@@ -101,10 +114,21 @@ public:
 	*/
 
 	/// <summary>
-	/// DirectXTK12のディスクリプタヒープクラスを取得
+	/// DirectX12クラスを取得
 	/// </summary>
-	DirectX::DescriptorHeap* GetDirectXTK12DescriptorHeap() {
-		return m_xtk12_resourceDescriptors.get();
+	DX12Test& GetDX12() {
+		return *m_dx12;
+	}
+
+#ifdef DW_DX12
+	/// <summary>
+	/// DirectXTK12のディスクリプタヒープを取得
+	/// </summary>
+	auto GetDirectXTK12DescriptorHeap() {
+		return m_xtk12_resourceDescriptors.Heap();
+	}
+	int CreateDirectXTK12DescriptorNumber(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE& gpuHandle) {
+		return m_xtk12_resourceDescriptors.CreateDescriptorNumber(cpuHandle, gpuHandle);
 	}
 	/// <summary>
 	/// DirectXTK12用コマンドキューを取得
@@ -226,6 +250,11 @@ public:
 		m_postDrawModelRender.AddDrawModel(sm, priority, blendmode, reverse);
 	}	
 
+	//モデル描画モードの取得
+	ModelDrawMode& GetModelDrawMode() {
+		return m_modelDrawMode;
+	}
+
 	//レンダーマネージャーの取得
 	RanderManager& GetRenderManager(){
 		return m_renderManager;
@@ -346,7 +375,6 @@ private:
 #endif
 
 private:
-
 	float FRAME_BUFFER_W = 1280.0f;				//フレームバッファの幅。
 	float FRAME_BUFFER_H = 720.0f;				//フレームバッファの高さ。
 	float FRAME_BUFFER_3D_W = 1280.0f;			//フレームバッファの幅(3D描画)
@@ -361,6 +389,7 @@ private:
 
 	bool m_useVSync = false;//垂直同期するか
 	
+	EnGraphicsAPI m_useAPI = enNum;
 	std::unique_ptr<IGraphicsAPI> m_graphicsAPI;//グラフィックスAPI
 	DX11Test* m_dx11 = nullptr;
 	DX12Test* m_dx12 = nullptr;
@@ -377,23 +406,15 @@ private:
 	//Directx12
 	DX12Render m_dx12Render;
 
-	//DirectXTK12
-	public:
-	enum Descriptors
-	{
-		MyFont,
-		Sprite,
-		Count
-	};
-	private:
-	std::unique_ptr<DirectX::DescriptorHeap> m_xtk12_resourceDescriptors;
+	//DirectXTK12	
+	DescriptorHeapXTK12 m_xtk12_resourceDescriptors;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_xtk12_commandQueue;
 	std::unique_ptr<DirectX::GraphicsMemory> m_xtk12_graphicsMemory;
 #endif
 
 	//フルスクリーン描画プリミティブ
 	CPrimitive m_fullscreen;
-	CPrimitive::SVertex m_vertex[4] = {
+	SVertex m_vertex[4] = {
 		{
 			{-1.0f, -1.0f, 0.0f, 1.0f},
 			{0.0f, 1.0f}
@@ -412,6 +433,9 @@ private:
 		},
 	};
 	unsigned long m_index[4] = { 0,1,2,3 };
+
+	//モデル描画モード
+	ModelDrawMode m_modelDrawMode;
 
 	//レンダー
 	int m_freeRenderPriority = -1;

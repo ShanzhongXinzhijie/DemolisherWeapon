@@ -18,14 +18,21 @@ namespace DemolisherWeapon {
 		Release();
 
 		//ファクトリからテクスチャ読み込み
-		const TextueData* texdata = nullptr;
-		if (!TextureFactory::GetInstance().Load(fileName, &m_tex, &m_srv, &texdata)) {
+		if (!TextureFactory::GetInstance().Load(fileName, &m_texdata)) {
 			//失敗
 			Release();
 			return;
 		}
+
+		//SRV
+		m_srv = m_texdata->textureView.Get();
+		if (m_srv) { m_srv->AddRef(); }
+
+		//GetGraphicsEngine().CreateDirectXTK12DescriptorNumber(m_cpuHandle, m_gpuHandle);
+		//DirectX::CreateShaderResourceView(GetGraphicsEngine().GetD3D12Device(), m_texdata->d3d12texture.Get(), m_cpuHandle);
+
 		//ファイルがDDSかどうかで乗算済みアルファ画像か判断
-		if (texdata->isDDS) {
+		if (m_texdata->isDDS) {
 			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
 		}
 		else {
@@ -33,8 +40,8 @@ namespace DemolisherWeapon {
 		}
 
 		//画像サイズの取得
-		m_width = texdata->width;
-		m_height = texdata->height;
+		m_width = m_texdata->width;
+		m_height = m_texdata->height;
 		m_sourceRectangle.top = 0;
 		m_sourceRectangle.left = 0;
 		m_sourceRectangle.bottom = m_height;
@@ -64,7 +71,6 @@ namespace DemolisherWeapon {
 	}
 
 	void CSprite::Release() {
-		if (m_tex) { m_tex->Release(); m_tex = nullptr; }
 		if (m_srv) { m_srv->Release(); m_srv = nullptr; }
 	}
 
@@ -93,7 +99,12 @@ namespace DemolisherWeapon {
 
 		layerDepth *= 0.999f; layerDepth += 0.001f;
 		layerDepth -= GetEngine().GetGraphicsEngine().AddAndGetLayerDepthCnt();
-#ifndef DW_DX12_TEMPORARY
+
+#ifdef DW_DX12
+		m_spriteBatch->Draw(m_gpuHandle, DirectX::GetTextureSize(m_texdata->d3d12texture.Get()), pos.vec, &m_sourceRectangle, color, rotation, DirectX::XMFLOAT2(pivot.x * m_width, pivot.y * m_height), DirectX::XMFLOAT2(scale.x, scale.y), effects, layerDepth);
+#endif
+
+#ifdef DW_DX11
 		m_spriteBatch->Draw(m_srv, pos.vec, &m_sourceRectangle, color, rotation, DirectX::XMFLOAT2(pivot.x*m_width, pivot.y*m_height), DirectX::XMFLOAT2(scale.x, scale.y), effects, layerDepth);
 #endif
 	}

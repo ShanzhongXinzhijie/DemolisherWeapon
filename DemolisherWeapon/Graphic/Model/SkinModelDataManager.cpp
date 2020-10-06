@@ -2,6 +2,7 @@
 #include "SkinModelDataManager.h"
 #include "SkinModelEffect.h"
 #include "Skeleton.h"
+#include "Model.h"
 
 namespace DemolisherWeapon {
 
@@ -72,6 +73,34 @@ std::unique_ptr<DirectX::Model> SkinModelDataManager::CreateModel(const wchar_t*
 	return {};
 #endif
 }
+std::unique_ptr<CModel> SkinModelDataManager::CreateCModel(const wchar_t* filePath, const Skeleton& skeleton) {
+	//パスをcharへ変換...
+	size_t iReturnValue;
+	size_t size = wcslen(filePath) + 1;
+	std::unique_ptr<char[]> charPath = std::make_unique<char[]>(size);
+	errno_t err = wcstombs_s(
+		&iReturnValue,
+		charPath.get(),
+		size, //上のサイズ
+		filePath,
+		size - 1 //コピーする最大文字数
+	);
+	if (err != 0) {
+		DW_ERRORBOX(true, "wcstombs_s errno:%d", err)
+	}
+
+	//作成
+	std::unique_ptr<CModel> model = std::make_unique<CModel>();
+	model->LoadTkmFile(charPath.get());
+
+	if (model->IsInited()) {
+		model->CreateMeshParts();
+		return model;
+	}
+	else {
+		return {};
+	}
+}
 
 DirectX::Model* SkinModelDataManager::Load(const wchar_t* filePath, const Skeleton& skeleton)
 {
@@ -83,8 +112,32 @@ DirectX::Model* SkinModelDataManager::Load(const wchar_t* filePath, const Skelet
 		auto model = CreateModel(filePath, skeleton);
 		//未登録なので、新規でロードする。
 		retModel = model.get();
+		//エラー
+		if (!retModel) { return retModel; }
 		//新規なのでマップに登録する。
 		m_directXModelMap.insert({ filePath, std::move(model) });
+	}
+	else {
+		//登録されているので、読み込み済みのデータを取得。
+		retModel = it->second.get();
+	}
+
+	return retModel;
+}
+CModel* SkinModelDataManager::LoadCModel(const wchar_t* filePath, const Skeleton& skeleton)
+{
+	CModel* retModel = nullptr;//戻り値	
+
+	//マップに登録されているか調べる。
+	auto it = m_cmodelMap.find(filePath);
+	if (it == m_cmodelMap.end()) {
+		auto model = CreateCModel(filePath, skeleton);
+		//未登録なので、新規でロードする。
+		retModel = model.get();
+		//エラー
+		if (!retModel) { return retModel; }
+		//新規なのでマップに登録する。
+		m_cmodelMap.insert({ filePath, std::move(model) });
 	}
 	else {
 		//登録されているので、読み込み済みのデータを取得。
@@ -98,6 +151,7 @@ void SkinModelDataManager::Release()
 {
 	//mapを空にする。
 	m_directXModelMap.clear();
+	m_cmodelMap.clear();
 }
 
 }
