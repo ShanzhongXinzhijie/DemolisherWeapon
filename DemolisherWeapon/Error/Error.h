@@ -60,6 +60,7 @@ namespace DemolisherWeapon {
 #define 	DW_WARNING_BOX( flg, format, ... );	if(flg){DemolisherWeapon::Error::WarningBox(__FILE__, __LINE__,  format, __VA_ARGS__);}
 #define 	DW_WARNING_MESSAGE( flg, str );	if(flg){DemolisherWeapon::Error::WarningMessage(str);}
 #else
-#define 	DW_ERRORBOX( flg, str );
+#define 	DW_ERRORBOX( flg, format, ... );
+#define 	DW_WARNING_BOX( flg, format, ... );
 #define 	DW_WARNING_MESSAGE( flg, str );
 #endif 
