@@ -157,6 +157,9 @@ namespace DemolisherWeapon {
 		ID3D11ShaderResourceView* const * GetAddressOfAlbedoTexture()const {
 			return m_albedo.textureView.GetAddressOf();
 		}
+		const TextueData& GetAlbedoTextureData()const {
+			return m_albedo;
+		}
 		//アルベドテクスチャを設定
 		void SetAlbedoTexture(ID3D11ShaderResourceView* tex){
 			TextueData texData;
@@ -186,6 +189,9 @@ namespace DemolisherWeapon {
 		ID3D11ShaderResourceView* const * GetAddressOfNormalTexture()const {
 			return m_normal.textureView.GetAddressOf();
 		}
+		const TextueData& GetNormalTextureData()const {
+			return m_normal;
+		}
 		//ノーマルマップを設定
 		void SetNormalTexture(ID3D11ShaderResourceView* tex) {
 			TextueData texData;
@@ -209,6 +215,9 @@ namespace DemolisherWeapon {
 		}
 		ID3D11ShaderResourceView* const * GetAddressOfLightingTexture()const {
 			return m_lighting.textureView.GetAddressOf();
+		}
+		const TextueData& GetLightingTextureData()const {
+			return m_lighting;
 		}
 		//ライティングパラメータマップを設定
 		void SetLightingTexture(ID3D11ShaderResourceView* tex) {
@@ -347,16 +356,16 @@ namespace DemolisherWeapon {
 		}
 
 		//デフォルトのアルベドテクスチャを取得
-		TextueData& GetDefaultAlbedoTexture() {
-			return m_albedo;
+		const TextueData& GetDefaultAlbedoTexture()const {
+			return m_defaultMaterialSetting.GetAlbedoTextureData();
 		}
 		//デフォルトのノーマルマップを取得
-		TextueData& GetDefaultNormalTexture() {
-			return m_normal;
+		const TextueData& GetDefaultNormalTexture()const {
+			return m_defaultMaterialSetting.GetNormalTextureData();
 		}
 		//デフォルトのライティングパラメータマップを取得
-		TextueData& GetDefaultLightingTexture() {
-			return m_lighting;
+		const TextueData& GetDefaultLightingTexture()const {
+			return m_defaultMaterialSetting.GetLightingTextureData();
 		}
 
 		//定数バッファの取得(DX11)
@@ -399,12 +408,7 @@ namespace DemolisherWeapon {
 
 		//スキンモデルか？
 		bool m_isSkining;
-
-		//テクスチャ
-		TextueData m_albedo;
-		TextueData m_normal;
-		TextueData m_lighting;
-
+		
 		//マテリアル設定
 		MaterialSetting* m_ptrUseMaterialSetting = nullptr;	//使用するマテリアル設定
 		MaterialSetting m_defaultMaterialSetting;	//マテリアル設定(デフォルト)

@@ -123,7 +123,7 @@ public:
 	}
 	//デフォルトのアルベドテクスチャを取得
 	ID3D11ShaderResourceView* GetDefaultAlbedoTexture() const {
-		return m_matData.m_albedo.textureView.Get();
+		return m_matData.m_defaultMaterialSetting.GetAlbedoTexture();
 	}
 
 	/// <summary>
@@ -140,7 +140,7 @@ public:
 	}
 	//デフォルトのノーマルマップを取得
 	ID3D11ShaderResourceView* GetDefaultNormalTexture() const {
-		return m_matData.m_normal.textureView.Get();
+		return m_matData.m_defaultMaterialSetting.GetNormalTexture();
 	}
 
 	/// <summary>
@@ -157,7 +157,7 @@ public:
 	}
 	//デフォルトのライティングパラメータマップを取得
 	ID3D11ShaderResourceView* GetDefaultLightingTexture() const {
-		return m_matData.m_lighting.textureView.Get();
+		return m_matData.m_defaultMaterialSetting.GetLightingTexture();
 	}
 
 	/// <summary>
