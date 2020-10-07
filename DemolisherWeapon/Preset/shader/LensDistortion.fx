@@ -31,10 +31,10 @@ cbuffer PSCb : register(b0) {
 };
 
 //ビネット(周辺減光)が始まる位置
-static const float VIGNETTE_POS_MIN = 0.02f;
+static const float VIGNETTE_POS_MIN = 0.048f;
 static const float VIGNETTE_POS_MAX = 1.0f - VIGNETTE_POS_MIN;
 //終わる位置
-static const float VIGNETTE_END_MIN = -0.006f;
+static const float VIGNETTE_END_MIN = 0.012f;
 
 /// @brief レンズ歪みを適用したUVを取得
 //http://hikita12312.hatenablog.com/entry/2018/04/07/142219
@@ -97,7 +97,10 @@ float4 Vignette(in float4 color, in float2 uv)
         sub -= float2(0.5f, 0.5f);
         sub.x *= ASPECT_RATIO;
 
-        return float4(lerp(color.xyz, float3(0.0f, 0.0f, 0.0f), distance(uv, sub) / distance(float2((VIGNETTE_END_MIN - 0.5f) * ASPECT_RATIO, VIGNETTE_END_MIN - 0.5f), float2((VIGNETTE_POS_MIN - 0.5f) * ASPECT_RATIO, VIGNETTE_POS_MIN - 0.5f))), color.w);
+		float t = distance(uv, sub) / distance(float2((VIGNETTE_END_MIN - 0.5f) * ASPECT_RATIO, VIGNETTE_END_MIN - 0.5f), float2((VIGNETTE_POS_MIN - 0.5f) * ASPECT_RATIO, VIGNETTE_POS_MIN - 0.5f));
+		t *= t;
+		
+        return float4(lerp(color.xyz, float3(0.0f, 0.0f, 0.0f), t), color.w);
     }
 
     return color;
