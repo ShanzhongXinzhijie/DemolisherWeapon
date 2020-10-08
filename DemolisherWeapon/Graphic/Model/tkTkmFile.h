@@ -163,7 +163,7 @@ namespace DemolisherWeapon::tkEngine {
 		/// </summary>
 		/// <param name="fp"></param>
 		/// <returns></returns>
-		std::string LoadTextureFileName(FILE* fp);
+		std::string LoadTextureFileName(FILE* fp, const char* plusPath);
 		/// <summary>
 		/// インデックスバッファをロード。
 		/// </summary>
@@ -173,7 +173,7 @@ namespace DemolisherWeapon::tkEngine {
 		/// マテリアルを構築。
 		/// </summary>
 		/// <param name="tkmMat"></param>
-		void BuildMaterial(SMaterial& tkmMat, FILE* fp);// , const char* filePath);
+		void BuildMaterial(SMaterial& tkmMat, FILE* fp, const char* filePath);
 		/// <summary>
 		/// 接ベクトルと従ベクトルを計算する。
 		/// </summary>

@@ -203,31 +203,34 @@ namespace DemolisherWeapon::tkEngine {
 		}
 		
 	}
-	std::string CTkmFile::LoadTextureFileName(FILE* fp)
+	std::string CTkmFile::LoadTextureFileName(FILE* fp, const char* plusPath)
 	{
-		std::string fileName;
 		std::uint32_t fileNameLen;
 		fread(&fileNameLen, sizeof(fileNameLen), 1, fp);
 		
 		if (fileNameLen > 0) {
+			std::string fileName = plusPath;
+			
 			char* localFileName = reinterpret_cast<char*>(malloc(fileNameLen + 1));
 			//ヌル文字分も読み込むので＋１
 			fread(localFileName, fileNameLen + 1, 1, fp);
-			fileName = localFileName;
+			fileName += localFileName;
 			free(localFileName);
+
+			//.tgaは.ddsに
+			auto replaseStartPos = fileName.rfind(".tga");
+			if (replaseStartPos == std::string::npos) {
+				auto replaseStartPos = fileName.rfind(".TGA");
+			}
+			if (replaseStartPos != std::string::npos) {
+				auto replaceLen = fileName.length() - replaseStartPos;
+				fileName.replace(replaseStartPos, replaceLen, ".dds");
+			}
+
+			return fileName;
 		}
 
-		//.tgaは.ddsに
-		auto replaseStartPos = fileName.rfind(".tga");
-		if (replaseStartPos == std::string::npos) {
-			auto replaseStartPos = fileName.rfind(".TGA");
-		}
-		if (replaseStartPos != std::string::npos) {
-			auto replaceLen = fileName.length() - replaseStartPos;
-			fileName.replace(replaseStartPos, replaceLen, ".dds");
-		}
-
-		return fileName;
+		return {};
 	}
 	template<class T>
 	void CTkmFile::LoadIndexBuffer(std::vector<T>& indices, int numIndex, FILE* fp)
@@ -241,18 +244,26 @@ namespace DemolisherWeapon::tkEngine {
 		}
 	}
 
-	void CTkmFile::BuildMaterial(SMaterial& tkmMat, FILE* fp)//, const char* filePath)
+	void CTkmFile::BuildMaterial(SMaterial& tkmMat, FILE* fp, const char* filePath)
 	{
+		//ディレクトリ部分を抜き出す
+		std::string fullpath = filePath;
+		int path_i = fullpath.find_last_of("\/");
+		std::string plusPath;
+		if (path_i != std::string::npos) {
+			plusPath = fullpath.substr(0, path_i+1);
+		}
+
 		//アルベドのファイル名をロード。
-		tkmMat.albedoMapFileName = LoadTextureFileName(fp);
+		tkmMat.albedoMapFileName = LoadTextureFileName(fp, plusPath.c_str());
 		//法線マップのファイル名をロード。
-		tkmMat.normalMapFileName = LoadTextureFileName(fp);
+		tkmMat.normalMapFileName = LoadTextureFileName(fp, plusPath.c_str());
 		//スペキュラマップのファイル名をロード。
-		tkmMat.specularMapFileName = LoadTextureFileName(fp);
+		tkmMat.specularMapFileName = LoadTextureFileName(fp, plusPath.c_str());
 		//リフレクションマップのファイル名をロード。
-		tkmMat.reflectionMapFileName = LoadTextureFileName(fp);
+		tkmMat.reflectionMapFileName = LoadTextureFileName(fp, plusPath.c_str());
 		//屈折マップのファイル名をロード。
-		tkmMat.refractionMapFileName = LoadTextureFileName(fp);
+		tkmMat.refractionMapFileName = LoadTextureFileName(fp, plusPath.c_str());
 	}
 	void CTkmFile::BuildTangentAndBiNormal() 
 	{
@@ -301,7 +312,7 @@ namespace DemolisherWeapon::tkEngine {
 			//マテリアル情報を構築していく。
 			for (int materialNo = 0; materialNo < (int)meshPartsHeader.numMaterial; materialNo++) {
 				auto& material = meshParts.materials[materialNo];
-				BuildMaterial(material, fp);
+				BuildMaterial(material, fp, filePath);
 			}
 			
 			//続いて頂点バッファ。
