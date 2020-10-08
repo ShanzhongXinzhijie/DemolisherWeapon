@@ -67,7 +67,7 @@ LRESULT CALLBACK Engine::MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 ///////////////////////////////////////////////////////////////////
 // ウィンドウの初期化。
 ///////////////////////////////////////////////////////////////////
-void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, const InitEngineParameter& initParam)
+void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, const InitEngineParameter& initParam, HICON icon)
 {
 	//ウィンドウクラスのパラメータを設定(単なる構造体の変数の初期化です。)
 	WNDCLASSEX wc =
@@ -80,12 +80,12 @@ void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpC
 		0,						//0でいい。
 		GetModuleHandle(NULL),	//このクラスのためのウインドウプロシージャがあるインスタンスハンドル。
 								//何も気にしなくてよい。
-		NULL,					//アイコンのハンドル。アイコンを変えたい場合ここを変更する。とりあえずこれでいい。
+		icon,					//アイコンのハンドル。アイコンを変えたい場合ここを変更する。とりあえずこれでいい。
 		NULL,					//マウスカーソルのハンドル。NULLの場合はデフォルト。
 		NULL,					//ウィンドウの背景色。NULLの場合はデフォルト。
 		NULL,					//メニュー名。NULLでいい。
 		appName,				//ウィンドウクラスに付ける名前。
-		NULL					//NULLでいい。
+		NULL					//小さいアイコン。NULLでいい。
 	};
 	//ウィンドウクラスの登録。
 	RegisterClassEx(&wc);
@@ -133,13 +133,13 @@ void Engine::InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpC
 
 
 //ゲームの初期化。
-void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, InitEngineParameter initParam)
+void Engine::InitGame(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, InitEngineParameter initParam, HICON icon )
 {
 	//ゲームループの初期化
 	m_gameLoop.Init(initParam.limitFps, initParam.standardFps, initParam.variableFpsMaxSec, initParam.useFpsLimiter);
 
 	//ウィンドウを初期化
-	InitWindow(hInstance, hPrevInstance, lpCmdLine, nCmdShow, appName, initParam);
+	InitWindow(hInstance, hPrevInstance, lpCmdLine, nCmdShow, appName, initParam, icon);
 
 	//Bulletの初期化
 	m_physics.Init();
