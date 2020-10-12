@@ -217,11 +217,8 @@ namespace DemolisherWeapon::tkEngine {
 			fileName += localFileName;
 			free(localFileName);
 
-			//.tga‚Í.dds‚É
-			auto replaseStartPos = fileName.rfind(".tga");
-			if (replaseStartPos == std::string::npos) {
-				auto replaseStartPos = fileName.rfind(".TGA");
-			}
+			//Šg’£Žq.dds‚É
+			auto replaseStartPos = fileName.find_last_of(".");
 			if (replaseStartPos != std::string::npos) {
 				auto replaceLen = fileName.length() - replaseStartPos;
 				fileName.replace(replaseStartPos, replaceLen, ".dds");
