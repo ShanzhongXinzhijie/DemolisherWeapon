@@ -14,7 +14,7 @@ namespace DemolisherWeapon {
 	 */
 	class CCharacterController {
 	public:
-		CCharacterController() {
+		CCharacterController(bool colGhost = false) : m_isColGhost(colGhost){
 
 		}
 		~CCharacterController()
@@ -115,5 +115,13 @@ namespace DemolisherWeapon {
 		RigidBody			m_rigidBody;					//剛体。
 
 		float m_offsetOffset = 1.0f;
+
+		bool m_isColGhost = false;//ゴーストオブジェクトと衝突するか
+	};
+
+	//ゴーストと衝突するキャラコン
+	class CCharacterControllerType2 : public CCharacterController {
+	public:
+		CCharacterControllerType2() : CCharacterController(true) {}
 	};
 }

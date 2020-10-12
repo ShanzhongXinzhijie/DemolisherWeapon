@@ -34,9 +34,9 @@ namespace Suicider {
 		m_btOldTrans = m_ghostObject.getWorldTransform();
 		
 		//衝突マスク
-		short int mask = btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter;
+		short int mask = btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter;//StaticFilter以外と判定
 		if (!m_isStaticObj) {
-			mask = CCollisionObjFilter;
+			mask = CCollisionObjFilter;//CCollisionObjFilterとのみ判定
 		}
 
 		//物理エンジンに登録

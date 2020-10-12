@@ -10,6 +10,7 @@
 namespace DemolisherWeapon {
 
 	namespace {
+		/*
 		//衝突したときに呼ばれる関数オブジェクト(地面用)
 		struct SweepResultGround : public btCollisionWorld::ConvexResultCallback
 		{
@@ -19,13 +20,14 @@ namespace DemolisherWeapon {
 			CVector3 hitNormal = CVector3::Zero();				//衝突点の法線。
 			btCollisionObject* me = nullptr;					//自分自身。自分自身との衝突を除外するためのメンバ。
 			float dist = FLT_MAX;								//衝突点までの距離。一番近い衝突点を求めるため。FLT_MAXは単精度の浮動小数点が取りうる最大の値。
+			bool isColGhost = false;//ゴーストと衝突するか
 
 			//衝突したときに呼ばれるコールバック関数。
 			virtual	btScalar	addSingleResult(btCollisionWorld::LocalConvexResult& convexResult, bool normalInWorldSpace)
 			{
 				if (convexResult.m_hitCollisionObject == me
 					|| convexResult.m_hitCollisionObject->getUserIndex() == enCollisionAttr_Character
-					|| convexResult.m_hitCollisionObject->getInternalType() == btCollisionObject::CO_GHOST_OBJECT
+					|| (!isColGhost && convexResult.m_hitCollisionObject->getInternalType() == btCollisionObject::CO_GHOST_OBJECT)
 					) {
 					//自分に衝突した。or キャラクタ属性のコリジョンと衝突した。
 					return 0.0f;
@@ -55,6 +57,7 @@ namespace DemolisherWeapon {
 				return 0.0f;
 			}
 		};
+		*/
 		//衝突したときに呼ばれる関数オブジェクト(壁用)
 		struct SweepResultWall : public btCollisionWorld::ConvexResultCallback
 		{
@@ -64,16 +67,29 @@ namespace DemolisherWeapon {
 			float dist = FLT_MAX;					//衝突点までの距離。一番近い衝突点を求めるため。FLT_MAXは単精度の浮動小数点が取りうる最大の値。
 			CVector3 hitNormal = CVector3::Zero();	//衝突点の法線。
 			btCollisionObject* me = nullptr;		//自分自身。自分自身との衝突を除外するためのメンバ。
+			bool isColGhost = false;//ゴーストと衝突するか
+
+			virtual bool needsCollision(btBroadphaseProxy* proxy0) const override
+			{
+				if (proxy0->m_clientObject == me){
+					//自分に衝突した
+					return false;
+				}
+
+				bool collides = (proxy0->m_collisionFilterGroup & m_collisionFilterMask) != 0;
+				collides = collides && (m_collisionFilterGroup & proxy0->m_collisionFilterMask);
+
+				return collides;
+			}
 
 			//衝突したときに呼ばれるコールバック関数。
 			virtual	btScalar	addSingleResult(btCollisionWorld::LocalConvexResult& convexResult, bool normalInWorldSpace)
 			{
-				if (convexResult.m_hitCollisionObject == me
-					|| convexResult.m_hitCollisionObject->getInternalType() == btCollisionObject::CO_GHOST_OBJECT
-					) {
-					//自分に衝突した。or 地面に衝突した。
+				//ゴーストとは当たらん
+				if (!isColGhost && convexResult.m_hitCollisionObject->getInternalType() == btCollisionObject::CO_GHOST_OBJECT) {
 					return 0.0f;
 				}
+
 				//衝突点の法線を引っ張ってくる。
 				CVector3 hitNormalTmp;
 				hitNormalTmp.Set(convexResult.m_hitNormalLocal);
@@ -186,6 +202,7 @@ namespace DemolisherWeapon {
 				end.setOrigin(btVector3(nextPosition.x, posTmp.y, nextPosition.z));
 
 				SweepResultWall callback;
+				callback.isColGhost = m_isColGhost;
 				callback.me = m_rigidBody.GetBody();
 				callback.startPos = posTmp;
 				//衝突検出。
@@ -304,7 +321,7 @@ namespace DemolisherWeapon {
 						
 						if (col == m_rigidBody.GetBody()
 							|| col->getUserIndex() == enCollisionAttr_Character
-							|| col->getInternalType() == btCollisionObject::CO_GHOST_OBJECT
+							|| (!m_isColGhost && col->getInternalType() == btCollisionObject::CO_GHOST_OBJECT)
 						) {
 							continue;
 						}
