@@ -1,8 +1,6 @@
-/*!
- * @brief	シェーダークラス。
- */
-
 #pragma once
+
+#include <dxcapi.h>
 
 #include"ShaderResources.h"
 
@@ -28,6 +26,21 @@ public:
 	/// <param name="pDefines">マクロ定義</param>
 	/// <returns>falseが返ってきたらロード失敗。</returns>
 	bool Load(const char* filePath, const char* entryFuncName, EnType shaderType, const char* definesIdentifier = "", const D3D_SHADER_MACRO* pDefines = nullptr);
+
+	/// <summary>
+	/// レイトレーシング用シェーダのロード
+	/// </summary>
+	/// <param name="filePath">ファイルパス</param>
+	/// <returns>成功?</returns>
+	bool LoadRaytracing(const wchar_t* filePath);
+
+	/// <summary>
+	/// DxcBlobの取得
+	/// </summary>
+	/// <returns></returns>
+	IDxcBlob* GetCompiledDxcBlob()const {
+		return m_dxcBlob;
+	}
 
 	/*!
 	* @brief	シェーダーを取得
@@ -72,6 +85,8 @@ public:
 private:
 	bool m_isLoaded = false;//ロード済み?
 	const ShaderResources::SShaderResource* m_pShaderResource = nullptr;
+
+	IDxcBlob* m_dxcBlob = nullptr;	//DXCコンパイラを使用したときのシェーダーデータ。
 };
 
 }

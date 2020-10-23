@@ -91,7 +91,7 @@ public:
 	/// <summary>
 	/// D3D12デバイスを取得
 	/// </summary>
-	ID3D12Device* GetD3D12Device()
+	ID3D12Device5* GetD3D12Device()
 	{
 		return m_dx12->GetD3D12Device();
 	}

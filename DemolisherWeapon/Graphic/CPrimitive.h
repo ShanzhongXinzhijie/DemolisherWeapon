@@ -41,6 +41,10 @@ public:
 	void Init(int numVertex, unsigned int vertexStride, void* vertexoverride);
 	void Attach()override;
 	void Update(void* vertex)override;
+
+	const D3D12_VERTEX_BUFFER_VIEW& GetView()const {
+		return m_vertexBufferView;
+	}
 private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_vertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
@@ -64,6 +68,7 @@ protected:
 };
 //directx11
 class IndexBufferDX11 : public IIndexBuffer {
+public:
 	void Init(int numIndex, unsigned long* index)override;
 	void Attach()override;
 
@@ -74,8 +79,13 @@ private:
 };
 //directx12
 class IndexBufferDX12 : public IIndexBuffer {
+public:
 	void Init(int numIndex, unsigned long* index)override;
 	void Attach()override;
+
+	const D3D12_INDEX_BUFFER_VIEW& GetView()const {
+		return m_indexBufferView;
+	}
 
 	//void* OpenReadPointer() override;
 	//void CloseReadPointer() override;

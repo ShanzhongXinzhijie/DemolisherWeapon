@@ -122,6 +122,7 @@
     <ClInclude Include="util\Noncopyable.h" />
     <ClInclude Include="Graphic\Shader\ConstantBuffer.h" />
     <ClInclude Include="Graphic\Model\ModelDrawMode.h" />
+    <ClInclude Include="Graphic\ReyTracing\ReyTracingEngine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -226,6 +227,7 @@
     <ClCompile Include="Graphic\Model\tkTkmFile.cpp" />
     <ClCompile Include="Graphic\Model\Model.cpp" />
     <ClCompile Include="Graphic\Shader\ConstantBuffer.cpp" />
+    <ClCompile Include="Graphic\ReyTracing\ReyTracingEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

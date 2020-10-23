@@ -218,6 +218,9 @@ namespace DemolisherWeapon {
 		//CBV_SRV_UAV用のデスクリプタヒープ作成
 		m_srvsDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, CBV_SRV_UAV_MAXNUM, true, m_srvsDescriptorHeap);
 
+		//サンプラー用のデスクリプタヒープ作成
+		m_samplerDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SAMPLER_MAXNUM, true, m_samplerDescriptorHeap);
+
 		// コマンドアロケータを作成する.
 		for (int i = 0; i < FRAME_COUNT; ++i) {
 			if (FAILED(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator[i])))) {
@@ -279,11 +282,8 @@ namespace DemolisherWeapon {
 		m_ps.Load("Preset/shader/primitive.fx", "PSMain", Shader::EnType::PS);
 		
 		//ルートシグネチャの作成
-		//CD3DX12_ROOT_PARAMETER rootParameters[1];
-		//rootParameters[0].InitAsConstants(16, 0, 0);
-
 		D3D12_DESCRIPTOR_RANGE descRange[] = {
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0),
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0),//0番にいっこ?
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0)
 		};
 
@@ -299,6 +299,7 @@ namespace DemolisherWeapon {
 			staticSampler,
 			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
 		};
+
 		Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob;
 		if (FAILED(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &signatureBlob, nullptr))) {
 			return false;
@@ -480,6 +481,7 @@ namespace DemolisherWeapon {
 
 			m_commandList->SetPipelineState(m_pso.Get());
 			m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+			//m_commandList->SetDescriptorHeaps(1, &m_srvsDescriptorHeap);
 			m_commandList->SetGraphicsRootDescriptorTable(0, m_texture.descriptorHandle);
 			//commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
 			//m_square.DrawIndexed();
@@ -496,6 +498,7 @@ namespace DemolisherWeapon {
 		//モデルの描画
 		m_commandList->SetPipelineState(m_meshTest->m_pso.Get());
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+		//m_commandList->SetDescriptorHeaps(1, &m_srvsDescriptorHeap);
 		m_commandList->SetGraphicsRootDescriptorTable(0, m_texture.descriptorHandle);
 		m_meshTest->m_mesh.Draw(1);
 

@@ -423,6 +423,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 
 	//描画
 	if (m_model) {
+#ifdef DW_DX11
 		const DirectX::CommonStates& states = GetGraphicsEngine().GetCommonStates();
 
 		//アルファブレンドはないものとして描画... TODO
@@ -499,7 +500,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		//サンプラーの設定
 		ID3D11SamplerState* samplerState = states.AnisotropicWrap();
 		d3dDeviceContext->PSSetSamplers(0, 1, &samplerState);
-
+#endif
 		//描画
 		m_model->Draw(instanceNum* m_instanceNum);
 	}

@@ -10,6 +10,10 @@ namespace DemolisherWeapon {
 	class DX12Test : public IGraphicsAPI
 	{
 	public:
+		static constexpr int FRAME_COUNT = 2;
+		static constexpr int CBV_SRV_UAV_MAXNUM = 1024;
+		static constexpr int SAMPLER_MAXNUM = 16;
+
 		DX12Test() = default;
 
 		/// <summary>
@@ -82,7 +86,7 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// D3D12デバイスを取得
 		/// </summary>
-		ID3D12Device* GetD3D12Device()
+		ID3D12Device5* GetD3D12Device()
 		{
 			return m_d3dDevice.Get();
 		}
@@ -119,8 +123,50 @@ namespace DemolisherWeapon {
 			srvDesc.Texture2D.MipLevels = m_textureDesc.MipLevels;
 			*/
 
+			//SAV作るぞー
 			GetD3D12Device()->CreateShaderResourceView(resource, nullptr, CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_srvIndex, m_srvsDescriptorSize));
+			
+			//Gpu側のハンドル取得
 			return CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_srvIndex, m_srvsDescriptorSize);
+		}
+
+		/// <summary>
+		/// UAVを作成
+		/// </summary>
+		/// <param name="resource">参照するリソース</param>
+		/// <returns>GPUディスクリプタハンドル</returns>
+		D3D12_GPU_DESCRIPTOR_HANDLE CreateUAV(ID3D12Resource* resource, D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc) {
+			m_srvIndex++;
+
+			//UAV作るぞー
+			GetD3D12Device()->CreateUnorderedAccessView(resource, nullptr, &UAVDesc, CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_srvIndex, m_srvsDescriptorSize));
+
+			//Gpu側のハンドル取得
+			return CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), m_srvIndex, m_srvsDescriptorSize);
+		}
+
+		/// <summary>
+		/// SRVとかのディスクリプタサイズを取得
+		/// </summary>
+		/// <returns></returns>
+		UINT GetSrvsDescriptorSize()const {
+			return m_srvsDescriptorSize;
+		}
+
+		/// <summary>
+		/// SRVとかのディスクリプタヒープ先頭を取得
+		/// </summary>
+		/// <returns></returns>
+		D3D12_GPU_DESCRIPTOR_HANDLE GetSrvsDescriptorHeapStart()const {
+			return m_srvsDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+		}
+
+		/// <summary>
+		/// サンプラーディスクリプタヒープ先頭を取得
+		/// </summary>
+		/// <returns></returns>
+		D3D12_GPU_DESCRIPTOR_HANDLE GetSamplerDescriptorHeapStart()const {
+			return m_samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
 		}
 
 		/// <summary>
@@ -153,11 +199,8 @@ namespace DemolisherWeapon {
 		/// </summary>
 		void SetViewport(float topLeftX, float topLeftY, float width, float height)override;
 
-	private:
-		static constexpr int FRAME_COUNT = 2;
-		static constexpr int CBV_SRV_UAV_MAXNUM = 1024;
-
-		Microsoft::WRL::ComPtr<ID3D12Device> m_d3dDevice;
+	private:		
+		Microsoft::WRL::ComPtr<ID3D12Device5> m_d3dDevice;
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_commandQueue;
 
 		Microsoft::WRL::ComPtr<IDXGISwapChain3> m_swapChain;
@@ -171,9 +214,14 @@ namespace DemolisherWeapon {
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_dsvDescriptorHeap;
 		UINT m_dsvDescriptorSize = 0;
 
+		//SRVとかのディスクリプタヒープ
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvsDescriptorHeap;
 		UINT m_srvsDescriptorSize = 0;
 		int m_srvIndex = -1;
+
+		//サンプラーのディスクリプタヒープ
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_samplerDescriptorHeap;
+		UINT m_samplerDescriptorSize = 0;
 
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocator[FRAME_COUNT];
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandList;

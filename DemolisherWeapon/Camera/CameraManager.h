@@ -46,6 +46,14 @@ private:
 	void UpdateViewMatrix() {
 		m_viewMat.MakeLookAt(m_pos, m_target, m_up);
 		m_needUpdateBillboard = true;//ビルボード行列を更新する必要があるフラグ
+
+		//回転行列の更新
+		CMatrix viewInv = m_viewMat; viewInv.Inverse();
+		m_rotMat = viewInv;
+		m_rotMat.m[3][0] = 0.0f;
+		m_rotMat.m[3][1] = 0.0f;
+		m_rotMat.m[3][2] = 0.0f;
+		m_rotMat.m[3][3] = 1.0f;
 	}
 	virtual void UpdateProjMatrix() = 0;
 
@@ -100,6 +108,8 @@ public:
 	const CMatrix& GetViewMatrix() const { return m_viewMat; };
 	const CMatrix& GetProjMatrixOld() const { return m_projMatOld; };
 	const CMatrix& GetViewMatrixOld() const { return m_viewMatOld; };
+
+	const CMatrix& GetRotMatrix()const { return m_rotMat; }//回転行列の取得
 
 	//パラメータの取得
 	const CVector3& GetPos() const { return m_pos; }
@@ -205,6 +215,7 @@ protected:
 
 	CMatrix m_projMat, m_viewMat;
 	CMatrix m_projMatOld, m_viewMatOld;
+	CMatrix m_rotMat;
 	bool m_isFirstMatrixUpdate = true;
 
 	Plane m_planes[6];//視錐台の6平面
