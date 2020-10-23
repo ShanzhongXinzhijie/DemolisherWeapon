@@ -245,7 +245,7 @@ namespace DemolisherWeapon::tkEngine {
 	{
 		//ディレクトリ部分を抜き出す
 		std::string fullpath = filePath;
-		int path_i = fullpath.find_last_of("\/");
+		size_t path_i = fullpath.find_last_of("\\/");
 		std::string plusPath;
 		if (path_i != std::string::npos) {
 			plusPath = fullpath.substr(0, path_i+1);
