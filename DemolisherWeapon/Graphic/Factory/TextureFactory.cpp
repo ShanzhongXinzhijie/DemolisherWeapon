@@ -22,7 +22,9 @@ namespace DemolisherWeapon {
 				uploadResourcesFinished.wait();
 				//SRVçÏê¨
 				if (SUCCEEDED(hr)) {
-					texdata.descriptorHandle = GetGraphicsEngine().GetDX12().CreateSRV(texdata.d3d12texture.Get());
+					auto[gpu,cpu] = GetGraphicsEngine().GetDX12().CreateSRV(texdata.d3d12texture.Get());
+					texdata.GPUdescriptorHandle = gpu;
+					texdata.CPUdescriptorHandle = cpu;
 				}
 			}
 #endif // DW_DX12
@@ -52,7 +54,9 @@ namespace DemolisherWeapon {
 				uploadResourcesFinished.wait();
 				//SRVçÏê¨
 				if (SUCCEEDED(hr)) {
-					texdata.descriptorHandle = GetGraphicsEngine().GetDX12().CreateSRV(texdata.d3d12texture.Get());
+					auto [gpu, cpu] = GetGraphicsEngine().GetDX12().CreateSRV(texdata.d3d12texture.Get());
+					texdata.GPUdescriptorHandle = gpu;
+					texdata.CPUdescriptorHandle = cpu;
 				}
 			}
 #endif // DW_DX12

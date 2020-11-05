@@ -60,11 +60,35 @@ namespace DemolisherWeapon {
 		/// ConstantBufferViewの作成
 		/// </summary>
 		/// <param name="descriptorHandle">ディスクリプタのハンドル</param>
-		void CreateConstantBufferView(D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle){
+		/*void CreateConstantBufferView(D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle){
 			D3D12_CONSTANT_BUFFER_VIEW_DESC desc = {};
 			desc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
 			desc.SizeInBytes = m_allocSize;
 			GetGraphicsEngine().GetD3D12Device()->CreateConstantBufferView(&desc, descriptorHandle);
+		}*/
+
+		/// <summary>
+		/// ConstantBufferViewの作成
+		/// </summary>
+		void CreateConstantBufferView() {
+			auto [gpu,cpu] = GetGraphicsEngine().GetDX12().CreateConstantBufferView(m_constantBuffer.Get(), m_allocSize);
+			m_cpuHandle = cpu;
+			m_gpuHandle = gpu;
+		}
+
+		/// <summary>
+		/// CPUデスクリプタハンドル取得
+		/// </summary>
+		/// <returns></returns>
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle() {
+			return m_cpuHandle;
+		}
+		/// <summary>
+		/// GPUデスクリプタハンドル取得
+		/// </summary>
+		/// <returns></returns>
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle() {
+			return m_gpuHandle;
 		}
 
 	private:
@@ -72,6 +96,9 @@ namespace DemolisherWeapon {
 		T* m_constBufferCPU = nullptr;								//CPU側からアクセスできるする定数バッファのアドレス。
 		int m_size = 0;												//定数バッファのサイズ。
 		int m_allocSize = 0;
+
+		D3D12_CPU_DESCRIPTOR_HANDLE m_cpuHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE m_gpuHandle;
 	};
 
 }

@@ -151,16 +151,20 @@ namespace DemolisherWeapon {
 		uavBarrier.UAV.pResource = m_topLevelASBuffers.pResult;
 		commandList->ResourceBarrier(1, &uavBarrier);
 	}
-	void TLASBuffer::RegistShaderResourceView(D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle, int bufferNo)
+	void TLASBuffer::CreateShaderResourceView()
 	{
-		auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
 		//TLASをディスクリプタヒープに登録。
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		memset(&srvDesc, 0, sizeof(srvDesc));
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.RaytracingAccelerationStructure.Location = m_topLevelASBuffers.pResult->GetGPUVirtualAddress();
-		d3dDevice->CreateShaderResourceView(nullptr, &srvDesc, descriptorHandle);
+		
+		//GetGraphicsEngine().GetD3D12Device()->CreateShaderResourceView(nullptr, &srvDesc, descriptorHandle);
+
+		auto [gpu,cpu] = GetGraphicsEngine().GetDX12().CreateSRV(nullptr, &srvDesc);
+		m_GPUdescriptorHandle = gpu;
+		m_CPUdescriptorHandle = cpu;
 	}
 
 	namespace {
@@ -283,18 +287,19 @@ namespace DemolisherWeapon {
 			D3D12_STATE_SUBOBJECT subObject;
 		};
 	};
-	ReyTracingPSO::RootSignatureDesc ReyTracingPSO::CreateRayGenRootSignatureesc()
+	ReyTracingPSO::RootSignatureDesc ReyTracingPSO::CreateRayGenRootSignatureDesc()
 	{
 		// Create the root-signature
 		RootSignatureDesc desc;
 		desc.range.resize(3);
 		// gOutput
-		desc.range[0].BaseShaderRegister = 0;
-		desc.range[0].NumDescriptors = 1;
-		desc.range[0].RegisterSpace = 0;
+		desc.range[0].BaseShaderRegister = 0;//範囲内のベースシェーダーレジスタ。たとえば、シェーダーリソースビュー（SRV）の場合、3は「：register（t3）;」にマップされます。HLSLで。
+		desc.range[0].NumDescriptors = 1;		
+		desc.range[0].RegisterSpace = 0;//たとえば、SRVの場合、BaseShaderRegisterメンバーの説明の例を拡張することにより、5は「：register（t3、space5）;」にマップされます。HLSLで。
 		desc.range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-		//UAVディスクリプタが始まる配列番号
-		desc.range[0].OffsetInDescriptorsFromTableStart = 0;//TODO m_srvUavCbvHeap->GetOffsetUAVDescriptorFromTableStart();
+		
+		//↓UAVディスクリプタが始まる配列番号
+		desc.range[0].OffsetInDescriptorsFromTableStart = m_descriptorHeap->GetOffsetUAVDescriptorFromTableStart();
 
 		// gRtScene
 		desc.range[1].BaseShaderRegister = 0;
@@ -361,8 +366,10 @@ namespace DemolisherWeapon {
 		return desc;
 	}
 
-	void ReyTracingPSO::Init()
+	void ReyTracingPSO::Init(const ReyTracingDescriptorHeap* DH)
 	{
+		m_descriptorHeap = DH;
+		
 		using namespace BuildSubObjectHelper;
 
 		std::array<D3D12_STATE_SUBOBJECT, 14> subobjects;
@@ -404,7 +411,7 @@ namespace DemolisherWeapon {
 			LocalRootSignatureSubobject& rsSO, ExportAssociationSubobject& ass, ELocalRootSignature eRS, const WCHAR* exportNames[]
 			) {
 				if (eRS == eLocalRootSignature_Raygen) {
-					rsSO.Init(CreateRayGenRootSignatureesc().desc, L"RayGenRootSignature");
+					rsSO.Init(CreateRayGenRootSignatureDesc().desc, L"RayGenRootSignature");
 				}
 				if (eRS == eLocalRootSignature_PBRMaterialHit) {
 					rsSO.Init(CreatePBRMatterialHitRootSignatureDesc().desc, L"PBRMaterialHitGenRootSignature");
@@ -502,11 +509,12 @@ namespace DemolisherWeapon {
 				desc.Triangles.IndexCount = (UINT)mesh->m_indexDataArray[i].size();
 				desc.Triangles.IndexFormat = indexBufferView.Format;
 
+				//インスタンス作成
 				std::unique_ptr<ReyTracingInstanceData> instance = std::make_unique<ReyTracingInstanceData>();
 				instance->geometoryDesc = desc;
-				//instance->m_material = mesh.m_materials[i];
-				//instance->m_vertexBufferRWSB.Init(mesh.m_vertexBuffer, false);
-				//instance->m_indexBufferRWSB.Init(*mesh.m_indexBufferArray[i], false);
+				instance->m_material = &mesh->m_materials[i]->GetMaterialData();
+				instance->m_vertexBufferRWSB.Init(*dynamic_cast<VertexBufferDX12*>(mesh->m_vertexBuffer.get()), false);
+				instance->m_indexBufferRWSB.Init(*dynamic_cast<IndexBufferDX12*>(mesh->m_indexBufferArray[i].get()), false);
 
 				//配列にインスタンス追加
 				m_instances.emplace_back(std::move(instance));
@@ -547,8 +555,8 @@ namespace DemolisherWeapon {
 	}
 	void ShaderTable::Init(
 		const ReyTracingWorld& world,
-		const ReyTracingPSO& pso
-		//const DescriptorHeaps& descriptorHeaps
+		const ReyTracingPSO& pso,
+		const ReyTracingDescriptorHeap& descriptorHeaps
 	)
 	{
 		//各シェーダーの数をカウントする。
@@ -573,12 +581,12 @@ namespace DemolisherWeapon {
 
 		uint8_t* pCurret = pData;
 
-		auto ds_size_cbv_srv_uav = GetGraphicsEngine().GetDX12().GetSrvsDescriptorSize();
+		auto ds_size_cbv_srv_uav = descriptorHeaps.GetSrvsDescriptorSize();
 		auto hitGroup_pbrCameraRaySrvHeapStride =
 			ds_size_cbv_srv_uav * (int)ESRV_OneEntry::eNum;
 
-		const auto& srvUavCbvDescriptorHeapStart = GetGraphicsEngine().GetDX12().GetSrvsDescriptorHeapStart();
-		const auto& samplerDescriptorHeapStart = GetGraphicsEngine().GetDX12().GetSamplerDescriptorHeapStart();
+		const auto& srvUavCbvDescriptorHeapStart = descriptorHeaps.GetSRVHeap()->GetGPUDescriptorHandleForHeapStart();
+		const auto& samplerDescriptorHeapStart = descriptorHeaps.GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart();
 
 		uint64_t hitGroup_pbrCameraRaySrvHeapStart = srvUavCbvDescriptorHeapStart.ptr + ds_size_cbv_srv_uav;
 		//シェーダーテーブルにシェーダーを登録する関数。
@@ -593,18 +601,26 @@ namespace DemolisherWeapon {
 					pShaderId = pRtsoProps->GetShaderIdentifier(shaderData.entryPointName);
 				}
 				memcpy(pCurret, pShaderId, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+
+				//アドレス進める
 				uint8_t* pDst = pCurret + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
+
+				//各ディスクリプタヒープの始まるアドレスをセット?
+
 				if (shaderData.useLocalRootSignature == eLocalRootSignature_Raygen) {
 					//デフォルトのルートシグネチャを使用する場合、シェーダーIDの後ろにディスクリプタヒープへのアドレスを設定する。
 					*(uint64_t*)(pDst) = srvUavCbvDescriptorHeapStart.ptr;
 				}
+
 				if (shaderData.useLocalRootSignature == eLocalRootSignature_PBRMaterialHit) {
 					//SRV_CBVのディスクリプタヒープ				
 					*(uint64_t*)(pDst) = hitGroup_pbrCameraRaySrvHeapStart;
+					//次
 					pDst += sizeof(D3D12_GPU_DESCRIPTOR_HANDLE);
+					//サンプラーのディスクリプタヒープ
 					*(uint64_t*)(pDst) = samplerDescriptorHeapStart.ptr;
-
 				}
+
 				//次。
 				pCurret += m_shaderTableEntrySize;
 			}
@@ -629,66 +645,116 @@ namespace DemolisherWeapon {
 		m_shaderTable->Unmap(0, nullptr);
 	}
 
-	/*void DescriptorHeaps::Init(
-		World& world,
-		GPUBuffer& outputBuffer,
-		ConstantBuffer& rayGeneCB
-	)
-	{
+	namespace {
+		constexpr int SRVS_DESC_NUM = 1024 * 10;
+		constexpr int SAMPLER_DESC_NUM = 3;
+	}
 
-		//レイトレの出力先をディスクリプタヒープに登録する。
-		m_srvUavCbvHeap.RegistUnorderAccessResource(0, outputBuffer);
+	void ReyTracingDescriptorHeap::Init(ReyTracingWorld& world, ConstantBufferDx12<ReyTracingCBStructure>& cb, D3D12_CPU_DESCRIPTOR_HANDLE uavHandle) {
+		//CBV_SRV_UAV用のデスクリプタヒープ作成
+		m_srvsDescriptorSize = GetGraphicsEngine().GetDX12().CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, SRVS_DESC_NUM, true, m_srvsDescriptorHeap);
+		//サンプラー用のデスクリプタヒープ作成
+		m_samplerDescriptorSize = GetGraphicsEngine().GetDX12().CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SAMPLER_DESC_NUM, true, m_samplerDescriptorHeap);
 
-		m_srvUavCbvHeap.RegistConstantBuffer(0, rayGeneCB);
+		auto device = GetGraphicsEngine().GetD3D12Device();
 
-		int regNo = 0;
-		world.QueryInstances([&](Instance& instance)
+		//定数		
+		device->CopyDescriptorsSimple(
+			1,
+			m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),//dest
+			cb.GetCPUDescriptorHandle(),//src
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+		);
+
+		//TLASの登録
+		world.GetTLASBuffer().CreateShaderResourceView();
+
+		//SRV
+		int srvIndex = 1;		
+		world.QueryInstances([&](ReyTracingInstanceData& instance)
 			{
-				m_srvUavCbvHeap.RegistShaderResource(
-					regNo + (int)ESRV_OneEntry::eTLAS,
-					world.GetTLASBuffer()
+				//TLASの登録
+				device->CopyDescriptorsSimple(
+					1,
+					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eTLAS, m_srvsDescriptorSize),//dest
+					world.GetTLASBuffer().GetCPUDescriptorHandle(),//src
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
+				
 				//アルベドマップをディスクリプタヒープに登録。
-				m_srvUavCbvHeap.RegistShaderResource(
-					regNo + (int)ESRV_OneEntry::eAlbedoMap,
-					instance.m_material->GetAlbedoMap()
+				device->CopyDescriptorsSimple(
+					1,
+					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eAlbedoMap, m_srvsDescriptorSize),//dest
+					instance.m_material->GetUsingMaterialSetting().GetAlbedoTextureData().CPUdescriptorHandle,//src
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
 				//法線マップをディスクリプタヒープに登録。
-				m_srvUavCbvHeap.RegistShaderResource(
-					regNo + (int)ESRV_OneEntry::eNormalMap,
-					instance.m_material->GetNormalMap()
+				//※今はダミー
+				device->CopyDescriptorsSimple(
+					1,
+					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eNormalMap, m_srvsDescriptorSize),//dest
+					GetGraphicsEngine().GetDX12().GetSrvsDescriptorDammyCPUHandle(),//src
+					//instance.m_material->GetUsingMaterialSetting().GetNormalTextureData().CPUdescriptorHandle,//src
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
 				//スペキュラマップをディスクリプタヒープに登録。
-				m_srvUavCbvHeap.RegistShaderResource(
-					regNo + (int)ESRV_OneEntry::eSpecularMap,
-					instance.m_material->GetSpecularMap()
+				//※今はダミー
+				device->CopyDescriptorsSimple(
+					1,
+					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eSpecularMap, m_srvsDescriptorSize),//dest
+					GetGraphicsEngine().GetDX12().GetSrvsDescriptorDammyCPUHandle(),//src
+					//instance.m_material->GetUsingMaterialSetting().GetLightingTextureData().CPUdescriptorHandle,//src
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
 
 				//リフレクションマップをディスクリプタヒープに登録。
-				m_srvUavCbvHeap.RegistShaderResource(
-					regNo + (int)ESRV_OneEntry::eReflectionMap,
-					instance.m_material->GetReflectionMap()
+				//※今はダミー
+				device->CopyDescriptorsSimple(
+					1,
+					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eReflectionMap, m_srvsDescriptorSize),//dest
+					GetGraphicsEngine().GetDX12().GetSrvsDescriptorDammyCPUHandle(),//src
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+				);
+				//屈折マップをディスクリプタヒープに登録。
+				//※今はダミー
+				device->CopyDescriptorsSimple(
+					1,
+					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eRefractionMap, m_srvsDescriptorSize),//dest
+					GetGraphicsEngine().GetDX12().GetSrvsDescriptorDammyCPUHandle(),//src
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
 
-				//屈折マップをディスクリプタヒープに登録。
-				m_srvUavCbvHeap.RegistShaderResource(
-					regNo + (int)ESRV_OneEntry::eRefractionMap,
-					instance.m_material->GetRefractionMap()
-				);
 				//頂点バッファをディスクリプタヒープに登録。
-				m_srvUavCbvHeap.RegistShaderResource(
-					regNo + (int)ESRV_OneEntry::eVertexBuffer,
-					instance.m_vertexBufferRWSB
+				device->CopyDescriptorsSimple(
+					1,
+					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eVertexBuffer, m_srvsDescriptorSize),//dest
+					instance.m_vertexBufferRWSB.GetCPUDescriptorHandle(),//src
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
 				//インデックスバッファをディスクリプタヒープに登録。
-				m_srvUavCbvHeap.RegistShaderResource(
-					regNo + (int)ESRV_OneEntry::eIndexBuffer,
-					instance.m_indexBufferRWSB
+				device->CopyDescriptorsSimple(
+					1,
+					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eIndexBuffer, m_srvsDescriptorSize),//dest
+					instance.m_indexBufferRWSB.GetCPUDescriptorHandle(),//src
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
-				regNo += (int)ESRV_OneEntry::eNum;
+				srvIndex += (int)ESRV_OneEntry::eNum;
+			}
+		);
+		
+		//UAV開始位置
+		m_uavStartNum = srvIndex;
 
-			});
+		//UAVの順
+		device->CopyDescriptorsSimple(
+			1,
+			CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex, m_srvsDescriptorSize),//dest
+			uavHandle,//src
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+		);
+		srvIndex++;
 
+		//サンプラ
 		//サンプラステートの扱いは仮。
 		D3D12_SAMPLER_DESC samplerDesc = {};
 		samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -704,17 +770,14 @@ namespace DemolisherWeapon {
 		samplerDesc.BorderColor[3] = 1.0f;
 		samplerDesc.MinLOD = 0.0f;
 		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+		//作成
+		device->CreateSampler(&samplerDesc, m_samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	}
 
-		//サンプラステートをディスクリプタヒープに登録する。
-		m_samplerDescriptorHeap.RegistSamplerDesc(0, samplerDesc);
-		m_samplerDescriptorHeap.CommitSamperHeap();
-		m_srvUavCbvHeap.Commit();
-	}*/
-
-	void ReyTracingEngine::Dispatch(ID3D12GraphicsCommandList4* commandList)
+	void RayTracingEngine::Dispatch(ID3D12GraphicsCommandList4* commandList)
 	{
 		//定数更新
-		CBStructure cam;
+		ReyTracingCBStructure cam;
 		cam.pos = GetMainCamera()->GetPos();
 		cam.mRot = GetMainCamera()->GetRotMatrix();
 		cam.aspect = GetMainCamera()->GetAspect();
@@ -733,8 +796,8 @@ namespace DemolisherWeapon {
 
 		//レイトレに必要な情報をここから記述
 		D3D12_DISPATCH_RAYS_DESC raytraceDesc = {};
-		raytraceDesc.Width =  GetGraphicsEngine().Get3DFrameBuffer_W();//
-		raytraceDesc.Height = GetGraphicsEngine().Get3DFrameBuffer_H();
+		raytraceDesc.Width =  (UINT)GetGraphicsEngine().GetFrameBuffer_W();//TODO
+		raytraceDesc.Height = (UINT)GetGraphicsEngine().GetFrameBuffer_H();
 		raytraceDesc.Depth = 1;
 
 		//シェーダーテーブルの情報取得
@@ -764,17 +827,11 @@ namespace DemolisherWeapon {
 
 		// Dispatch
 		//グローバルルートシグネチチャに登録されているディスクリプタヒープを登録する。
-		/*const DescriptorHeap* descriptorHeaps[] = {
-			&m_descriptorHeaps.GetSrvUavCbvDescriptorHeap(),
-			&m_descriptorHeaps.GetSamplerDescriptorHeap()
+		ID3D12DescriptorHeap* descriptorHeaps[] = {
+			m_descriptorHeap.GetSRVHeap(),
+			m_descriptorHeap.GetSamplerHeap()
 		};
-		rc.SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);*/
-
-		ID3D12DescriptorHeap* m_descriptorHeaps[2];
-		for (int i = 0; i < 2; i++) {
-			m_descriptorHeaps[i];
-		}
-		commandList->SetDescriptorHeaps(2, m_descriptorHeaps);
+		commandList->SetDescriptorHeaps(2, descriptorHeaps);
 
 		//レイトレ用のパイプラインステートオブジェクトを設定
 		commandList->SetPipelineState1(m_pipelineStateObject.Get());
@@ -791,10 +848,23 @@ namespace DemolisherWeapon {
 		commandList->ResourceBarrier(1, &barrier);
 
 		//レイトレの結果をフレームバッファに書き戻す。
-		//g_graphicsEngine->CopyToFrameBuffer(rc, m_outputResource.Get());*/
+		{
+			D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+				GetGraphicsEngine().GetDX12().GetCurrentRenderTarget(),
+				D3D12_RESOURCE_STATE_RENDER_TARGET,
+				D3D12_RESOURCE_STATE_COPY_DEST);
+			commandList->ResourceBarrier(1, &barrier);
 
+			commandList->CopyResource(GetGraphicsEngine().GetDX12().GetCurrentRenderTarget(), m_raytracingOutput.Get());
+
+			D3D12_RESOURCE_BARRIER barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(
+				GetGraphicsEngine().GetDX12().GetCurrentRenderTarget(),
+				D3D12_RESOURCE_STATE_COPY_DEST,
+				D3D12_RESOURCE_STATE_RENDER_TARGET);
+			commandList->ResourceBarrier(1, &barrier2);
+		}
 	}
-	void ReyTracingEngine::CommitRegistGeometry(ID3D12GraphicsCommandList4* commandList)
+	void RayTracingEngine::CommitRegistGeometry(ID3D12GraphicsCommandList4* commandList)
 	{
 		//いらなくない?
 		//レンダーターゲットとか設定
@@ -807,28 +877,28 @@ namespace DemolisherWeapon {
 		CreateShaderResources();
 
 		//各種リソースをディスクリプタヒープに登録する。
-		//m_descriptorHeaps.Init(m_world, m_outputResource, m_rayGenerationCB);
+		m_descriptorHeap.Init(m_world, m_rayGenerationCB, m_raytracingOutputResourceUAVCpuDescriptor);
 
 		//PSOを作成。
-		m_pipelineStateObject.Init();
+		m_pipelineStateObject.Init(&m_descriptorHeap);
 
 		//シェーダーテーブルを作成。
-		m_shaderTable.Init(m_world, m_pipelineStateObject);
+		m_shaderTable.Init(m_world, m_pipelineStateObject, m_descriptorHeap);
 
 		//いらなくない?
 		//コマンド実行とかpresent
 		//g_graphicsEngine->EndRender();
 	}
-	void ReyTracingEngine::CreateShaderResources()
+	void RayTracingEngine::CreateShaderResources()
 	{
 		auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
 
 		//出力先バッファの作成
 		{
-			//バックバッファに合わせてる…
+			//バックバッファに合わせてる… TODO
 			auto backbufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;// m_deviceResources->GetBackBufferFormat();
-			auto width = GetGraphicsEngine().Get3DFrameBuffer_W();
-			auto height = GetGraphicsEngine().Get3DFrameBuffer_W();
+			UINT width = (UINT)GetGraphicsEngine().GetFrameBuffer_W();
+			UINT height = (UINT)GetGraphicsEngine().GetFrameBuffer_H();
 
 			//リソース作成
 			// Create the output resource. The dimensions and format should match the swap-chain.
@@ -836,7 +906,7 @@ namespace DemolisherWeapon {
 			auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 			DirectX::ThrowIfFailed(
 				d3dDevice->CreateCommittedResource(
-					&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&m_raytracingOutput)
+					&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &uavDesc, D3D12_RESOURCE_STATE_COPY_SOURCE, nullptr, IID_PPV_ARGS(&m_raytracingOutput)
 				)
 			);
 			m_raytracingOutput->SetName(L"RaytracingOutputBuffer");//リソースに名前つける
@@ -844,16 +914,18 @@ namespace DemolisherWeapon {
 			//UAV作るッピ
 			D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
 			UAVDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-			m_raytracingOutputResourceUAVGpuDescriptor = GetGraphicsEngine().GetDX12().CreateUAV(m_raytracingOutput.Get(), UAVDesc);
+			auto[gpu,cpu] = GetGraphicsEngine().GetDX12().CreateUAV(m_raytracingOutput.Get(), UAVDesc);
+			m_raytracingOutputResourceUAVGpuDescriptor = gpu;
+			m_raytracingOutputResourceUAVCpuDescriptor = cpu;
 		}
 
 		//レイジェネレーション用の定数バッファ。
-		CBStructure cam;
-		cam.pos = GetMainCamera()->GetPos();
-		cam.mRot = GetMainCamera()->GetRotMatrix();
-		cam.aspect = GetMainCamera()->GetAspect();
-		cam.fNear = GetMainCamera()->GetNear();
-		cam.fFar = GetMainCamera()->GetFar();
-		m_rayGenerationCB.Init(sizeof(CBStructure), &cam);
+		m_cbStructure.pos = GetMainCamera()->GetPos();
+		m_cbStructure.mRot = GetMainCamera()->GetRotMatrix();
+		m_cbStructure.aspect = GetMainCamera()->GetAspect();
+		m_cbStructure.fNear = GetMainCamera()->GetNear();
+		m_cbStructure.fFar = GetMainCamera()->GetFar();
+		m_rayGenerationCB.Init(sizeof(ReyTracingCBStructure), &m_cbStructure);
+		m_rayGenerationCB.CreateConstantBufferView();
 	}
 }

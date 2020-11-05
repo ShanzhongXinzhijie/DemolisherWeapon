@@ -55,6 +55,13 @@ namespace DemolisherWeapon {
 			ConvertWchar(tkmMat.specularMapFileName.c_str(), path);
 			m_materialData.InitLightingTexture(path.get());
 		}
+		/*
+		//リフレクションマップのファイル名をロード。
+		tkmMat.reflectionMapFileName = LoadTextureFileName(fp, plusPath.c_str());
+		//屈折マップのファイル名をロード。
+		tkmMat.refractionMapFileName = LoadTextureFileName(fp, plusPath.c_str());
+		*/
+
 		//初期化
 		m_materialData.Init(isSkinModel, name);
 	}
@@ -149,6 +156,12 @@ namespace DemolisherWeapon {
 	void PipelineStateDX11::Apply() {
 		//VertexBufferの前
 		GetGraphicsEngine().GetD3DDeviceContext()->IASetInputLayout(m_inputLayout.Get());
+	}
+
+	//TODO
+	void PipelineStateDX12::Init(MaterialData& mat) {
+	}
+	void PipelineStateDX12::Apply() {
 	}
 
 	void CModelMeshParts::InitFromTkmFile(const tkEngine::CTkmFile& tkmFile) {
@@ -307,6 +320,8 @@ namespace DemolisherWeapon {
 			}
 			if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
 				mat = std::make_unique<MaterialDX12>(mesh->m_skinFlags[ind], tkmMat, ind);
+				pso = std::make_unique<PipelineStateDX12>();
+				pso->Init(mat->GetMaterialData());
 			}
 
 			//保存
@@ -326,10 +341,7 @@ namespace DemolisherWeapon {
 			//マテリアルごとにドロー。
 			for (int matNo = 0; matNo < mesh->m_materials.size(); matNo++) {
 				//パイプラインステートを設定
-				mesh->m_pipelineState[matNo]->Apply();		
-				/*GetGraphicsEngine().GetD3DDeviceContext()->IASetInputLayout(
-					mesh->m_materials[matNo]->GetMaterialData().GetDefaultVS()->GetShader(SkinModelEffectShader::enALL).GetInputLayout()
-				);*/
+				mesh->m_pipelineState[matNo]->Apply();
 				//インデックスバッファを設定
 				mesh->m_indexBufferArray[matNo]->Attach();
 				//マテリアルの設定

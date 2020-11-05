@@ -251,6 +251,9 @@ namespace DemolisherWeapon {
 		ID3D11ShaderResourceView* const * GetAddressOfTranslucentTexture()const {
 			return m_translucent.textureView.GetAddressOf();
 		}
+		const TextueData& GetTranslucentTextureData()const {
+			return m_translucent;
+		}
 		//トランスルーセントマップを設定
 		void SetTranslucentTexture(ID3D11ShaderResourceView* tex) {
 			TextueData texData;

@@ -1,6 +1,7 @@
 #include "DWstdafx.h"
 #include "DX12Test.h"
 #include "GraphicsAPI/DirectX12/d3dx12.h"
+#include "Graphic/ReyTracing/ReyTracingEngine.h"
 
 #include<comdef.h>
 
@@ -216,7 +217,13 @@ namespace DemolisherWeapon {
 		}
 
 		//CBV_SRV_UAV用のデスクリプタヒープ作成
-		m_srvsDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, CBV_SRV_UAV_MAXNUM, true, m_srvsDescriptorHeap);
+		m_srvsDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, CBV_SRV_UAV_MAXNUM, false, m_srvsDescriptorHeap);
+		//ダミーハンドル作成
+		m_srvIndex++;
+		m_srvsDammyCPUHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_srvIndex, m_srvsDescriptorSize);
+
+		//描画用
+		m_drawSRVsDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, DRW_SRVS_DESC_NUM, true, m_drawSRVsDescriptorHeap);
 
 		//サンプラー用のデスクリプタヒープ作成
 		m_samplerDescriptorSize = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SAMPLER_MAXNUM, true, m_samplerDescriptorHeap);
@@ -240,6 +247,7 @@ namespace DemolisherWeapon {
 		if (FAILED(m_commandList->Close())) {
 			return false;
 		}
+		m_commandList->SetName(L"DWCommandList");
 
 		// フェンスとフェンスイベントを作成する.
 		if (FAILED(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)))) {
@@ -352,8 +360,10 @@ namespace DemolisherWeapon {
 			{1.0f, 0.0f}
 		};
 		m_square.Init(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, 4, index);
-		m_texture2 = CreateTexture(L"utc_all2.dds");		
-		m_texture = CreateTexture(L"utc_all2.dds");
+
+		//テクスチャ
+		//m_texture2 = CreateTexture(L"utc_all2.dds");		
+		//m_texture = CreateTexture(L"utc_all2.dds");
 		const TextueData* return_textureData;
 		TextureFactory::GetInstance().Load(L"utc_all2.dds", &return_textureData, true);//TODO これのあとテクスチャロード不能?
 		m_texture = *return_textureData;
@@ -361,7 +371,7 @@ namespace DemolisherWeapon {
 		//モデル
 		m_meshTest = new MeshTest;
 		tkEngine::CTkmFile tkmFile;
-		tkmFile.Load("sphere.tkm");
+		tkmFile.Load("Assets/modelData/unityChan.tkm");
 		m_meshTest->m_mesh.InitFromTkmFile(tkmFile);
 		m_meshTest->m_vs.Load("Preset/shader/ModelDX12Test.fx", "VSMainNonSkin", Shader::EnType::VS);
 		m_meshTest->m_ps.Load("Preset/shader/ModelDX12Test.fx", "PSMain", Shader::EnType::PS);
@@ -375,8 +385,8 @@ namespace DemolisherWeapon {
 			psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 			psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-			psoDesc.InputLayout.pInputElementDescs = tkEngine::CTkmFile::SVertex::vertexLayout;
-			psoDesc.InputLayout.NumElements = sizeof(tkEngine::CTkmFile::SVertex::vertexLayout) / sizeof(D3D12_INPUT_ELEMENT_DESC);
+			psoDesc.InputLayout.pInputElementDescs = VertexPositionNormalTangentColorTexture::InputElementsDX12;
+			psoDesc.InputLayout.NumElements = sizeof(VertexPositionNormalTangentColorTexture::InputElementsDX12) / sizeof(D3D12_INPUT_ELEMENT_DESC);
 			psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 			psoDesc.NumRenderTargets = 1;
 			psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -388,11 +398,36 @@ namespace DemolisherWeapon {
 			}
 		}		
 		m_meshTest->m_cb.Init(sizeof(m_meshTest->m_cbData));
-		m_meshTest->m_cb.CreateConstantBufferView(CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), ++m_srvIndex, m_srvsDescriptorSize));
+		m_meshTest->m_cb.CreateConstantBufferView();
+
+		m_rayTraceTestModel.LoadTkmFile("Assets/modelData/unityChan.tkm");
+		m_rayTraceTestModel.CreateMeshParts();
 		
+		m_rayTraceTestModel.FindMesh([&](const std::unique_ptr<SModelMesh>& m) {m_texture = m->m_materials[0]->GetMaterialData().GetDefaultAlbedoTexture(); });
+
+		//描画ヒープにコピー
+		m_d3dDevice->CopyDescriptorsSimple(
+			1,
+			CD3DX12_CPU_DESCRIPTOR_HANDLE(m_drawSRVsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), 0, m_drawSRVsDescriptorSize),//dest
+				m_texture.CPUdescriptorHandle,//src
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+		);
+		m_d3dDevice->CopyDescriptorsSimple(
+			1,
+			CD3DX12_CPU_DESCRIPTOR_HANDLE(m_drawSRVsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), 1, m_drawSRVsDescriptorSize),//dest
+			m_meshTest->m_cb.GetCPUDescriptorHandle(),//src
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+		);
+
 		SetMainCamera(&m_camera);
-		m_camera.SetPos(CVector3::Back() * 300.0f);
+		m_camera.SetPos({ 0,50,-200 });
+		m_camera.SetTarget({0,50,0});
 		m_camera.SetFar(10000.0f);
+
+		//レイトレーシング		
+		m_rayTraceEngine = new RayTracingEngine;
+		m_rayTraceEngine->RegistGeometry(m_rayTraceTestModel);
+		m_rayTraceEngine->CommitRegistGeometry(m_commandList.Get());
 
 		//初期化完了
 		m_isInitTest = true;
@@ -400,7 +435,7 @@ namespace DemolisherWeapon {
 	}
 
 	void DX12Test::Render() {
-		RenderInit();
+		//RenderInit();
 
 		//前フレームの描画完了を待つ
 		if (!WaitForPreviousFrame()) {
@@ -425,82 +460,78 @@ namespace DemolisherWeapon {
 		m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
 		//レンダーターゲットを塗りつぶし
-		CVector4 clearColor = { 1.0f, 0.2f, 0.4f, 1.0f };
-		static int cnt = 0;
-		cnt++;
-		if (cnt < 30) {
-			//clearColor = { 1.0f, 0.2f, 0.4f, 1.0f };
-		}else
-		if (cnt < 60) {
-			//clearColor = { 0.4f, 0.2f, 1.0f, 1.0f };
-		}
-		else {
-			cnt = 0;
-		}
+		CVector4 clearColor = { 1.0f, 0.2f, 0.4f, 1.0f };		
 		m_commandList->ClearRenderTargetView(rtvHandle, clearColor.v, 0, nullptr);
-
 		//デプスのクリア
 		GetCommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
+		//初期化
+		RenderInit();
+
 		//ディスクリプタヒープの設定
-		ID3D12DescriptorHeap* heapList[] = { m_srvsDescriptorHeap.Get() };
-		m_commandList->SetDescriptorHeaps(_countof(heapList), heapList);
+		//ID3D12DescriptorHeap* heapList[] = { m_srvsDescriptorHeap.Get() };
+		//m_commandList->SetDescriptorHeaps(_countof(heapList), heapList);
 
 		//ビューポート設定
 		SetViewport(0.0f, 0.0f, GetGraphicsEngine().Get3DFrameBuffer_W(), GetGraphicsEngine().Get3DFrameBuffer_H());
 
 		//四角形の描画
-		{
-			//頂点の更新
-			SVertex vertex[4];
-			if (cnt < 30) {
-				vertex[0] = {
-						{0.3f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
-						{0.0f, 1.0f}
-				};
-			}
-			else {
-				vertex[0] = {
-					{0.2f * 2.0f - 1.0f, 0.1f * 2.0f - 1.0f, 0.0f, 1.0f},
-					{0.0f, 1.0f}
-				};
-			}
-			vertex[1] = {
-				{0.7f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
-				{1.0f, 1.0f}
-			};
-			vertex[2] = {
-				{0.3f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
-				{0.0f, 0.0f}
-			};
-			vertex[3] = {
-				{0.7f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
-				{1.0f, 0.0f}
-			};
-			m_square.UpdateVertex(vertex);
+		//{
+		//	//頂点の更新
+		//	SVertex vertex[4];
+		//	if (cnt < 30) {
+		//		vertex[0] = {
+		//				{0.3f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
+		//				{0.0f, 1.0f}
+		//		};
+		//	}
+		//	else {
+		//		vertex[0] = {
+		//			{0.2f * 2.0f - 1.0f, 0.1f * 2.0f - 1.0f, 0.0f, 1.0f},
+		//			{0.0f, 1.0f}
+		//		};
+		//	}
+		//	vertex[1] = {
+		//		{0.7f * 2.0f - 1.0f, 0.3f * 2.0f - 1.0f, 0.0f, 1.0f},
+		//		{1.0f, 1.0f}
+		//	};
+		//	vertex[2] = {
+		//		{0.3f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
+		//		{0.0f, 0.0f}
+		//	};
+		//	vertex[3] = {
+		//		{0.7f * 2.0f - 1.0f, 0.7f * 2.0f - 1.0f, 0.0f, 1.0f},
+		//		{1.0f, 0.0f}
+		//	};
+		//	m_square.UpdateVertex(vertex);
 
-			m_commandList->SetPipelineState(m_pso.Get());
-			m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-			//m_commandList->SetDescriptorHeaps(1, &m_srvsDescriptorHeap);
-			m_commandList->SetGraphicsRootDescriptorTable(0, m_texture.descriptorHandle);
-			//commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
-			//m_square.DrawIndexed();
-		}
+		//	m_commandList->SetPipelineState(m_pso.Get());
+		//	m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+		//	//m_commandList->SetDescriptorHeaps(1, m_srvsDescriptorHeap.GetAddressOf());
+		//	m_commandList->SetGraphicsRootDescriptorTable(0, m_texture.GPUdescriptorHandle);
+		//	//commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
+		//	//m_square.DrawIndexed();
+		//}
 
-		//TODO 定数バッファ　バッファリングすべき
-		static float rot = 0;
-		rot += CMath::RadToDeg(0.001f);
-		m_meshTest->m_cbData.mWorld.MakeRotationX(rot);
-		m_meshTest->m_cbData.mView = GetMainCamera()->GetViewMatrix();
-		m_meshTest->m_cbData.mProj = GetMainCamera()->GetProjMatrix();
-		m_meshTest->m_cb.Update(&m_meshTest->m_cbData);
+		//
+		//static float rot = 0;
+		//rot += CMath::RadToDeg(0.001f);
+		//m_meshTest->m_cbData.mWorld.Identity();// .MakeRotationX(rot);
+		//m_meshTest->m_cbData.mView = GetMainCamera()->GetViewMatrix();
+		//m_meshTest->m_cbData.mProj = GetMainCamera()->GetProjMatrix();
+		//m_meshTest->m_cb.Update(&m_meshTest->m_cbData);
 
-		//モデルの描画
-		m_commandList->SetPipelineState(m_meshTest->m_pso.Get());
-		m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-		//m_commandList->SetDescriptorHeaps(1, &m_srvsDescriptorHeap);
-		m_commandList->SetGraphicsRootDescriptorTable(0, m_texture.descriptorHandle);
-		m_meshTest->m_mesh.Draw(1);
+		////モデルの描画
+		//m_commandList->SetPipelineState(m_meshTest->m_pso.Get());
+		//m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+		//ID3D12DescriptorHeap* heapList[] = { m_drawSRVsDescriptorHeap.Get() };
+		//m_commandList->SetDescriptorHeaps(_countof(heapList), heapList);
+		//m_commandList->SetGraphicsRootDescriptorTable(0, CD3DX12_GPU_DESCRIPTOR_HANDLE(m_drawSRVsDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_drawSRVsDescriptorSize));
+		////m_meshTest->m_mesh.Draw(1);
+		//m_rayTraceTestModel.Draw(1);
+
+		//レイトレ
+		m_rayTraceEngine->Dispatch(m_commandList.Get());
 
 		//リソースバリアを設定
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));

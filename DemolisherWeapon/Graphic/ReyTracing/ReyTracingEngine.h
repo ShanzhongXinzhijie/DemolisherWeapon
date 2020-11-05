@@ -29,9 +29,9 @@ namespace DemolisherWeapon {
 
 	struct ReyTracingInstanceData {
 		D3D12_RAYTRACING_GEOMETRY_DESC geometoryDesc;	//ジオメトリ情報。
-		//RWStructuredBuffer m_vertexBufferRWSB;			//頂点バッファ。
-		//RWStructuredBuffer m_indexBufferRWSB;			//インデックスバッファ。
-		//Material* m_material = nullptr;					//マテリアル。		
+		StructuredBufferInnerDX12 m_vertexBufferRWSB;			//頂点バッファ。
+		StructuredBufferInnerDX12 m_indexBufferRWSB;			//インデックスバッファ。
+		MaterialData* m_material = nullptr;			//マテリアル。		
 	};
 
 	struct AccelerationStructureBuffers {
@@ -174,8 +174,7 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// SRVに登録。
 		/// </summary>
-		/// <param name="descriptorHandle"></param>
-		void RegistShaderResourceView(D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle, int bufferNo);// override;
+		void CreateShaderResourceView();
 
 		/// <summary>
 		/// VRAM上の仮想アドレスを取得。
@@ -186,8 +185,71 @@ namespace DemolisherWeapon {
 			return m_topLevelASBuffers.pResult->GetGPUVirtualAddress();
 		}
 
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle() const{
+			return m_GPUdescriptorHandle;
+		}
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle() const {
+			return m_CPUdescriptorHandle;
+		}
+
 	private:
 		AccelerationStructureBuffers m_topLevelASBuffers;
+
+		D3D12_GPU_DESCRIPTOR_HANDLE m_GPUdescriptorHandle;
+		D3D12_CPU_DESCRIPTOR_HANDLE m_CPUdescriptorHandle;
+	};
+
+	class ReyTracingWorld;
+
+	/// <summary>
+	/// 定数バッファ
+	/// </summary>
+	struct ReyTracingCBStructure {
+		CMatrix mRot;	//回転行列
+		CVector3 pos;	//視点。
+		float aspect;	//アスペクト比。
+		float fFar;		//遠平面。
+		float fNear;	//近平面。
+	};
+
+	/// <summary>
+	/// レイトレのディスクリプタヒープ
+	/// </summary>
+	class ReyTracingDescriptorHeap {
+	public:
+		void Init(ReyTracingWorld& world, ConstantBufferDx12<ReyTracingCBStructure>& cb, D3D12_CPU_DESCRIPTOR_HANDLE uavHandle);
+
+		ID3D12DescriptorHeap* GetSRVHeap()const {
+			return m_srvsDescriptorHeap.Get();
+		}
+		ID3D12DescriptorHeap* GetSamplerHeap()const {
+			return m_samplerDescriptorHeap.Get();
+		}
+
+		/// <summary>
+		/// SRVデスクリプタのサイズ
+		/// </summary>
+		/// <returns></returns>
+		UINT GetSrvsDescriptorSize()const {
+			return m_srvsDescriptorSize;
+		}
+
+		/// <summary>
+		/// UAVデスクリプタの開始位置
+		/// </summary>
+		/// <returns></returns>
+		int GetOffsetUAVDescriptorFromTableStart()const {
+			return m_uavStartNum;
+		}
+
+	private:
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvsDescriptorHeap;
+		UINT m_srvsDescriptorSize = 0;
+
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_samplerDescriptorHeap;
+		UINT m_samplerDescriptorSize = 0;
+
+		int m_uavStartNum = 0;
 	};
 
 	/// <summary>
@@ -209,7 +271,7 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// パイプラインステートオブジェクトを初期化。
 		/// </summary>
-		void Init();
+		void Init(const ReyTracingDescriptorHeap* DH);
 
 		void QueryInterface(Microsoft::WRL::ComPtr<ID3D12StateObjectProperties>& props) const
 		{
@@ -232,10 +294,11 @@ namespace DemolisherWeapon {
 		}
 
 	private:
-		RootSignatureDesc CreateRayGenRootSignatureesc();
+		RootSignatureDesc CreateRayGenRootSignatureDesc();
 		RootSignatureDesc CreatePBRMatterialHitRootSignatureDesc();
 
 	private:
+		const ReyTracingDescriptorHeap* m_descriptorHeap = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> m_pipelineState;					//パイプラインステート
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> m_emptyRootSignature;
 	};
@@ -277,6 +340,14 @@ namespace DemolisherWeapon {
 			return (int)m_instances.size();
 		}
 
+		/// <summary>
+		/// TLAS取得
+		/// </summary>
+		/// <returns></returns>
+		TLASBuffer& GetTLASBuffer() {
+			return m_topLevelASBuffers;
+		}
+
 	private:
 		std::vector<std::unique_ptr<ReyTracingInstanceData>> m_instances;
 		BLASBuffer m_blasBuffer;
@@ -297,8 +368,8 @@ namespace DemolisherWeapon {
 		/// </summary>
 		void Init(
 			const ReyTracingWorld& world,
-			const ReyTracingPSO& pso
-			//const ReyTracingDescriptorHeaps& descriptorHeaps
+			const ReyTracingPSO& pso,
+			const ReyTracingDescriptorHeap& descriptorHeaps
 		);
 
 		/// <summary>
@@ -364,7 +435,7 @@ namespace DemolisherWeapon {
 	/// <summary>
 	/// レイトレーシングエンジン
 	/// </summary>
-	class ReyTracingEngine
+	class RayTracingEngine
 	{
 	public:
 		/// <summary>
@@ -388,33 +459,32 @@ namespace DemolisherWeapon {
 		/// </summary>
 		void CommitRegistGeometry(ID3D12GraphicsCommandList4* commandList);
 
+		/// <summary>
+		/// 定数バッファ取得
+		/// </summary>
+		/// <returns></returns>
+		ConstantBufferDx12<ReyTracingCBStructure>& GetCB() {
+			return m_rayGenerationCB;
+		}
+
 	private:
 		/// <summary>
 		/// シェーダーリソースを作成。
 		/// </summary>
 		void CreateShaderResources();
 
-	public:
-		/// <summary>
-		/// 定数バッファ
-		/// </summary>
-		struct CBStructure {
-			CMatrix mRot;	//回転行列
-			CVector3 pos;	//視点。
-			float aspect;	//アスペクト比。
-			float fFar;		//遠平面。
-			float fNear;	//近平面。
-		};
-
 	private:
 		ReyTracingWorld m_world;
 		ReyTracingPSO m_pipelineStateObject;
 		ShaderTable m_shaderTable;
+		ReyTracingDescriptorHeap m_descriptorHeap;
 
-		ConstantBufferDx12<CBStructure> m_rayGenerationCB;//定数バッファ
+		ConstantBufferDx12<ReyTracingCBStructure> m_rayGenerationCB;//定数バッファ
+		ReyTracingCBStructure m_cbStructure;
 
 		Microsoft::WRL::ComPtr<ID3D12Resource> m_raytracingOutput;//出力バッファ
 		D3D12_GPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVGpuDescriptor;//出力バッファのGPUディスクリプタハンドル
+		D3D12_CPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVCpuDescriptor;//出力バッファのCPUディスクリプタハンドル
 	};
 
 }

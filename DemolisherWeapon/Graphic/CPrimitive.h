@@ -45,6 +45,21 @@ public:
 	const D3D12_VERTEX_BUFFER_VIEW& GetView()const {
 		return m_vertexBufferView;
 	}
+
+	UINT GetStrideInBytes() const
+	{
+		return m_vertexBufferView.StrideInBytes;
+	}
+	UINT GetSizeInBytes() const
+	{
+		return m_vertexBufferView.SizeInBytes;
+	}
+
+	ID3D12Resource* GetResource() const
+	{
+		return m_vertexBuffer.Get();
+	}
+
 private:
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_vertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
@@ -85,6 +100,20 @@ public:
 
 	const D3D12_INDEX_BUFFER_VIEW& GetView()const {
 		return m_indexBufferView;
+	}
+
+	UINT GetStrideInBytes() const
+	{
+		return sizeof(unsigned long);
+	}
+	UINT GetSizeInBytes() const
+	{
+		return m_indexBufferView.SizeInBytes;
+	}
+
+	ID3D12Resource* GetResource() const
+	{
+		return m_indexBuffer.Get();
 	}
 
 	//void* OpenReadPointer() override;

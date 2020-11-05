@@ -48,7 +48,7 @@ private:
 		m_needUpdateBillboard = true;//ビルボード行列を更新する必要があるフラグ
 
 		//回転行列の更新
-		CMatrix viewInv = m_viewMat; viewInv.Inverse();
+		CMatrix viewInv = m_viewMat; //viewInv.Inverse();
 		m_rotMat = viewInv;
 		m_rotMat.m[3][0] = 0.0f;
 		m_rotMat.m[3][1] = 0.0f;
@@ -109,7 +109,10 @@ public:
 	const CMatrix& GetProjMatrixOld() const { return m_projMatOld; };
 	const CMatrix& GetViewMatrixOld() const { return m_viewMatOld; };
 
-	const CMatrix& GetRotMatrix()const { return m_rotMat; }//回転行列の取得
+	//回転行列の取得
+	const CMatrix& GetRotMatrix()const { 
+		return m_rotMat;
+	}
 
 	//パラメータの取得
 	const CVector3& GetPos() const { return m_pos; }

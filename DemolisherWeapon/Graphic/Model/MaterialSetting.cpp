@@ -137,10 +137,10 @@ namespace DemolisherWeapon {
 		SetPS(materialData->GetDefaultMaterialSetting().GetPS());
 		SetPSZ(materialData->GetDefaultMaterialSetting().GetPSZ());
 
-		SetAlbedoTexture(materialData->GetDefaultMaterialSetting().GetAlbedoTexture());
-		SetNormalTexture(materialData->GetDefaultMaterialSetting().GetNormalTexture());
-		SetLightingTexture(materialData->GetDefaultMaterialSetting().GetLightingTexture());
-		SetTranslucentTexture(materialData->GetDefaultMaterialSetting().GetTranslucentTexture());
+		SetAlbedoTexture(materialData->GetDefaultMaterialSetting().GetAlbedoTextureData());
+		SetNormalTexture(materialData->GetDefaultMaterialSetting().GetNormalTextureData());
+		SetLightingTexture(materialData->GetDefaultMaterialSetting().GetLightingTextureData());
+		SetTranslucentTexture(materialData->GetDefaultMaterialSetting().GetTranslucentTextureData());
 
 		SetIsMotionBlur(materialData->GetDefaultMaterialSetting().GetIsMotionBlur());
 		SetIsUseTexZShader(materialData->GetDefaultMaterialSetting().GetIsUseTexZShader());
@@ -166,17 +166,17 @@ namespace DemolisherWeapon {
 
 	//アルベドテクスチャをデフォに戻す
 	void MaterialSetting::SetDefaultAlbedoTexture() {
-		ID3D11ShaderResourceView* DT = m_isInit->GetDefaultAlbedoTexture().textureView.Get();
+		auto DT = m_isInit->GetDefaultAlbedoTexture();
 		SetAlbedoTexture(DT);
 	}
 	//ノーマルマップをデフォに戻す
 	void MaterialSetting::SetDefaultNormalTexture() {
-		ID3D11ShaderResourceView* DT = m_isInit->GetDefaultNormalTexture().textureView.Get();
+		auto DT = m_isInit->GetDefaultNormalTexture();
 		SetNormalTexture(DT);
 	}
 	//ライティングパラメータマップをデフォに戻す
 	void MaterialSetting::SetDefaultLightingTexture() {
-		ID3D11ShaderResourceView* DT = m_isInit->GetDefaultLightingTexture().textureView.Get();
+		auto DT = m_isInit->GetDefaultLightingTexture();
 		SetLightingTexture(DT);
 	}
 

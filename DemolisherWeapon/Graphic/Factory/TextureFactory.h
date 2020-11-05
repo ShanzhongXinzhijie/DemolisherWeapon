@@ -21,7 +21,8 @@ namespace DemolisherWeapon {
 				mat.d3d12texture.Get()->AddRef();
 				d3d12texture.Attach(mat.d3d12texture.Get());
 			}
-			descriptorHandle = mat.descriptorHandle;
+			GPUdescriptorHandle = mat.GPUdescriptorHandle;
+			CPUdescriptorHandle = mat.CPUdescriptorHandle;
 
 			//DirectX11
 			if (mat.texture) {
@@ -40,7 +41,8 @@ namespace DemolisherWeapon {
 		bool operator==(const TextueData& rhs) const
 		{
 			bool judge =(d3d12texture.Get() == rhs.d3d12texture.Get())
-						&& (descriptorHandle.ptr == rhs.descriptorHandle.ptr)
+						&& (GPUdescriptorHandle.ptr == rhs.GPUdescriptorHandle.ptr)
+						&& (CPUdescriptorHandle.ptr == rhs.CPUdescriptorHandle.ptr)
 						&& (texture.Get() == rhs.texture.Get()) 
 						&& (textureView.Get() == rhs.textureView.Get())
 						&& (isDDS == rhs.isDDS)
@@ -55,7 +57,8 @@ namespace DemolisherWeapon {
 
 		//DirectX12
 		Microsoft::WRL::ComPtr<ID3D12Resource> d3d12texture;
-		D3D12_GPU_DESCRIPTOR_HANDLE descriptorHandle = { 0 };
+		D3D12_GPU_DESCRIPTOR_HANDLE GPUdescriptorHandle = { 0 };
+		D3D12_CPU_DESCRIPTOR_HANDLE CPUdescriptorHandle = { 0 };
 		//DirectX11
 		Microsoft::WRL::ComPtr<ID3D11Resource> texture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureView;

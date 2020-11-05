@@ -131,13 +131,12 @@ struct SSkinVSIn{
 };
 //頂点シェーダーへの入力。
 struct SVSIn{
-	float4 pos 		: POSITION;
+    float4 pos : SV_Position;
 	float3 Normal   : NORMAL;
 	float3 Tangent  : TANGENT;
-	float3 biNormal : BINORMAL;
+	//float3 biNormal : BINORMAL;
 	float2 uv 		: TEXCOORD0;
-	SSkinVSIn skinVert;			//スキン用の頂点データ。
-	
+	//SSkinVSIn skinVert;			//スキン用の頂点データ。	
 };
 //ピクセルシェーダーへの入力。
 struct SPSIn{
@@ -205,7 +204,7 @@ SPSIn VSMainCore(SVSIn vsIn, uniform bool hasSkin)
 	psIn.pos = mul(mProj, psIn.pos);
 	psIn.Normal = normalize(mul(m, vsIn.Normal));
 	psIn.Tangent = normalize(mul(m, vsIn.Tangent));
-	psIn.biNormal = normalize(mul(m, vsIn.biNormal));
+	//psIn.biNormal = normalize(mul(m, vsIn.biNormal));
 	psIn.uv = vsIn.uv;
 
 	return psIn;
@@ -255,7 +254,7 @@ float4 PSMain( SPSIn psIn ) : SV_Target0
 	//lig += ambientLight;
 	
     float4 finalColor = g_albedoMap.Sample(g_sampler, psIn.uv);
-	//finalColor.xyz = albedoColor.xyz * lig;
+    //finalColor.xyz = albedoColor.xyz * lig;
 
 	//finalColor.rgb *= saturate(dot(normal, float3(1, 0, 0)));
 
