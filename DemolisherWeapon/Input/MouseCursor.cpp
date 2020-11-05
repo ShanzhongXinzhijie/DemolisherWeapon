@@ -26,8 +26,8 @@ void CMouseCursor::Update() {
 	m_mouseMove = m_mouseClientPos - oldpos;
 	
 	//0.0~1.0に変換したもの
-	m_mousePos.x = p.x / GetEngine().GetWindowSize().x;
-	m_mousePos.y = p.y / GetEngine().GetWindowSize().y;
+	m_mousePos.x = p.x / GetEngine().GetClientSize().x;
+	m_mousePos.y = p.y / GetEngine().GetClientSize().y;
 
 	//カーソルを画面中央に固定
 	if (m_lockCursor) {
@@ -40,7 +40,7 @@ void CMouseCursor::Update() {
 //マウスカーソルを指定位置にセット
 void CMouseCursor::SetMouseCursor(const CVector2& vec) {
 	//スクリーン上の座標に変換してセット
-	POINT p = { (LONG)(GetEngine().GetWindowSize().x*vec.x), (LONG)(GetEngine().GetWindowSize().y*vec.y) };
+	POINT p = { (LONG)(GetEngine().GetClientSize().x*vec.x), (LONG)(GetEngine().GetClientSize().y*vec.y) };
 	m_mouseClientPos.x = (float)p.x;
 	m_mouseClientPos.y = (float)p.y;
 	ClientToScreen(GetEngine().GetWindowHandle(), &p);

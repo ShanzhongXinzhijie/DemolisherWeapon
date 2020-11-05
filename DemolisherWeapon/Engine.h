@@ -236,9 +236,16 @@ public:
 		GetWindowRect(GetWindowHandle(), &m_rect);
 		m_winSize.x = (float)(m_rect.right - m_rect.left);
 		m_winSize.y = (float)(m_rect.bottom - m_rect.top);
+
+		GetClientRect(GetWindowHandle(), &m_clientRect);
+		m_clientSize.x = (float)(m_clientRect.right - m_clientRect.left);
+		m_clientSize.y = (float)(m_clientRect.bottom - m_clientRect.top);
 	}
 	RECT GetWindowRECT()const { return m_rect; }
 	CVector2 GetWindowSize()const { return m_winSize; }
+
+	RECT GetClientRECT()const { return m_clientRect; }
+	CVector2 GetClientSize()const { return m_clientSize; }
 
 	//距離スケールを取得
 	float GetDistanceScale()const { return m_distanceScale; }
@@ -330,8 +337,8 @@ private:
 	void InitWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow, const TCHAR* appName, const InitEngineParameter& initParam, HICON icon);
 
 	HWND m_hWnd;//ウィンドウハンドル
-	RECT m_rect;
-	CVector2 m_winSize;
+	RECT m_rect, m_clientRect;
+	CVector2 m_winSize, m_clientSize;
 
 	//処理クラス
 	GraphicsEngine m_graphicsEngine;
