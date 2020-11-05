@@ -48,6 +48,15 @@ namespace DemolisherWeapon {
 			m_sourceRectangle = sourceRectangle;
 		}
 
+		//‰æ‘œ‚Ì•‚ğæ“¾
+		UINT GetWidth()const {
+			return m_width;
+		}
+		//‰æ‘œ‚Ì‚‚³‚ğæ“¾
+		UINT GetHeight()const {
+			return m_height;
+		}
+
 	private:
 		DirectX::SpriteBatch* m_spriteBatch = nullptr;
 		//CVector2 m_screenSize;
