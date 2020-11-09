@@ -383,7 +383,7 @@ namespace DemolisherWeapon {
 			psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 			psoDesc.SampleMask = 0xffffffff;
 			psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+			psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 			psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 			psoDesc.InputLayout.pInputElementDescs = VertexPositionNormalTangentColorTexture::InputElementsDX12;
 			psoDesc.InputLayout.NumElements = sizeof(VertexPositionNormalTangentColorTexture::InputElementsDX12) / sizeof(D3D12_INPUT_ELEMENT_DESC);
@@ -400,10 +400,10 @@ namespace DemolisherWeapon {
 		m_meshTest->m_cb.Init(sizeof(m_meshTest->m_cbData));
 		m_meshTest->m_cb.CreateConstantBufferView();
 
-		m_rayTraceTestModel.LoadTkmFile("Assets/modelData/unityChan.tkm");
-		m_rayTraceTestModel.CreateMeshParts();
-		
-		m_rayTraceTestModel.FindMesh([&](const std::unique_ptr<SModelMesh>& m) {m_texture = m->m_materials[0]->GetMaterialData().GetDefaultAlbedoTexture(); });
+		m_rayTraceTestModel[0].LoadTkmFile("Assets/modelData/background.tkm");
+		m_rayTraceTestModel[0].CreateMeshParts();
+		m_rayTraceTestModel[1].LoadTkmFile("Assets/modelData/unityChan.tkm");
+		m_rayTraceTestModel[1].CreateMeshParts();
 
 		//描画ヒープにコピー
 		m_d3dDevice->CopyDescriptorsSimple(
@@ -420,13 +420,24 @@ namespace DemolisherWeapon {
 		);
 
 		SetMainCamera(&m_camera);
-		m_camera.SetPos({ 0,50,-200 });
-		m_camera.SetTarget({0,50,0});
 		m_camera.SetFar(10000.0f);
+		m_camPos = { 81.2955322f, 105.524132f,  -98.4609833f };
+		m_camTgt = { -34.3155823f, -16.9616947f, 104.190804f };
 
 		//レイトレーシング		
 		m_rayTraceEngine = new RayTracingEngine;
-		m_rayTraceEngine->RegistGeometry(m_rayTraceTestModel);
+
+		//バイアス行列取得
+		CMatrix mBiasScr;
+		CoordinateSystemBias::GetBias(m_rayTraceTestModelMat[0], mBiasScr, enFbxUpAxisZ, enFbxRightHanded);
+		m_rayTraceTestModelMat[0].Mul(mBiasScr, m_rayTraceTestModelMat[0]);
+		m_rayTraceTestModelMat[1] = m_rayTraceTestModelMat[0];
+
+		mBiasScr.MakeTranslation({ 100,500,100 });
+		m_rayTraceTestModelMat[1].Mul(m_rayTraceTestModelMat[1], mBiasScr);
+
+		m_rayTraceEngine->RegistGeometry(m_rayTraceTestModel[0], &m_rayTraceTestModelMat[0]);
+		m_rayTraceEngine->RegistGeometry(m_rayTraceTestModel[1], &m_rayTraceTestModelMat[1]);
 		m_rayTraceEngine->CommitRegistGeometry(m_commandList.Get());
 
 		//初期化完了
@@ -460,7 +471,7 @@ namespace DemolisherWeapon {
 		m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
 		//レンダーターゲットを塗りつぶし
-		CVector4 clearColor = { 1.0f, 0.2f, 0.4f, 1.0f };		
+		CVector4 clearColor = { 1.0f, 0.2f, 0.4f, 1.0f };
 		m_commandList->ClearRenderTargetView(rtvHandle, clearColor.v, 0, nullptr);
 		//デプスのクリア
 		GetCommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
@@ -511,27 +522,77 @@ namespace DemolisherWeapon {
 		//	m_commandList->SetGraphicsRootDescriptorTable(0, m_texture.GPUdescriptorHandle);
 		//	//commandList->SetGraphicsRoot32BitConstants(0, 16, &matViewProjection, 0);
 		//	//m_square.DrawIndexed();
-		//}
+		//}		
+		
+		{
+			//カメラ
+			if (GetKeyInput('W')) {
+				m_camPos += m_camera.GetFront() * 3.0f;
+			}
+			if (GetKeyInput('S')) {
+				m_camPos += m_camera.GetFront() * -3.0f;
+			}
+			if (GetKeyInput('A')) {
+				m_camPos += m_camera.GetLeft() * 3.0f;
+			}
+			if (GetKeyInput('D')) {
+				m_camPos += m_camera.GetLeft() * -3.0f;
+			}
 
-		//
-		//static float rot = 0;
-		//rot += CMath::RadToDeg(0.001f);
-		//m_meshTest->m_cbData.mWorld.Identity();// .MakeRotationX(rot);
-		//m_meshTest->m_cbData.mView = GetMainCamera()->GetViewMatrix();
-		//m_meshTest->m_cbData.mProj = GetMainCamera()->GetProjMatrix();
-		//m_meshTest->m_cb.Update(&m_meshTest->m_cbData);
+			GetMouseCursorManager().SetShowMouseCursor(false);
+			GetMouseCursorManager().SetLockMouseCursor(true);
+			CQuaternion rot;
+			rot.SetRotation(CVector3::Up(), GetMouseCursorManager().GetMouseMove().x * 0.01f);
+			rot.Multiply(m_camTgt);
+			rot.SetRotation(m_camera.GetLeft(), GetMouseCursorManager().GetMouseMove().y * -0.01f);
+			rot.Multiply(m_camTgt);
 
-		////モデルの描画
-		//m_commandList->SetPipelineState(m_meshTest->m_pso.Get());
-		//m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-		//ID3D12DescriptorHeap* heapList[] = { m_drawSRVsDescriptorHeap.Get() };
-		//m_commandList->SetDescriptorHeaps(_countof(heapList), heapList);
-		//m_commandList->SetGraphicsRootDescriptorTable(0, CD3DX12_GPU_DESCRIPTOR_HANDLE(m_drawSRVsDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_drawSRVsDescriptorSize));
-		////m_meshTest->m_mesh.Draw(1);
-		//m_rayTraceTestModel.Draw(1);
+			m_camera.SetPos(m_camPos);
+			m_camera.SetTarget(m_camPos + m_camTgt);
+		}
+
+		{
+			//モデル移動
+			CVector3 move;
+
+			if (GetKeyInput(VK_UP)) {
+				move += m_camera.GetFront() * 3.0f;
+			}
+			if (GetKeyInput(VK_DOWN)) {
+				move += m_camera.GetFront() * -3.0f;
+			}
+			if (GetKeyInput(VK_LEFT)) {
+				move += m_camera.GetLeft() * 3.0f;
+			}
+			if (GetKeyInput(VK_RIGHT)) {
+				move += m_camera.GetLeft() * -3.0f;
+			}
+
+			CMatrix m; m.MakeTranslation(move);
+			m_rayTraceTestModelMat[1].Mul(m_rayTraceTestModelMat[1], m);
+			m_rayTraceEngine->UpdateTLAS(m_commandList.Get());
+		}
 
 		//レイトレ
 		m_rayTraceEngine->Dispatch(m_commandList.Get());
+
+		//{
+		//	static float rot = 0;
+		//	rot += CMath::RadToDeg(0.001f);
+		//	m_meshTest->m_cbData.mWorld = m_rayTraceTestModelMat[1];
+		//	m_meshTest->m_cbData.mView = GetMainCamera()->GetViewMatrix();
+		//	m_meshTest->m_cbData.mProj = GetMainCamera()->GetProjMatrix();
+		//	m_meshTest->m_cb.Update(&m_meshTest->m_cbData);
+
+		//	//モデルの描画
+		//	m_commandList->SetPipelineState(m_meshTest->m_pso.Get());
+		//	m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+		//	ID3D12DescriptorHeap* heapList[] = { m_drawSRVsDescriptorHeap.Get() };
+		//	m_commandList->SetDescriptorHeaps(_countof(heapList), heapList);
+		//	m_commandList->SetGraphicsRootDescriptorTable(0, CD3DX12_GPU_DESCRIPTOR_HANDLE(m_drawSRVsDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_drawSRVsDescriptorSize));
+		//	//m_meshTest->m_mesh.Draw(1);
+		//	m_rayTraceTestModel[1].Draw(1);
+		//}
 
 		//リソースバリアを設定
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));

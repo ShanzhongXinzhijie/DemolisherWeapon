@@ -145,13 +145,18 @@ namespace DemolisherWeapon{
 			if (m_vertexData) {
 				delete[] m_vertexData;
 			}
+			if (m_vertexDataDXR) {
+				delete[] m_vertexDataDXR;
+			}
 		}
 
 		int m_vertexNum = 0;
 		VertexPositionNormalTangentColorTexture* m_vertexData = nullptr;	//頂点データ
+		VertexPositionNormalTangentColorTexture* m_vertexDataDXR = nullptr;	//頂点データ(レイトレ用)
 		std::vector<std::vector<unsigned long>> m_indexDataArray;			//インデックスデータ
 
 		std::unique_ptr<IVertexBuffer>					m_vertexBuffer;		//頂点バッファ。
+		std::unique_ptr<IVertexBuffer>					m_vertexBufferDXR;		//頂点バッファ。(レイトレ用)
 		std::vector<std::unique_ptr<IIndexBuffer>>		m_indexBufferArray;	//インデックスバッファ。
 		std::vector<std::unique_ptr<IMaterial>>			m_materials;		//マテリアル。
 		std::vector<int>								m_skinFlags;		//スキンを持っているかどうかのフラグ。
@@ -177,7 +182,7 @@ namespace DemolisherWeapon{
 		std::vector< std::unique_ptr<SModelMesh> > m_meshs;//メッシュ
 
 	private:
-		void CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo);
+		void CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo, bool isRayTrace = true);
 
 	};
 

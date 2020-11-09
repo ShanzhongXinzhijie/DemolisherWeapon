@@ -48,7 +48,7 @@ private:
 		m_needUpdateBillboard = true;//ビルボード行列を更新する必要があるフラグ
 
 		//回転行列の更新
-		CMatrix viewInv = m_viewMat; //viewInv.Inverse();
+		CMatrix viewInv = m_viewMat; viewInv.Inverse();
 		m_rotMat = viewInv;
 		m_rotMat.m[3][0] = 0.0f;
 		m_rotMat.m[3][1] = 0.0f;

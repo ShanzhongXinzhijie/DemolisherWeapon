@@ -173,10 +173,16 @@ namespace DemolisherWeapon {
 		});
 	}
 
-	void CModelMeshParts::CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo)
+	void CModelMeshParts::CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo, bool isRayTrace)
 	{
+		//DXR実行不可
+		if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
+			isRayTrace = false;
+		}
+
 		int numVertex = (int)tkmMesh.vertexBuffer.size();
 		int vertexStride = sizeof(tkEngine::CTkmFile::SVertex);
+		int vertexStrideRTX = sizeof(tkEngine::CTkmFile::SVertex);
 
 		//メッシュ作成
 		auto mesh = std::make_unique<SModelMesh>();
@@ -186,6 +192,7 @@ namespace DemolisherWeapon {
 		int idx = 0;
 		VertexPositionNormalTangentColorTextureSkinning* vds = nullptr;
 		VertexPositionNormalTangentColorTexture* vd = nullptr;
+		VertexPositionNormalTangentColorTexture* vdRTX = nullptr;
 		for (auto& tkmvd : tkmMesh.vertexBuffer) {
 			if (tkmvd.skinWeights.x > 0.0f) {
 				//スキンあり
@@ -221,6 +228,21 @@ namespace DemolisherWeapon {
 				vd[idx].tangent = tkmvd.tangent;
 				vd[idx].textureCoordinate = tkmvd.uv;
 			}
+
+			//レイトレ用頂点バッファ
+			if (isRayTrace) {
+				if (!vdRTX) {
+					vdRTX = new VertexPositionNormalTangentColorTexture[numVertex];
+					mesh->m_vertexDataDXR = vdRTX;
+					vertexStrideRTX = sizeof(VertexPositionNormalTangentColorTexture);
+				}
+				//コピー
+				vdRTX[idx].position = tkmvd.pos;
+				vdRTX[idx].normal = tkmvd.normal;
+				vdRTX[idx].tangent = tkmvd.tangent;
+				vdRTX[idx].textureCoordinate = tkmvd.uv;
+			}
+
 			idx++;
 		}
 
@@ -234,6 +256,14 @@ namespace DemolisherWeapon {
 		//mesh->m_vertexBuffer->Init(numVertex, vertexStride, (void*)&tkmMesh.vertexBuffer[0]);
 		mesh->m_vertexBuffer->Init(numVertex, vertexStride, (void*)&mesh->m_vertexData[0]);
 		mesh->m_vertexNum = numVertex;
+
+		//レイトレ用頂点バッファ作成
+		if (isRayTrace) {
+			if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
+				mesh->m_vertexBufferDXR = std::make_unique<VertexBufferDX12>();
+			}
+			mesh->m_vertexBufferDXR->Init(numVertex, vertexStrideRTX, (void*)&mesh->m_vertexDataDXR[0]);
+		}
 
 		//スキンがあるか?
 		auto SetSkinFlag = [&](int index) {

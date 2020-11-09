@@ -252,5 +252,6 @@
     <CustomBuild Include="Preset\shader\billboard.fx" />
     <CustomBuild Include="Preset\shader\modelDisolve.fx" />
     <CustomBuild Include="Preset\shader\ModelDX12Test.fx" />
+    <CustomBuild Include="Preset\shader\raytrace.fx" />
   </ItemGroup>
 </Project>

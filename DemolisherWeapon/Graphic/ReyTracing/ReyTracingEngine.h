@@ -28,10 +28,12 @@ namespace DemolisherWeapon {
 	};
 
 	struct ReyTracingInstanceData {
-		D3D12_RAYTRACING_GEOMETRY_DESC geometoryDesc;	//ジオメトリ情報。
-		StructuredBufferInnerDX12 m_vertexBufferRWSB;			//頂点バッファ。
-		StructuredBufferInnerDX12 m_indexBufferRWSB;			//インデックスバッファ。
-		MaterialData* m_material = nullptr;			//マテリアル。		
+		D3D12_RAYTRACING_GEOMETRY_DESC m_geometoryDesc;	//ジオメトリ情報。
+		StructuredBufferInnerDX12 m_vertexBufferRWSB;	//頂点バッファ。
+		StructuredBufferInnerDX12 m_indexBufferRWSB;	//インデックスバッファ。
+
+		MaterialData* m_material = nullptr;				//マテリアル。
+		CMatrix* m_worldMatrix = nullptr;				//ワールド行列
 	};
 
 	struct AccelerationStructureBuffers {
@@ -168,7 +170,8 @@ namespace DemolisherWeapon {
 		void Init(
 			ID3D12GraphicsCommandList4* commandList,
 			const std::vector<std::unique_ptr<ReyTracingInstanceData>>& instances,
-			const std::vector<AccelerationStructureBuffers>& bottomLevelASBuffers
+			const std::vector<AccelerationStructureBuffers>& bottomLevelASBuffers,
+			bool update
 		);
 
 		/// <summary>
@@ -313,12 +316,17 @@ namespace DemolisherWeapon {
 		/// ジオメトリを登録。
 		/// </summary>
 		/// <param name="model">モデル</param>
-		void RegistGeometry(CModel& model);
+		/// <param name="worldMatrix">ワールド行列</param>
+		void RegistGeometry(CModel& model, CMatrix* worldMatrix);
 		/// <summary>
 		/// ジオメトリの登録を確定。
 		/// (BLASとTLASを生成)
 		/// </summary>
 		void CommitRegistGeometry(ID3D12GraphicsCommandList4* commandList);
+		/// <summary>
+		/// TLASを更新する
+		/// </summary>
+		void UpdateTLAS(ID3D12GraphicsCommandList4* commandList);
 
 		/// <summary>
 		/// レイトレワールドのインスタンスに対してクエリを行う。
@@ -448,16 +456,23 @@ namespace DemolisherWeapon {
 		/// ジオメトリを登録。
 		/// </summary>
 		/// <param name="model">モデル</param>
-		void RegistGeometry(CModel& model)
+		void RegistGeometry(CModel& model, CMatrix* worldMatrix)
 		{
 			//レイトレワールドにジオメトリを登録。
-			m_world.RegistGeometry(model);
+			m_world.RegistGeometry(model, worldMatrix);
 		}
 
 		/// <summary>
 		/// ジオメトリの登録を確定。
 		/// </summary>
 		void CommitRegistGeometry(ID3D12GraphicsCommandList4* commandList);
+
+		/// <summary>
+		/// TLASの更新
+		/// </summary>
+		void UpdateTLAS(ID3D12GraphicsCommandList4* commandList) {
+			m_world.UpdateTLAS(commandList);
+		}
 
 		/// <summary>
 		/// 定数バッファ取得

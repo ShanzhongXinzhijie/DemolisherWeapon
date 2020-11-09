@@ -73,9 +73,9 @@ bool Shader::LoadRaytracing(const wchar_t* filePath)
 
 	Microsoft::WRL::ComPtr<IDxcIncludeHandler> dxcIncludeHandler;
 	dxclib->CreateIncludeHandler(&dxcIncludeHandler);
-	const wchar_t* args[] = {
-		L"-I preset\\shader",//インクルードパスを追加する
-	};
+	//const wchar_t* args[] = {
+	//	L"-I preset\\shader",//インクルードパスを追加する
+	//};
 	//コンパイル。
 	Microsoft::WRL::ComPtr<IDxcOperationResult> result;
 	hr = dxcCompiler->Compile(

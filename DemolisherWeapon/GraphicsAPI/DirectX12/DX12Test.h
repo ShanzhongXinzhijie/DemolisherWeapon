@@ -318,11 +318,15 @@ namespace DemolisherWeapon {
 
 		//メッシュ描画のテスト
 		MeshTest* m_meshTest = nullptr;
+
+		//カメラ
 		GameObj::PerspectiveCamera m_camera;
+		CVector3 m_camPos,m_camTgt = CVector3::Front()*111.0f;
 
 		//レイトレエンジン
 		RayTracingEngine* m_rayTraceEngine = nullptr;
-		CModel m_rayTraceTestModel;
+		CModel m_rayTraceTestModel[2];
+		CMatrix m_rayTraceTestModelMat[2];
 	};
 
 }

@@ -145,9 +145,10 @@ void VertexBufferDX12::Init(int numVertex, unsigned int vertexStride, void* vert
 		&CD3DX12_RESOURCE_DESC::Buffer(fullVertsSize),
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(&m_vertexBuffer)))) {
+		IID_PPV_ARGS(&m_vertexBuffer))))
+	{
 		DW_ERRORBOX(true, "VertexBufferDX12:頂点バッファの作成に失敗しました")
-			return;
+		return;
 	}
 	m_vertexBuffer->SetName(L"VertexBuffer");
 

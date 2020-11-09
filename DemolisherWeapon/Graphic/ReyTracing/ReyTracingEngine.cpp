@@ -37,7 +37,7 @@ namespace DemolisherWeapon {
 			inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 			inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
 			inputs.NumDescs = 1;
-			inputs.pGeometryDescs = &instance->geometoryDesc;
+			inputs.pGeometryDescs = &instance->m_geometoryDesc;
 			inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
 
 			auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
@@ -79,7 +79,8 @@ namespace DemolisherWeapon {
 	void TLASBuffer::Init(
 		ID3D12GraphicsCommandList4* commandList,
 		const std::vector<std::unique_ptr<ReyTracingInstanceData>>& instances,
-		const std::vector< AccelerationStructureBuffers>& bottomLevelASBuffers
+		const std::vector< AccelerationStructureBuffers>& bottomLevelASBuffers,
+		bool update
 	)
 	{
 		uint64_t tlasSize;
@@ -95,11 +96,16 @@ namespace DemolisherWeapon {
 		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info;
 		d3dDevice->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &info);
 
-		/*if (update) {
-			//更新？
+		if (update){
+			//更新
+			// If this a request for an update, then the TLAS was already used in a DispatchRay() call. We need a UAV barrier to make sure the read operation ends before updating the buffer
+			D3D12_RESOURCE_BARRIER uavBarrier = {};
+			uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+			uavBarrier.UAV.pResource = m_topLevelASBuffers.pResult;
+			commandList->ResourceBarrier(1, &uavBarrier);
 		}
-		else*/ {
-		//新規？
+		else {
+			//新規
 			m_topLevelASBuffers.pScratch = CreateBuffer(d3dDevice, info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, kDefaultHeapProps);
 			m_topLevelASBuffers.pResult = CreateBuffer(d3dDevice, info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, kDefaultHeapProps);
 			m_topLevelASBuffers.pInstanceDesc = CreateBuffer(
@@ -114,18 +120,19 @@ namespace DemolisherWeapon {
 		//Map the instance desc buffer
 		D3D12_RAYTRACING_INSTANCE_DESC* instanceDescs;
 		m_topLevelASBuffers.pInstanceDesc->Map(0, nullptr, (void**)&instanceDescs);
-		ZeroMemory(instanceDescs, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * numInstance);
+		ZeroMemory(instanceDescs, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * numInstance);		
 
-		CMatrix mRot;
-		mRot.MakeRotationX(CMath::PI * -0.5f);
-		mRot.Transpose();
-
-		for (int i = 0; i < numInstance; i++) {
+		for (int i = 0; i < numInstance; i++) {			
 			instanceDescs[i].InstanceID = i;
 			instanceDescs[i].InstanceContributionToHitGroupIndex = (int)enHitGroup_Num * i + enHitGroup_PBRCameraRay;
 			instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
 			instanceDescs[i].AccelerationStructure = bottomLevelASBuffers[i].pResult->GetGPUVirtualAddress();
-			memcpy(instanceDescs[i].Transform, &mRot, sizeof(instanceDescs[i].Transform));
+			
+			//トランスフォーム行列設定
+			CMatrix mTrans = *instances[i]->m_worldMatrix;
+			mTrans.Transpose();
+			memcpy(instanceDescs[i].Transform, &mTrans, sizeof(instanceDescs[i].Transform));
+			
 			instanceDescs[i].InstanceMask = 0xFF;
 		}
 
@@ -137,12 +144,11 @@ namespace DemolisherWeapon {
 		asDesc.Inputs.InstanceDescs = m_topLevelASBuffers.pInstanceDesc->GetGPUVirtualAddress();
 		asDesc.DestAccelerationStructureData = m_topLevelASBuffers.pResult->GetGPUVirtualAddress();
 		asDesc.ScratchAccelerationStructureData = m_topLevelASBuffers.pScratch->GetGPUVirtualAddress();
-
-		/*if (update)
+		if (update)
 		{
 			asDesc.Inputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE;
 			asDesc.SourceAccelerationStructureData = m_topLevelASBuffers.pResult->GetGPUVirtualAddress();
-		}*/
+		}
 		commandList->BuildRaytracingAccelerationStructure(&asDesc, 0, nullptr);
 
 		//レイトレーシングアクセラレーション構造のビルド完了待ちのバリアを入れる。
@@ -378,7 +384,7 @@ namespace DemolisherWeapon {
 		//DXILライブラリを作成。
 		//レイトレーシング用のシェーダーをロード。
 		Shader raytraceShader;
-		raytraceShader.LoadRaytracing(L"Assets/shader/sample.fx");
+		raytraceShader.LoadRaytracing(L"preset/shader/raytrace.fx");
 
 		D3D12_EXPORT_DESC libExport[eShader_Num];
 		for (int i = 0; i < eShader_Num; i++) {
@@ -489,15 +495,15 @@ namespace DemolisherWeapon {
 		}
 	}
 
-	void ReyTracingWorld::RegistGeometry(CModel& model) {
+	void ReyTracingWorld::RegistGeometry(CModel& model, CMatrix* worldMatrix) {
 		model.FindMesh([&](const std::unique_ptr<SModelMesh>& mesh){
-			const auto& vertexBufferView = dynamic_cast<VertexBufferDX12*>(mesh->m_vertexBuffer.get())->GetView();
+			const auto& vertexBufferView = dynamic_cast<VertexBufferDX12*>(mesh->m_vertexBufferDXR.get())->GetView();
 			for (int i = 0; i < mesh->m_materials.size(); i++) {
 				const auto& indexBufferView = dynamic_cast<IndexBufferDX12*>(mesh->m_indexBufferArray[i].get())->GetView();
 
+				//GEOMETRY_DESC作る
 				D3D12_RAYTRACING_GEOMETRY_DESC desc;
 				memset(&desc, 0, sizeof(desc));
-
 				desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
 				desc.Triangles.Transform3x4 = 0;
 				desc.Triangles.VertexBuffer.StartAddress = vertexBufferView.BufferLocation;
@@ -511,9 +517,10 @@ namespace DemolisherWeapon {
 
 				//インスタンス作成
 				std::unique_ptr<ReyTracingInstanceData> instance = std::make_unique<ReyTracingInstanceData>();
-				instance->geometoryDesc = desc;
+				instance->m_geometoryDesc = desc;
 				instance->m_material = &mesh->m_materials[i]->GetMaterialData();
-				instance->m_vertexBufferRWSB.Init(*dynamic_cast<VertexBufferDX12*>(mesh->m_vertexBuffer.get()), false);
+				instance->m_worldMatrix = worldMatrix;
+				instance->m_vertexBufferRWSB.Init(*dynamic_cast<VertexBufferDX12*>(mesh->m_vertexBufferDXR.get()), false);
 				instance->m_indexBufferRWSB.Init(*dynamic_cast<IndexBufferDX12*>(mesh->m_indexBufferArray[i].get()), false);
 
 				//配列にインスタンス追加
@@ -525,8 +532,12 @@ namespace DemolisherWeapon {
 		//BLASを構築。
 		m_blasBuffer.Init(commandList, m_instances);
 		//TLASを構築。
-		m_topLevelASBuffers.Init(commandList, m_instances, m_blasBuffer.Get());
+		m_topLevelASBuffers.Init(commandList, m_instances, m_blasBuffer.Get(), false);
 	}
+	void ReyTracingWorld::UpdateTLAS(ID3D12GraphicsCommandList4* commandList) {
+		m_topLevelASBuffers.Init(commandList, m_instances, m_blasBuffer.Get(), true);
+	}
+
 
 	void ShaderTable::CountupNumGeyGenAndMissAndHitShader()
 	{

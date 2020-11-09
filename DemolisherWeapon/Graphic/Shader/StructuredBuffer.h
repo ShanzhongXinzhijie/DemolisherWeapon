@@ -130,9 +130,9 @@ namespace DemolisherWeapon {
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D12Resource> m_buffersOnGPU[2] = { nullptr };
-		void* m_buffersOnCPU[2] = { nullptr };		//CPU側からアクセスできるするストラクチャバッファのアドレス。
-		int m_numElement = 0;				//要素数。
-		int m_sizeOfElement = 0;			//エレメントのサイズ。
+		void* m_buffersOnCPU[2] = { nullptr };	//CPU側からアクセスできるするストラクチャバッファのアドレス。
+		int m_numElement = 0;					//要素数。
+		int m_sizeOfElement = 0;				//エレメントのサイズ。
 
 		D3D12_CPU_DESCRIPTOR_HANDLE m_cpuHandle;
 		D3D12_GPU_DESCRIPTOR_HANDLE m_gpuHandle;
