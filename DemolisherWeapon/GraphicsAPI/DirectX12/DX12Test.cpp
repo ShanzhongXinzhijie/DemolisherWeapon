@@ -429,15 +429,21 @@ namespace DemolisherWeapon {
 
 		//バイアス行列取得
 		CMatrix mBiasScr;
-		CoordinateSystemBias::GetBias(m_rayTraceTestModelMat[0], mBiasScr, enFbxUpAxisZ, enFbxRightHanded);
-		m_rayTraceTestModelMat[0].Mul(mBiasScr, m_rayTraceTestModelMat[0]);
-		m_rayTraceTestModelMat[1] = m_rayTraceTestModelMat[0];
+		CoordinateSystemBias::GetBias(m_rayTraceTestModelMatWorld, mBiasScr, enFbxUpAxisZ, enFbxRightHanded);
+		m_rayTraceTestModelMatWorld.Mul(mBiasScr, m_rayTraceTestModelMatWorld);
+		
+		m_rayTraceEngine->RegistModel(m_rayTraceTestModel[0], &m_rayTraceTestModelMatWorld);
 
-		mBiasScr.MakeTranslation({ 100,500,100 });
-		m_rayTraceTestModelMat[1].Mul(m_rayTraceTestModelMat[1], mBiasScr);
+		int i = 0;
+		for (auto& m : m_rayTraceTestModelMatUnity) {
+			mBiasScr.MakeTranslation({ 10.0f * i,0.0f,100.0f });
+			m.Mul(m, mBiasScr);
 
-		m_rayTraceEngine->RegistGeometry(m_rayTraceTestModel[0], &m_rayTraceTestModelMat[0]);
-		m_rayTraceEngine->RegistGeometry(m_rayTraceTestModel[1], &m_rayTraceTestModelMat[1]);
+			m_rayTraceEngine->RegistModel(m_rayTraceTestModel[1], &m_rayTraceTestModelMatUnity[i]);
+
+			i++;
+		}
+
 		m_rayTraceEngine->CommitRegistGeometry(m_commandList.Get());
 
 		//初期化完了
@@ -538,20 +544,37 @@ namespace DemolisherWeapon {
 			if (GetKeyInput('D')) {
 				m_camPos += m_camera.GetLeft() * -3.0f;
 			}
+			if (GetKeyInput(VK_SPACE)) {
+				m_camPos += m_camera.GetUp() * 3.0f;
+			}
+			if (GetKeyInput(VK_LCONTROL)) {
+				m_camPos += m_camera.GetUp() * -3.0f;
+			}
 
-			GetMouseCursorManager().SetShowMouseCursor(false);
-			GetMouseCursorManager().SetLockMouseCursor(true);
+			CVector2 move;
+			if (GetKeyInput('E')) {
+				move.x += 0.02f;
+			}
+			if (GetKeyInput('Q')) {
+				move.x += -0.02f;
+			}
+			if (GetKeyInput('R')) {
+				move.y += 0.02f;
+			}
+			if (GetKeyInput('F')) {
+				move.y += -0.02f;
+			}
 			CQuaternion rot;
-			rot.SetRotation(CVector3::Up(), GetMouseCursorManager().GetMouseMove().x * 0.01f);
+			rot.SetRotation(CVector3::Up(), move.x);
 			rot.Multiply(m_camTgt);
-			rot.SetRotation(m_camera.GetLeft(), GetMouseCursorManager().GetMouseMove().y * -0.01f);
+			rot.SetRotation(m_camera.GetLeft(), move.y);
 			rot.Multiply(m_camTgt);
 
 			m_camera.SetPos(m_camPos);
 			m_camera.SetTarget(m_camPos + m_camTgt);
 		}
 
-		{
+		/*{
 			//モデル移動
 			CVector3 move;
 
@@ -571,7 +594,7 @@ namespace DemolisherWeapon {
 			CMatrix m; m.MakeTranslation(move);
 			m_rayTraceTestModelMat[1].Mul(m_rayTraceTestModelMat[1], m);
 			m_rayTraceEngine->UpdateTLAS(m_commandList.Get());
-		}
+		}*/
 
 		//レイトレ
 		m_rayTraceEngine->Dispatch(m_commandList.Get());

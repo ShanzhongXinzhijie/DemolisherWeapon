@@ -326,7 +326,8 @@ namespace DemolisherWeapon {
 		//レイトレエンジン
 		RayTracingEngine* m_rayTraceEngine = nullptr;
 		CModel m_rayTraceTestModel[2];
-		CMatrix m_rayTraceTestModelMat[2];
+		CMatrix m_rayTraceTestModelMatWorld;
+		CMatrix m_rayTraceTestModelMatUnity[100];
 	};
 
 }

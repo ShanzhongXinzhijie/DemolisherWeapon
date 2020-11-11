@@ -175,6 +175,12 @@ namespace DemolisherWeapon{
 		void InitFromTkmFile(const tkEngine::CTkmFile& tkmFile);
 
 		/// <summary>
+		/// レイトレーシング用の頂点データ作成
+		/// </summary>
+		/// <param name="tkmFile"></param>
+		void CreateRaytracingVertex();
+
+		/// <summary>
 		/// 描画。
 		/// </summary>
 		void Draw(int instanceNum);
@@ -182,8 +188,11 @@ namespace DemolisherWeapon{
 		std::vector< std::unique_ptr<SModelMesh> > m_meshs;//メッシュ
 
 	private:
-		void CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo, bool isRayTrace = true);
+		void CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo);
+		void CreateRaytraceVertexBuffer(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo);
 
+	private:
+		const tkEngine::CTkmFile* m_tkm = nullptr;
 	};
 
 	/// <summary>
@@ -191,8 +200,6 @@ namespace DemolisherWeapon{
 	/// </summary>
 	class CModel {
 	public:
-		//メッシュ・マテリアルの検索
-
 		/// <summary>
 		/// tkmファイルを非同期ロ―ド。
 		/// </summary>
@@ -247,8 +254,31 @@ namespace DemolisherWeapon{
 			return m_tkmFile;
 		}
 
+		/// <summary>
+		/// レイトレ用頂点データの初期化
+		/// </summary>
+		void InitRayTracingVertex() {
+			m_meshParts.CreateRaytracingVertex();
+		}
+		/// <summary>
+		/// レイトレワールドでのジオメトリインデックスの開始地点取得
+		/// </summary>
+		/// <returns></returns>
+		int GetRayTracingWorldStartIndex()const {
+			return m_raytracingGeometoryStartIndex;
+		}
+		/// <summary>
+		/// レイトレワールドでのジオメトリインデックスの開始地点設定
+		/// </summary>
+		/// <param name="ind"></param>
+		void SetRayTracingWorldStartIndex(int ind) {
+			m_raytracingGeometoryStartIndex = ind;
+		}
+
 	private:
 		tkEngine::CTkmFile m_tkmFile;	//tkmファイル。
-		CModelMeshParts m_meshParts;			//メッシュパーツ。
+		CModelMeshParts m_meshParts;	//メッシュパーツ。
+
+		int m_raytracingGeometoryStartIndex = -1;//レイトレジオメトリの開始インデックス
 	};
 }

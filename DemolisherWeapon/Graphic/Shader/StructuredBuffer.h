@@ -96,14 +96,14 @@ namespace DemolisherWeapon {
 		/// CPUデスクリプタハンドル取得
 		/// </summary>
 		/// <returns></returns>
-		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle() {
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle()const {
 			return m_cpuHandle;
 		}
 		/// <summary>
 		/// GPUデスクリプタハンドル取得
 		/// </summary>
 		/// <returns></returns>
-		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle() {
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle()const {
 			return m_gpuHandle;
 		}
 

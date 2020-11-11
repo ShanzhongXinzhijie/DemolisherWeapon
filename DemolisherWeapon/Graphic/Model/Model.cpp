@@ -171,15 +171,56 @@ namespace DemolisherWeapon {
 			CreateMeshFromTkmMesh(mesh, meshNo);
 			meshNo++;
 		});
+
+		m_tkm = &tkmFile;
 	}
 
-	void CModelMeshParts::CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo, bool isRayTrace)
-	{
-		//DXR実行不可
+	void CModelMeshParts::CreateRaytracingVertex() {
+		int meshNo = 0;
+		m_tkm->QueryMeshParts([&](const tkEngine::CTkmFile::SMesh& mesh) {
+			CreateRaytraceVertexBuffer(mesh, meshNo);
+			meshNo++;
+		});
+	}
+
+	void CModelMeshParts::CreateRaytraceVertexBuffer(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo) {		
 		if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
-			isRayTrace = false;
+			DW_WARNING_BOX(true,"CModelMeshParts::CreateRaytraceVertexBuffer レイトレーシング不可")
+			return;//DXR実行不可
 		}
 
+		int idx = 0;
+		int numVertex = (int)tkmMesh.vertexBuffer.size();
+		int vertexStrideRTX = sizeof(tkEngine::CTkmFile::SVertex);
+		VertexPositionNormalTangentColorTexture* vdRTX = nullptr;
+		//レイトレ用頂点バッファ
+		for (auto& tkmvd : tkmMesh.vertexBuffer) {
+			if (!vdRTX) {
+				vdRTX = new VertexPositionNormalTangentColorTexture[numVertex];
+				if (m_meshs[meshNo]->m_vertexDataDXR) {
+					delete[] m_meshs[meshNo]->m_vertexDataDXR;
+				}
+				m_meshs[meshNo]->m_vertexDataDXR = vdRTX;
+				vertexStrideRTX = sizeof(VertexPositionNormalTangentColorTexture);
+			}
+			//コピー
+			vdRTX[idx].position = tkmvd.pos;
+			vdRTX[idx].normal = tkmvd.normal;
+			vdRTX[idx].tangent = tkmvd.tangent;
+			vdRTX[idx].textureCoordinate = tkmvd.uv;
+
+			idx++;
+		}
+
+		//レイトレ用頂点バッファ作成
+		if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
+			m_meshs[meshNo]->m_vertexBufferDXR = std::make_unique<VertexBufferDX12>();
+		}
+		m_meshs[meshNo]->m_vertexBufferDXR->Init(numVertex, vertexStrideRTX, (void*)&m_meshs[meshNo]->m_vertexDataDXR[0]);
+	}
+
+	void CModelMeshParts::CreateMeshFromTkmMesh(const tkEngine::CTkmFile::SMesh& tkmMesh, int meshNo)
+	{
 		int numVertex = (int)tkmMesh.vertexBuffer.size();
 		int vertexStride = sizeof(tkEngine::CTkmFile::SVertex);
 		int vertexStrideRTX = sizeof(tkEngine::CTkmFile::SVertex);
@@ -192,13 +233,15 @@ namespace DemolisherWeapon {
 		int idx = 0;
 		VertexPositionNormalTangentColorTextureSkinning* vds = nullptr;
 		VertexPositionNormalTangentColorTexture* vd = nullptr;
-		VertexPositionNormalTangentColorTexture* vdRTX = nullptr;
 		for (auto& tkmvd : tkmMesh.vertexBuffer) {
 			if (tkmvd.skinWeights.x > 0.0f) {
 				//スキンあり
 				DW_ERRORBOX(vd != nullptr,"CModelMeshParts::CreateMeshFromTkmMesh\n頂点データ作成エラー\n※ご連絡ください")
 				if (!vds) {
 					vds = new VertexPositionNormalTangentColorTextureSkinning[numVertex];
+					if (mesh->m_vertexData) {
+						delete[] mesh->m_vertexData;
+					}
 					mesh->m_vertexData = dynamic_cast<VertexPositionNormalTangentColorTexture*>(vds);
 					vertexStride = sizeof(VertexPositionNormalTangentColorTextureSkinning);
 				}
@@ -218,6 +261,9 @@ namespace DemolisherWeapon {
 				DW_ERRORBOX(vds != nullptr, "CModelMeshParts::CreateMeshFromTkmMesh\n頂点データ作成エラー\n※ご連絡ください")
 				if (!vd) {
 					vd = new VertexPositionNormalTangentColorTexture[numVertex];
+					if (mesh->m_vertexData) {
+						delete[] mesh->m_vertexData;
+					}
 					mesh->m_vertexData = vd;
 					vertexStride = sizeof(VertexPositionNormalTangentColorTexture);
 				}
@@ -228,21 +274,6 @@ namespace DemolisherWeapon {
 				vd[idx].tangent = tkmvd.tangent;
 				vd[idx].textureCoordinate = tkmvd.uv;
 			}
-
-			//レイトレ用頂点バッファ
-			if (isRayTrace) {
-				if (!vdRTX) {
-					vdRTX = new VertexPositionNormalTangentColorTexture[numVertex];
-					mesh->m_vertexDataDXR = vdRTX;
-					vertexStrideRTX = sizeof(VertexPositionNormalTangentColorTexture);
-				}
-				//コピー
-				vdRTX[idx].position = tkmvd.pos;
-				vdRTX[idx].normal = tkmvd.normal;
-				vdRTX[idx].tangent = tkmvd.tangent;
-				vdRTX[idx].textureCoordinate = tkmvd.uv;
-			}
-
 			idx++;
 		}
 
@@ -256,14 +287,6 @@ namespace DemolisherWeapon {
 		//mesh->m_vertexBuffer->Init(numVertex, vertexStride, (void*)&tkmMesh.vertexBuffer[0]);
 		mesh->m_vertexBuffer->Init(numVertex, vertexStride, (void*)&mesh->m_vertexData[0]);
 		mesh->m_vertexNum = numVertex;
-
-		//レイトレ用頂点バッファ作成
-		if (isRayTrace) {
-			if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
-				mesh->m_vertexBufferDXR = std::make_unique<VertexBufferDX12>();
-			}
-			mesh->m_vertexBufferDXR->Init(numVertex, vertexStrideRTX, (void*)&mesh->m_vertexDataDXR[0]);
-		}
 
 		//スキンがあるか?
 		auto SetSkinFlag = [&](int index) {

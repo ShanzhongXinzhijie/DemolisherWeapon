@@ -32,9 +32,6 @@ struct SVertex{
     float3 normal;
     float4 tangent;
     float2 uv;
-    
-    //uint4 indices; //なるほどね
-    //float4 weights;
 };
 //カメラ構造体
 //定数バッファなので16バイトアライメントに気を付けること
@@ -68,7 +65,7 @@ SamplerState  s : register(s0);//サンプラー
 
 struct RayPayload
 {
-    float3 color;               //カラー。
+    float3 color;
     int hit;
     int depth;
 };
@@ -112,6 +109,7 @@ float3 GetNormal(BuiltInTriangleIntersectionAttributes attribs, float2 uv)
     float3 normal = barycentrics.x * normal0 + barycentrics.y * normal1 + barycentrics.z * normal2;
     normal = normalize(normal);
 
+    //法線マップ
     /*
     float3 tangent0 = g_vertexBuffers[v0_id].tangent;
     float3 tangent1 = g_vertexBuffers[v1_id].tangent;

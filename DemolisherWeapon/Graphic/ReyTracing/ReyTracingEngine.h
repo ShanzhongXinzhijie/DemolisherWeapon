@@ -24,16 +24,7 @@ namespace DemolisherWeapon {
 		enHitGroup_Undef = -1,
 		enHitGroup_PBRCameraRay,	//PBRマテリアルにカメラレイが衝突するときのヒットグループ。
 		enHitGroup_PBRShadowRay,	//PBRマテリアルにシャドウレイが衝突するときのヒットグループ。
-		enHitGroup_Num,			//ヒットグループの数。
-	};
-
-	struct ReyTracingInstanceData {
-		D3D12_RAYTRACING_GEOMETRY_DESC m_geometoryDesc;	//ジオメトリ情報。
-		StructuredBufferInnerDX12 m_vertexBufferRWSB;	//頂点バッファ。
-		StructuredBufferInnerDX12 m_indexBufferRWSB;	//インデックスバッファ。
-
-		MaterialData* m_material = nullptr;				//マテリアル。
-		CMatrix* m_worldMatrix = nullptr;				//ワールド行列
+		enHitGroup_Num,				//ヒットグループの数。
 	};
 
 	struct AccelerationStructureBuffers {
@@ -42,8 +33,29 @@ namespace DemolisherWeapon {
 		ID3D12Resource* pInstanceDesc = nullptr;
 	};
 
-	const int MAX_TRACE_RECURSION_DEPTH = 4;	//レイトレースの再帰呼び出しの最大数。
-												//これがTraceRayを再帰的に呼び出せる最大数です。
+	/// <summary>
+	/// レイトレ用ジオメトリ情報
+	/// </summary>
+	struct ReyTracingGeometoryData {
+		D3D12_RAYTRACING_GEOMETRY_DESC m_geometoryDesc;	//ジオメトリ情報
+		StructuredBufferInnerDX12 m_vertexBufferRWSB;	//頂点バッファ
+		StructuredBufferInnerDX12 m_indexBufferRWSB;	//インデックスバッファ
+
+		AccelerationStructureBuffers m_BLAS;
+	};
+	/// <summary>
+	/// レイトレ用インスタンス情報
+	/// </summary>
+	struct ReyTracingInstanceData {
+		const ReyTracingGeometoryData* m_geometory = nullptr;	//ジオメトリ情報
+		const MaterialSetting* m_material = nullptr;	//マテリアル
+		const CMatrix* m_worldMatrix = nullptr;			//ワールド行列
+	};
+
+	//レイトレースの再帰呼び出しの最大数。
+	//これがTraceRayを再帰的に呼び出せる最大数です。
+	inline constexpr int MAX_TRACE_RECURSION_DEPTH = 4;	
+
 	//ローカルルートシグネチャ
 	enum ELocalRootSignature {
 		eLocalRootSignature_Empty,				//空のローカルルートシグネチャ。
@@ -100,7 +112,7 @@ namespace DemolisherWeapon {
 		const wchar_t* chsHitShaderName;	//最も近いポリゴンにヒットしたときに呼ばれるシェーダーの名前。
 		const wchar_t* anyHitShaderName;	//any shader???
 	};
-	const SHitGroup hitGroups[] = {
+	constexpr inline  SHitGroup hitGroups[] = {
 		{ L"HitGroup",			shaderDatas[eShader_PBRChs].entryPointName,	nullptr },
 		{ L"ShadowHitGroup",	shaderDatas[eShader_ShadowChs].entryPointName, nullptr },
 	};
@@ -138,14 +150,16 @@ namespace DemolisherWeapon {
 		eHitShaderDescriptorTable_Num       //テーブルの数。
 	};
 
+
+
 	class BLASBuffer {
 	public:
 		/// <summary>
 		/// 初期化。
 		/// </summary>
-		/// <param name="commandList"></param>
-		/// <param name="instance"></param>
-		void Init(ID3D12GraphicsCommandList4* commandList, const std::vector<std::unique_ptr<ReyTracingInstanceData>>& instance);
+		/// <param name="commandList">コマンドリスト</param>
+		/// <param name="geometories">ジオメトリ</param>
+		void Init(ID3D12GraphicsCommandList4* commandList, const std::vector<std::unique_ptr<ReyTracingGeometoryData>>& geometories);
 
 		/// /// <summary>
 		/// BLASBufferのリストを取得。
@@ -317,7 +331,8 @@ namespace DemolisherWeapon {
 		/// </summary>
 		/// <param name="model">モデル</param>
 		/// <param name="worldMatrix">ワールド行列</param>
-		void RegistGeometry(CModel& model, CMatrix* worldMatrix);
+		void RegistModel(CModel& model, const CMatrix* worldMatrix);
+
 		/// <summary>
 		/// ジオメトリの登録を確定。
 		/// (BLASとTLASを生成)
@@ -358,6 +373,7 @@ namespace DemolisherWeapon {
 
 	private:
 		std::vector<std::unique_ptr<ReyTracingInstanceData>> m_instances;
+		std::vector<std::unique_ptr<ReyTracingGeometoryData>> m_geometories;
 		BLASBuffer m_blasBuffer;
 		TLASBuffer m_topLevelASBuffers;
 	};
@@ -453,13 +469,16 @@ namespace DemolisherWeapon {
 		void Dispatch(ID3D12GraphicsCommandList4* commandList);
 
 		/// <summary>
-		/// ジオメトリを登録。
+		/// モデルを登録
 		/// </summary>
 		/// <param name="model">モデル</param>
-		void RegistGeometry(CModel& model, CMatrix* worldMatrix)
+		void RegistModel(CModel& model, const CMatrix* worldMatrix)
 		{
-			//レイトレワールドにジオメトリを登録。
-			m_world.RegistGeometry(model, worldMatrix);
+			m_world.RegistModel(model, worldMatrix);
+		}
+		void RegistModel(SkinModel& model)
+		{
+			m_world.RegistModel(*model.GetModel(), &model.GetWorldMatrix());
 		}
 
 		/// <summary>

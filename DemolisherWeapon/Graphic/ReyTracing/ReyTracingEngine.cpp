@@ -30,17 +30,21 @@ namespace DemolisherWeapon {
 		}
 	}
 
-	void BLASBuffer::Init(ID3D12GraphicsCommandList4* commandList, const std::vector<std::unique_ptr<ReyTracingInstanceData>>& instances)
+	void BLASBuffer::Init(
+		ID3D12GraphicsCommandList4* commandList,
+		const std::vector<std::unique_ptr<ReyTracingGeometoryData>>& geometories
+	)
 	{
-		for (auto& instance : instances) {
+		auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
+		
+		for (auto& geometory : geometories) {
 			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
 			inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 			inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
 			inputs.NumDescs = 1;
-			inputs.pGeometryDescs = &instance->m_geometoryDesc;
+			inputs.pGeometryDescs = &geometory->m_geometoryDesc;
 			inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
 
-			auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
 			D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info;
 			d3dDevice->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &info);
 
@@ -73,13 +77,14 @@ namespace DemolisherWeapon {
 			commandList->ResourceBarrier(1, &uavBarrier);
 
 			m_bottomLevelASBuffers.push_back(std::move(asbuffer));
+			geometory->m_BLAS = m_bottomLevelASBuffers.back();
 		}
 	}
 
 	void TLASBuffer::Init(
 		ID3D12GraphicsCommandList4* commandList,
 		const std::vector<std::unique_ptr<ReyTracingInstanceData>>& instances,
-		const std::vector< AccelerationStructureBuffers>& bottomLevelASBuffers,
+		const std::vector<AccelerationStructureBuffers>& bottomLevelASBuffers,
 		bool update
 	)
 	{
@@ -126,7 +131,7 @@ namespace DemolisherWeapon {
 			instanceDescs[i].InstanceID = i;
 			instanceDescs[i].InstanceContributionToHitGroupIndex = (int)enHitGroup_Num * i + enHitGroup_PBRCameraRay;
 			instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
-			instanceDescs[i].AccelerationStructure = bottomLevelASBuffers[i].pResult->GetGPUVirtualAddress();
+			instanceDescs[i].AccelerationStructure = instances[i]->m_geometory->m_BLAS.pResult->GetGPUVirtualAddress();
 			
 			//トランスフォーム行列設定
 			CMatrix mTrans = *instances[i]->m_worldMatrix;
@@ -495,42 +500,67 @@ namespace DemolisherWeapon {
 		}
 	}
 
-	void ReyTracingWorld::RegistGeometry(CModel& model, CMatrix* worldMatrix) {
+	void ReyTracingWorld::RegistModel(CModel& model, const CMatrix* worldMatrix) {
+		//ジオメトリのインデックス取得
+		int geometoryIndex = model.GetRayTracingWorldStartIndex();
+		//ジオメトリ初期化済みか?
+		bool isInitedGeometory = geometoryIndex >= 0;
+		if (!isInitedGeometory) {
+			//ジオメトリのレイトレ用初期化
+			model.InitRayTracingVertex();
+		}
+
 		model.FindMesh([&](const std::unique_ptr<SModelMesh>& mesh){
 			const auto& vertexBufferView = dynamic_cast<VertexBufferDX12*>(mesh->m_vertexBufferDXR.get())->GetView();
 			for (int i = 0; i < mesh->m_materials.size(); i++) {
-				const auto& indexBufferView = dynamic_cast<IndexBufferDX12*>(mesh->m_indexBufferArray[i].get())->GetView();
+				//ジオメトリ作成
+				if (!isInitedGeometory) {
+					const auto& indexBufferView = dynamic_cast<IndexBufferDX12*>(mesh->m_indexBufferArray[i].get())->GetView();
+					
+					//GEOMETRY_DESC作る
+					D3D12_RAYTRACING_GEOMETRY_DESC desc;
+					memset(&desc, 0, sizeof(desc));
+					desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+					desc.Triangles.Transform3x4 = 0;
+					desc.Triangles.VertexBuffer.StartAddress = vertexBufferView.BufferLocation;
+					desc.Triangles.VertexBuffer.StrideInBytes = vertexBufferView.StrideInBytes;
+					desc.Triangles.VertexCount = vertexBufferView.SizeInBytes / vertexBufferView.StrideInBytes;
+					desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
+					desc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+					desc.Triangles.IndexBuffer = indexBufferView.BufferLocation;
+					desc.Triangles.IndexCount = (UINT)mesh->m_indexDataArray[i].size();
+					desc.Triangles.IndexFormat = indexBufferView.Format;
 
-				//GEOMETRY_DESC作る
-				D3D12_RAYTRACING_GEOMETRY_DESC desc;
-				memset(&desc, 0, sizeof(desc));
-				desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-				desc.Triangles.Transform3x4 = 0;
-				desc.Triangles.VertexBuffer.StartAddress = vertexBufferView.BufferLocation;
-				desc.Triangles.VertexBuffer.StrideInBytes = vertexBufferView.StrideInBytes;
-				desc.Triangles.VertexCount = vertexBufferView.SizeInBytes / vertexBufferView.StrideInBytes;
-				desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-				desc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
-				desc.Triangles.IndexBuffer = indexBufferView.BufferLocation;
-				desc.Triangles.IndexCount = (UINT)mesh->m_indexDataArray[i].size();
-				desc.Triangles.IndexFormat = indexBufferView.Format;
+					std::unique_ptr<ReyTracingGeometoryData> geometory = std::make_unique<ReyTracingGeometoryData>();
+					geometory->m_geometoryDesc = desc;
+					geometory->m_vertexBufferRWSB.Init(*dynamic_cast<VertexBufferDX12*>(mesh->m_vertexBufferDXR.get()), false);
+					geometory->m_indexBufferRWSB.Init(*dynamic_cast<IndexBufferDX12*>(mesh->m_indexBufferArray[i].get()), false);
+				
+					//配列に追加
+					m_geometories.emplace_back(std::move(geometory));
+
+					//ジオメトリの開始インデックス設定
+					if (geometoryIndex < 0) {
+						geometoryIndex = (int)m_geometories.size() - 1;
+						model.SetRayTracingWorldStartIndex(geometoryIndex);
+					}
+				}
 
 				//インスタンス作成
-				std::unique_ptr<ReyTracingInstanceData> instance = std::make_unique<ReyTracingInstanceData>();
-				instance->m_geometoryDesc = desc;
-				instance->m_material = &mesh->m_materials[i]->GetMaterialData();
+				std::unique_ptr<ReyTracingInstanceData> instance = std::make_unique<ReyTracingInstanceData>();				
+				instance->m_geometory = m_geometories[geometoryIndex].get();
+				instance->m_material = mesh->m_materials[i]->GetMaterialData().GetUsingMaterialSettingPtr();
 				instance->m_worldMatrix = worldMatrix;
-				instance->m_vertexBufferRWSB.Init(*dynamic_cast<VertexBufferDX12*>(mesh->m_vertexBufferDXR.get()), false);
-				instance->m_indexBufferRWSB.Init(*dynamic_cast<IndexBufferDX12*>(mesh->m_indexBufferArray[i].get()), false);
-
 				//配列にインスタンス追加
 				m_instances.emplace_back(std::move(instance));
+
+				geometoryIndex++;
 			}
 		});
 	}
 	void ReyTracingWorld::CommitRegistGeometry(ID3D12GraphicsCommandList4* commandList) {
 		//BLASを構築。
-		m_blasBuffer.Init(commandList, m_instances);
+		m_blasBuffer.Init(commandList, m_geometories);
 		//TLASを構築。
 		m_topLevelASBuffers.Init(commandList, m_instances, m_blasBuffer.Get(), false);
 	}
@@ -696,7 +726,7 @@ namespace DemolisherWeapon {
 				device->CopyDescriptorsSimple(
 					1,
 					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eAlbedoMap, m_srvsDescriptorSize),//dest
-					instance.m_material->GetUsingMaterialSetting().GetAlbedoTextureData().CPUdescriptorHandle,//src
+					instance.m_material->GetAlbedoTextureData().CPUdescriptorHandle,//src
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
 				//法線マップをディスクリプタヒープに登録。
@@ -739,14 +769,14 @@ namespace DemolisherWeapon {
 				device->CopyDescriptorsSimple(
 					1,
 					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eVertexBuffer, m_srvsDescriptorSize),//dest
-					instance.m_vertexBufferRWSB.GetCPUDescriptorHandle(),//src
+					instance.m_geometory->m_vertexBufferRWSB.GetCPUDescriptorHandle(),//src
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
 				//インデックスバッファをディスクリプタヒープに登録。
 				device->CopyDescriptorsSimple(
 					1,
 					CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eIndexBuffer, m_srvsDescriptorSize),//dest
-					instance.m_indexBufferRWSB.GetCPUDescriptorHandle(),//src
+					instance.m_geometory->m_indexBufferRWSB.GetCPUDescriptorHandle(),//src
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
 				srvIndex += (int)ESRV_OneEntry::eNum;

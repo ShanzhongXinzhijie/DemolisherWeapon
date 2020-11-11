@@ -201,13 +201,6 @@ public:
 				i++;
 			}
 		);
-		//FindMaterial(
-		//	[&](ModelEffect* mat) {
-		//		if (!isAllocated) { m_materialSetting.emplace_back(); }//マテリアル設定の確保
-		//		mat->MaterialSettingInit(m_materialSetting[i]);//初期化
-		//		i++;
-		//	}
-		//);
 	}
 	//マテリアル設定の有効・無効を設定
 	void SetMaterialSettingEnable(bool enable) {
@@ -222,6 +215,8 @@ public:
 			onFindMaterialSetting(&mat);
 		}
 	}
+
+
 
 	//デプスステンシルステートをセット
 	void SetDepthStencilState(ID3D11DepthStencilState* state) {
@@ -388,6 +383,15 @@ public:
 	/// </summary>
 	bool IsLoadedModel()const {
 		return m_model != nullptr;
+	}
+
+	/// <summary>
+	/// モデルを取得
+	/// </summary>
+	/// <returns></returns>
+	[[nodiscard]]
+	CModel* GetModel() {
+		return m_model;
 	}
 
 private:

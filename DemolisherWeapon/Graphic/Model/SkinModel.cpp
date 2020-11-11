@@ -390,17 +390,10 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 	if(isMatSetInit && isMatSetEnable){
 		//ŒÂ•ÊÝ’è
 		int i = 0;
-		/*FindMaterial(
-			[&](ModelEffect* mat) {
-				mat->SetUseMaterialSetting(m_materialSetting[i]);
-				i++;
-			}
-		);*/
 		FindMaterialData([&](MaterialData& mat) {mat.SetUseMaterialSetting(m_materialSetting[i]); i++; });
 	}
 	else {
 		//‘S‘ÌÝ’è
-		//FindMaterial([&](ModelEffect* mat) { mat->SetDefaultMaterialSetting(); });
 		FindMaterialData([&](MaterialData& mat) {mat.SetDefaultMaterialSetting(); });
 	}
 
@@ -551,7 +544,7 @@ void SkinModel::FindMaterialData(std::function<void(MaterialData&)> onFindMateri
 			for (auto& mat : mesh->m_materials) {
 				onFindMaterial(mat->GetMaterialData());
 			}
-			});
+		});
 	}
 }
 

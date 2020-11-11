@@ -389,6 +389,9 @@ namespace DemolisherWeapon {
 		MaterialSetting& GetUsingMaterialSetting() {
 			return *m_ptrUseMaterialSetting;
 		}
+		MaterialSetting* GetUsingMaterialSettingPtr() {
+			return m_ptrUseMaterialSetting;
+		}
 
 		//使うマテリアル設定
 		void SetUseMaterialSetting(MaterialSetting& matset) {
