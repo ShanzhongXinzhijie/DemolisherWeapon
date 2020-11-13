@@ -170,7 +170,7 @@ void FinalRender::Render() {
 	//SRV‚ðƒZƒbƒg
 	if (GetIsDebugInput() && GetAsyncKeyState(VK_NUMPAD0)) {
 		if (!m_gridTex) {
-			TextueData Tex = CreateTexture(L"Asset/modelData/grid.png");
+			TextueData Tex = CreateTexture(L"Preset/sprite/testcard.png");
 			if (Tex.isLoaded()) {
 				m_gridTex = Tex.textureView.Get(); m_gridTex->AddRef();
 			}

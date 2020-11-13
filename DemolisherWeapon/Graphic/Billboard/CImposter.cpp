@@ -344,21 +344,6 @@ namespace DemolisherWeapon {
 
 //インポスターテクスチャバンク
 	ImposterTexRender* ImposterTexBank::Load(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum) {
-		/*
-		//ファイルパスからハッシュ作成
-		int index = Util::MakeHash(filepath);
-		//設定を文字列化
-		std::wstring string = std::to_wstring((int)resolution.x);
-		string += L"X";
-		string += std::to_wstring((int)resolution.y);
-		string += L"::";
-		string += std::to_wstring((int)partNum.x);
-		string += L"X";
-		string += std::to_wstring((int)partNum.y);
-		//文字列からハッシュ作成→さっきのハッシュと合成
-		index = (int)Util::HashCombine(index, Util::MakeHash(string.c_str()));
-		*/
-
 		//ハッシュ作成
 		int index = Util::MakeHash(identifier);
 

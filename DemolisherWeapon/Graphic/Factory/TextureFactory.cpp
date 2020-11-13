@@ -71,7 +71,16 @@ namespace DemolisherWeapon {
 		if (FAILED(hr)) {
 #ifndef DW_MASTER
 			char message[256];
-			sprintf_s(message, "CreateTexture()の画像読み込みに失敗。\nファイルパスあってますか？\n%ls\n", filepath.c_str());
+			if (hr == E_INVALIDARG && texdata.isDDS) {
+				sprintf_s(message, "CreateTexture()の画像読み込みに失敗。\n画像の解像度が4の倍数である必要があります(たぶん)\n%ls\n", filepath.c_str());
+
+			}
+			else if (hr == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) {
+				sprintf_s(message, "CreateTexture()の画像読み込みに失敗。\nファイルパスあってますか？\n%ls\n", filepath.c_str());
+			}
+			else {
+				sprintf_s(message, "CreateTexture()の画像読み込みに失敗。\nエラーコード: 0x%x\n%ls\n", hr, filepath.c_str());
+			}
 			DemolisherWeapon::Error::Box(message);
 #endif
 			return {};
