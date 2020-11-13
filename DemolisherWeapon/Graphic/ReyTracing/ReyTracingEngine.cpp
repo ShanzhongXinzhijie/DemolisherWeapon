@@ -4,12 +4,14 @@
 namespace DemolisherWeapon {
 
 	namespace {
-		ID3D12Resource* CreateBuffer(
+		void CreateBuffer(
 			ID3D12Device5* pDevice,
 			uint64_t size,
 			D3D12_RESOURCE_FLAGS flags,
 			D3D12_RESOURCE_STATES initState,
-			const D3D12_HEAP_PROPERTIES& heapProps)
+			const D3D12_HEAP_PROPERTIES& heapProps,
+			Microsoft::WRL::ComPtr<ID3D12Resource>& output
+		)
 		{
 			D3D12_RESOURCE_DESC bufDesc = {};
 			bufDesc.Alignment = 0;
@@ -24,9 +26,7 @@ namespace DemolisherWeapon {
 			bufDesc.SampleDesc.Quality = 0;
 			bufDesc.Width = size;
 
-			ID3D12Resource* pBuffer;
-			pDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &bufDesc, initState, nullptr, IID_PPV_ARGS(&pBuffer));
-			return pBuffer;
+			pDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &bufDesc, initState, nullptr, IID_PPV_ARGS(&output));
 		}
 	}
 
@@ -38,6 +38,11 @@ namespace DemolisherWeapon {
 		auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
 		
 		for (auto& geometory : geometories) {
+			//すでに構築済み
+			if (geometory->m_pResultBLAS) {
+				continue;
+			}
+
 			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
 			inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 			inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
@@ -49,19 +54,22 @@ namespace DemolisherWeapon {
 			d3dDevice->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &info);
 
 			AccelerationStructureBuffers asbuffer;
-			asbuffer.pScratch = CreateBuffer(
+			CreateBuffer(
 				d3dDevice,
 				info.ScratchDataSizeInBytes,
 				D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
 				D3D12_RESOURCE_STATE_COMMON,
-				kDefaultHeapProps);
-
-			asbuffer.pResult = CreateBuffer(
+				kDefaultHeapProps,
+				asbuffer.pScratch
+			);
+			CreateBuffer(
 				d3dDevice,
 				info.ResultDataMaxSizeInBytes,
 				D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
 				D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE,
-				kDefaultHeapProps);
+				kDefaultHeapProps,
+				asbuffer.pResult
+			);
 
 			// Create the bottom-level AS
 			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC asDesc = {};
@@ -73,11 +81,11 @@ namespace DemolisherWeapon {
 			//レイトレーシングアクセラレーション構造のビルド完了待ちのバリアを入れる。
 			D3D12_RESOURCE_BARRIER uavBarrier = {};
 			uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-			uavBarrier.UAV.pResource = asbuffer.pResult;
+			uavBarrier.UAV.pResource = asbuffer.pResult.Get();
 			commandList->ResourceBarrier(1, &uavBarrier);
 
 			m_bottomLevelASBuffers.push_back(std::move(asbuffer));
-			geometory->m_BLAS = m_bottomLevelASBuffers.back();
+			geometory->m_pResultBLAS = m_bottomLevelASBuffers.back().pResult.Get();
 		}
 	}
 
@@ -88,10 +96,11 @@ namespace DemolisherWeapon {
 		bool update
 	)
 	{
-		uint64_t tlasSize;
 		auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
-
 		size_t numInstance = instances.size();
+
+		//uint64_t tlasSize;
+
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
 		inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 		inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE | D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
@@ -103,23 +112,23 @@ namespace DemolisherWeapon {
 
 		if (update){
 			//更新
-			// If this a request for an update, then the TLAS was already used in a DispatchRay() call. We need a UAV barrier to make sure the read operation ends before updating the buffer
 			D3D12_RESOURCE_BARRIER uavBarrier = {};
 			uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-			uavBarrier.UAV.pResource = m_topLevelASBuffers.pResult;
+			uavBarrier.UAV.pResource = m_topLevelASBuffers.pResult.Get();
 			commandList->ResourceBarrier(1, &uavBarrier);
 		}
 		else {
 			//新規
-			m_topLevelASBuffers.pScratch = CreateBuffer(d3dDevice, info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, kDefaultHeapProps);
-			m_topLevelASBuffers.pResult = CreateBuffer(d3dDevice, info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, kDefaultHeapProps);
-			m_topLevelASBuffers.pInstanceDesc = CreateBuffer(
+			CreateBuffer(d3dDevice, info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, kDefaultHeapProps, m_topLevelASBuffers.pScratch);
+			CreateBuffer(d3dDevice, info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, kDefaultHeapProps, m_topLevelASBuffers.pResult);
+			CreateBuffer(
 				d3dDevice,
 				sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * numInstance,
 				D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ,
-				kUploadHeapProps
+				kUploadHeapProps,
+				m_topLevelASBuffers.pInstanceDesc
 			);
-			tlasSize = info.ResultDataMaxSizeInBytes;
+			//tlasSize = info.ResultDataMaxSizeInBytes;
 		}
 
 		//Map the instance desc buffer
@@ -129,16 +138,15 @@ namespace DemolisherWeapon {
 
 		for (int i = 0; i < numInstance; i++) {			
 			instanceDescs[i].InstanceID = i;
-			instanceDescs[i].InstanceContributionToHitGroupIndex = (int)enHitGroup_Num * i + enHitGroup_PBRCameraRay;
+			instanceDescs[i].InstanceContributionToHitGroupIndex = (int)enHitGroup_Num * i + enHitGroup_PBRCameraRay;//使用するヒットグループ
 			instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
-			instanceDescs[i].AccelerationStructure = instances[i]->m_geometory->m_BLAS.pResult->GetGPUVirtualAddress();
-			
+			instanceDescs[i].AccelerationStructure = instances[i]->m_geometory->m_pResultBLAS->GetGPUVirtualAddress();
+			instanceDescs[i].InstanceMask = 0xFF;//ゼロだとレイに当たらない //これで非表示とかやる?
+
 			//トランスフォーム行列設定
 			CMatrix mTrans = *instances[i]->m_worldMatrix;
 			mTrans.Transpose();
-			memcpy(instanceDescs[i].Transform, &mTrans, sizeof(instanceDescs[i].Transform));
-			
-			instanceDescs[i].InstanceMask = 0xFF;
+			memcpy(instanceDescs[i].Transform, &mTrans, sizeof(instanceDescs[i].Transform));			
 		}
 
 		m_topLevelASBuffers.pInstanceDesc->Unmap(0, nullptr);
@@ -159,7 +167,7 @@ namespace DemolisherWeapon {
 		//レイトレーシングアクセラレーション構造のビルド完了待ちのバリアを入れる。
 		D3D12_RESOURCE_BARRIER uavBarrier = {};
 		uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-		uavBarrier.UAV.pResource = m_topLevelASBuffers.pResult;
+		uavBarrier.UAV.pResource = m_topLevelASBuffers.pResult.Get();
 		commandList->ResourceBarrier(1, &uavBarrier);
 	}
 	void TLASBuffer::CreateShaderResourceView()
@@ -170,8 +178,6 @@ namespace DemolisherWeapon {
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.RaytracingAccelerationStructure.Location = m_topLevelASBuffers.pResult->GetGPUVirtualAddress();
-		
-		//GetGraphicsEngine().GetD3D12Device()->CreateShaderResourceView(nullptr, &srvDesc, descriptorHandle);
 
 		auto [gpu,cpu] = GetGraphicsEngine().GetDX12().CreateSRV(nullptr, &srvDesc);
 		m_GPUdescriptorHandle = gpu;
@@ -460,14 +466,20 @@ namespace DemolisherWeapon {
 
 		// Payloadのサイズと引数の数はとりあえず固定で・・・。後で検討。
 		ShaderConfigSubobject shaderConfig;
+
+		/// <summary>
+		/// raytrace.fx : RayPayload
+		/// </summary>
 		struct RayPayload
 		{
-			CVector4 color;
-			CVector4 reflectionColor;
-			CVector4 hit_depth;
+			CVector3 color;
+			int hit;
+			int depth;
 		};
-		shaderConfig.Init(sizeof(float) * 2, sizeof(RayPayload));
-		subobjects[index] = shaderConfig.subobject; // 
+		uint32_t attributesSize = sizeof(float) * 2;// BuiltInTriangleIntersectionAttributesのサイズ
+
+		shaderConfig.Init(attributesSize, sizeof(RayPayload));
+		subobjects[index] = shaderConfig.subobject; 
 
 		uint32_t shaderConfigIndex = index++;
 		ExportAssociationSubobject configAssociationSO;
@@ -565,6 +577,7 @@ namespace DemolisherWeapon {
 		m_topLevelASBuffers.Init(commandList, m_instances, m_blasBuffer.Get(), false);
 	}
 	void ReyTracingWorld::UpdateTLAS(ID3D12GraphicsCommandList4* commandList) {
+		//TLAS更新
 		m_topLevelASBuffers.Init(commandList, m_instances, m_blasBuffer.Get(), true);
 	}
 
@@ -611,7 +624,7 @@ namespace DemolisherWeapon {
 
 		auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
 		//シェーダーテーブル用のバッファを作成。
-		m_shaderTable = CreateBuffer(d3dDevice, shaderTableSize, D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ, kUploadHeapProps);
+		CreateBuffer(d3dDevice, shaderTableSize, D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ, kUploadHeapProps, m_shaderTable);
 
 		//バッファをシステムメモリにマップする。
 		uint8_t* pData;
@@ -707,7 +720,7 @@ namespace DemolisherWeapon {
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 		);
 
-		//TLASの登録
+		//TLASのSRV作成
 		world.GetTLASBuffer().CreateShaderResourceView();
 
 		//SRV

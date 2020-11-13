@@ -424,27 +424,30 @@ namespace DemolisherWeapon {
 		m_camPos = { 81.2955322f, 105.524132f,  -98.4609833f };
 		m_camTgt = { -34.3155823f, -16.9616947f, 104.190804f };
 
-		//レイトレーシング		
-		m_rayTraceEngine = new RayTracingEngine;
+		{
+			//レイトレーシング		
+			m_rayTraceEngine = new RayTracingEngine;
 
-		//バイアス行列取得
-		CMatrix mBiasScr;
-		CoordinateSystemBias::GetBias(m_rayTraceTestModelMatWorld, mBiasScr, enFbxUpAxisZ, enFbxRightHanded);
-		m_rayTraceTestModelMatWorld.Mul(mBiasScr, m_rayTraceTestModelMatWorld);
-		
-		m_rayTraceEngine->RegistModel(m_rayTraceTestModel[0], &m_rayTraceTestModelMatWorld);
+			//バイアス行列取得
+			CMatrix mBiasScr;
+			CoordinateSystemBias::GetBias(m_rayTraceTestModelMatWorld, mBiasScr, enFbxUpAxisZ, enFbxRightHanded);
+			m_rayTraceTestModelMatWorld.Mul(mBiasScr, m_rayTraceTestModelMatWorld);
 
-		int i = 0;
-		for (auto& m : m_rayTraceTestModelMatUnity) {
-			mBiasScr.MakeTranslation({ 10.0f * i,0.0f,100.0f });
-			m.Mul(m, mBiasScr);
+			m_rayTraceEngine->RegistModel(m_rayTraceTestModel[0], &m_rayTraceTestModelMatWorld);
 
-			m_rayTraceEngine->RegistModel(m_rayTraceTestModel[1], &m_rayTraceTestModelMatUnity[i]);
+			int i = 0;
+			for (auto& m : m_rayTraceTestModelMatUnity) {
+				m = m_rayTraceTestModelMatWorld;
+				mBiasScr.MakeTranslation({ 10.0f * i,0.0f,100.0f });
+				m.Mul(m, mBiasScr);
 
-			i++;
+				m_rayTraceEngine->RegistModel(m_rayTraceTestModel[1], &m_rayTraceTestModelMatUnity[i]);
+
+				i++;
+			}
+
+			m_rayTraceEngine->CommitRegistGeometry(m_commandList.Get());
 		}
-
-		m_rayTraceEngine->CommitRegistGeometry(m_commandList.Get());
 
 		//初期化完了
 		m_isInitTest = true;
@@ -574,10 +577,9 @@ namespace DemolisherWeapon {
 			m_camera.SetTarget(m_camPos + m_camTgt);
 		}
 
-		/*{
+		{
 			//モデル移動
 			CVector3 move;
-
 			if (GetKeyInput(VK_UP)) {
 				move += m_camera.GetFront() * 3.0f;
 			}
@@ -592,9 +594,9 @@ namespace DemolisherWeapon {
 			}
 
 			CMatrix m; m.MakeTranslation(move);
-			m_rayTraceTestModelMat[1].Mul(m_rayTraceTestModelMat[1], m);
+			m_rayTraceTestModelMatUnity[0].Mul(m_rayTraceTestModelMatUnity[0], m);
 			m_rayTraceEngine->UpdateTLAS(m_commandList.Get());
-		}*/
+		}
 
 		//レイトレ
 		m_rayTraceEngine->Dispatch(m_commandList.Get());
@@ -610,9 +612,11 @@ namespace DemolisherWeapon {
 		//	//モデルの描画
 		//	m_commandList->SetPipelineState(m_meshTest->m_pso.Get());
 		//	m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
 		//	ID3D12DescriptorHeap* heapList[] = { m_drawSRVsDescriptorHeap.Get() };
 		//	m_commandList->SetDescriptorHeaps(_countof(heapList), heapList);
 		//	m_commandList->SetGraphicsRootDescriptorTable(0, CD3DX12_GPU_DESCRIPTOR_HANDLE(m_drawSRVsDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), 0, m_drawSRVsDescriptorSize));
+		
 		//	//m_meshTest->m_mesh.Draw(1);
 		//	m_rayTraceTestModel[1].Draw(1);
 		//}

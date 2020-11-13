@@ -28,9 +28,9 @@ namespace DemolisherWeapon {
 	};
 
 	struct AccelerationStructureBuffers {
-		ID3D12Resource* pScratch = nullptr;
-		ID3D12Resource* pResult = nullptr;
-		ID3D12Resource* pInstanceDesc = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Resource> pScratch;
+		Microsoft::WRL::ComPtr<ID3D12Resource> pResult;
+		Microsoft::WRL::ComPtr<ID3D12Resource> pInstanceDesc;
 	};
 
 	/// <summary>
@@ -41,15 +41,16 @@ namespace DemolisherWeapon {
 		StructuredBufferInnerDX12 m_vertexBufferRWSB;	//頂点バッファ
 		StructuredBufferInnerDX12 m_indexBufferRWSB;	//インデックスバッファ
 
-		AccelerationStructureBuffers m_BLAS;
+		//AccelerationStructureBuffers m_BLAS;
+		ID3D12Resource* m_pResultBLAS = nullptr;
 	};
 	/// <summary>
 	/// レイトレ用インスタンス情報
 	/// </summary>
 	struct ReyTracingInstanceData {
 		const ReyTracingGeometoryData* m_geometory = nullptr;	//ジオメトリ情報
-		const MaterialSetting* m_material = nullptr;	//マテリアル
-		const CMatrix* m_worldMatrix = nullptr;			//ワールド行列
+		const MaterialSetting* m_material = nullptr;			//マテリアル
+		const CMatrix* m_worldMatrix = nullptr;					//ワールド行列
 	};
 
 	//レイトレースの再帰呼び出しの最大数。

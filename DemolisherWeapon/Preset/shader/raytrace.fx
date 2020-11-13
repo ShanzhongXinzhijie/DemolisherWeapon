@@ -63,13 +63,15 @@ RWTexture2D<float4> gOutput : register(u0);//出力先
 SamplerState  s : register(s0);//サンプラー
 
 
+/// <summary>
+/// RayTracingEngine.cpp : RayPayload
+/// </summary>
 struct RayPayload
 {
     float3 color;
     int hit;
     int depth;
 };
-
 
 
 //UV座標を取得。
