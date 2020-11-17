@@ -7,13 +7,14 @@ namespace DemolisherWeapon {
 	class CSprite
 	{
 	public:
-		CSprite();
+		CSprite() = default;
 		~CSprite();
 
 		void Release();
 
 		//‰Šú‰»
 		void Init(const wchar_t* fileName);
+		void Init(const TextueData& texture);
 		void Init(ID3D11ShaderResourceView* srv, UINT width, UINT height, bool isPMA = false);
 
 		//•`‰æ‚·‚é
@@ -38,10 +39,10 @@ namespace DemolisherWeapon {
 		//‰æ‘œ‚Ì•`‰æ‚·‚é”ÍˆÍ‚ğİ’è
 		//0.0f`1.0f‚Ì”ÍˆÍ‚Åw’è
 		void SetSourceRectangle(const float left, const float top, const float right, const float bottom) {
-			m_sourceRectangle.left		= (LONG)(m_width  * left);
-			m_sourceRectangle.right		= (LONG)(m_width  * right);
-			m_sourceRectangle.top		= (LONG)(m_height * top);
-			m_sourceRectangle.bottom	= (LONG)(m_height * bottom);
+			m_sourceRectangle.left		= (LONG)(m_texdata.width  * left);
+			m_sourceRectangle.right		= (LONG)(m_texdata.width  * right);
+			m_sourceRectangle.top		= (LONG)(m_texdata.height * top);
+			m_sourceRectangle.bottom	= (LONG)(m_texdata.height * bottom);
 		}
 		//‰æ‘œ‚Ì‰ğ‘œ“x‚Åw’è
 		void SetSourceRectangleSpriteSize(const RECT& sourceRectangle){
@@ -50,23 +51,17 @@ namespace DemolisherWeapon {
 
 		//‰æ‘œ‚Ì•‚ğæ“¾
 		UINT GetWidth()const {
-			return m_width;
+			return m_texdata.width;
 		}
 		//‰æ‘œ‚Ì‚‚³‚ğæ“¾
 		UINT GetHeight()const {
-			return m_height;
+			return m_texdata.height;
 		}
 
 	private:
 		DirectX::SpriteBatch* m_spriteBatch = nullptr;
-		//CVector2 m_screenSize;
 
-		ID3D11ShaderResourceView* m_srv = nullptr;
-		const TextueData* m_texdata = nullptr;
-		D3D12_CPU_DESCRIPTOR_HANDLE m_cpuHandle;
-		D3D12_GPU_DESCRIPTOR_HANDLE m_gpuHandle;
-
-		UINT m_width, m_height;
+		TextueData m_texdata;
 
 		RECT m_sourceRectangle;
 	};

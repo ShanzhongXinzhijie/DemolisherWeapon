@@ -48,7 +48,7 @@ namespace DemolisherWeapon {
 	}
 	
 //インポスターテクスチャ
-	void ImposterTexRender::Init(SkinModel& model, const CVector2& resolution, const CVector2& partNum) {
+	void ImposterTexRender::Init(SkinModel& model, const CVector2& resolution, const CVector2& partNum, const CQuaternion& rotOffset, bool isJustFit) {
 		//解像度・分割数設定
 		m_gbufferSizeX = (UINT)resolution.x; m_gbufferSizeY = (UINT)resolution.y;
 		m_partNumX = (UINT)partNum.x; m_partNumY = (UINT)partNum.y;
@@ -74,6 +74,14 @@ namespace DemolisherWeapon {
 		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, m_GBufferTex[enGBufferAlbedo].ReleaseAndGetAddressOf());
 		ge.GetD3DDevice()->CreateRenderTargetView(m_GBufferTex[enGBufferAlbedo].Get(), nullptr, m_GBufferView[enGBufferAlbedo].ReleaseAndGetAddressOf());//レンダーターゲット
 		ge.GetD3DDevice()->CreateShaderResourceView(m_GBufferTex[enGBufferAlbedo].Get(), nullptr, m_GBufferSRV[enGBufferAlbedo].ReleaseAndGetAddressOf());//シェーダーリソースビュー
+		//TexData初期化
+		m_albedoTextureData.isDDS = true;//?
+		m_albedoTextureData.width = texDesc.Width;
+		m_albedoTextureData.height = texDesc.Height;
+		m_GBufferTex[enGBufferAlbedo]->AddRef();
+		m_albedoTextureData.texture.Attach(m_GBufferTex[enGBufferAlbedo].Get());
+		m_GBufferSRV[enGBufferAlbedo]->AddRef();
+		m_albedoTextureData.textureView.Attach(m_GBufferSRV[enGBufferAlbedo].Get());
 
 		//ライトパラメーター
 		texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -104,61 +112,62 @@ namespace DemolisherWeapon {
 
 		//バウンディングボックスからモデルのサイズを求める
 		m_imposterMaxSize = 0.0f;
+		m_imposterSizeZ = 0.0f;
 		m_boundingBoxMaxSize = { 0.0f };
-		m_boundingBoxMinSize = { 0.0f };
-		bool isFirst = true;
-		model.FindMeshes(
-			[&](const std::shared_ptr<DirectX::ModelMesh>& meshes) {
-				CVector3 size, extents;
-				extents = meshes->boundingBox.Extents;
+		m_boundingBoxMinSize = { 0.0f };		
+		CVector3 CenterV, ExpendV;//isJustFit用
+		{
+			model.GetBoundingBox(m_boundingBoxMinSize, m_boundingBoxMaxSize);
+			mBias.Mul3x3(m_boundingBoxMinSize);//バイアスの適応
+			mBias.Mul3x3(m_boundingBoxMaxSize);//バイアスの適応
 
-				//最大値
-				size = meshes->boundingBox.Center;
-				size += extents;
-				mBias.Mul3x3(size);//バイアスの適応
-				if (isFirst) {
-					m_boundingBoxMaxSize = size;
-					m_boundingBoxMinSize = size;
-				}
-				else {
-					m_boundingBoxMaxSize.x = max(m_boundingBoxMaxSize.x, size.x);
-					m_boundingBoxMaxSize.y = max(m_boundingBoxMaxSize.y, size.y);
-					m_boundingBoxMaxSize.z = max(m_boundingBoxMaxSize.z, size.z);
-					m_boundingBoxMinSize.x = min(m_boundingBoxMinSize.x, size.x);
-					m_boundingBoxMinSize.y = min(m_boundingBoxMinSize.y, size.y);
-					m_boundingBoxMinSize.z = min(m_boundingBoxMinSize.z, size.z);
-				}
-				size.Abs();
-				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y, max(size.x, size.z)));
+			//一辺の最大長求める
+			CQuaternion rotY, rotX, rotM;
+			for (int i = 0; i < (int)(m_partNumX * m_partNumY); i++) {
+				//横端まで行った
+				if (i % m_partNumX == 0) {
+					//横回転リセット
+					rotY = CQuaternion::Identity();
+					rotY.SetRotation(CVector3::AxisY(), CMath::PI * -1.0f);
 
-				//最小値
-				size = meshes->boundingBox.Center;
-				size -= extents;
-				mBias.Mul3x3(size);//バイアスの適応
-				if (isFirst) {
-					m_boundingBoxMaxSize = size;
-					m_boundingBoxMinSize = size;
+					//縦回転進める
+					if (i != 0 && m_partNumY > 1) {
+						float angle = CMath::PI / (m_partNumY - 1) * (i / m_partNumX);
+						rotX.SetRotation(CVector3::AxisX(), CMath::PI * -0.5f + angle);
+					}
+					else {
+						rotX.SetRotation(CVector3::AxisX(), CMath::PI * -0.5f);
+					}
 				}
-				else {
-					m_boundingBoxMaxSize.x = max(m_boundingBoxMaxSize.x, size.x);
-					m_boundingBoxMaxSize.y = max(m_boundingBoxMaxSize.y, size.y);
-					m_boundingBoxMaxSize.z = max(m_boundingBoxMaxSize.z, size.z);
-					m_boundingBoxMinSize.x = min(m_boundingBoxMinSize.x, size.x);
-					m_boundingBoxMinSize.y = min(m_boundingBoxMinSize.y, size.y);
-					m_boundingBoxMinSize.z = min(m_boundingBoxMinSize.z, size.z);
-				}
-				size.Abs();
-				m_imposterMaxSize = max(m_imposterMaxSize, max(size.y, max(size.x, size.z)));
 
-				isFirst = false;
+				//回転行列作成
+				rotM.Concatenate(rotY, rotX);
+				rotM.Concatenate(rotM, rotOffset);//回転オフセット適用
+				model.UpdateWorldMatrix(0.0f, rotM, 1.0f);
+
+				//辺の長さ求める
+				CVector3 minV, maxV;
+				model.GetUpdatedBoundingBox(minV, maxV);
+				m_imposterMaxSize = max(m_imposterMaxSize, abs(minV.x));
+				m_imposterMaxSize = max(m_imposterMaxSize, abs(minV.y));
+				m_imposterMaxSize = max(m_imposterMaxSize, abs(maxV.x));
+				m_imposterMaxSize = max(m_imposterMaxSize, abs(maxV.y));
+				m_imposterSizeZ = max(m_imposterSizeZ, abs(minV.z - maxV.z));
+
+				//isJustFit用
+				CenterV = (minV + maxV) * 0.5f;
+				ExpendV = maxV - CenterV;
+
+				//横回転進める
+				rotY.Concatenate(CQuaternion(CVector3::AxisY(), CMath::PI2 / (m_partNumX - 1)));
 			}
-		);
+		}
 	
 		//モデルのカメラ方向の大きさ
 		m_toCamDirSize.Init(m_partNumX*m_partNumY);
 
 		//インポスタテクスチャの作成
-		Render(model);
+		Render(model, rotOffset, isJustFit, CenterV, ExpendV);
 
 		//モデルのワールド行列を戻す
 		model.SetWorldMatrix(beforeWorldMatrix, true);
@@ -174,7 +183,7 @@ namespace DemolisherWeapon {
 		);
 	}
 
-	void ImposterTexRender::Render(SkinModel& model) {
+	void ImposterTexRender::Render(SkinModel& model, const CQuaternion& rotOffset, bool isJustFit, const CVector3& justFitCenter, const CVector3& justFitExpand) {
 		//GPUイベントの開始
 		GetGraphicsEngine().BeginGPUEvent(L"RenderImposter");
 
@@ -182,12 +191,22 @@ namespace DemolisherWeapon {
 
 		//カメラのセットアップ		
 		GameObj::NoRegisterOrthoCamera imposterCam;
-		imposterCam.SetWidth(m_imposterMaxSize*2.0f);
-		imposterCam.SetHeight(m_imposterMaxSize*2.0f);
-		imposterCam.SetPos({ 0.0f,0.0f,CVector3(m_imposterMaxSize).Length() + 100.0f });
-		imposterCam.SetTarget(CVector3::Zero());
 		imposterCam.SetUp(CVector3::Up());
-		imposterCam.SetFar((CVector3(m_imposterMaxSize).Length() + 100.0f)*2.0f);
+		if (isJustFit) {
+			float size = max(justFitExpand.x, justFitExpand.y)*2.0f;
+			imposterCam.SetWidth(size);
+			imposterCam.SetHeight(size);
+			imposterCam.SetPos(justFitCenter + CVector3::AxisZ()*(justFitExpand.z +100.0f));
+			imposterCam.SetTarget(justFitCenter);
+			imposterCam.SetFar(justFitExpand.z*2.0f + 100.0f);
+		}
+		else {
+			imposterCam.SetWidth(m_imposterMaxSize * 2.0f);
+			imposterCam.SetHeight(m_imposterMaxSize * 2.0f);
+			imposterCam.SetPos({ 0.0f,0.0f,m_imposterSizeZ*0.5f + 100.0f });
+			imposterCam.SetTarget(CVector3::Zero());
+			imposterCam.SetFar(m_imposterSizeZ + 100.0f);
+		}
 		//※このカメラは手動で更新する...
 		imposterCam.UpdateMatrix();
 
@@ -275,8 +294,13 @@ namespace DemolisherWeapon {
 				rotY.SetRotation(CVector3::AxisY(), CMath::PI*-1.0f);
 
 				//縦回転進める
-				float angle = CMath::PI / (m_partNumY - 1) * (i / m_partNumX);
-				rotX.SetRotation(CVector3::AxisX(), CMath::PI*-0.5f + angle);
+				if (i != 0 && m_partNumY > 1) {
+					float angle = CMath::PI / (m_partNumY - 1) * (i / m_partNumX);
+					rotX.SetRotation(CVector3::AxisX(), CMath::PI * -0.5f + angle);
+				}
+				else {
+					rotX.SetRotation(CVector3::AxisX(), CMath::PI * -0.5f);
+				}
 
 				//インデックス進める
 				if (i != 0) { indY++; }
@@ -284,6 +308,7 @@ namespace DemolisherWeapon {
 
 			//モデルの回転	
 			rotM.Concatenate(rotY, rotX);
+			rotM.Concatenate(rotM, rotOffset);//回転オフセット適用
 			model.UpdateWorldMatrix(0.0f, rotM, 1.0f);
 				
 			//ビューポート設定
@@ -291,17 +316,56 @@ namespace DemolisherWeapon {
 			//モデル描画
 			model.Draw();
 
+			//バウンディングボックスの表示
+			/*{
+				CVector3 min, max;
+				model.GetUpdatedBoundingBox(min, max);
+				ImmediateDrawLine({ min.x,min.y,min.z }, { min.x,max.y,min.z }, { 1.0f,0.0f,1.0f,1.0f });
+				ImmediateDrawLine({ max.x,min.y,min.z }, { max.x,max.y,min.z }, { 1.0f,0.0f,1.0f,1.0f });
+				ImmediateDrawLine({ min.x,min.y,max.z }, { min.x,max.y,max.z }, { 1.0f,0.0f,1.0f,1.0f });
+				ImmediateDrawLine({ max.x,min.y,max.z }, { max.x,max.y,max.z }, { 1.0f,0.0f,1.0f,1.0f });
+
+				ImmediateDrawLine({ min.x,min.y,min.z }, { min.x,min.y,max.z }, { 1.0f,0.0f,1.0f,1.0f });
+				ImmediateDrawLine({ min.x,min.y,min.z }, { max.x,min.y,min.z }, { 1.0f,0.0f,1.0f,1.0f });
+				ImmediateDrawLine({ max.x,min.y,min.z }, { max.x,min.y,max.z }, { 1.0f,0.0f,1.0f,1.0f });
+				ImmediateDrawLine({ min.x,min.y,max.z }, { max.x,min.y,max.z }, { 1.0f,0.0f,1.0f,1.0f });
+
+				ImmediateDrawLine({ min.x,max.y,min.z }, { min.x,max.y,max.z }, { 1.0f,0.0f,1.0f,1.0f });
+				ImmediateDrawLine({ min.x,max.y,min.z }, { max.x,max.y,min.z }, { 1.0f,0.0f,1.0f,1.0f });
+				ImmediateDrawLine({ max.x,max.y,min.z }, { max.x,max.y,max.z }, { 1.0f,0.0f,1.0f,1.0f });
+				ImmediateDrawLine({ min.x,max.y,max.z }, { max.x,max.y,max.z }, { 1.0f,0.0f,1.0f,1.0f });
+			}
+			{
+				CVector3 min = justFitCenter - justFitExpand, max = justFitCenter + justFitExpand; 
+				ImmediateDrawLine({ min.x,min.y,min.z }, { min.x,max.y,min.z }, { 1.0f,1.0f,0.0f,1.0f });
+				ImmediateDrawLine({ max.x,min.y,min.z }, { max.x,max.y,min.z }, { 1.0f,1.0f,0.0f,1.0f });
+				ImmediateDrawLine({ min.x,min.y,max.z }, { min.x,max.y,max.z }, { 1.0f,1.0f,0.0f,1.0f });
+				ImmediateDrawLine({ max.x,min.y,max.z }, { max.x,max.y,max.z }, { 1.0f,1.0f,0.0f,1.0f });
+
+				ImmediateDrawLine({ min.x,min.y,min.z }, { min.x,min.y,max.z }, { 1.0f,1.0f,0.0f,1.0f });
+				ImmediateDrawLine({ min.x,min.y,min.z }, { max.x,min.y,min.z }, { 1.0f,1.0f,0.0f,1.0f });
+				ImmediateDrawLine({ max.x,min.y,min.z }, { max.x,min.y,max.z }, { 1.0f,1.0f,0.0f,1.0f });
+				ImmediateDrawLine({ min.x,min.y,max.z }, { max.x,min.y,max.z }, { 1.0f,1.0f,0.0f,1.0f });
+
+				ImmediateDrawLine({ min.x,max.y,min.z }, { min.x,max.y,max.z }, { 1.0f,1.0f,0.0f,1.0f });
+				ImmediateDrawLine({ min.x,max.y,min.z }, { max.x,max.y,min.z }, { 1.0f,1.0f,0.0f,1.0f });
+				ImmediateDrawLine({ max.x,max.y,min.z }, { max.x,max.y,max.z }, { 1.0f,1.0f,0.0f,1.0f });
+				ImmediateDrawLine({ min.x,max.y,max.z }, { max.x,max.y,max.z }, { 1.0f,1.0f,0.0f,1.0f });
+			}*/
+			//float size = max(justFitExpand.x, justFitExpand.y) * 2.0f;
+			//ImmediateDrawQuad({ -size ,-size,size }, { size ,size,size }, { 1.0f,1.0f,0.0f,1.0f });
+
 			//モデルのカメラ方向の大きさを記録
 			float toCamDirMaxSize = 0.0f;
 			CVector3 toCamDir;
 			
 			toCamDir = m_boundingBoxMinSize;
 			rotM.Multiply(toCamDir);
-			toCamDirMaxSize = CVector3::AxisZ().Dot(toCamDir);
+			toCamDirMaxSize = toCamDir.z;
 
 			toCamDir = m_boundingBoxMaxSize;
 			rotM.Multiply(toCamDir);
-			toCamDirMaxSize = max(toCamDirMaxSize, CVector3::AxisZ().Dot(toCamDir));
+			toCamDirMaxSize = max(toCamDirMaxSize, toCamDir.z);
 
 			m_toCamDirSize.GetData()[indY*m_partNumX + i%m_partNumX] = toCamDirMaxSize;
 			
@@ -343,7 +407,7 @@ namespace DemolisherWeapon {
 	}
 
 //インポスターテクスチャバンク
-	ImposterTexRender* ImposterTexBank::Load(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum) {
+	ImposterTexRender* ImposterTexBank::Load(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum, const CQuaternion& rotOffset, bool isJustFit) {
 		//ハッシュ作成
 		int index = Util::MakeHash(identifier);
 
@@ -355,7 +419,7 @@ namespace DemolisherWeapon {
 		else {
 			//つくる
 			ImposterTexRender* ptr = new ImposterTexRender;
-			ptr->Init(model, resolution, partNum);
+			ptr->Init(model, resolution, partNum, rotOffset, isJustFit);
 			m_impTexMap.emplace(index, ptr);
 			return ptr;
 		}

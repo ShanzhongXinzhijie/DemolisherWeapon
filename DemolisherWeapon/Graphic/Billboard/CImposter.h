@@ -31,6 +31,7 @@ namespace DemolisherWeapon {
 		ImposterTexRender* m_texture = nullptr;
 
 		//パラメータ
+		//x = モデルサイズ(カメラ方向へのオフセットにかかる), y = y軸回転角度
 		StructuredBuffer<CVector2>  m_paramsSB;
 		std::unique_ptr<CVector2[]> m_paramsCache;
 
@@ -48,7 +49,9 @@ namespace DemolisherWeapon {
 		/// <param name="model">3Dモデル</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
 		/// <param name="partNum">インポスターテクスチャの分割数</param>
-		void Init(SkinModel& model, const CVector2& resolution, const CVector2& partNum);
+		/// <param name="rotOffset">回転オフセット</param>
+		/// <param name="isJustFit">テクスチャにピッタリモデルが収まるように描画するか?(一枚絵用)</param>
+		void Init(SkinModel& model, const CVector2& resolution, const CVector2& partNum, const CQuaternion& rotOffset, bool isJustFit);
 
 		/// <summary>
 		/// モデルのサイズを取得
@@ -98,19 +101,34 @@ namespace DemolisherWeapon {
 			return m_GBufferSRV[type].Get();
 		}
 
+		/// <summary>
+		/// アルベドテクスチャデータ取得
+		/// </summary>
+		/// <returns></returns>
+		const TextueData& GetAlbedoTextureData()const {
+			return m_albedoTextureData;
+		}
+
 	private:
-		//インポスタテクスチャの作成
-		void Render(SkinModel& model);
+		/// <summary>
+		/// インポスタテクスチャの作成
+		/// </summary>
+		/// <param name="model">モデル</param>
+		/// <param name="rotOffset">回転オフセット</param>
+		/// <param name="isJustFit">テクスチャにピッタリモデルが収まるように描画するか?(一枚絵用)</param>
+		void Render(SkinModel& model, const CQuaternion& rotOffset, bool isJustFit, const CVector3& justFitCenter, const CVector3& justFitExpand);
 
 	private:
 		//各テクスチャ		
 		Microsoft::WRL::ComPtr<ID3D11Texture2D>				m_GBufferTex[enGBufferNum];	//GBufferテクスチャ
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView>		m_GBufferView[enGBufferNum];//GBufferビュー
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>	m_GBufferSRV[enGBufferNum];	//GBufferSRV
+		TextueData m_albedoTextureData;
 		
 		UINT m_gbufferSizeX = 0, m_gbufferSizeY = 0;//テクスチャサイズ
 		UINT m_partNumX = 0, m_partNumY = 0;		//テクスチャ分割数
 		float m_imposterMaxSize;//モデルの大きさ
+		float m_imposterSizeZ;
 		CVector3 m_boundingBoxMaxSize, m_boundingBoxMinSize;
 
 		//分割された各テクスチャのモデルのカメラ方向の大きさ
@@ -157,8 +175,10 @@ namespace DemolisherWeapon {
 		/// <param name="model">3dモデル</param>
 		/// <param name="resolution">インポスターテクスチャの解像度</param>
 		/// <param name="partNum">インポスターテクスチャの分割数 ※奇数を推奨?</param>
+		/// <param name="rotOffset">回転オフセット</param>
+		/// <param name="isJustFit">テクスチャにピッタリモデルが収まるように描画するか?(一枚絵用)</param>
 		/// <returns>インポスターテクスチャ</returns>
-		ImposterTexRender* Load(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum);
+		ImposterTexRender* Load(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum, const CQuaternion& rotOffset = CQuaternion::Identity(), bool isJustFit = false);
 		
 		/// <summary>
 		/// ロード済みのテクスチャを取得
