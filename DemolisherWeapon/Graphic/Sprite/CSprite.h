@@ -81,6 +81,10 @@ namespace DemolisherWeapon {
 		void Init(const wchar_t* fileName) {
 			m_sprite.Init(fileName);
 		}
+		void Init(const wchar_t* identifier, SkinModel& model, UINT resolusuon, const CQuaternion& rotOffset = CQuaternion::Identity())
+		{
+			m_sprite.Init(identifier, model, resolusuon, rotOffset);
+		}
 
 		//ステータス設定
 		void SetPos(const CVector2& pos) {
