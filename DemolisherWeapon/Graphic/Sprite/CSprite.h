@@ -17,6 +17,15 @@ namespace DemolisherWeapon {
 		void Init(const TextueData& texture);
 		void Init(ID3D11ShaderResourceView* srv, UINT width, UINT height, bool isPMA = false);
 
+		/// <summary>
+		/// モデルからスプライトの作成
+		/// </summary>
+		/// <param name="identifier">識別名</param>
+		/// <param name="model">3dモデル</param>
+		/// <param name="resolution">テクスチャの解像度</param>
+		/// <param name="rotOffset">回転オフセット</param>
+		void Init(const wchar_t* identifier, SkinModel& model, UINT resolusuon, const CQuaternion& rotOffset = CQuaternion::Identity());
+
 		//描画する
 		//※layerDepthの第三小数点以下は使わないほうがいいと思う
 		//const CVector2& pos は0.0f～1.0fの範囲。{0.0f,0.0f}で画面左上

@@ -85,6 +85,25 @@ namespace DemolisherWeapon {
 		m_texdata = texData;
 	}
 
+	void CSprite::Init(const wchar_t* identifier, SkinModel& model, UINT resolusuon, const CQuaternion& rotOffset)
+	{
+		Release();
+
+		m_texdata = ImposterTexBank::GetInstance().LoadSprite(identifier, model, resolusuon, rotOffset);
+
+		if (m_texdata.isDDS) {
+			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
+		}
+		else {
+			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatchPMA();
+		}
+
+		m_sourceRectangle.top = 0;
+		m_sourceRectangle.left = 0;
+		m_sourceRectangle.bottom = m_texdata.height;
+		m_sourceRectangle.right = m_texdata.width;
+	}
+
 	void CSprite::Release() {
 		TextueData texData;
 		m_texdata = texData;

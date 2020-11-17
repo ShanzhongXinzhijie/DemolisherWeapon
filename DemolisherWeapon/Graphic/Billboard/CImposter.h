@@ -181,6 +181,18 @@ namespace DemolisherWeapon {
 		ImposterTexRender* Load(const wchar_t* identifier, SkinModel& model, const CVector2& resolution, const CVector2& partNum, const CQuaternion& rotOffset = CQuaternion::Identity(), bool isJustFit = false);
 		
 		/// <summary>
+		/// 一枚絵としてロード
+		/// </summary>
+		/// <param name="identifier">識別名</param>
+		/// <param name="model">3dモデル</param>
+		/// <param name="resolution">テクスチャの解像度</param>
+		/// <param name="rotOffset">回転オフセット</param>
+		const TextueData& LoadSprite(const wchar_t* identifier, SkinModel& model, UINT resolusuon, const CQuaternion& rotOffset = CQuaternion::Identity())
+		{
+			return Load(identifier, model, { (float)resolusuon,(float)resolusuon }, {1.0f,1.0f}, rotOffset, true)->GetAlbedoTextureData();
+		}
+
+		/// <summary>
 		/// ロード済みのテクスチャを取得
 		/// </summary>
 		/// <param name="identifier">識別名</param>
