@@ -314,4 +314,16 @@ void shadowMiss(inout RayPayload payload)
    payload.hit = 0;
 }
 
+[shader("anyhit")]
+void shadowAny(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
+{
+    //ヒットしたプリミティブのUV座標を取得。
+    float2 uv = GetUV(attribs);    
 
+    //αテスト
+    float opacity = gAlbedoTexture.SampleLevel(s, uv, 0.0f).a;
+    if (opacity < 0.33)
+    {
+        IgnoreHit();
+    }
+}

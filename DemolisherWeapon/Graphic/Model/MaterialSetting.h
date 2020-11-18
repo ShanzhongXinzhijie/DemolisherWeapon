@@ -381,6 +381,15 @@ namespace DemolisherWeapon {
 			return m_isSkining;
 		}
 
+		//アルファが含まれるか取得
+		bool GetIsAlpha()const {
+			return m_isAlpha;
+		}
+		//アルファが含まれるか設定
+		void SetIsAlpha(bool isalpha) {
+			m_isAlpha = isalpha;
+		}
+
 		//デフォルトマテリアル設定の取得
 		MaterialSetting& GetDefaultMaterialSetting() {
 			return m_defaultMaterialSetting;
@@ -414,6 +423,9 @@ namespace DemolisherWeapon {
 
 		//スキンモデルか？
 		bool m_isSkining;
+
+		//アルファが含まれるか?
+		bool m_isAlpha = false;
 		
 		//マテリアル設定
 		MaterialSetting* m_ptrUseMaterialSetting = nullptr;	//使用するマテリアル設定

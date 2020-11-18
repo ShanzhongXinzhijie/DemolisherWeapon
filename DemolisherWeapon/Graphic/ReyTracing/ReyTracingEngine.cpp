@@ -138,7 +138,7 @@ namespace DemolisherWeapon {
 
 		for (int i = 0; i < numInstance; i++) {			
 			instanceDescs[i].InstanceID = i;
-			instanceDescs[i].InstanceContributionToHitGroupIndex = (int)enHitGroup_Num * i + enHitGroup_PBRCameraRay;//使用するヒットグループ
+			instanceDescs[i].InstanceContributionToHitGroupIndex = (int)eHitGroup_Num * i + eHitGroup_PBRCameraRay;//使用するヒットグループ
 			instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
 			instanceDescs[i].AccelerationStructure = instances[i]->m_geometory->m_pResultBLAS->GetGPUVirtualAddress();
 			instanceDescs[i].InstanceMask = 0xFF;//ゼロだとレイに当たらない //これで非表示とかやる?
@@ -538,7 +538,9 @@ namespace DemolisherWeapon {
 					desc.Triangles.VertexBuffer.StrideInBytes = vertexBufferView.StrideInBytes;
 					desc.Triangles.VertexCount = vertexBufferView.SizeInBytes / vertexBufferView.StrideInBytes;
 					desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-					desc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+					if (!mesh->m_materials[i]->GetMaterialData().GetIsAlpha()) {
+						desc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+					}
 					desc.Triangles.IndexBuffer = indexBufferView.BufferLocation;
 					desc.Triangles.IndexCount = (UINT)mesh->m_indexDataArray[i].size();
 					desc.Triangles.IndexFormat = indexBufferView.Format;

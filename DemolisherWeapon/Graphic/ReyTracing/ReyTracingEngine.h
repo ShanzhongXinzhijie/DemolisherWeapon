@@ -20,13 +20,9 @@ namespace DemolisherWeapon {
 		0,
 	};
 
-	enum EnReyTracingHitGroup {
-		enHitGroup_Undef = -1,
-		enHitGroup_PBRCameraRay,	//PBRマテリアルにカメラレイが衝突するときのヒットグループ。
-		enHitGroup_PBRShadowRay,	//PBRマテリアルにシャドウレイが衝突するときのヒットグループ。
-		enHitGroup_Num,				//ヒットグループの数。
-	};
-
+	/// <summary>
+	/// AccelerationStructure
+	/// </summary>
 	struct AccelerationStructureBuffers {
 		Microsoft::WRL::ComPtr<ID3D12Resource> pScratch;
 		Microsoft::WRL::ComPtr<ID3D12Resource> pResult;
@@ -70,17 +66,17 @@ namespace DemolisherWeapon {
 		eShader_Miss,				//カメラレイがどこにもぶつからなかった時に呼ばれるシェーダー。
 		eShader_PBRChs,				//もっとも近いポリゴンとカメラレイが交差したときに呼ばれるシェーダー。
 		eShader_ShadowChs,			//もっとも近いポリゴンとシャドウレイが交差したときに呼ばれるシェーダー。
+		eShader_ShadowAny,
 		eShader_ShadowMiss,			//シャドウレイがどこにもぶつからなかった時に呼ばれるシェーダー。
 		eShader_Num,				//シェーダーの数。
 	};
-
 	//シェーダーのカテゴリ。
 	enum EShaderCategory {
 		eShaderCategory_RayGenerator,	//レイを生成するシェーダー。
 		eShaderCategory_Miss,			//ミスシェーダー。
 		eShaderCategory_ClosestHit,		//もっとも近いポリゴンとレイが交差したときに呼ばれるシェーダー。
+		eShaderCategory_AnyHit,			//Any hit shader
 	};
-
 	//ヒットグループ。
 	enum EHitGroup {
 		eHitGroup_Undef = -1,
@@ -88,7 +84,6 @@ namespace DemolisherWeapon {
 		eHitGroup_PBRShadowRay,	//PBRマテリアルにシャドウレイが衝突するときのヒットグループ。
 		eHitGroup_Num,			//ヒットグループの数。
 	};
-
 	//シェーダーデータ構造体。
 	struct ShaderData {
 		const wchar_t* entryPointName;				//エントリーポイントの名前。
@@ -103,6 +98,7 @@ namespace DemolisherWeapon {
 		{ L"miss",			eLocalRootSignature_Empty,			eShaderCategory_Miss,			eHitGroup_Undef },
 		{ L"chs",			eLocalRootSignature_PBRMaterialHit,	eShaderCategory_ClosestHit,		eHitGroup_PBRCameraRay },
 		{ L"shadowChs",		eLocalRootSignature_PBRMaterialHit,	eShaderCategory_ClosestHit,		eHitGroup_PBRShadowRay },
+		{ L"shadowAny",		eLocalRootSignature_PBRMaterialHit,	eShaderCategory_AnyHit,			eHitGroup_PBRShadowRay },
 		{ L"shadowMiss",	eLocalRootSignature_Empty,			eShaderCategory_Miss,			eHitGroup_Undef },
 	};
 	static_assert(ARRAYSIZE(shaderDatas) == eShader_Num, "shaderDatas arraySize is invalid!! shaderDatas arraySize must be equal to eShader_Num");
@@ -111,11 +107,11 @@ namespace DemolisherWeapon {
 	struct SHitGroup {
 		const wchar_t* name;				//ヒットグループの名前。
 		const wchar_t* chsHitShaderName;	//最も近いポリゴンにヒットしたときに呼ばれるシェーダーの名前。
-		const wchar_t* anyHitShaderName;	//any shader???
+		const wchar_t* anyHitShaderName;	//any hit shader
 	};
 	constexpr inline  SHitGroup hitGroups[] = {
-		{ L"HitGroup",			shaderDatas[eShader_PBRChs].entryPointName,	nullptr },
-		{ L"ShadowHitGroup",	shaderDatas[eShader_ShadowChs].entryPointName, nullptr },
+		{ L"HitGroup",			shaderDatas[eShader_PBRChs].entryPointName,	shaderDatas[eShader_ShadowAny].entryPointName },
+		{ L"ShadowHitGroup",	shaderDatas[eShader_ShadowChs].entryPointName, shaderDatas[eShader_ShadowAny].entryPointName },
 	};
 	static_assert(ARRAYSIZE(hitGroups) == eHitGroup_Num, "hitGroups arraySize is invalid!! hitGroups arraySize must be equal to eHitGoup_Num");
 
