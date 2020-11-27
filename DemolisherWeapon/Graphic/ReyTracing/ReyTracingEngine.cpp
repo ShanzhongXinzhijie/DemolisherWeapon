@@ -10,7 +10,8 @@ namespace DemolisherWeapon {
 			D3D12_RESOURCE_FLAGS flags,
 			D3D12_RESOURCE_STATES initState,
 			const D3D12_HEAP_PROPERTIES& heapProps,
-			Microsoft::WRL::ComPtr<ID3D12Resource>& output
+			Microsoft::WRL::ComPtr<ID3D12Resource>& output,
+			const wchar_t* name
 		)
 		{
 			D3D12_RESOURCE_DESC bufDesc = {};
@@ -26,7 +27,8 @@ namespace DemolisherWeapon {
 			bufDesc.SampleDesc.Quality = 0;
 			bufDesc.Width = size;
 
-			pDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &bufDesc, initState, nullptr, IID_PPV_ARGS(&output));
+			pDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &bufDesc, initState, nullptr, IID_PPV_ARGS(output.ReleaseAndGetAddressOf()));
+			output->SetName(name);
 		}
 	}
 
@@ -60,7 +62,8 @@ namespace DemolisherWeapon {
 				D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
 				D3D12_RESOURCE_STATE_COMMON,
 				kDefaultHeapProps,
-				asbuffer.pScratch
+				asbuffer.pScratch,
+				L"BLASのpScratch"
 			);
 			CreateBuffer(
 				d3dDevice,
@@ -68,7 +71,8 @@ namespace DemolisherWeapon {
 				D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
 				D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE,
 				kDefaultHeapProps,
-				asbuffer.pResult
+				asbuffer.pResult,
+				L"BLASのpResult"
 			);
 
 			// Create the bottom-level AS
@@ -119,21 +123,42 @@ namespace DemolisherWeapon {
 		}
 		else {
 			//新規
-			CreateBuffer(d3dDevice, info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, kDefaultHeapProps, m_topLevelASBuffers.pScratch);
-			CreateBuffer(d3dDevice, info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, kDefaultHeapProps, m_topLevelASBuffers.pResult);
+			CreateBuffer(
+				d3dDevice,
+				info.ScratchDataSizeInBytes, 
+				D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, 
+				D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+				kDefaultHeapProps, 
+				m_topLevelASBuffers.pScratch,
+				L"TLASのpScratch"
+			);
+			CreateBuffer(
+				d3dDevice,
+				info.ResultDataMaxSizeInBytes,
+				D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+				D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE,
+				kDefaultHeapProps,
+				m_topLevelASBuffers.pResult,
+				L"TLASのpResult"
+			);
 			CreateBuffer(
 				d3dDevice,
 				sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * numInstance,
 				D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ,
 				kUploadHeapProps,
-				m_topLevelASBuffers.pInstanceDesc
+				m_topLevelASBuffers.pInstanceDesc,
+				L"TLASのpInstanceDesc"
 			);
 			//tlasSize = info.ResultDataMaxSizeInBytes;
 		}
 
 		//Map the instance desc buffer
 		D3D12_RAYTRACING_INSTANCE_DESC* instanceDescs;
-		m_topLevelASBuffers.pInstanceDesc->Map(0, nullptr, (void**)&instanceDescs);
+		HRESULT hr = m_topLevelASBuffers.pInstanceDesc->Map(0, nullptr, (void**)&instanceDescs);
+		if (FAILED(hr)) {
+			HRESULT hr2 = d3dDevice->GetDeviceRemovedReason();
+			std::abort();
+		}
 		ZeroMemory(instanceDescs, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * numInstance);		
 
 		for (int i = 0; i < numInstance; i++) {			
@@ -313,9 +338,7 @@ namespace DemolisherWeapon {
 		desc.range[0].BaseShaderRegister = 0;//範囲内のベースシェーダーレジスタ。たとえば、シェーダーリソースビュー（SRV）の場合、3は「：register（t3）;」にマップされます。HLSLで。
 		desc.range[0].NumDescriptors = 1;		
 		desc.range[0].RegisterSpace = 0;//たとえば、SRVの場合、BaseShaderRegisterメンバーの説明の例を拡張することにより、5は「：register（t3、space5）;」にマップされます。HLSLで。
-		desc.range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-		
-		//↓UAVディスクリプタが始まる配列番号
+		desc.range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;		
 		desc.range[0].OffsetInDescriptorsFromTableStart = m_descriptorHeap->GetOffsetUAVDescriptorFromTableStart();
 
 		// gRtScene
@@ -323,13 +346,13 @@ namespace DemolisherWeapon {
 		desc.range[1].NumDescriptors = (int)ESRV_OneEntry::eNumRayGenerationSRV;
 		desc.range[1].RegisterSpace = 0;
 		desc.range[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		desc.range[1].OffsetInDescriptorsFromTableStart = 1;
+		desc.range[1].OffsetInDescriptorsFromTableStart = m_descriptorHeap->GetOffsetSRVDescriptorFromTableStart();
 
 		desc.range[2].BaseShaderRegister = 0;
 		desc.range[2].NumDescriptors = 1;
 		desc.range[2].RegisterSpace = 0;
 		desc.range[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-		desc.range[2].OffsetInDescriptorsFromTableStart = 0;
+		desc.range[2].OffsetInDescriptorsFromTableStart = m_descriptorHeap->GetOffsetCBVDescriptorFromTableStart();
 
 		desc.rootParams.resize(1);
 		desc.rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -380,6 +403,7 @@ namespace DemolisherWeapon {
 		desc.desc.NumParameters = static_cast<UINT>(desc.rootParams.size());
 		desc.desc.pParameters = desc.rootParams.data();
 		desc.desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
+
 		return desc;
 	}
 
@@ -512,7 +536,9 @@ namespace DemolisherWeapon {
 		}
 	}
 
-	void ReyTracingWorld::RegistModel(CModel& model, const CMatrix* worldMatrix) {
+	void ReyTracingWorld::RegisterModel(CModel& model, const CMatrix* worldMatrix) {
+		m_isUpdated = true;
+
 		//ジオメトリのインデックス取得
 		int geometoryIndex = model.GetRayTracingWorldStartIndex();
 		//ジオメトリ初期化済みか?
@@ -572,11 +598,13 @@ namespace DemolisherWeapon {
 			}
 		});
 	}
-	void ReyTracingWorld::CommitRegistGeometry(ID3D12GraphicsCommandList4* commandList) {
+	void ReyTracingWorld::CommitRegisterGeometry(ID3D12GraphicsCommandList4* commandList) {
 		//BLASを構築。
 		m_blasBuffer.Init(commandList, m_geometories);
 		//TLASを構築。
 		m_topLevelASBuffers.Init(commandList, m_instances, m_blasBuffer.Get(), false);
+
+		m_isUpdated = false;
 	}
 	void ReyTracingWorld::UpdateTLAS(ID3D12GraphicsCommandList4* commandList) {
 		//TLAS更新
@@ -624,9 +652,16 @@ namespace DemolisherWeapon {
 		//シェーダーテーブルのサイズを計算。
 		int shaderTableSize = m_shaderTableEntrySize * (m_numRayGenShader + m_numMissShader + (m_numHitShader * world.GetNumInstance()));
 
-		auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
 		//シェーダーテーブル用のバッファを作成。
-		CreateBuffer(d3dDevice, shaderTableSize, D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ, kUploadHeapProps, m_shaderTable);
+		CreateBuffer(
+			GetGraphicsEngine().GetD3D12Device(),
+			shaderTableSize, 
+			D3D12_RESOURCE_FLAG_NONE,
+			D3D12_RESOURCE_STATE_GENERIC_READ, 
+			kUploadHeapProps,
+			m_shaderTable,
+			L"ShaderTableBuffer"
+		);
 
 		//バッファをシステムメモリにマップする。
 		uint8_t* pData;
@@ -644,9 +679,12 @@ namespace DemolisherWeapon {
 		const auto& srvUavCbvDescriptorHeapStart = descriptorHeaps.GetSRVHeap()->GetGPUDescriptorHandleForHeapStart();
 		const auto& samplerDescriptorHeapStart = descriptorHeaps.GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart();
 
-		uint64_t hitGroup_pbrCameraRaySrvHeapStart = srvUavCbvDescriptorHeapStart.ptr + ds_size_cbv_srv_uav;
+		//ローカルルートシグネチャ"eLocalRootSignature_PBRMaterialHit"のSRV開始位置
+		uint64_t hitGroup_pbrCameraRaySrvHeapStart = srvUavCbvDescriptorHeapStart.ptr + ds_size_cbv_srv_uav * descriptorHeaps.GetOffsetSRVDescriptorFromTableStart();
+		
 		//シェーダーテーブルにシェーダーを登録する関数。
-		auto RegistShaderTblFunc = [&](const ShaderData& shaderData, EShaderCategory registCategory, ReyTracingInstanceData* instance) {
+		auto RegistShaderTblFunc = [&](const ShaderData& shaderData, EShaderCategory registCategory, ReyTracingInstanceData* instance) 
+		{
 			if (shaderData.category == registCategory) {
 				//まずシェーダーIDを設定する。
 				void* pShaderId = nullptr;
@@ -702,18 +740,23 @@ namespace DemolisherWeapon {
 	}
 
 	namespace {
-		constexpr int SRVS_DESC_NUM = 1024 * 10;
+		constexpr int SRVS_DESC_NUM = 1000000;
 		constexpr int SAMPLER_DESC_NUM = 3;
 	}
 
-	void ReyTracingDescriptorHeap::Init(ReyTracingWorld& world, ConstantBufferDx12<ReyTracingCBStructure>& cb, D3D12_CPU_DESCRIPTOR_HANDLE uavHandle) {
+	void ReyTracingDescriptorHeap::Init(ReyTracingWorld& world, ConstantBuffer<ReyTracingCBStructure>& cb, D3D12_CPU_DESCRIPTOR_HANDLE uavHandle) 
+	{
+		auto device = GetGraphicsEngine().GetD3D12Device();
+		
 		//CBV_SRV_UAV用のデスクリプタヒープ作成
 		m_srvsDescriptorSize = GetGraphicsEngine().GetDX12().CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, SRVS_DESC_NUM, true, m_srvsDescriptorHeap);
 		//サンプラー用のデスクリプタヒープ作成
 		m_samplerDescriptorSize = GetGraphicsEngine().GetDX12().CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SAMPLER_DESC_NUM, true, m_samplerDescriptorHeap);
 
-		auto device = GetGraphicsEngine().GetD3D12Device();
+		int srvIndex = 0;
 
+		//CBV開始位置
+		m_cbvStartNum = srvIndex;
 		//定数		
 		device->CopyDescriptorsSimple(
 			1,
@@ -721,12 +764,51 @@ namespace DemolisherWeapon {
 			cb.GetCPUDescriptorHandle(),//src
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 		);
+		srvIndex++;
 
+		//UAV開始位置
+		m_uavStartNum = srvIndex;
+		//UAVの順
+		device->CopyDescriptorsSimple(
+			1,
+			CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex, m_srvsDescriptorSize),//dest
+			uavHandle,//src
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+		);
+		srvIndex++;
+
+		//SRV開始位置
+		m_srvStartNum = srvIndex;
+		//SRV
+		srvIndex = Update(world);
+
+		//サンプラ
+		//サンプラステートの扱いは仮。
+		D3D12_SAMPLER_DESC samplerDesc = {};
+		samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.MipLODBias = 0;
+		samplerDesc.MaxAnisotropy = 1;
+		samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		samplerDesc.BorderColor[0] = 1.0f;
+		samplerDesc.BorderColor[1] = 1.0f;
+		samplerDesc.BorderColor[2] = 1.0f;
+		samplerDesc.BorderColor[3] = 1.0f;
+		samplerDesc.MinLOD = 0.0f;
+		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+		//作成
+		device->CreateSampler(&samplerDesc, m_samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	}
+	int ReyTracingDescriptorHeap::Update(ReyTracingWorld& world) {
+		auto device = GetGraphicsEngine().GetD3D12Device();
+		int srvIndex = m_srvStartNum;
+		
 		//TLASのSRV作成
 		world.GetTLASBuffer().CreateShaderResourceView();
 
 		//SRV
-		int srvIndex = 1;		
 		world.QueryInstances([&](ReyTracingInstanceData& instance)
 			{
 				//TLASの登録
@@ -736,7 +818,7 @@ namespace DemolisherWeapon {
 					world.GetTLASBuffer().GetCPUDescriptorHandle(),//src
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 				);
-				
+
 				//アルベドマップをディスクリプタヒープに登録。
 				device->CopyDescriptorsSimple(
 					1,
@@ -797,41 +879,16 @@ namespace DemolisherWeapon {
 				srvIndex += (int)ESRV_OneEntry::eNum;
 			}
 		);
-		
-		//UAV開始位置
-		m_uavStartNum = srvIndex;
 
-		//UAVの順
-		device->CopyDescriptorsSimple(
-			1,
-			CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex, m_srvsDescriptorSize),//dest
-			uavHandle,//src
-			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
-		);
-		srvIndex++;
-
-		//サンプラ
-		//サンプラステートの扱いは仮。
-		D3D12_SAMPLER_DESC samplerDesc = {};
-		samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-		samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-		samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-		samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-		samplerDesc.MipLODBias = 0;
-		samplerDesc.MaxAnisotropy = 1;
-		samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-		samplerDesc.BorderColor[0] = 1.0f;
-		samplerDesc.BorderColor[1] = 1.0f;
-		samplerDesc.BorderColor[2] = 1.0f;
-		samplerDesc.BorderColor[3] = 1.0f;
-		samplerDesc.MinLOD = 0.0f;
-		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-		//作成
-		device->CreateSampler(&samplerDesc, m_samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+		return srvIndex;
 	}
 
 	void RayTracingEngine::Dispatch(ID3D12GraphicsCommandList4* commandList)
 	{
+		if (!m_isCommit) {
+			return;//コミットしてない
+		}
+
 		//定数更新
 		ReyTracingCBStructure cam;
 		cam.pos = GetMainCamera()->GetPos();
@@ -920,30 +977,42 @@ namespace DemolisherWeapon {
 			commandList->ResourceBarrier(1, &barrier2);
 		}
 	}
-	void RayTracingEngine::CommitRegistGeometry(ID3D12GraphicsCommandList4* commandList)
+	void RayTracingEngine::Update(ID3D12GraphicsCommandList4* commandList)
 	{
-		//いらなくない?
-		//レンダーターゲットとか設定
-		//g_graphicsEngine->BeginRender();
+		if (!m_world.GetIsUpdated()) {
+			if (m_isCommit) {
+				m_world.UpdateTLAS(commandList);//TLASのみ更新
+			}
+			return;//更新なし
+		}
 
 		//ASの構築
-		m_world.CommitRegistGeometry(commandList);
+		//TODO 更新いる　(このままでいける？)
+		m_world.CommitRegisterGeometry(commandList);
 
 		//シェーダーリソース(定数バッファとか)作成。
-		CreateShaderResources();
+		if (!m_isCommit) {
+			CreateShaderResources();
+		}
 
 		//各種リソースをディスクリプタヒープに登録する。
-		m_descriptorHeap.Init(m_world, m_rayGenerationCB, m_raytracingOutputResourceUAVCpuDescriptor);
+		if (!m_isCommit) {
+			m_descriptorHeap.Init(m_world, m_rayGenerationCB, m_raytracingOutputResourceUAVCpuDescriptor);
+		}
+		else {
+			m_descriptorHeap.Update(m_world);
+		}
 
 		//PSOを作成。
-		m_pipelineStateObject.Init(&m_descriptorHeap);
+		if (!m_isCommit) {
+			m_pipelineStateObject.Init(&m_descriptorHeap);
+		}
 
 		//シェーダーテーブルを作成。
+		//TODO 更新いる　(このままでいける？)
 		m_shaderTable.Init(m_world, m_pipelineStateObject, m_descriptorHeap);
 
-		//いらなくない?
-		//コマンド実行とかpresent
-		//g_graphicsEngine->EndRender();
+		m_isCommit = true;
 	}
 	void RayTracingEngine::CreateShaderResources()
 	{
@@ -982,6 +1051,5 @@ namespace DemolisherWeapon {
 		m_cbStructure.fNear = GetMainCamera()->GetNear();
 		m_cbStructure.fFar = GetMainCamera()->GetFar();
 		m_rayGenerationCB.Init(sizeof(ReyTracingCBStructure), &m_cbStructure);
-		m_rayGenerationCB.CreateConstantBufferView();
 	}
 }

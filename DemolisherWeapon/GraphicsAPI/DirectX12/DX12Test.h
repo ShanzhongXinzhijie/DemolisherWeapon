@@ -1,10 +1,12 @@
 #pragma once
 #include"GraphicsAPI/IGraphicsAPI.h"
+#include "Graphic/Factory/TextureFactory.h"
 
 namespace DemolisherWeapon {
 	struct InitEngineParameter;
 	struct MeshTest;
 	class RayTracingEngine;
+	class CModel;
 
 	class DX12Test : public IGraphicsAPI
 	{
@@ -106,6 +108,10 @@ namespace DemolisherWeapon {
 		{
 			return m_commandList.Get();
 		}
+		ID3D12GraphicsCommandList4* GetCommandList4()
+		{
+			return m_commandList.Get();
+		}
 
 		/// <summary>
 		/// SRVとかのダミーCPUディスクリプタハンドル取得
@@ -122,14 +128,6 @@ namespace DemolisherWeapon {
 		/// <returns>GPUディスクリプタハンドルとCPUディスクリプタハンドル</returns>
 		std::pair<D3D12_GPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE> CreateSRV(ID3D12Resource* resource, D3D12_SHADER_RESOURCE_VIEW_DESC* desc = nullptr) {
 			m_srvIndex++;
-
-			/*
-			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			srvDesc.Format = m_textureDesc.Format;
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-			srvDesc.Texture2D.MipLevels = m_textureDesc.MipLevels;
-			*/
 
 			D3D12_CPU_DESCRIPTOR_HANDLE cpuH = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_srvIndex, m_srvsDescriptorSize);
 
@@ -234,6 +232,13 @@ namespace DemolisherWeapon {
 		ID3D12Resource* GetCurrentRenderTarget() {
 			return m_renderTargets[m_currentBackBufferIndex].Get();
 		}
+		/// <summary>
+		/// 現フレームの番号を取得
+		/// </summary>
+		/// <returns></returns>
+		int GetCurrentBackBufferIndex()const {
+			return m_currentBackBufferIndex;
+		}
 
 		/// <summary>
 		/// バックバッファのクリア
@@ -264,6 +269,18 @@ namespace DemolisherWeapon {
 		/// ビューポートの設定
 		/// </summary>
 		void SetViewport(float topLeftX, float topLeftY, float width, float height)override;
+
+		/// <summary>
+		/// レイトレエンジンの取得
+		/// </summary>
+		/// <returns></returns>
+		RayTracingEngine& GetRayTracingEngine() {
+			return *m_rayTraceEngine;
+		}
+		/// <summary>
+		/// レイトレエンジンのジオメトリ登録を確定
+		/// </summary>
+		void RayTarcingCommit();
 
 	private:		
 		Microsoft::WRL::ComPtr<ID3D12Device5> m_d3dDevice;
@@ -325,7 +342,7 @@ namespace DemolisherWeapon {
 
 		//レイトレエンジン
 		RayTracingEngine* m_rayTraceEngine = nullptr;
-		CModel m_rayTraceTestModel[2];
+		CModel* m_rayTraceTestModel[2];
 		CMatrix m_rayTraceTestModelMatWorld;
 		CMatrix m_rayTraceTestModelMatUnity[100];
 	};

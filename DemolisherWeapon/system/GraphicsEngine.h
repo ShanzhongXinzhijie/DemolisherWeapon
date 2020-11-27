@@ -20,6 +20,7 @@
 #include"Render/HUDRender.h"
 #include"Render/DirectXTKRender.h"
 #include"Render/finishrender.h"
+#include"Render/RayTracingRender.h"
 
 #include"GraphicsAPI/DirectX12/DescriptorHeapXTK12.h"
 #include"GraphicsAPI/DirectX12/DX12Test.h"
@@ -405,6 +406,7 @@ private:
 #ifdef DW_DX12
 	//Directx12
 	DX12Render m_dx12Render;
+	RayTracingRender m_raytracingRender;
 
 	//DirectXTK12	
 	DescriptorHeapXTK12 m_xtk12_resourceDescriptors;

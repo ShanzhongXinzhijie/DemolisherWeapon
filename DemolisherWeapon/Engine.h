@@ -393,6 +393,12 @@ inline WAVSettingManager& GetWAVSettingManager() {
 	return GetEngine().GetSoundEngine().GetWAVSettingManager();
 }
 
+//使用しているグラフィックAPIを取得
+inline EnGraphicsAPI GetGraphicsAPI()
+{	
+	return GetGraphicsEngine().GetUseAPI();
+}
+
 //3Dモデルレンダーに描画するモデルを登録
 inline void AddDrawModelToD3Render(SkinModel* sm, int priority = DRAW_PRIORITY_DEFAULT, bool reverse = false)
 {

@@ -5,6 +5,14 @@
       <Configuration>DX12_Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="DX12_Preview|x64">
+      <Configuration>DX12_Preview</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DX12_Release|x64">
+      <Configuration>DX12_Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Preview|x64">
       <Configuration>Preview</Configuration>
       <Platform>x64</Platform>
@@ -23,7 +31,7 @@
     <ProjectGuid>{78612C61-DC1C-4143-B5F7-1534A721E849}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>DemolisherWeapon</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -45,7 +53,21 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DX12_Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Preview|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DX12_Preview|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
@@ -65,7 +87,13 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DX12_Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Preview|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DX12_Preview|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -87,11 +115,23 @@
     <IncludePath>$(IncludePath);$(ProjectDir);$(ProjectDir)EffekseerRuntime140/Compiled/include;$(ProjectDir)/bulletPhysics/src</IncludePath>
     <LibraryPath>$(ProjectDir)/lib/$(Platform)\$(Configuration)\;$(LibraryPath);$(ProjectDir)/DirectXTK/Bin/Desktop_2015_Win10/$(Platform)\$(Configuration)\;$(ProjectDir)/EffekseerRuntime140/Compiled/lib/VS2015\$(Configuration)\</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DX12_Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(ProjectDir)/lib/$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>$(IncludePath);$(ProjectDir);$(ProjectDir)EffekseerRuntime140/Compiled/include;$(ProjectDir)/bulletPhysics/src</IncludePath>
+    <LibraryPath>$(ProjectDir)/lib/$(Platform)\Release;$(LibraryPath);$(ProjectDir)/DirectXTK12/Bin/Desktop_2017_Win10/$(Platform)\Release;$(ProjectDir)/EffekseerRuntime140/Compiled/lib/VS2015/Release</LibraryPath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Preview|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)/lib/$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(IncludePath);$(ProjectDir);$(ProjectDir)EffekseerRuntime140/Compiled/include;$(ProjectDir)/bulletPhysics/src</IncludePath>
     <LibraryPath>$(ProjectDir)/lib/$(Platform)\$(Configuration)\;$(LibraryPath);$(ProjectDir)/DirectXTK/Bin/Desktop_2015_Win10/$(Platform)\$(Configuration)\;$(ProjectDir)/EffekseerRuntime140/Compiled/lib/VS2015\Release\</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DX12_Preview|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(ProjectDir)/lib/$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>$(IncludePath);$(ProjectDir);$(ProjectDir)EffekseerRuntime140/Compiled/include;$(ProjectDir)/bulletPhysics/src</IncludePath>
+    <LibraryPath>$(ProjectDir)/lib/$(Platform)\Preview;$(LibraryPath);$(ProjectDir)/DirectXTK12/Bin/Desktop_2017_Win10/$(Platform)\Release;$(ProjectDir)/EffekseerRuntime140/Compiled/lib/VS2015\Release\</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -111,7 +151,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>dxcompiler.lib;Common-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;Photon-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision_Debug.lib;BulletDynamics_Debug.lib;BulletSoftBody_Debug.lib;LinearMath_Debug.lib;xinput.lib;winmm.lib;Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>D3D12.lib;dxcompiler.lib;DXGI.lib;Common-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;Photon-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision_Debug.lib;BulletDynamics_Debug.lib;BulletSoftBody_Debug.lib;LinearMath_Debug.lib;xinput.lib;winmm.lib;Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <CustomBuild>
@@ -181,6 +221,38 @@
       <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DX12_Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>DW_DX12;DW_MASTER;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>DWstdafx.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Photon/Photon-cpp/inc;$(ProjectDir)/Photon/LoadBalancing-cpp/inc;$(ProjectDir)/Photon/;$(ProjectDir)/Photon/Common-cpp/inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <CustomBuild>
+      <Outputs>$(SolutionDir)%(Identity)</Outputs>
+      <Command>xcopy "%(FullPath)" "$(SolutionDir)%(RelativeDir)" /D /Y</Command>
+      <Message>DemolisherWeaponによるCopy</Message>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <Lib>
+      <AdditionalDependencies>D3D12.lib;dxcompiler.lib;DXGI.lib;Common-cpp_vc15_Release_windows_mt_$(Platform).lib;Photon-cpp_vc15_Release_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_Release_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK12.lib;BulletCollision.lib;BulletDynamics.lib;BulletSoftBody.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Preview|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -214,13 +286,48 @@
       <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DX12_Preview|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>DW_DX12;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>DWstdafx.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Photon/Photon-cpp/inc;$(ProjectDir)/Photon/LoadBalancing-cpp/inc;$(ProjectDir)/Photon/;$(ProjectDir)/Photon/Common-cpp/inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <CustomBuild>
+      <Outputs>$(SolutionDir)%(Identity)</Outputs>
+      <Command>xcopy "%(FullPath)" "$(SolutionDir)%(RelativeDir)" /D /Y</Command>
+      <Message>DemolisherWeaponによるCopy</Message>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <Lib>
+      <AdditionalDependencies>D3D12.lib;dxcompiler.lib;DXGI.lib;Common-cpp_vc15_Release_windows_mt_$(Platform).lib;Photon-cpp_vc15_Release_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_Release_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK12.lib;BulletCollision.lib;BulletDynamics.lib;BulletSoftBody.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="Graphic\Model\Render\CRayTracingRender.h" />
     <ClInclude Include="Graphic\Model\ModelDrawMode.h" />
     <ClInclude Include="Graphic\Shader\ConstantBuffer.h" />
     <ClInclude Include="GraphicsAPI\DirectX12\DescriptorHeapXTK12.h" />
     <ClInclude Include="Graphic\ReyTracing\ReyTracingEngine.h" />
+    <ClInclude Include="Render\RayTracingRender.h" />
     <ClInclude Include="util\Noncopyable.h" />
     <ClInclude Include="Graphic\Model\Model.h" />
     <ClInclude Include="Graphic\Model\tkTkmFile.h" />
@@ -335,9 +442,11 @@
     <ClInclude Include="Sound\WAVManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Graphic\Model\Render\CRayTracingRender.cpp" />
     <ClCompile Include="Graphic\Shader\ConstantBuffer.cpp" />
     <ClCompile Include="Graphic\Model\Model.cpp" />
     <ClCompile Include="Graphic\Model\tkTkmFile.cpp" />
+    <ClCompile Include="Render\RayTracingRender.cpp" />
     <ClCompile Include="Render\FinishRender.cpp" />
     <ClCompile Include="Render\DirectXTKRender.cpp" />
     <ClCompile Include="GraphicsAPI\DirectX11\DX11Test.cpp" />
@@ -421,7 +530,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DX12_Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DX12_Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Preview|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DX12_Preview|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Render\IRander.cpp" />
     <ClCompile Include="physics\SphereCollider.cpp" />

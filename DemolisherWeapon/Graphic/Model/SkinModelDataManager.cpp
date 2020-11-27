@@ -8,7 +8,7 @@ namespace DemolisherWeapon {
 
 std::unique_ptr<DirectX::Model> SkinModelDataManager::CreateModel(const wchar_t* filePath, const Skeleton& skeleton)
 {
-#ifndef DW_DX12_TEMPORARY
+#ifdef DW_DX11
 
 	//ボーンを発見したときのコールバック関数。
 	auto onFindBone = [&](
@@ -70,6 +70,7 @@ std::unique_ptr<DirectX::Model> SkinModelDataManager::CreateModel(const wchar_t*
 #endif
 
 #else
+	DW_ERRORBOX(true, "SkinModelDataManager::CreateModel()\nこれはDirectX11以外で実行できません")
 	return {};
 #endif
 }

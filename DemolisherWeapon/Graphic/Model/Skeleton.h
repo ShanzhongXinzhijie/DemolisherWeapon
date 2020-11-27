@@ -292,15 +292,13 @@ public:
 	*@brief	ボーン行列のストラクチャードバッファを初期化。
 	*/
 	void InitBoneMatrixArrayStructuredBuffer();
-	/*!
-	*@brief	ボーン行列のシェーダーリソースビューを初期化。
-	*/
-	void InitBoneMatrixArrayShaderResourceView();
+
 	/*!
 	 *@brief	更新。
 	 */
 	void Update(const CMatrix& mWorld);
 	void UpdateBoneMatrixOld();
+
 	/*!
 	*@brief	ボーンのワールド行列の更新関数。
 	*@details
@@ -310,19 +308,13 @@ public:
 	*/
 	static 	void UpdateBoneWorldMatrix(Bone& bone, const CMatrix& parentMatrix);
 
-	static const int MAX_BONE = 512;	//!<ボーンの最大数。
+	static constexpr int MAX_BONE = 512;	//!<ボーンの最大数。
 
 private:
-	std::vector<Bone*>			m_bones;					//!<ボーンの配列。
+	std::vector<Bone*>			m_bones;					//ボーンの配列
 
-	std::vector<CMatrix>		m_boneMatrixs;				//!<ボーン行列。
-	ID3D11Buffer*				m_boneMatrixSB = nullptr;	//!<ボーン行列のストラクチャーバッファ。
-	ID3D11ShaderResourceView*	m_boneMatrixSRV = nullptr;	//!<ボーン行列のSRV。
-
-	//前フレームのやつ
-	std::vector<CMatrix>		m_boneMatrixs_Old;				//!<ボーン行列。
-	ID3D11Buffer*				m_boneMatrixSB_Old = nullptr;	//!<ボーン行列のストラクチャーバッファ。
-	ID3D11ShaderResourceView*	m_boneMatrixSRV_Old = nullptr;	//!<ボーン行列のSRV。
+	StructuredBuffer<CMatrix>	m_boneMatrixs;				//ボーン行列
+	StructuredBuffer<CMatrix>	m_boneMatrixs_Old;			//1F前のボーン行列
 
 	SkeletonIK m_ik;//IK実行クラス
 };

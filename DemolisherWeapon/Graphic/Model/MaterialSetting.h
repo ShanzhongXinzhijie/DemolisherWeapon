@@ -2,14 +2,12 @@
 #include "tktkmfile.h"
 #include "Graphic/Factory/TextureFactory.h"
 #include "Graphic/Model/SkinModelEffectShader.h"
-//#include "Graphic/shader/ConstantBuffer.h"
 
 namespace DemolisherWeapon {
 
 	class ModelEffect;
 	class IMaterial;
 	class MaterialData;
-	template<class T>class ConstantBufferDx12;
 
 	/// <summary>
 	/// マテリアルパラメーター
@@ -371,9 +369,9 @@ namespace DemolisherWeapon {
 			return m_defaultMaterialSetting.GetLightingTextureData();
 		}
 
-		//定数バッファの取得(DX11)
-		auto& GetConstantBufferDX11() {
-			return m_materialParamCBDX11;
+		//定数バッファの取得
+		auto& GetConstantBuffer() {
+			return m_materialParamCB;
 		}
 
 		//スキンモデルか取得
@@ -432,8 +430,7 @@ namespace DemolisherWeapon {
 		MaterialSetting m_defaultMaterialSetting;	//マテリアル設定(デフォルト)
 
 		//マテリアルパラメータ用の定数バッファ
-		Microsoft::WRL::ComPtr<ID3D11Buffer> m_materialParamCBDX11;
-		std::unique_ptr<ConstantBufferDx12<MaterialParam>> m_materialParamCBDX12;
+		ConstantBuffer<MaterialParam> m_materialParamCB;
 
 		//フレンド
 		friend class ModelEffect;

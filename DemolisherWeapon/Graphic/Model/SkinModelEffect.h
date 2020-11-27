@@ -10,8 +10,6 @@
 
 namespace DemolisherWeapon {
 
-#include "Preset/Shader/ShadowMapHeader.h"
-
 /*!
 *@brief	モデルエフェクト。
 */

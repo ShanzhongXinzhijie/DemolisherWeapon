@@ -13,13 +13,13 @@ namespace DemolisherWeapon {
 		Shader m_vs, m_ps;
 		CModelMeshParts m_mesh;
 
-		struct ConstantBuffer {
+		struct ConstantBufferData {
 			CMatrix mWorld;
 			CMatrix mView;
 			CMatrix mProj;
 		};
-		ConstantBuffer m_cbData;
-		ConstantBufferDx12<ConstantBuffer> m_cb;
+		ConstantBufferData m_cbData;
+		ConstantBuffer<ConstantBufferData> m_cb;
 	};	
 
 	UINT DX12Test::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors, bool isShaderVisible, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& descriptorHeap) {
@@ -261,6 +261,9 @@ namespace DemolisherWeapon {
 			m_fenceValue[i] = 0;
 		}
 
+		//レイトレーシング		
+		m_rayTraceEngine = new RayTracingEngine;
+
 		return true;
 	}
 
@@ -398,12 +401,13 @@ namespace DemolisherWeapon {
 			}
 		}		
 		m_meshTest->m_cb.Init(sizeof(m_meshTest->m_cbData));
-		m_meshTest->m_cb.CreateConstantBufferView();
 
-		m_rayTraceTestModel[0].LoadTkmFile("Assets/modelData/background.tkm");
-		m_rayTraceTestModel[0].CreateMeshParts();
-		m_rayTraceTestModel[1].LoadTkmFile("Assets/modelData/unityChan.tkm");
-		m_rayTraceTestModel[1].CreateMeshParts();
+		m_rayTraceTestModel[0] = new CModel;
+		m_rayTraceTestModel[0]->LoadTkmFile("Assets/modelData/background.tkm");
+		m_rayTraceTestModel[0]->CreateMeshParts();
+		m_rayTraceTestModel[1] = new CModel;
+		m_rayTraceTestModel[1]->LoadTkmFile("Assets/modelData/unityChan.tkm");
+		m_rayTraceTestModel[1]->CreateMeshParts();
 
 		//描画ヒープにコピー
 		m_d3dDevice->CopyDescriptorsSimple(
@@ -424,16 +428,13 @@ namespace DemolisherWeapon {
 		m_camPos = { 81.2955322f, 105.524132f,  -98.4609833f };
 		m_camTgt = { -34.3155823f, -16.9616947f, 104.190804f };
 
-		{
-			//レイトレーシング		
-			m_rayTraceEngine = new RayTracingEngine;
-
+		{			
 			//バイアス行列取得
 			CMatrix mBiasScr;
 			CoordinateSystemBias::GetBias(m_rayTraceTestModelMatWorld, mBiasScr, enFbxUpAxisZ, enFbxRightHanded);
 			m_rayTraceTestModelMatWorld.Mul(mBiasScr, m_rayTraceTestModelMatWorld);
 
-			m_rayTraceEngine->RegistModel(m_rayTraceTestModel[0], &m_rayTraceTestModelMatWorld);
+			m_rayTraceEngine->RegisterModel(*m_rayTraceTestModel[0], &m_rayTraceTestModelMatWorld);
 
 			int i = 0;
 			for (auto& m : m_rayTraceTestModelMatUnity) {
@@ -441,12 +442,12 @@ namespace DemolisherWeapon {
 				mBiasScr.MakeTranslation({ 10.0f * i,0.0f,100.0f });
 				m.Mul(m, mBiasScr);
 
-				m_rayTraceEngine->RegistModel(m_rayTraceTestModel[1], &m_rayTraceTestModelMatUnity[i]);
+				m_rayTraceEngine->RegisterModel(*m_rayTraceTestModel[1], &m_rayTraceTestModelMatUnity[i]);
 
 				i++;
 			}
 
-			m_rayTraceEngine->CommitRegistGeometry(m_commandList.Get());
+			m_rayTraceEngine->Update(m_commandList.Get());
 		}
 
 		//初期化完了
@@ -634,7 +635,11 @@ namespace DemolisherWeapon {
 		m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 		//スワップチェイン
-		m_swapChain->Present(GetGraphicsEngine().GetUseVSync() ? 1 : 0, 0);
+		HRESULT hr = m_swapChain->Present(GetGraphicsEngine().GetUseVSync() ? 1 : 0, 0);
+		if (FAILED(hr)) {
+			hr = m_d3dDevice->GetDeviceRemovedReason();
+			std::abort();
+		}
 
 		//フェンスのインクリメント
 		m_fenceValue[m_currentBackBufferIndex]++;
@@ -711,5 +716,9 @@ namespace DemolisherWeapon {
 		m_scissorRect.left = (LONG)topLeftX;
 		m_scissorRect.top = (LONG)topLeftY;
 		GetCommandList()->RSSetScissorRects(1, &m_scissorRect);
+	}
+
+	void DX12Test::RayTarcingCommit() {
+		m_rayTraceEngine->Update(m_commandList.Get());
 	}
 }

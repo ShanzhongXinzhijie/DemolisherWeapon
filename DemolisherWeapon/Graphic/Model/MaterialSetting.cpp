@@ -46,13 +46,7 @@ namespace DemolisherWeapon {
 		m_ptrUseMaterialSetting = &m_defaultMaterialSetting;
 
 		//マテリアルパラメーターの定数バッファ
-		if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
-			ShaderUtil::CreateConstantBuffer(sizeof(MaterialParam), &m_materialParamCBDX11);
-		}
-		if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
-			//TODO
-			//m_materialParamCBDX12
-		}
+		m_materialParamCB.Init(sizeof(MaterialParam));
 	}
 	void MaterialData::InitAlbedoTexture(std::wstring_view path) {
 		//アルベド

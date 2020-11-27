@@ -145,15 +145,19 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 	}
 
 	//レンダーの登録
-	m_dx12Render.Init(m_dx12);
-	m_renderManager.AddRender(-2, &m_dx12Render);
+	//m_dx12Render.Init(m_dx12);
+	//m_renderManager.AddRender(-2, &m_dx12Render);
 	
-	
+	///*
 	//初期化レンダー
-	//m_renderManager.AddRender(-3, &m_initRender);
+	m_renderManager.AddRender(-3, &m_initRender);
 
-	//int screencnt = m_isSplitScreen ? 2 : 1;
-	//int offset = oneloopOffset * (screencnt + 1);
+	//レイトレーシング
+	m_raytracingRender.Init();
+	m_renderManager.AddRender(-2, &m_raytracingRender);
+
+	int screencnt = m_isSplitScreen ? 2 : 1;
+	int offset = oneloopOffset * (screencnt + 1);
 	////2dinit
 	//m_renderManager.AddRender(offset + 1, &m_initRender2D);//ビューポート設定コマンドリストへ
 	////primrender2D
@@ -162,9 +166,9 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 	////DirectXTKRender
 	//m_renderManager.AddRender(offset + 3, &m_directxtkRender);
 
-	////finishrender
-	//m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);	
-	//
+	//finishrender
+	m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);	
+	//*/
 
 	return true;
 }

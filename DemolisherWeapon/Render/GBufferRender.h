@@ -1,8 +1,9 @@
 #pragma once
 #include "IRander.h"
-#include "Graphic/Model/SkinModel.h"
 
 namespace DemolisherWeapon {
+
+class SkinModel;
 
 class GBufferRender :
 	public IRander

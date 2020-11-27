@@ -121,8 +121,8 @@ namespace DemolisherWeapon {
 		}
 
 		//定数バッファ
-		deviceContext->UpdateSubresource(m_materialData.GetConstantBufferDX11().Get(), 0, NULL, &m_ptrUseMaterialSetting->GetMaterialParam(), 0, 0);
-		deviceContext->PSSetConstantBuffers(enSkinModelCBReg_Material, 1, m_materialData.GetConstantBufferDX11().GetAddressOf());
+		m_materialData.GetConstantBuffer().Update(&m_ptrUseMaterialSetting->GetMaterialParam());
+		deviceContext->PSSetConstantBuffers(enSkinModelCBReg_Material, 1, m_materialData.GetConstantBuffer().GetAddressOfBuffer());
 	}
 
 	void MaterialDX12::Apply() {

@@ -4,12 +4,30 @@ namespace DemolisherWeapon {
 
 	class IStructuredBufferInner {
 	public:
+		virtual ~IStructuredBufferInner() {
+
+		}
+
+		/// <summary>
+		/// 初期化
+		/// </summary>
+		/// <param name="num">要素の数</param>
+		/// <param name="stride">要素のサイズ</param>
 		virtual void Init(int num, int stride) = 0;
+		/// <summary>
+		/// 更新
+		/// </summary>
+		/// <param name="data">ソースデータ</param>
 		virtual void UpdateSubresource(void* data) = 0;
 	};
 
 	class StructuredBufferInnerDX11 : public IStructuredBufferInner {
 	public:
+		/// <summary>
+		/// 初期化
+		/// </summary>
+		/// <param name="num">要素の数</param>
+		/// <param name="stride">要素のサイズ</param>
 		void Init(int num, int stride)override {
 			//StructuredBufferの確保
 			D3D11_BUFFER_DESC desc;
@@ -30,12 +48,20 @@ namespace DemolisherWeapon {
 			GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_SB.Get(), &descSRV, m_SRV.ReleaseAndGetAddressOf());
 		}
 
+		/// <summary>
+		/// 更新
+		/// </summary>
+		/// <param name="data">ソースデータ</param>
 		void UpdateSubresource(void* data)override {
 			GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
 				m_SB.Get(), 0, NULL, data, 0, 0
 			);
 		}
 
+		/// <summary>
+		/// SRV取得
+		/// </summary>
+		/// <returns></returns>
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& GetSRV() {
 			return m_SRV;
 		}
@@ -47,11 +73,78 @@ namespace DemolisherWeapon {
 
 	class StructuredBufferInnerDX12 : public IStructuredBufferInner {
 	public:
-		void Init(int num, int stride)override {
-			DW_ERRORBOX(true,"StructuredBufferInnerDX12::Init 未対応です")
+		~StructuredBufferInnerDX12() {
+			Release();
 		}
 
+		/// <summary>
+		/// 初期化
+		/// </summary>
+		/// <param name="num">要素の数</param>
+		/// <param name="stride">要素のサイズ</param>
+		void Init(int num, int stride) override{
+			Release();
+
+			m_sizeOfElement = stride;
+			m_numElement = num;
+
+			D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(m_sizeOfElement * m_numElement);
+			desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+			D3D12_HEAP_PROPERTIES prop{};
+			prop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+			prop.CreationNodeMask = 1;
+			prop.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
+			prop.Type = D3D12_HEAP_TYPE_CUSTOM;
+			prop.VisibleNodeMask = 1;
+
+			int bufferNo = 0;
+			for (auto& buffer : m_buffersOnGPU) {
+				//バッファ作成
+				GetGraphicsEngine().GetD3D12Device()->CreateCommittedResource(
+					&prop,
+					D3D12_HEAP_FLAG_NONE,
+					&desc,
+					D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+					nullptr,
+					IID_PPV_ARGS(&buffer)
+				);
+
+				//構造化バッファをCPUからアクセス可能な仮想アドレス空間にマッピングする。
+				//マップ、アンマップのオーバーヘッドを軽減するためにはこのインスタンスが生きている間は行わない。
+				CD3DX12_RANGE readRange(0, 0);
+				buffer->Map(0, &readRange, reinterpret_cast<void**>(&m_buffersOnCPU[bufferNo]));
+				
+				//SRV作成
+				CreateShaderResourceView(bufferNo);
+
+				bufferNo++;
+			}
+		}
+
+		/// <summary>
+		/// 更新
+		/// </summary>
+		/// <param name="data">ソースデータ</param>
+		void UpdateSubresource(void* data)override {
+			if (m_buffersOnCPU[GetGraphicsEngine().GetDX12().GetCurrentBackBufferIndex()] == nullptr) {
+				DW_WARNING_BOX(true, "StructuredBufferInnerDX12::UpdateSubresource\n更新不可")
+			}
+			//TODO 毎フレームやってすべてのやつ更新しないと...
+			////取得系のやつでもこれ実行?
+			//レンダーターゲットのインデックス更新後
+			//レンダー的なので実行?
+			memcpy(m_buffersOnCPU[GetGraphicsEngine().GetDX12().GetCurrentBackBufferIndex()], data, m_sizeOfElement * m_numElement);
+		}
+
+		/// <summary>
+		/// 頂点バッファから初期化
+		/// </summary>
+		/// <param name="vb"></param>
+		/// <param name="isUpdateByCPU"></param>
 		void Init(const VertexBufferDX12& vb, bool isUpdateByCPU) {
+			Release();
+
 			m_sizeOfElement = vb.GetStrideInBytes();
 			m_numElement = vb.GetSizeInBytes() / m_sizeOfElement;
 			if (isUpdateByCPU) {
@@ -67,9 +160,21 @@ namespace DemolisherWeapon {
 					cpuBuffer = nullptr;
 				}
 			}
-			CreateShaderResourceView();
+			//SRV作成
+			int i = 0;
+			for (auto& gpuBuffer : m_buffersOnGPU) {
+				CreateShaderResourceView(i);
+				i++;
+			}
 		}
+		/// <summary>
+		/// インデックスバッファから初期化
+		/// </summary>
+		/// <param name="ib"></param>
+		/// <param name="isUpdateByCPU"></param>
 		void Init(const IndexBufferDX12& ib, bool isUpdateByCPU) {
+			Release();
+
 			m_sizeOfElement = ib.GetStrideInBytes();
 			m_numElement = ib.GetSizeInBytes() / m_sizeOfElement;
 			if (isUpdateByCPU) {
@@ -85,33 +190,34 @@ namespace DemolisherWeapon {
 					cpuBuffer = nullptr;
 				}
 			}
-			CreateShaderResourceView();
+			//SRV作成
+			int i = 0;
+			for (auto& gpuBuffer : m_buffersOnGPU) {
+				CreateShaderResourceView(i);
+				i++;
+			}
 		}
-
-		void UpdateSubresource(void* data)override {
-			DW_ERRORBOX(true, "StructuredBufferInnerDX12::UpdateSubresource 未対応です")
-		}		
 
 		/// <summary>
 		/// CPUデスクリプタハンドル取得
 		/// </summary>
 		/// <returns></returns>
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle()const {
-			return m_cpuHandle;
+			return m_cpuHandle[GetGraphicsEngine().GetDX12().GetCurrentBackBufferIndex()];
 		}
 		/// <summary>
 		/// GPUデスクリプタハンドル取得
 		/// </summary>
 		/// <returns></returns>
 		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle()const {
-			return m_gpuHandle;
+			return m_gpuHandle[GetGraphicsEngine().GetDX12().GetCurrentBackBufferIndex()];
 		}
 
 	private:
 		/// <summary>
 		/// SRV作成
 		/// </summary>
-		void CreateShaderResourceView()
+		void CreateShaderResourceView(int index)
 		{
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 			ZeroMemory(&srvDesc, sizeof(srvDesc));
@@ -123,28 +229,44 @@ namespace DemolisherWeapon {
 			srvDesc.Buffer.StructureByteStride = m_sizeOfElement;
 			srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-			auto [gpu, cpu] = GetGraphicsEngine().GetDX12().CreateSRV(m_buffersOnGPU[0].Get(), &srvDesc);
-			m_cpuHandle = cpu;
-			m_gpuHandle = gpu;
+			auto [gpu, cpu] = GetGraphicsEngine().GetDX12().CreateSRV(m_buffersOnGPU[index].Get(), &srvDesc);
+			m_cpuHandle[index] = cpu;
+			m_gpuHandle[index] = gpu;
+		}
+
+		void Release() {
+			//アンマップ
+			CD3DX12_RANGE readRange(0, 0);
+			for (auto& buffer : m_buffersOnGPU) {
+				if (buffer) {
+					buffer->Unmap(0, &readRange);
+					buffer->Release();
+				}
+			}
+			for (auto& buffer : m_buffersOnCPU) {
+				buffer = nullptr;
+			}
 		}
 
 	private:
-		Microsoft::WRL::ComPtr<ID3D12Resource> m_buffersOnGPU[2] = { nullptr };
-		void* m_buffersOnCPU[2] = { nullptr };	//CPU側からアクセスできるするストラクチャバッファのアドレス。
-		int m_numElement = 0;					//要素数。
-		int m_sizeOfElement = 0;				//エレメントのサイズ。
+		Microsoft::WRL::ComPtr<ID3D12Resource> m_buffersOnGPU[DX12Test::FRAME_COUNT];
+		void* m_buffersOnCPU[DX12Test::FRAME_COUNT] = { nullptr };//CPU側からアクセスできるするストラクチャバッファのアドレス。
+		int m_numElement = 0;	//要素数。
+		int m_sizeOfElement = 0;//エレメントのサイズ。
 
-		D3D12_CPU_DESCRIPTOR_HANDLE m_cpuHandle;
-		D3D12_GPU_DESCRIPTOR_HANDLE m_gpuHandle;
+		D3D12_CPU_DESCRIPTOR_HANDLE m_cpuHandle[DX12Test::FRAME_COUNT];
+		D3D12_GPU_DESCRIPTOR_HANDLE m_gpuHandle[DX12Test::FRAME_COUNT];
 	};
 
 	template<class T>
 	class StructuredBuffer
 	{
 	public:
+		//コンストラクタ
 		StructuredBuffer() = default;
 		StructuredBuffer(int num) { Init(num); }
 
+		//初期化
 		void Init(int num = 1) {
 			//配列の確保
 			m_t = std::make_unique<T[]>(num);
@@ -152,6 +274,9 @@ namespace DemolisherWeapon {
 
 			if (GetGraphicsEngine().GetUseAPI() == enDirectX11) {
 				m_innerIns = std::make_unique<StructuredBufferInnerDX11>();
+			}
+			if (GetGraphicsEngine().GetUseAPI() == enDirectX12) {
+				m_innerIns = std::make_unique<StructuredBufferInnerDX12>();
 			}
 			m_innerIns->Init(num, stride);
 		}

@@ -1,7 +1,8 @@
 #pragma once
 #include "system/GameObject.h"
-#include "../animation/AnimationController.h"
-#include "../animation/AnimationClip.h"
+#include "Graphic/Model/animation/AnimationController.h"
+#include "Graphic/Model/animation/AnimationClip.h"
+#include "Graphic/Model/SkinModel.h"
 
 namespace DemolisherWeapon {
 namespace GameObj {

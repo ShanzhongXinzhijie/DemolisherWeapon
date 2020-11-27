@@ -60,8 +60,8 @@ void __cdecl ModelEffect::Apply(ID3D11DeviceContext* deviceContext)
 	}
 
 	//定数バッファ
-	deviceContext->UpdateSubresource(m_matData.m_materialParamCBDX11.Get(), 0, NULL, &m_matData.m_ptrUseMaterialSetting->GetMaterialParam(), 0, 0);
-	deviceContext->PSSetConstantBuffers(enSkinModelCBReg_Material, 1, m_matData.m_materialParamCBDX11.GetAddressOf());
+	deviceContext->UpdateSubresource(m_matData.m_materialParamCB.GetBuffer(), 0, NULL, &m_matData.m_ptrUseMaterialSetting->GetMaterialParam(), 0, 0);
+	deviceContext->PSSetConstantBuffers(enSkinModelCBReg_Material, 1, m_matData.m_materialParamCB.GetAddressOfBuffer());
 }
 
 #endif

@@ -123,6 +123,8 @@
     <ClInclude Include="Graphic\Shader\ConstantBuffer.h" />
     <ClInclude Include="Graphic\Model\ModelDrawMode.h" />
     <ClInclude Include="Graphic\ReyTracing\ReyTracingEngine.h" />
+    <ClInclude Include="Graphic\Model\Render\CRayTracingRender.h" />
+    <ClInclude Include="Render\RayTracingRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -228,6 +230,8 @@
     <ClCompile Include="Graphic\Model\Model.cpp" />
     <ClCompile Include="Graphic\Shader\ConstantBuffer.cpp" />
     <ClCompile Include="Graphic\ReyTracing\ReyTracingEngine.cpp" />
+    <ClCompile Include="Graphic\Model\Render\CRayTracingRender.cpp" />
+    <ClCompile Include="Render\RayTracingRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />

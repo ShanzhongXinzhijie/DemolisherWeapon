@@ -385,6 +385,9 @@ namespace GameObj {
 		const CVector3& GetScale()const {
 			return m_scale;
 		}
+		const CMatrix& GetWorldMatrix()const {
+			return m_worldMatrix;
+		}
 
 		//再生アニメーションの変更
 		void ChangeAnim(int animNum) {

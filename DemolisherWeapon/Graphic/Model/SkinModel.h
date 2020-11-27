@@ -455,7 +455,7 @@ private:
 		//モーションブラースケール
 		float MotionBlurScale = MotionBlurRender::DEFAULT_MBLUR_SCALE;
 	};
-	ID3D11Buffer* m_cb = nullptr;//定数バッファ
+	ConstantBuffer<SVSConstantBuffer> m_cb;//定数バッファ
 
 	//行列
 	CMatrix	m_worldMatrix;		//ワールド行列

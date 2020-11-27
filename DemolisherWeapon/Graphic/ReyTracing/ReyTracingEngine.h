@@ -231,8 +231,21 @@ namespace DemolisherWeapon {
 	/// </summary>
 	class ReyTracingDescriptorHeap {
 	public:
-		void Init(ReyTracingWorld& world, ConstantBufferDx12<ReyTracingCBStructure>& cb, D3D12_CPU_DESCRIPTOR_HANDLE uavHandle);
+		/// <summary>
+		/// 初期化
+		/// </summary>
+		void Init(
+			ReyTracingWorld& world,
+			ConstantBuffer<ReyTracingCBStructure>& cb,
+			D3D12_CPU_DESCRIPTOR_HANDLE uavHandle
+		);
 
+		/// <summary>
+		/// 更新
+		/// </summary>
+		int Update(ReyTracingWorld& world);
+
+		//ディスクリプタヒープ取得
 		ID3D12DescriptorHeap* GetSRVHeap()const {
 			return m_srvsDescriptorHeap.Get();
 		}
@@ -255,6 +268,20 @@ namespace DemolisherWeapon {
 		int GetOffsetUAVDescriptorFromTableStart()const {
 			return m_uavStartNum;
 		}
+		/// <summary>
+		/// SRVデスクリプタの開始位置
+		/// </summary>
+		/// <returns></returns>
+		int GetOffsetSRVDescriptorFromTableStart()const {
+			return m_srvStartNum;
+		}
+		/// <summary>
+		/// CBVデスクリプタの開始位置
+		/// </summary>
+		/// <returns></returns>
+		int GetOffsetCBVDescriptorFromTableStart()const {
+			return m_cbvStartNum;
+		}
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srvsDescriptorHeap;
@@ -264,6 +291,8 @@ namespace DemolisherWeapon {
 		UINT m_samplerDescriptorSize = 0;
 
 		int m_uavStartNum = 0;
+		int m_srvStartNum = 0;
+		int m_cbvStartNum = 0;
 	};
 
 	/// <summary>
@@ -328,13 +357,13 @@ namespace DemolisherWeapon {
 		/// </summary>
 		/// <param name="model">モデル</param>
 		/// <param name="worldMatrix">ワールド行列</param>
-		void RegistModel(CModel& model, const CMatrix* worldMatrix);
+		void RegisterModel(CModel& model, const CMatrix* worldMatrix);
 
 		/// <summary>
 		/// ジオメトリの登録を確定。
 		/// (BLASとTLASを生成)
 		/// </summary>
-		void CommitRegistGeometry(ID3D12GraphicsCommandList4* commandList);
+		void CommitRegisterGeometry(ID3D12GraphicsCommandList4* commandList);
 		/// <summary>
 		/// TLASを更新する
 		/// </summary>
@@ -368,11 +397,21 @@ namespace DemolisherWeapon {
 			return m_topLevelASBuffers;
 		}
 
+		/// <summary>
+		/// 更新されたか
+		/// </summary>
+		/// <returns></returns>
+		bool GetIsUpdated()const {
+			return m_isUpdated;
+		}
+
 	private:
 		std::vector<std::unique_ptr<ReyTracingInstanceData>> m_instances;
 		std::vector<std::unique_ptr<ReyTracingGeometoryData>> m_geometories;
 		BLASBuffer m_blasBuffer;
 		TLASBuffer m_topLevelASBuffers;
+
+		bool m_isUpdated = false;
 	};
 
 	/// <summary>
@@ -462,29 +501,35 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// レイトレーシングをディスパッチ。
 		/// </summary>
-		/// <param name="rc">レンダリングコンテキスト</param>
+		/// <param name="commandList">コマンドリスト</param>
 		void Dispatch(ID3D12GraphicsCommandList4* commandList);
 
 		/// <summary>
 		/// モデルを登録
 		/// </summary>
 		/// <param name="model">モデル</param>
-		void RegistModel(CModel& model, const CMatrix* worldMatrix)
+		/// <param name="worldMatrix">ワールド行列</param>
+		void RegisterModel(CModel& model, const CMatrix* worldMatrix)
 		{
-			m_world.RegistModel(model, worldMatrix);
+			m_world.RegisterModel(model, worldMatrix);
 		}
-		void RegistModel(SkinModel& model)
+		void RegisterModel(SkinModel& model)
 		{
-			m_world.RegistModel(*model.GetModel(), &model.GetWorldMatrix());
+			m_world.RegisterModel(*model.GetModel(), &model.GetWorldMatrix());
+		}
+
+		void UnregisterModel()
+		{
+			//そんなものはない
 		}
 
 		/// <summary>
-		/// ジオメトリの登録を確定。
+		/// 更新処理
 		/// </summary>
-		void CommitRegistGeometry(ID3D12GraphicsCommandList4* commandList);
+		void Update(ID3D12GraphicsCommandList4* commandList);
 
 		/// <summary>
-		/// TLASの更新
+		/// TLASのみの更新
 		/// </summary>
 		void UpdateTLAS(ID3D12GraphicsCommandList4* commandList) {
 			m_world.UpdateTLAS(commandList);
@@ -494,7 +539,7 @@ namespace DemolisherWeapon {
 		/// 定数バッファ取得
 		/// </summary>
 		/// <returns></returns>
-		ConstantBufferDx12<ReyTracingCBStructure>& GetCB() {
+		ConstantBuffer<ReyTracingCBStructure>& GetCB() {
 			return m_rayGenerationCB;
 		}
 
@@ -505,12 +550,14 @@ namespace DemolisherWeapon {
 		void CreateShaderResources();
 
 	private:
+		bool m_isCommit = false;
+
 		ReyTracingWorld m_world;
 		ReyTracingPSO m_pipelineStateObject;
 		ShaderTable m_shaderTable;
 		ReyTracingDescriptorHeap m_descriptorHeap;
 
-		ConstantBufferDx12<ReyTracingCBStructure> m_rayGenerationCB;//定数バッファ
+		ConstantBuffer<ReyTracingCBStructure> m_rayGenerationCB;//定数バッファ
 		ReyTracingCBStructure m_cbStructure;
 
 		Microsoft::WRL::ComPtr<ID3D12Resource> m_raytracingOutput;//出力バッファ

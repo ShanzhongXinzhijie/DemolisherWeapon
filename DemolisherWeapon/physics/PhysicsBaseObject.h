@@ -1,11 +1,11 @@
 #pragma once
 
 #include"ICollider.h"
-#include"Graphic/Model/Render/CSkinModelRender.h"
 
 namespace DemolisherWeapon {
 
 	class MeshCollider;
+	namespace GameObj { class CSkinModelRender; }
 
 	class PhysicsBaseObject
 	{

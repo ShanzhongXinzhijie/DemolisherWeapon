@@ -64,20 +64,6 @@ Skeleton::~Skeleton()
 	for (int boneNo = 0; boneNo < m_bones.size(); boneNo++) {
 		delete m_bones[boneNo];
 	}
-	//ボーン行列のストラクチャーバッファを解放。
-	if (m_boneMatrixSB != nullptr) {
-		m_boneMatrixSB->Release();
-	}
-	if (m_boneMatrixSB_Old != nullptr) {
-		m_boneMatrixSB_Old->Release();
-	}
-	//ボーン行列のSRVを解放。
-	if (m_boneMatrixSRV != nullptr) {
-		m_boneMatrixSRV->Release();
-	}
-	if (m_boneMatrixSRV_Old != nullptr) {
-		m_boneMatrixSRV_Old->Release();
-	}
 }
 void Skeleton::UpdateBoneWorldMatrix(Bone& bone, const CMatrix& parentMatrix)
 {
@@ -190,51 +176,17 @@ bool Skeleton::Load(const wchar_t* filePath)
 		}
 	}
 
-	//ボーン行列を確保。
-	m_boneMatrixs.resize(m_bones.size());
-	m_boneMatrixs_Old.resize(m_bones.size());
-
-
 	//ボーン行列のストラクチャードバッファを初期化。
 	InitBoneMatrixArrayStructuredBuffer();
-	//ボーン行列のSRVを初期化。
-	InitBoneMatrixArrayShaderResourceView();
 
 	return true;
 }
 
 void Skeleton::InitBoneMatrixArrayStructuredBuffer()
 {
-	//descにStructuredBufferを作成するための情報を設定する。。
-	D3D11_BUFFER_DESC desc;
-	ZeroMemory(&desc, sizeof(desc));
-	int stride = sizeof(CMatrix);
-
-	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;					//SRVにバインド可能。
-	desc.ByteWidth = static_cast<UINT>(stride * m_bones.size());	//バッファのサイズ。
-	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	desc.StructureByteStride = stride;
-
-	//StructuredBufferを作成。
-	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, &m_boneMatrixSB);
-	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, &m_boneMatrixSB_Old);
-}
-void Skeleton::InitBoneMatrixArrayShaderResourceView()
-{
-	D3D11_BUFFER_DESC descBuf;
-	ZeroMemory(&descBuf, sizeof(descBuf));
-	m_boneMatrixSB->GetDesc(&descBuf);
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC desc;
-	ZeroMemory(&desc, sizeof(desc));
-	desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
-	desc.BufferEx.FirstElement = 0;
-
-	desc.Format = DXGI_FORMAT_UNKNOWN;
-	desc.BufferEx.NumElements = descBuf.ByteWidth / descBuf.StructureByteStride;
-
-	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_boneMatrixSB, &desc, &m_boneMatrixSRV);
-	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_boneMatrixSB_Old, &desc, &m_boneMatrixSRV_Old);
+	//初期化
+	m_boneMatrixs.Init((int)m_bones.size());
+	m_boneMatrixs_Old.Init((int)m_bones.size());
 }
 void Skeleton::Update(const CMatrix& mWorld)
 {
@@ -254,20 +206,23 @@ void Skeleton::Update(const CMatrix& mWorld)
 	m_ik.Update();
 
 	//ボーン行列を計算
+	std::unique_ptr<CMatrix[]>& boneDatas = m_boneMatrixs.GetData();
 	for (int boneNo = 0; boneNo < m_bones.size(); boneNo++) {
 		Bone* bone = m_bones[boneNo];
 		CMatrix mBone;
 		//ワールド行列にバインドポーズの逆行列をかけたものがボーン行列？？？
 		mBone.Mul(bone->GetInvBindPoseMatrix(), bone->GetWorldMatrix());
-		m_boneMatrixs[boneNo] = mBone;
+		boneDatas[boneNo] = mBone;
 	}
 }
 void Skeleton::UpdateBoneMatrixOld() 
 {
 	if (m_bones.empty()) { return; }
 
+	std::unique_ptr<CMatrix[]>& boneDatas = m_boneMatrixs.GetData();
+	std::unique_ptr<CMatrix[]>& boneOldDatas = m_boneMatrixs_Old.GetData();
 	for (int boneNo = 0; boneNo < m_bones.size(); boneNo++) {
-		m_boneMatrixs_Old[boneNo] = m_boneMatrixs[boneNo];
+		boneOldDatas[boneNo] = boneDatas[boneNo];
 	}
 }
 /*!
@@ -277,17 +232,13 @@ void Skeleton::SendBoneMatrixArrayToGPU()
 {
 	if (m_bones.empty()) { return; }
 
-	//StructuredBufferを更新。
-	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-		m_boneMatrixSB, 0, NULL, &m_boneMatrixs.front(), 0, 0
-	);
-	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-		m_boneMatrixSB_Old, 0, NULL, &m_boneMatrixs_Old.front(), 0, 0
-	);
-	//ボーン行列を頂点シェーダーステージに設定。
-	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_BoneMatrixArray, 1, &m_boneMatrixSRV);
-	GetEngine().GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_BoneMatrixArrayOld, 1, &m_boneMatrixSRV_Old);
+	//StructuredBufferを更新
+	m_boneMatrixs.UpdateSubresource();
+	m_boneMatrixs_Old.UpdateSubresource();
 
+	//ボーン行列を頂点シェーダーステージに設定。
+	GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_BoneMatrixArray, 1, m_boneMatrixs.GetAddressOfSRV());
+	GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_BoneMatrixArrayOld, 1, m_boneMatrixs_Old.GetAddressOfSRV());
 }
 
 }

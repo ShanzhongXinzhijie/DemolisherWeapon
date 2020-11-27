@@ -11,10 +11,6 @@ SkinModelDataManager SkinModel::m_skinModelDataManager;
 
 SkinModel::~SkinModel()
 {
-	if (m_cb != nullptr) {
-		//定数バッファを解放。
-		m_cb->Release();
-	}
 }
 void SkinModel::Init(std::filesystem::path filePath, EnFbxUpAxis enFbxUpAxis, EnFbxCoordinateSystem enFbxCoordinate, bool isUseFlyweightFactory)
 {
@@ -200,20 +196,7 @@ bool SkinModel::InitSkeleton(const wchar_t* filePath)
 }
 void SkinModel::InitConstantBuffer()
 {
-	//作成するバッファのサイズをsizeof演算子で求める。
-	int bufferSize = sizeof(SVSConstantBuffer);
-	//どんなバッファを作成するのかをせてbufferDescに設定する。
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));				//０でクリア。
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;						//バッファで想定されている、読み込みおよび書き込み方法。
-	bufferDesc.ByteWidth = (((bufferSize - 1) / 16) + 1) * 16;	//バッファは16バイトアライメントになっている必要がある。
-																//アライメントって→バッファのサイズが16の倍数ということです。
-	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;			//バッファをどのようなパイプラインにバインドするかを指定する。
-																//定数バッファにバインドするので、D3D11_BIND_CONSTANT_BUFFERを指定する。
-	bufferDesc.CPUAccessFlags = 0;								//CPU アクセスのフラグです。
-																//CPUアクセスが不要な場合は0。
-	//作成。
-	GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&bufferDesc, NULL, &m_cb);
+	m_cb.Init(sizeof(SVSConstantBuffer));
 }
 
 void SkinModel::UpdateWorldMatrix(const CVector3& position, const CQuaternion& rotation, const CVector3& scale, bool RefreshOldPos)
@@ -377,12 +360,12 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		vsCb.MotionBlurScale = GetGraphicsEngine().GetMotionBlurRender().GetMotionBlurScale();
 
 		//定数バッファ更新
-		d3dDeviceContext->UpdateSubresource(m_cb, 0, nullptr, &vsCb, 0, 0);
+		m_cb.Update(&vsCb);
 	}
 
 	//定数バッファをGPUに転送。
-	d3dDeviceContext->VSSetConstantBuffers(enSkinModelCBReg_VSPS, 1, &m_cb);
-	d3dDeviceContext->PSSetConstantBuffers(enSkinModelCBReg_VSPS, 1, &m_cb);
+	d3dDeviceContext->VSSetConstantBuffers(enSkinModelCBReg_VSPS, 1, m_cb.GetAddressOfBuffer());
+	d3dDeviceContext->PSSetConstantBuffers(enSkinModelCBReg_VSPS, 1, m_cb.GetAddressOfBuffer());
 	//ボーン行列をGPUに転送。
 	m_skeleton.SendBoneMatrixArrayToGPU();
 
@@ -498,7 +481,7 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		m_model->Draw(instanceNum* m_instanceNum);
 	}
 
-#ifndef DW_DX12_TEMPORARY
+#ifdef DW_DX11
 	//描画
 	if (m_modelDx) {
 		m_modelDx->Draw(
