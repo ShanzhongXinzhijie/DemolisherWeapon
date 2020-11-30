@@ -242,12 +242,27 @@ public:
 
 	//3Dƒ‚ƒfƒ‹ƒŒƒ“ƒ_[‚É•`‰æ‚·‚éƒ‚ƒfƒ‹‚ğ“o˜^
 	void AddDrawModelToD3Render(SkinModel* sm, int priority, bool reverse) {
+		if (GetUseAPI() == enDirectX12) {
+			DW_WARNING_BOX(true,"AddDrawModelToD3Render()\nDX12–¢‘Î‰‚Å‚·")
+			return;
+		}
+		
 		m_gbufferRender.AddDrawModel(sm, priority, reverse);
 	}
 	void AddDrawModelToShadowMapRender(SkinModel* sm, int priority, bool reverse) {
+		if (GetUseAPI() == enDirectX12) {
+			DW_WARNING_BOX(true, "AddDrawModelToShadowMapRender()\nDX12–¢‘Î‰‚Å‚·")
+			return;
+		}
+		
 		m_shadowMapRender.AddDrawModel(sm, priority, reverse);
 	}
 	void AddDrawModelToPostDrawRender(SkinModel* sm, int priority, PostDrawModelRender::enBlendMode blendmode, bool reverse = false) {
+		if (GetUseAPI() == enDirectX12) {
+			DW_WARNING_BOX(true, "AddDrawModelToPostDrawRender()\nDX12–¢‘Î‰‚Å‚·")
+			return;
+		}
+		
 		m_postDrawModelRender.AddDrawModel(sm, priority, blendmode, reverse);
 	}	
 
