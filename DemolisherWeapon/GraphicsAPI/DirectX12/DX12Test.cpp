@@ -41,12 +41,22 @@ namespace DemolisherWeapon {
 #ifndef DW_MASTER
 		{
 			//デバッグコントローラーがあれば、デバッグレイヤーがあるDXGIを作成する。
-			ComPtr<ID3D12Debug> debugController;
+			ComPtr<ID3D12Debug1> debugController;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
 			{
 				debugController->EnableDebugLayer();
+				debugController->SetEnableGPUBasedValidation(true);
 				// Enable additional debug layers.
 				dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+			}
+
+			//Device Removed Extended Dataの有効化
+			ComPtr<ID3D12DeviceRemovedExtendedDataSettings1> d3dDredSettings1;
+			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&d3dDredSettings1)))) {
+				// Turn on AutoBreadcrumbs and Page Fault reporting
+				d3dDredSettings1->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+				d3dDredSettings1->SetBreadcrumbContextEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+				d3dDredSettings1->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
 			}
 		}
 #endif

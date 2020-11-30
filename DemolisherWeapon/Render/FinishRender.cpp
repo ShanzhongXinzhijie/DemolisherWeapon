@@ -7,7 +7,7 @@ namespace DemolisherWeapon {
 		//コマンド実行
 		GetGraphicsEngine().ExecuteCommand();
 		//バックバッファを表へ
-		GetEngine().GetGraphicsEngine().SwapBackBuffer();
+		GetGraphicsEngine().SwapBackBuffer();
 
 		GetGraphicsEngine().ExecuteCommandDirectXTK();
 	}
