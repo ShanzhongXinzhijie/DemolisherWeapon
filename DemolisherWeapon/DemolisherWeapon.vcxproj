@@ -642,6 +642,7 @@
     <CustomBuild Include="Preset\shader\raytrace.fx">
       <FileType>Document</FileType>
     </CustomBuild>
+    <CustomBuild Include="Preset\sprite\testcard.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

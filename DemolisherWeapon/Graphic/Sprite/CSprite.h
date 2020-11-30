@@ -7,14 +7,24 @@ namespace DemolisherWeapon {
 	class CSprite
 	{
 	public:
-		CSprite();
+		CSprite() = default;
 		~CSprite();
 
 		void Release();
 
 		//初期化
 		void Init(const wchar_t* fileName);
+		void Init(const TextueData& texture);
 		void Init(ID3D11ShaderResourceView* srv, UINT width, UINT height, bool isPMA = false);
+
+		/// <summary>
+		/// モデルからスプライトの作成
+		/// </summary>
+		/// <param name="identifier">識別名</param>
+		/// <param name="model">3dモデル</param>
+		/// <param name="resolution">テクスチャの解像度</param>
+		/// <param name="rotOffset">回転オフセット</param>
+		void Init(const wchar_t* identifier, SkinModel& model, UINT resolusuon, const CQuaternion& rotOffset = CQuaternion::Identity());
 
 		//描画する
 		//※layerDepthの第三小数点以下は使わないほうがいいと思う
@@ -38,10 +48,10 @@ namespace DemolisherWeapon {
 		//画像の描画する範囲を設定
 		//0.0f～1.0fの範囲で指定
 		void SetSourceRectangle(const float left, const float top, const float right, const float bottom) {
-			m_sourceRectangle.left		= (LONG)(m_width  * left);
-			m_sourceRectangle.right		= (LONG)(m_width  * right);
-			m_sourceRectangle.top		= (LONG)(m_height * top);
-			m_sourceRectangle.bottom	= (LONG)(m_height * bottom);
+			m_sourceRectangle.left		= (LONG)(m_texdata.width  * left);
+			m_sourceRectangle.right		= (LONG)(m_texdata.width  * right);
+			m_sourceRectangle.top		= (LONG)(m_texdata.height * top);
+			m_sourceRectangle.bottom	= (LONG)(m_texdata.height * bottom);
 		}
 		//画像の解像度で指定
 		void SetSourceRectangleSpriteSize(const RECT& sourceRectangle){
@@ -50,23 +60,17 @@ namespace DemolisherWeapon {
 
 		//画像の幅を取得
 		UINT GetWidth()const {
-			return m_width;
+			return m_texdata.width;
 		}
 		//画像の高さを取得
 		UINT GetHeight()const {
-			return m_height;
+			return m_texdata.height;
 		}
 
 	private:
 		DirectX::SpriteBatch* m_spriteBatch = nullptr;
-		//CVector2 m_screenSize;
 
-		ID3D11ShaderResourceView* m_srv = nullptr;
-		const TextueData* m_texdata = nullptr;
-		D3D12_CPU_DESCRIPTOR_HANDLE m_cpuHandle;
-		D3D12_GPU_DESCRIPTOR_HANDLE m_gpuHandle;
-
-		UINT m_width, m_height;
+		TextueData m_texdata;
 
 		RECT m_sourceRectangle;
 	};
@@ -76,6 +80,10 @@ namespace DemolisherWeapon {
 	public:
 		void Init(const wchar_t* fileName) {
 			m_sprite.Init(fileName);
+		}
+		void Init(const wchar_t* identifier, SkinModel& model, UINT resolusuon, const CQuaternion& rotOffset = CQuaternion::Identity())
+		{
+			m_sprite.Init(identifier, model, resolusuon, rotOffset);
 		}
 
 		//ステータス設定
