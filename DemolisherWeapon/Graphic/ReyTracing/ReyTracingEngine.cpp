@@ -63,7 +63,7 @@ namespace DemolisherWeapon {
 				D3D12_RESOURCE_STATE_COMMON,
 				kDefaultHeapProps,
 				asbuffer.pScratch,
-				L"BLASのpScratch"
+				L"BLASpScratch"
 			);
 			CreateBuffer(
 				d3dDevice,
@@ -72,7 +72,7 @@ namespace DemolisherWeapon {
 				D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE,
 				kDefaultHeapProps,
 				asbuffer.pResult,
-				L"BLASのpResult"
+				L"BLASpResult"
 			);
 
 			// Create the bottom-level AS
@@ -130,7 +130,7 @@ namespace DemolisherWeapon {
 				D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 				kDefaultHeapProps, 
 				m_topLevelASBuffers.pScratch,
-				L"TLASのpScratch"
+				L"TLASpScratch"
 			);
 			CreateBuffer(
 				d3dDevice,
@@ -139,7 +139,7 @@ namespace DemolisherWeapon {
 				D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE,
 				kDefaultHeapProps,
 				m_topLevelASBuffers.pResult,
-				L"TLASのpResult"
+				L"TLASpResult"
 			);
 			CreateBuffer(
 				d3dDevice,
@@ -147,7 +147,7 @@ namespace DemolisherWeapon {
 				D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ,
 				kUploadHeapProps,
 				m_topLevelASBuffers.pInstanceDesc,
-				L"TLASのpInstanceDesc"
+				L"TLASpInstanceDesc"
 			);
 			//tlasSize = info.ResultDataMaxSizeInBytes;
 		}
@@ -597,6 +597,37 @@ namespace DemolisherWeapon {
 				geometoryIndex++;
 			}
 		});
+	}
+	void ReyTracingWorld::UnregisterModel(CModel& model, const CMatrix* worldMatrix) {
+		int geometoryIndex = model.GetRayTracingWorldStartIndex();
+		if (geometoryIndex < 0) {
+			DW_WARNING_MESSAGE(true, "ReyTracingWorld::UnregisterModel() 登録されていないインスタンスを登録解除しようとしています。\n")
+			return;
+		}
+
+		//インスタンス削除
+		auto itr = m_instances.end();
+
+		model.FindMesh([&](const std::unique_ptr<SModelMesh>& mesh) {
+			for (int i = 0; i < mesh->m_materials.size(); i++) {
+				itr = std::remove_if(
+					m_instances.begin(),
+					itr,
+					[&](const auto& ins) {
+						return ins->m_geometory == m_geometories[geometoryIndex].get() && ins->m_worldMatrix == worldMatrix;
+					}
+				);
+				geometoryIndex++;
+			}
+			}
+		);
+
+		m_instances.erase(
+			itr,
+			m_instances.end()
+		);
+		
+		m_isUpdated = true;
 	}
 	void ReyTracingWorld::CommitRegisterGeometry(ID3D12GraphicsCommandList4* commandList) {
 		//BLASを構築。

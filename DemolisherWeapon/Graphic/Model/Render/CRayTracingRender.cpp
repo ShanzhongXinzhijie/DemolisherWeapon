@@ -4,22 +4,34 @@
 
 namespace DemolisherWeapon {
 
-	void CRayTracingRender::Init(CModel& model, const CMatrix& worldMat) {
+	void CRayTracingModelRender::Init(CModel& model, const CMatrix& worldMat) {
+		if (GetGraphicsAPI() != enDirectX12) {
+			DW_WARNING_MESSAGE(true, "CRayTracingModelRender::Init() DX12以外未対応\n")
+			return;
+		}
 		//レイトレエンジンにモデルとトランスフォーム行列設定
 		GetGraphicsEngine().GetDX12().GetRayTracingEngine().RegisterModel(model, &worldMat);
+		m_model = &model;
+		m_worldMat = &worldMat;
 	}
-	void CRayTracingRender::Init(SkinModel& model) {
+	void CRayTracingModelRender::Init(SkinModel& model) {
 		//レイトレエンジンにモデルとトランスフォーム行列設定
-		GetGraphicsEngine().GetDX12().GetRayTracingEngine().RegisterModel(model);
+		Init(*model.GetModel(),model.GetWorldMatrix());
 	}
-	void CRayTracingRender::Init(GameObj::CSkinModelRender& model) {
+	void CRayTracingModelRender::Init(GameObj::CSkinModelRender& model) {
 		Init(model.GetSkinModel());
 	}
-	void CRayTracingRender::Init(GameObj::CInstancingModelRender& model) {
+	void CRayTracingModelRender::Init(GameObj::CInstancingModelRender& model) {
 		Init(*(model.GetInstancingModel()->GetModelRender().GetSkinModel().GetModel()), model.GetWorldMatrix());
 	}
 
-	void CRayTracingRender::Release() {
+	void CRayTracingModelRender::Release() {
+		if (m_model == nullptr) {
+			return;
+		}
 		//レイトレエンジンから登録解除
+		GetGraphicsEngine().GetDX12().GetRayTracingEngine().UnregisterModel(*m_model, m_worldMat);
+		m_model = nullptr;
+		m_worldMat = nullptr;
 	}
 }

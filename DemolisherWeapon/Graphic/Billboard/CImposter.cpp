@@ -83,6 +83,23 @@ namespace DemolisherWeapon {
 		m_GBufferSRV[enGBufferAlbedo]->AddRef();
 		m_albedoTextureData.textureView.Attach(m_GBufferSRV[enGBufferAlbedo].Get());
 
+		//{
+		//	//リソース作成
+		//	auto texDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)resolution.x, (UINT)resolution.y, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+		//	auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		//	DirectX::ThrowIfFailed(
+		//		ge.GetD3D12Device()->CreateCommittedResource(
+		//			&defaultHeapProperties,
+		//			D3D12_HEAP_FLAG_NONE,
+		//			&texDesc,
+		//			D3D12_RESOURCE_STATE_RENDER_TARGET,//D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+		//			nullptr,
+		//			IID_PPV_ARGS(&m_raytracingOutput)
+		//		)
+		//	);
+		//	m_raytracingOutput->SetName(L"ImposterGBufferAlbedo");
+		//}
+
 		//ライトパラメーター
 		texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		ge.GetD3DDevice()->CreateTexture2D(&texDesc, NULL, m_GBufferTex[enGBufferLightParam].ReleaseAndGetAddressOf());

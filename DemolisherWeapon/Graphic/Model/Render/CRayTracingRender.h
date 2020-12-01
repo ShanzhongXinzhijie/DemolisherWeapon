@@ -2,24 +2,24 @@
 
 namespace DemolisherWeapon {
 
-	class CRayTracingRender
+	class CRayTracingModelRender
 	{
 	public:
-		CRayTracingRender() = default;
-		CRayTracingRender(CModel& model, const CMatrix& worldMat) {
+		CRayTracingModelRender() = default;
+		CRayTracingModelRender(CModel& model, const CMatrix& worldMat) {
 			Init(model, worldMat);
 		}
-		CRayTracingRender(SkinModel& skinmodel) {
+		CRayTracingModelRender(SkinModel& skinmodel) {
 			Init(skinmodel);
 		}
-		CRayTracingRender(GameObj::CSkinModelRender& skinmodel) {
+		CRayTracingModelRender(GameObj::CSkinModelRender& skinmodel) {
 			Init(skinmodel);
 		}
-		CRayTracingRender(GameObj::CInstancingModelRender& skinmodel) {
+		CRayTracingModelRender(GameObj::CInstancingModelRender& skinmodel) {
 			Init(skinmodel);
 		}
 
-		~CRayTracingRender() {
+		~CRayTracingModelRender() {
 			Release();
 		}
 
@@ -31,6 +31,8 @@ namespace DemolisherWeapon {
 		void Release();
 		
 	private:
+		CModel* m_model = nullptr;
+		const CMatrix* m_worldMat = nullptr;
 	};
 
 }

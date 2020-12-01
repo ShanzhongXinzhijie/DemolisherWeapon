@@ -87,6 +87,11 @@ namespace DemolisherWeapon {
 
 	void CSprite::Init(const wchar_t* identifier, SkinModel& model, UINT resolusuon, const CQuaternion& rotOffset)
 	{
+		if (GetGraphicsAPI() == enDirectX12) {
+			DW_WARNING_MESSAGE(true,"CSprite::Init() 3dƒ‚ƒfƒ‹‚Ì‰æ‘œ‰»‚ÍDX12–¢‘Î‰‚Å‚·B\n")
+			return;
+		}
+
 		Release();
 
 		m_texdata = ImposterTexBank::GetInstance().LoadSprite(identifier, model, resolusuon, rotOffset);

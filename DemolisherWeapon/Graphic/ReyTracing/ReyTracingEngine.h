@@ -360,6 +360,13 @@ namespace DemolisherWeapon {
 		void RegisterModel(CModel& model, const CMatrix* worldMatrix);
 
 		/// <summary>
+		/// ジオメトリ登録を解除。
+		/// </summary>
+		/// <param name="model">モデル</param>
+		/// <param name="worldMatrix">ワールド行列</param>
+		void UnregisterModel(CModel& model, const CMatrix* worldMatrix);
+
+		/// <summary>
 		/// ジオメトリの登録を確定。
 		/// (BLASとTLASを生成)
 		/// </summary>
@@ -518,9 +525,18 @@ namespace DemolisherWeapon {
 			m_world.RegisterModel(*model.GetModel(), &model.GetWorldMatrix());
 		}
 
-		void UnregisterModel()
+		/// <summary>
+		/// モデル登録を解除
+		/// </summary>
+		/// <param name="model">モデル</param>
+		/// <param name="worldMatrix">ワールド行列</param>
+		void UnregisterModel(CModel& model, const CMatrix* worldMatrix)
 		{
-			//そんなものはない
+			m_world.UnregisterModel(model, worldMatrix);
+		}
+		void UnregisterModel(SkinModel& model)
+		{
+			m_world.UnregisterModel(*model.GetModel(), &model.GetWorldMatrix());
 		}
 
 		/// <summary>
