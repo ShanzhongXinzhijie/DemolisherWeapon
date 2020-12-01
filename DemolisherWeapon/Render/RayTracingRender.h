@@ -23,7 +23,6 @@ namespace DemolisherWeapon {
 		void Commit();
 
 	private:
-		//bool m_isTestInited = false;
 		RayTracingEngine* m_rayTracingEngine = nullptr;
 		ID3D12GraphicsCommandList4* m_commandList = nullptr;
 	};

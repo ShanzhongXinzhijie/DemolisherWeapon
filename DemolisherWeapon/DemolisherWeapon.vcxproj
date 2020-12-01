@@ -217,7 +217,7 @@
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <Lib>
-      <AdditionalDependencies>dxcompiler.lib;Common-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;Photon-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision.lib;BulletDynamics.lib;BulletSoftBody.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
+      <AdditionalDependencies>D3D12.lib;dxcompiler.lib;DXGI.lib;Common-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;Photon-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_$(Configuration)_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision.lib;BulletDynamics.lib;BulletSoftBody.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -282,7 +282,7 @@
       <LinkObjects>false</LinkObjects>
     </CustomBuild>
     <Lib>
-      <AdditionalDependencies>dxcompiler.lib;Common-cpp_vc15_Release_windows_mt_$(Platform).lib;Photon-cpp_vc15_Release_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_Release_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision.lib;BulletDynamics.lib;BulletSoftBody.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
+      <AdditionalDependencies>D3D12.lib;dxcompiler.lib;DXGI.lib;Common-cpp_vc15_Release_windows_mt_$(Platform).lib;Photon-cpp_vc15_Release_windows_mt_$(Platform).lib;LoadBalancing-cpp_vc15_Release_windows_mt_$(Platform).lib;xaudio2.lib;DirectXTK.lib;BulletCollision.lib;BulletDynamics.lib;BulletSoftBody.lib;LinearMath.lib;xinput.lib;winmm.lib;%(AdditionalDependencies);Effekseer.lib;EffekseerRendererDX11.lib;EffekseerSoundXAudio2.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)/Photon/Photon-cpp/lib;$(ProjectDir)/Photon/LoadBalancing-cpp/lib;$(ProjectDir)/Photon/Common-cpp/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

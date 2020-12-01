@@ -10,10 +10,7 @@ namespace DemolisherWeapon {
 	}
 
 	void RayTracingRender::Render() {
-		//if (!m_isTestInited) {
-			Commit();
-		//	m_isTestInited = true;
-		//}
+		Commit();
 		m_rayTracingEngine->Dispatch(m_commandList);
 	}
 
