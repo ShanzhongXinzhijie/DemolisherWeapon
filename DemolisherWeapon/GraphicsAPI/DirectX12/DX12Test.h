@@ -72,7 +72,8 @@ namespace DemolisherWeapon {
 		//GPUのすべての処理の終わりを待つ
 		bool WaitForGpu(){
 			//ふやす
-			m_fenceValue[m_currentBackBufferIndex]++;
+			m_currentFenceValue++;
+			m_fenceValue[m_currentBackBufferIndex] = m_currentFenceValue;
 			//フェンスの値変更
 			if (FAILED(m_commandQueue->Signal(m_fence.Get(), m_fenceValue[m_currentBackBufferIndex]))) {
 				return false;
@@ -318,7 +319,8 @@ namespace DemolisherWeapon {
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> m_commandList;
 		Microsoft::WRL::ComPtr<ID3D12Fence> m_fence;
 		HANDLE m_fenceEvent;
-		UINT64 m_fenceValue[FRAME_COUNT];
+		UINT64 m_fenceValue[FRAME_COUNT] = {};
+		UINT64 m_currentFenceValue = 0;
 
 		D3D12_VIEWPORT m_viewport;//ビューポート
 		D3D12_RECT     m_scissorRect;//シザー矩形

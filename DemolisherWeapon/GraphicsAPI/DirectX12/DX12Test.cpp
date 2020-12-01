@@ -270,6 +270,7 @@ namespace DemolisherWeapon {
 		for (int i = 0; i < FRAME_COUNT; ++i) {
 			m_fenceValue[i] = 0;
 		}
+		m_currentFenceValue = 0;
 
 		//レイトレーシング		
 		m_rayTraceEngine = new RayTracingEngine;
@@ -652,7 +653,8 @@ namespace DemolisherWeapon {
 		}
 
 		//フェンスのインクリメント
-		m_fenceValue[m_currentBackBufferIndex]++;
+		m_currentFenceValue++;
+		m_fenceValue[m_currentBackBufferIndex] = m_currentFenceValue;
 		//フェンスの値変更
 		if (FAILED(m_commandQueue->Signal(m_fence.Get(), m_fenceValue[m_currentBackBufferIndex]))) {
 			return;
@@ -696,7 +698,8 @@ namespace DemolisherWeapon {
 		m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 		//フェンスのインクリメント
-		m_fenceValue[m_currentBackBufferIndex]++;
+		m_currentFenceValue++;
+		m_fenceValue[m_currentBackBufferIndex] = m_currentFenceValue;
 
 		//フェンスの値変更
 		if (FAILED(m_commandQueue->Signal(m_fence.Get(), m_fenceValue[m_currentBackBufferIndex]))) {
