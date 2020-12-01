@@ -281,6 +281,12 @@ namespace DemolisherWeapon {
 			m_innerIns->Init(num, stride);
 		}
 
+		//開放
+		void Release() {
+			m_t.reset();
+			m_innerIns.reset();
+		}
+
 		//データを取得
 		const std::unique_ptr<T[]>& GetData()const { return m_t; }
 		std::unique_ptr<T[]>& GetData() { return m_t; }

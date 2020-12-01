@@ -148,7 +148,7 @@ namespace GameObj {
 			/// <param name="drawInstanceIndex"></param>
 			/// <returns></returns>
 			const CMatrix& GetDrawInstanceWorldMatrix(int drawInstanceIndex)const {
-				return m_insModel->m_instancingWorldMatrix[drawInstanceIndex];
+				return m_insModel->m_worldMatrixSB.GetData()[drawInstanceIndex];
 			}
 
 		private:
@@ -208,13 +208,10 @@ namespace GameObj {
 		AnimationClip m_animationClip;
 
 		//ワールド行列
-		std::unique_ptr<CMatrix[]>	m_instancingWorldMatrix;
-		ID3D11Buffer*				m_worldMatrixSB = nullptr;
-		ID3D11ShaderResourceView*	m_worldMatrixSRV = nullptr;
+		StructuredBuffer<CMatrix>	m_worldMatrixSB;
+
 		//旧ワールド行列
-		std::unique_ptr<CMatrix[]>	m_instancingWorldMatrixOld;
-		ID3D11Buffer*				m_worldMatrixSBOld = nullptr;
-		ID3D11ShaderResourceView*	m_worldMatrixSRVOld = nullptr;
+		StructuredBuffer<CMatrix>	m_worldMatrixSBOld;
 
 		//視錐台カリング用
 		std::unique_ptr<bool[]>		m_isDraw;

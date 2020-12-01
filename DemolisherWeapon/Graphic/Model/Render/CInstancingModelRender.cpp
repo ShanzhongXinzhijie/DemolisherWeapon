@@ -123,8 +123,8 @@ namespace GameObj {
 					}
 					//描画する
 					m_drawInstanceMask[i] = true;
-					m_instancingWorldMatrix[drawNum] = m_worldMatrixCache[i];
-					m_instancingWorldMatrixOld[drawNum] = m_worldMatrixOldCache[i];
+					m_worldMatrixSB.GetData()[drawNum] = m_worldMatrixCache[i];
+					m_worldMatrixSBOld.GetData()[drawNum] = m_worldMatrixOldCache[i];
 					drawNum++;
 				}
 
@@ -138,16 +138,12 @@ namespace GameObj {
 			L"DW_InstancingModelFunc",
 			[&](SkinModel*) {
 				//ストラクチャーバッファの更新
-				GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-					m_worldMatrixSB, 0, NULL, m_instancingWorldMatrix.get(), 0, 0
-				);
-				GetGraphicsEngine().GetD3DDeviceContext()->UpdateSubresource(
-					m_worldMatrixSBOld, 0, NULL, m_instancingWorldMatrixOld.get(), 0, 0
-				);
+				m_worldMatrixSB.UpdateSubresource();
+				m_worldMatrixSBOld.UpdateSubresource();
 
 				//シェーダーリソースにワールド行列をセット
-				GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrix, 1, &m_worldMatrixSRV);
-				GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, &m_worldMatrixSRVOld);
+				GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrix, 1, m_worldMatrixSB.GetAddressOfSRV());
+				GetGraphicsEngine().GetD3DDeviceContext()->VSSetShaderResources(enSkinModelSRVReg_InstancingWorldMatrixOld, 1, m_worldMatrixSBOld.GetAddressOfSRV());
 
 				//IInstanceDataの処理実行
 				for (auto& IID : m_instanceData) {
@@ -168,12 +164,8 @@ namespace GameObj {
 		m_instanceIndex = 0; m_instanceDrawNum = 0;
 
 		//インスタンシング用リソースの開放
-		m_instancingWorldMatrix.reset();
-		if (m_worldMatrixSB) { m_worldMatrixSB->Release(); m_worldMatrixSB = nullptr; }
-		if (m_worldMatrixSRV) { m_worldMatrixSRV->Release(); m_worldMatrixSRV = nullptr; }
-		m_instancingWorldMatrixOld.reset();
-		if (m_worldMatrixSBOld) { m_worldMatrixSBOld->Release(); m_worldMatrixSBOld = nullptr; }
-		if (m_worldMatrixSRVOld) { m_worldMatrixSRVOld->Release(); m_worldMatrixSRVOld = nullptr; }
+		m_worldMatrixSB.Release();
+		m_worldMatrixSBOld.Release();
 
 		m_isDraw.reset();
 		m_drawInstanceMask.reset();
@@ -201,11 +193,9 @@ namespace GameObj {
 		//いろいろ再確保
 		Release();
 		
+		//最大インスタンス数
 		m_instanceMax = instanceMax;
 		
-		//ワールド行列の確保
-		m_instancingWorldMatrix = std::make_unique<CMatrix[]>(m_instanceMax);
-		m_instancingWorldMatrixOld = std::make_unique<CMatrix[]>(m_instanceMax);
 		//視錐台カリング用
 		m_isDraw = std::make_unique<bool[]>(m_instanceMax);
 		m_drawInstanceMask = std::make_unique<bool[]>(m_instanceMax);
@@ -217,26 +207,9 @@ namespace GameObj {
 		//インスタンスたちを監視する
 		//m_insWatchers = std::make_unique<std::weak_ptr<InstanceWatcher>[]>(m_instanceMax);
 		
-		//StructuredBufferの確保
-		D3D11_BUFFER_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-		int stride = sizeof(CMatrix);
-		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;					
-		desc.ByteWidth = static_cast<UINT>(stride * m_instanceMax);
-		desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		desc.StructureByteStride = stride;
-		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, &m_worldMatrixSB);
-		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateBuffer(&desc, NULL, &m_worldMatrixSBOld);
-		
-		//ShaderResourceViewの確保
-		D3D11_SHADER_RESOURCE_VIEW_DESC descSRV;
-		ZeroMemory(&descSRV, sizeof(descSRV));
-		descSRV.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
-		descSRV.BufferEx.FirstElement = 0;
-		descSRV.Format = DXGI_FORMAT_UNKNOWN;
-		descSRV.BufferEx.NumElements = desc.ByteWidth / desc.StructureByteStride;
-		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_worldMatrixSB, &descSRV, &m_worldMatrixSRV);
-		GetEngine().GetGraphicsEngine().GetD3DDevice()->CreateShaderResourceView(m_worldMatrixSBOld, &descSRV, &m_worldMatrixSRVOld);
+		//StructuredBufferの確保		
+		m_worldMatrixSB.Init(m_instanceMax);
+		m_worldMatrixSBOld.Init(m_instanceMax);
 	}
 	
 	CInstancingModelRender::CInstancingModelRender(bool isRegister) : IQSGameObject(isRegister) {
