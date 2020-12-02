@@ -32,8 +32,18 @@ void CMouseCursor::Update() {
 	//カーソルを画面中央に固定
 	if (m_lockCursor) {
 		SetMouseCursor({ 0.5f,0.5f });
-		//カーソルをウインドウから出ないように設定		
-		ClipCursor(&GetEngine().GetWindowRECT());
+
+		//カーソルをウインドウから出ないように設定	
+		POINT p = { 0,0 };
+		ClientToScreen(GetEngine().GetWindowHandle(), &p);
+
+		RECT rect = GetEngine().GetClientRECT();
+		rect.left += p.x + 1;
+		rect.right += p.x - 1;
+		rect.top += p.y + 1;
+		rect.bottom += p.y - 1;
+
+		ClipCursor(&rect);
 	}
 }
 
