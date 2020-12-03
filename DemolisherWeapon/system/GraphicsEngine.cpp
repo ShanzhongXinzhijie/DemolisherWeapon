@@ -158,13 +158,13 @@ bool GraphicsEngine::InnerInitDX12(HWND hWnd, const InitEngineParameter& initPar
 
 	int screencnt = m_isSplitScreen ? 2 : 1;
 	int offset = oneloopOffset * (screencnt + 1);
-	////2dinit
-	//m_renderManager.AddRender(offset + 1, &m_initRender2D);//ビューポート設定コマンドリストへ
-	////primrender2D
-	////m_renderManager.AddRender(offset + 2, &m_primitiveRender2D);
+	//2dinit
+	m_renderManager.AddRender(offset + 1, &m_initRender2D);//ビューポート設定コマンドリストへ
+	//primrender2D
+	m_renderManager.AddRender(offset + 2, &m_primitiveRender2D);
 
-	////DirectXTKRender
-	//m_renderManager.AddRender(offset + 3, &m_directxtkRender);
+	//DirectXTKRender
+	m_renderManager.AddRender(offset + 3, &m_directxtkRender);
 
 	//finishrender
 	m_renderManager.AddRender(offset + 4, &m_SUSRTFinishRender);	

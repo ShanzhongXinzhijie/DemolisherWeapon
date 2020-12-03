@@ -3,7 +3,7 @@
 
 namespace DemolisherWeapon {
 	void InitRender::Render() {
-#ifndef DW_DX12_TEMPORARY
+#ifdef DW_DX11
 		//ブレンドステート初期化
 		GetGraphicsEngine().GetD3DDeviceContext()->OMSetBlendState(GetGraphicsEngine().GetCommonStates().NonPremultiplied(), nullptr, 0xFFFFFFFF);
 #endif

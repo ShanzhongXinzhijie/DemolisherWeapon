@@ -6,6 +6,9 @@ namespace DemolisherWeapon {
 
 namespace {
 	wchar_t output[256];
+
+	constexpr wchar_t API_NAME_DX11[] = L"DX11";
+	constexpr wchar_t API_NAME_DX12[] = L"DX12";
 }
 
 CFpsCounter::CFpsCounter()
@@ -64,6 +67,9 @@ void CFpsCounter::Draw() {
 	}
 
 	//テキスト作成
+	const wchar_t* apiName = nullptr;
+	if (GetGraphicsAPI() == enDirectX11) { apiName = API_NAME_DX11; }
+	if (GetGraphicsAPI() == enDirectX12) { apiName = API_NAME_DX12; }
 	swprintf_s(output,
 		L"%.1fFPS\n"
 		"MAX:%.1f\n"
@@ -71,8 +77,9 @@ void CFpsCounter::Draw() {
 		"AVG:%.1f\n"
 		"X%.4f\n"
 		"GO_Num:%d\n"
-		"ver.%ls",
-		m_fps, m_max, m_min, m_avg, m_runframecnt, static_cast<int>(GetRegisterGameObjectNum()), DW_VER);
+		"ver.%ls\n"
+		"API:%ls",
+		m_fps, m_max, m_min, m_avg, m_runframecnt, static_cast<int>(GetRegisterGameObjectNum()), DW_VER, apiName);
 
 	//表示
 #ifndef DW_DX12

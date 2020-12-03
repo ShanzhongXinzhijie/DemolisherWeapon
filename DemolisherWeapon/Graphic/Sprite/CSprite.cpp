@@ -21,8 +21,11 @@ namespace DemolisherWeapon {
 		}
 		m_texdata = *return_textureData;
 
-		//GetGraphicsEngine().CreateDirectXTK12DescriptorNumber(m_cpuHandle, m_gpuHandle);
-		//DirectX::CreateShaderResourceView(GetGraphicsEngine().GetD3D12Device(), m_texdata->d3d12texture.Get(), m_cpuHandle);
+#ifdef DW_DX12
+		//DirectX12用ビュー作成
+		GetGraphicsEngine().CreateDirectXTK12DescriptorNumber(m_cpuHandle, m_gpuHandle);
+		DirectX::CreateShaderResourceView(GetGraphicsEngine().GetD3D12Device(), m_texdata.d3d12texture.Get(), m_cpuHandle);
+#endif
 
 		//ファイルがDDSかどうかで乗算済みアルファ画像か判断
 		if (m_texdata.isDDS) {
@@ -141,9 +144,9 @@ namespace DemolisherWeapon {
 		layerDepth *= 0.999f; layerDepth += 0.001f;
 		layerDepth -= GetEngine().GetGraphicsEngine().AddAndGetLayerDepthCnt();
 
-//#ifdef DW_DX12
-//		m_spriteBatch->Draw(m_gpuHandle, DirectX::GetTextureSize(m_texdata->d3d12texture.Get()), pos.vec, &m_sourceRectangle, color, rotation, DirectX::XMFLOAT2(pivot.x * m_width, pivot.y * m_height), DirectX::XMFLOAT2(scale.x, scale.y), effects, layerDepth);
-//#endif
+#ifdef DW_DX12
+		m_spriteBatch->Draw(m_gpuHandle, DirectX::GetTextureSize(m_texdata.d3d12texture.Get()), pos.vec, &m_sourceRectangle, color, rotation, DirectX::XMFLOAT2(pivot.x * m_texdata.width, pivot.y * m_texdata.height), DirectX::XMFLOAT2(scale.x, scale.y), effects, layerDepth);
+#endif
 
 #ifdef DW_DX11
 		m_spriteBatch->Draw(m_texdata.textureView.Get(), pos.vec, &m_sourceRectangle, color, rotation, DirectX::XMFLOAT2(pivot.x* m_texdata.width, pivot.y* m_texdata.height), DirectX::XMFLOAT2(scale.x, scale.y), effects, layerDepth);

@@ -142,10 +142,16 @@ namespace DemolisherWeapon {
 #endif
 	}
 	void GameObjectManager::PostRender() {
-#ifndef DW_DX12_TEMPORARY
-
+#ifdef DW_DX11
 		GetEngine().GetGraphicsEngine().GetSpriteBatch()->Begin(DirectX::SpriteSortMode_BackToFront);
 		GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->Begin(DirectX::SpriteSortMode_BackToFront, GetGraphicsEngine().GetCommonStates().NonPremultiplied());
+#endif
+#ifdef DW_DX12
+		ID3D12DescriptorHeap* heaps[] = { GetGraphicsEngine().GetDirectXTK12DescriptorHeap() };
+		GetGraphicsEngine().GetCommandList()->SetDescriptorHeaps(_countof(heaps), heaps);
+		GetGraphicsEngine().GetSpriteBatch()->Begin(GetGraphicsEngine().GetCommandList(), DirectX::SpriteSortMode::SpriteSortMode_BackToFront);
+		GetGraphicsEngine().GetSpriteBatchPMA()->Begin(GetGraphicsEngine().GetCommandList(), DirectX::SpriteSortMode::SpriteSortMode_BackToFront);
+#endif
 
 		for (auto& go : m_runFuncGOList[IGameObject::enPostRender]) {
 			if (go->isNoPendingkill && go->isEnableGO && go->GetIsStart()) {
@@ -156,8 +162,6 @@ namespace DemolisherWeapon {
 		GetEngine().GetGraphicsEngine().GetSpriteBatch()->End();
 		GetEngine().GetGraphicsEngine().GetSpriteBatchPMA()->End();
 		GetEngine().GetGraphicsEngine().ResetLayerDepthCnt();
-
-#endif
 	}
 	void GameObjectManager::Hell() {
 		//m_gameObjectMap�̍폜

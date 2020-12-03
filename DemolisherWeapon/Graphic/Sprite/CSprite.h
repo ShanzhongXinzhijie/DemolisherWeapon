@@ -72,6 +72,9 @@ namespace DemolisherWeapon {
 
 		TextueData m_texdata;
 
+		D3D12_CPU_DESCRIPTOR_HANDLE m_cpuHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE m_gpuHandle;
+
 		RECT m_sourceRectangle;
 	};
 
