@@ -275,21 +275,21 @@ void chs(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     }
     
     //環境光
-    lig += 0.5f;
+    lig += 0.15f;
     
-    RayPayload refPayload;
-    refPayload.depth = payload.depth;
-    refPayload.color = 0;
     
     //反射レイ。
-    TraceReflectionRay(refPayload, normal);    
+    //RayPayload refPayload;
+    //refPayload.depth = payload.depth;
+    //refPayload.color = 0;    
+    //TraceReflectionRay(refPayload, normal);    
     
     //このプリミティブの反射率を取得。
     float reflectRate = 0.25f;//g_reflectionMap.SampleLevel(s, uv, 0.0f).r;
     float3 color = gAlbedoTexture.SampleLevel(s, uv, 0.0f).rgb ;
     color *= lig;
-    payload.color = lerp( color, refPayload.color, reflectRate); 
-   
+    payload.color = color; //payload.color = lerp( color, refPayload.color, reflectRate);     
+    
     //payload.color = color;
     
     /*
