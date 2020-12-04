@@ -374,4 +374,96 @@ private:
 
 }
 
+//CCollisionObjに対するレイ判定用(Closest)
+struct ClosestRayResultCallbackForCCollisionObj : public btCollisionWorld::ClosestRayResultCallback
+{
+	//コンストラクタ
+	ClosestRayResultCallbackForCCollisionObj(const btVector3& rayFromWorld, const btVector3& rayToWorld)
+		: ClosestRayResultCallback(rayFromWorld, rayToWorld)
+	{
+		m_collisionFilterMask = CCollisionObjFilter;//CCollisionObjとのみ判定
+	}
+	ClosestRayResultCallbackForCCollisionObj(const btVector3& rayFromWorld, const btVector3& rayToWorld, const wchar_t* name)
+		: ClosestRayResultCallback(rayFromWorld, rayToWorld)
+	{
+		m_collisionFilterMask = CCollisionObjFilter;//CCollisionObjとのみ判定
+
+		SetTargetCollisionName(name);//ターゲットの名前を設定
+	}
+
+	//衝突判定を取るかどうかの判定
+	bool needsCollision(btBroadphaseProxy* proxy0) const override
+	{
+		bool collides = (proxy0->m_collisionFilterGroup & m_collisionFilterMask) != 0;
+		collides = collides && (m_collisionFilterGroup & proxy0->m_collisionFilterMask);
+
+		if (collides && useNameKey) {
+			//CCollisionObjをとりだす
+			btCollisionObject* btObj = reinterpret_cast<btCollisionObject*>(proxy0->m_clientObject);
+			GameObj::Suicider::CCollisionObj* colObj = reinterpret_cast<GameObj::Suicider::CCollisionObj*>(btObj->getUserPointer());
+
+			//名前が一致するか判定
+			collides = (colObj->GetNameKey() == collisionNameKey);
+		}
+
+		return collides;
+	}
+
+	//衝突対象となる名前を設定する
+	void SetTargetCollisionName(const wchar_t* name) {
+		useNameKey = true;
+		collisionNameKey = Util::MakeHash(name);
+	}
+
+private:
+	bool useNameKey = false;
+	int collisionNameKey = 0;
+};
+
+//CCollisionObjに対するレイ判定用(AllHits)
+struct AllHitsRayResultCallbackForCCollisionObj : public btCollisionWorld::AllHitsRayResultCallback
+{
+	//コンストラクタ
+	AllHitsRayResultCallbackForCCollisionObj(const btVector3& rayFromWorld, const btVector3& rayToWorld)
+		: AllHitsRayResultCallback(rayFromWorld, rayToWorld)
+	{
+		m_collisionFilterMask = CCollisionObjFilter;//CCollisionObjとのみ判定
+	}
+	AllHitsRayResultCallbackForCCollisionObj(const btVector3& rayFromWorld, const btVector3& rayToWorld, const wchar_t* name)
+		: AllHitsRayResultCallback(rayFromWorld, rayToWorld)
+	{
+		m_collisionFilterMask = CCollisionObjFilter;//CCollisionObjとのみ判定
+
+		SetTargetCollisionName(name);//ターゲットの名前を設定
+	}
+
+	//衝突判定を取るかどうかの判定
+	bool needsCollision(btBroadphaseProxy* proxy0) const override
+	{
+		bool collides = (proxy0->m_collisionFilterGroup & m_collisionFilterMask) != 0;
+		collides = collides && (m_collisionFilterGroup & proxy0->m_collisionFilterMask);
+
+		if (collides && useNameKey) {
+			//CCollisionObjをとりだす
+			btCollisionObject* btObj = reinterpret_cast<btCollisionObject*>(proxy0->m_clientObject);
+			GameObj::Suicider::CCollisionObj* colObj = reinterpret_cast<GameObj::Suicider::CCollisionObj*>(btObj->getUserPointer());
+
+			//名前が一致するか判定
+			collides = (colObj->GetNameKey() == collisionNameKey);
+		}
+
+		return collides;
+	}
+
+	//衝突対象となる名前を設定する
+	void SetTargetCollisionName(const wchar_t* name) {
+		useNameKey = true;
+		collisionNameKey = Util::MakeHash(name);
+	}
+
+private:
+	bool useNameKey = false;
+	int collisionNameKey = 0;
+};
+
 }
