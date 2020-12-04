@@ -139,10 +139,12 @@ void VertexBufferDX12::Init(int numVertex, unsigned int vertexStride, void* vert
 	m_fullVertsSize = fullVertsSize;
 
 	//バッファ
+	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto desc = CD3DX12_RESOURCE_DESC::Buffer(fullVertsSize);
 	if (FAILED(GetGraphicsEngine().GetD3D12Device()->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		&prop,
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(fullVertsSize),
+		&desc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(&m_vertexBuffer))))
@@ -231,10 +233,12 @@ void IndexBufferDX12::Init(int numIndex, unsigned long* index) {
 	const auto fullsize = sizeof(unsigned long) * numIndex;
 
 	//バッファ
+	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto desc = CD3DX12_RESOURCE_DESC::Buffer(fullsize);
 	if (FAILED(GetGraphicsEngine().GetD3D12Device()->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+			&prop,
 			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(fullsize),
+			&desc,
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
 			IID_PPV_ARGS(&m_indexBuffer)))) {

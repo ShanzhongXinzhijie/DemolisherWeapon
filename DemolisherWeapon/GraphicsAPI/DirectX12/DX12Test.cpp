@@ -208,8 +208,9 @@ namespace DemolisherWeapon {
 				D3D12_TEXTURE_LAYOUT_UNKNOWN,
 				D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL | D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE);
 
+			CD3DX12_HEAP_PROPERTIES prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 			auto hr = m_d3dDevice->CreateCommittedResource(
-				&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+				&prop,
 				D3D12_HEAP_FLAG_NONE,
 				&desc,
 				D3D12_RESOURCE_STATE_DEPTH_WRITE,
@@ -482,8 +483,11 @@ namespace DemolisherWeapon {
 			return;
 		}
 
-		//リソースバリアを設定
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		{
+			//リソースバリアを設定
+			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			m_commandList->ResourceBarrier(1, &barrier);
+		}
 
 		//レンダーターゲットを設定
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -633,8 +637,11 @@ namespace DemolisherWeapon {
 		//	m_rayTraceTestModel[1].Draw(1);
 		//}
 
-		//リソースバリアを設定
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+		{
+			//リソースバリアを設定
+			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+			m_commandList->ResourceBarrier(1, &barrier);
+		}
 
 		//コマンドリストを閉じる
 		if (FAILED(m_commandList->Close())) {
@@ -676,7 +683,8 @@ namespace DemolisherWeapon {
 		}
 
 		//リソースバリアを設定
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		m_commandList->ResourceBarrier(1, &barrier);
 
 		//レンダーターゲットを設定
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -686,7 +694,8 @@ namespace DemolisherWeapon {
 
 	void DX12Test::ExecuteCommand() {
 		//リソースバリアを設定
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currentBackBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		m_commandList->ResourceBarrier(1, &barrier);
 
 		//コマンドリストを閉じる
 		if (FAILED(m_commandList->Close())) {
