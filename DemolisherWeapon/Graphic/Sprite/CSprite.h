@@ -106,6 +106,38 @@ namespace DemolisherWeapon {
 			void SetColor(const CVector4& color) {
 				m_color = color;
 			}
+			//ステータス取得
+			const CVector2& GetPos()const {
+				return m_pos;
+			}
+			const CVector2& GetScale()const {
+				return m_scale;
+			}
+			const CVector2& GetPivot()const {
+				return m_pivot;
+			}
+			float GetRot() const {
+				return m_rotation;
+			}
+			const CVector4& GetColor() const {
+				return m_color;
+			}
+
+			//エフェクトを設定
+			void SetSpriteEffects(DirectX::SpriteEffects effects) {
+				m_effects = effects;
+			}
+			DirectX::SpriteEffects GetSpriteEffects()const {
+				return m_effects;
+			}
+
+			//描画深度を設定
+			void SetLayerDepth(float depth) {
+				m_layerDepth = depth;
+			}
+			float GetLayerDepth()const {
+				return m_layerDepth;
+			}
 
 			/// <summary>
 			/// スクリーン座標で位置を指定するか
@@ -124,7 +156,7 @@ namespace DemolisherWeapon {
 			//画像の解像度で指定
 			void SetSourceRectangleSpriteSize(const RECT& sourceRectangle) {
 				m_sprite.SetSourceRectangleSpriteSize(sourceRectangle);
-			}
+			}			
 
 			void PostRender()override {
 				if (!m_isUseScreenPos) {
@@ -132,7 +164,9 @@ namespace DemolisherWeapon {
 						m_scale,
 						m_pivot,
 						m_rotation,
-						m_color
+						m_color,
+						m_effects,
+						m_layerDepth
 					);
 				}
 				else {
@@ -140,7 +174,9 @@ namespace DemolisherWeapon {
 						m_scale,
 						m_pivot,
 						m_rotation,
-						m_color
+						m_color,
+						m_effects,
+						m_layerDepth
 					);
 				}
 			}
@@ -154,6 +190,8 @@ namespace DemolisherWeapon {
 			CVector2 m_pivot = CVector2::One() * 0.5f;
 			float m_rotation = 0.0f;
 			CVector4 m_color = CVector4::White();
+			DirectX::SpriteEffects m_effects = DirectX::SpriteEffects_None;
+			float m_layerDepth = 0.5f;
 		};
 	}
 }
