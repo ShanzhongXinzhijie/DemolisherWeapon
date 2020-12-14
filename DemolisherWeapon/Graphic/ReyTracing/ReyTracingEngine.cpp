@@ -30,6 +30,9 @@ namespace DemolisherWeapon {
 			pDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &bufDesc, initState, nullptr, IID_PPV_ARGS(output.ReleaseAndGetAddressOf()));
 			output->SetName(name);
 		}
+
+		constexpr int MAX_ONE_BARRIERS = 100;
+		D3D12_RESOURCE_BARRIER maximumBarriers[MAX_ONE_BARRIERS];
 	}
 
 	void BLASBuffer::Init(
@@ -39,6 +42,8 @@ namespace DemolisherWeapon {
 	{
 		auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
 		
+		int barriorNum = 0;
+
 		for (auto& geometory : geometories) {
 			//すでに構築済み
 			if (geometory->m_pResultBLAS) {
@@ -83,13 +88,22 @@ namespace DemolisherWeapon {
 			commandList->BuildRaytracingAccelerationStructure(&asDesc, 0, nullptr);
 
 			//レイトレーシングアクセラレーション構造のビルド完了待ちのバリアを入れる。
-			D3D12_RESOURCE_BARRIER uavBarrier = {};
-			uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-			uavBarrier.UAV.pResource = asbuffer.pResult.Get();
-			commandList->ResourceBarrier(1, &uavBarrier);
+			maximumBarriers[barriorNum].Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+			maximumBarriers[barriorNum].UAV.pResource = asbuffer.pResult.Get();
+			barriorNum++;
+			//最大数を超えたらここまでのバリアを貼る
+			if (barriorNum >= MAX_ONE_BARRIERS) {
+				DW_WARNING_MESSAGE(true,"BLASBuffer::Init() barriorNumがMAX_ONE_BARRIERSを超えました\n")
+				commandList->ResourceBarrier(barriorNum, maximumBarriers);
+				barriorNum = 0;
+			}
 
 			m_bottomLevelASBuffers.push_back(std::move(asbuffer));
 			geometory->m_pResultBLAS = m_bottomLevelASBuffers.back().pResult.Get();
+		}
+
+		if (barriorNum > 0) {
+			commandList->ResourceBarrier(barriorNum, maximumBarriers);
 		}
 	}
 
