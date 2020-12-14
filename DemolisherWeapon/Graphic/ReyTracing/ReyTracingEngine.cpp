@@ -924,9 +924,9 @@ namespace DemolisherWeapon {
 		ReyTracingCBStructure cam;
 		cam.pos = GetMainCamera()->GetPos();
 		cam.mRot = GetMainCamera()->GetRotMatrix();
-		cam.aspect = GetMainCamera()->GetAspect();
 		cam.fNear = GetMainCamera()->GetNear();
 		cam.fFar = GetMainCamera()->GetFar();
+		cam.fov = GetMainCamera()->GetFOV();
 		m_rayGenerationCB.Update(&cam);
 
 		//出力バッファをバリア
@@ -1076,11 +1076,12 @@ namespace DemolisherWeapon {
 		}
 
 		//レイジェネレーション用の定数バッファ。
-		m_cbStructure.pos = GetMainCamera()->GetPos();
-		m_cbStructure.mRot = GetMainCamera()->GetRotMatrix();
-		m_cbStructure.aspect = GetMainCamera()->GetAspect();
-		m_cbStructure.fNear = GetMainCamera()->GetNear();
-		m_cbStructure.fFar = GetMainCamera()->GetFar();
-		m_rayGenerationCB.Init(sizeof(ReyTracingCBStructure), &m_cbStructure);
+		ReyTracingCBStructure cam;
+		cam.pos = GetMainCamera()->GetPos();
+		cam.mRot = GetMainCamera()->GetRotMatrix();
+		cam.fNear = GetMainCamera()->GetNear();
+		cam.fFar = GetMainCamera()->GetFar();
+		cam.fov = GetMainCamera()->GetFOV();
+		m_rayGenerationCB.Init(sizeof(ReyTracingCBStructure), &cam);
 	}
 }

@@ -221,9 +221,9 @@ namespace DemolisherWeapon {
 	struct ReyTracingCBStructure {
 		CMatrix mRot;	//回転行列
 		CVector3 pos;	//視点。
-		float aspect;	//アスペクト比。
 		float fFar;		//遠平面。
 		float fNear;	//近平面。
+		float fov;      //視野角
 	};
 
 	/// <summary>
@@ -574,8 +574,7 @@ namespace DemolisherWeapon {
 		ReyTracingDescriptorHeap m_descriptorHeap;
 
 		ConstantBuffer<ReyTracingCBStructure> m_rayGenerationCB;//定数バッファ
-		ReyTracingCBStructure m_cbStructure;
-
+		
 		Microsoft::WRL::ComPtr<ID3D12Resource> m_raytracingOutput;//出力バッファ
 		D3D12_GPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVGpuDescriptor;//出力バッファのGPUディスクリプタハンドル
 		D3D12_CPU_DESCRIPTOR_HANDLE m_raytracingOutputResourceUAVCpuDescriptor;//出力バッファのCPUディスクリプタハンドル

@@ -38,9 +38,9 @@ struct SVertex{
 struct Camera{
     float4x4 mCameraRot;   //カメラの回転行列
     float3 pos;            //カメラ座標。
-    float aspect;           //アスペクト比
     float far;             //遠平面。 
     float near;            //近平面。
+    float fov;             //視野角
 };
 
 cbuffer rayGenCB :register(b0) {
@@ -146,9 +146,10 @@ void TraceLightRay(inout RayPayload raypayload, float3 normal)
     ray.TMin = 0.01f;
     ray.TMax = 2500;
 
+    raypayload.hit = 1;
     TraceRay(
         g_raytracingWorld,
-        0,
+        RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
         0xFF,
         1,
         0,
@@ -204,10 +205,11 @@ void rayGen()
 	//ピクセル方向に打ち出すレイを作成する。
     RayDesc ray;
     ray.Origin = g_camera.pos;
-    ray.Direction = normalize(float3(d.x * g_camera.aspect, -d.y, 1.0f));
-    ray.Direction = mul(g_camera.mCameraRot, ray.Direction);
-    ray.TMin = 0;
-    ray.TMax = 10000;
+    ray.Direction = float3(d.x * aspectRatio, -d.y, 1.0f);
+    ray.Direction.xy *= tan(g_camera.fov / 2.0f); 
+    ray.Direction = normalize(mul(g_camera.mCameraRot, ray.Direction));
+    ray.TMin = g_camera.near;
+    ray.TMax = g_camera.far;
 
     //TraceRay
     RayPayload payload;
