@@ -12,7 +12,7 @@ public:
 	DefferdRender();
 	~DefferdRender();
 
-	void Init();
+	void Init(bool atmosphericFog);
 	void Release();
 
 	void Render()override;

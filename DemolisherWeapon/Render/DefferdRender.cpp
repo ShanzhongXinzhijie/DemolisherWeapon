@@ -11,9 +11,19 @@ DefferdRender::~DefferdRender()
 	Release();
 }
 
-void DefferdRender::Init() {
+void DefferdRender::Init(bool atmosphericFog) {
 	m_vs.Load("Preset/shader/defferd.fx", "VSMain", Shader::EnType::VS);
-	m_ps.Load("Preset/shader/defferd.fx", "PSMain", Shader::EnType::PS);
+
+	if (atmosphericFog) {
+		D3D_SHADER_MACRO macros[2] = {
+			"ATMOSPHERIC_FOG","1",
+			NULL, NULL
+		};
+		m_ps.Load("Preset/shader/defferd.fx", "PSMain", Shader::EnType::PS, "ATMOSPHERIC_FOG", macros);
+	}
+	else {
+		m_ps.Load("Preset/shader/defferd.fx", "PSMain", Shader::EnType::PS);
+	}
 
 	//ÉTÉìÉvÉâÅ[
 	D3D11_SAMPLER_DESC desc;

@@ -29,6 +29,7 @@ cbuffer lightCb : register(b2)
     float fogHeightScale;//1.5f
     float3 fogLightColor; 
     int fogEnable;
+    float fogNear;
 };
 struct SDirectionLight {
 	float3 color;
@@ -330,12 +331,54 @@ float3 NormalizedLambert(float3 diffuse, float3 lightDir, float3 normal)
 	return max(diffuse * dot(normal, lightDir), 0.0f)* (1.0f / PI);
 }
 
+
+#if defined(ATMOSPHERIC_FOG)
+static const float3 sunRed = float3(1.0f, 57 / 255.0f, 47 / 255.0f);
+
+//大気フォグ
+float3 AtmosphericSky(float3 solDir, float3 worldPosNorm)
+{
+    //青さ 
+    float3 skyC = float3(36.0 / 255.0, 67.0 / 255.0, 1.0) * saturate(solDir.y); 
+   	
+    //地平線に近いほど白い
+    float heightScale = fourth(fourth(1.0f - saturate(worldPosNorm.y)));
+    skyC = lerp(skyC, float3(1.0f, 1.0f, 1.0f), square(saturate(solDir.y)) * heightScale);
+   
+	//夕焼け
+    float timeScale = saturate(1.0f - length(solDir.y) * 4.0f);
+    float solScale = fourth(fourth(saturate(dot(solDir, worldPosNorm))));
+    skyC = lerp(skyC, sunRed, timeScale * saturate(solScale + heightScale));	
+	
+	//太陽
+    if (worldPosNorm.y > 0.0f && length(dot(solDir * -1.0f, worldPosNorm)) > 0.9998f)
+    {
+        if (solDir.y < 0.0f)
+        {
+            return float3(1.5f, 1.5f, 1.0f);
+        }
+        else
+        {
+            float heightScale = fourth(fourth(1.0f - saturate(worldPosNorm.y)));
+            return 10.0f * lerp(float3(1.0f, 1.0f, 1.0f), sunRed, heightScale);
+        }
+    }
+	
+    return skyC;
+}
+#endif
+
 float4 PSMain(PSDefferdInput In) : SV_Target0
 {
 	float4 albedo = albedoTexture.Sample(Sampler, In.uv);
 
 	//αテスト
-	if (albedo.w == 0.0f) {
+	if (albedo.w == 0.0f) {		
+#if defined(ATMOSPHERIC_FOG)
+		float4 viewpos = PosMap.Sample(Sampler, In.uv);
+		float3 worldpos = CalcWorldPosFromUVZ(In.uv, saturate(viewpos.w));
+        return float4(AtmosphericSky(fogLightDir, normalize(worldpos - eyePos)), 1.0f);
+#endif
 		discard;
 	}
 
@@ -346,11 +389,11 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	float3 worldpos = CalcWorldPosFromUVZ(In.uv, saturate(viewpos.w));
 	float4 lightParam = lightParamTex.Sample(Sampler, In.uv);
 	float3 emissive = albedo.rgb*lightParam.x;
-
+		
 	//ライティング無効
 	if (!lightParam.y) {
         return float4(albedo.rgb + emissive, albedo.w);
-    }
+    }	
 
 	//シャドウマップの範囲に入っているか判定
 	HideInShadow hideInShadow = (HideInShadow)0;
@@ -464,25 +507,28 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 	Out += emissive;
 
     //フォグ
-    //if (fogEnable){
-        //レイリー散乱
-        float diskaku = 1.0f - exp(-(viewpos.z - min(0.0f, worldpos.y - eyePos.y) * fogHeightScale) / fogFar);
-		diskaku = square(diskaku);
-        Out = lerp(Out, fogColor, fogEnable * diskaku);
-        //ミー散乱
-        {    
-            //シャドウマップの遮蔽適応
-            float nothide = 1.0f;
-    	    [unroll]
-            for (int swi = 0; swi < fogEnable * SHADOWMAP_NUM; swi++)
-            {
-                nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, fogLightDir) * -hideInShadow.flag[swi]));
-            }
-            nothide = saturate(dot(normal, fogLightDir)) * nothide;
+    float diskaku = 1.0f - exp(-(max(0.0f, (length(float3(worldpos.x - eyePos.x, 0.0f, worldpos.z - eyePos.z)) - min(0.0f, worldpos.y - eyePos.y) * fogHeightScale) - fogNear) / (fogFar - fogNear)));
+    diskaku = square(diskaku); 
+	
+#if defined(ATMOSPHERIC_FOG)
+    Out = lerp(Out, AtmosphericSky(fogLightDir, normalize(worldpos - eyePos)), fogEnable * diskaku);
+#else    
+    //レイリー散乱
+    Out = lerp(Out, fogColor, fogEnable * diskaku);
+    //ミー散乱
+    {    
+        //シャドウマップの遮蔽適応
+        float nothide = 1.0f;
+    	[unroll]
+        for (int swi = 0; swi < fogEnable * SHADOWMAP_NUM; swi++)
+        {
+            nothide = min(nothide, saturate(1.0f - dot(shadowDir[swi].xyz, fogLightDir) * -hideInShadow.flag[swi]));
+        }
+        nothide = saturate(dot(normal, fogLightDir)) * nothide;
 
-			Out = lerp(Out, fogLightColor, fogEnable * nothide * diskaku * max(0.0f, dot(fogLightDir * -1.0f, viewDir))); //float3(100.0f, 0, 0)
-		}
-    //}
-
+		Out = lerp(Out, fogLightColor, fogEnable * nothide * diskaku * max(0.0f, dot(fogLightDir * -1.0f, viewDir))); //float3(100.0f, 0, 0)
+	}
+#endif
+	
     return float4(Out, albedo.w);
 }

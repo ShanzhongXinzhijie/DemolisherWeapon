@@ -60,6 +60,7 @@ struct InitEngineParameter {
 	float bloomBufferScale = 0.75f;				//ブルーム解像度(3D描画の解像度に対する倍率)
 	bool isEnableDOF = false;					//被写界深度有効
 	float DOFBufferScale = 0.5f;				//被写界深度解像度(3D描画の解像度に対する倍率)
+	bool isAtmosphericFog = false;				//大気フォグ
 
 	size_t xtk12DescriptorsMaxnum = 2048;		//DirectXTK12のリソース(フォントやスプライト)の最大数
 	
@@ -482,6 +483,10 @@ inline void SetEnableFog(bool enable) {
 //フォグが完全にかかる距離を設定
 inline void SetFogDistance(float distance) {
 	GetGraphicsEngine().GetLightManager().SetFogDistance(distance);
+}
+//フォグがかかり始める距離を設定
+inline void SetFogStartDistance(float distance) {
+	GetGraphicsEngine().GetLightManager().SetFogStartDistance(distance);
 }
 //高さフォグのかかり具合を設定
 inline void SetFogHeightScale(float scale) {

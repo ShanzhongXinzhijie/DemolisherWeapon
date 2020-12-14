@@ -149,6 +149,10 @@ public:
 	void SetFogDistance(float distance) {
 		m_lightParam.fogFar = distance;
 	}
+	//フォグが始まる距離を設定
+	void SetFogStartDistance(float distance) {
+		m_lightParam.fogNear = distance;
+	}
 	//高さフォグのかかり具合を設定
 	void SetFogHeightScale(float scale) {
 		m_lightParam.fogHeightScale = scale;
@@ -175,6 +179,7 @@ private:
 		float fogHeightScale = 1.5f;				//高さフォグのかかり具合
 		CVector3 fogLightColor;						//太陽光の色
 		int fogEnable = 0;							//有効フラグ
+		float fogNear = 0.0f;						//フォグの始まる距離
 	};
 	SLightParam							m_lightParam;
 	ID3D11Buffer*						m_lightParamCB = nullptr;			//!<GPUで使用するライト用のパラメータの定数バッファ。	

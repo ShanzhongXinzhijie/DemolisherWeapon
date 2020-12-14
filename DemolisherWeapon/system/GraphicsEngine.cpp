@@ -245,7 +245,7 @@ bool GraphicsEngine::InnerInitDX11(HWND hWnd, const InitEngineParameter& initPar
 	m_shadowMapRender.SetSetting(initParam.shadowMapSetting);
 	m_postDrawModelRender.Init();
 	m_ambientOcclusionRender.Init(initParam.SSAOBufferScale);	 m_ambientOcclusionRender.SetEnable(initParam.isEnableSSAO);
-	m_defferdRender.Init();
+	m_defferdRender.Init(initParam.isAtmosphericFog);
 	m_bloomRender.Init(initParam.bloomBufferScale);				 m_bloomRender.SetEnable(initParam.isEnableBloom);
 	m_DOFRender.Init(initParam.DOFBufferScale);					 m_DOFRender.SetEnable(initParam.isEnableDOF);
 	m_motionBlurRender.Init();									 m_motionBlurRender.SetEnable(initParam.isEnableMotionBlur);
