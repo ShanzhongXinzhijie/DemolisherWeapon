@@ -63,6 +63,9 @@ struct InitEngineParameter {
 	bool isAtmosphericFog = false;				//大気フォグ
 
 	size_t xtk12DescriptorsMaxnum = 2048;		//DirectXTK12のリソース(フォントやスプライト)の最大数
+
+	bool isPointFiltering = false;				//モデルの描画にポイントフィルタリングを使用するか
+	bool isCreateMipmap = true;					//モデルテクスチャのミップマップを作成するか
 	
 	//シェーダのファイルパスをエンジンのものに置き換えるか?
 	//※デバッグ用 DW_MASTER時無効

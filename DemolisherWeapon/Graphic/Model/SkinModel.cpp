@@ -474,7 +474,13 @@ void SkinModel::Draw(bool reverseCull, int instanceNum, ID3D11BlendState* pBlend
 		}
 
 		//ƒTƒ“ƒvƒ‰[‚ÌÝ’è
-		ID3D11SamplerState* samplerState = states.AnisotropicWrap();
+		ID3D11SamplerState* samplerState; 
+		if (GetGraphicsEngine().GetIsPointFiltering()) {
+			samplerState = states.PointWrap();
+		}
+		else {
+			samplerState = states.AnisotropicWrap();
+		}
 		d3dDeviceContext->PSSetSamplers(0, 1, &samplerState);
 #endif
 		//•`‰æ

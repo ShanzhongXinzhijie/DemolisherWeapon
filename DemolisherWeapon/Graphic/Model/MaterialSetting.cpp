@@ -51,7 +51,7 @@ namespace DemolisherWeapon {
 	void MaterialData::InitAlbedoTexture(std::wstring_view path) {
 		//アルベド
 		const TextueData* return_textureData;
-		if (TextureFactory::GetInstance().Load(path.data(), &return_textureData, true)) {
+		if (TextureFactory::GetInstance().Load(path.data(), &return_textureData, GetGraphicsEngine().GetIsCreateMipMap())) {
 			//テクスチャで設定
 			m_defaultMaterialSetting.SetAlbedoTexture(*return_textureData);
 		}
@@ -63,7 +63,7 @@ namespace DemolisherWeapon {
 	void MaterialData::InitNormalTexture(std::wstring_view path) {
 		//ノーマル
 		const TextueData* return_textureData;
-		if (TextureFactory::GetInstance().Load(path.data(), &return_textureData, true))
+		if (TextureFactory::GetInstance().Load(path.data(), &return_textureData, GetGraphicsEngine().GetIsCreateMipMap()))
 		{
 			//テクスチャで設定			
 			m_defaultMaterialSetting.SetNormalTexture(*return_textureData);
@@ -72,7 +72,7 @@ namespace DemolisherWeapon {
 	void MaterialData::InitLightingTexture(std::wstring_view path) {
 		//ライティングパラメータ
 		const TextueData* return_textureData;
-		if (TextureFactory::GetInstance().Load(path.data(), &return_textureData, true))
+		if (TextureFactory::GetInstance().Load(path.data(), &return_textureData, GetGraphicsEngine().GetIsCreateMipMap()))
 		{
 			//テクスチャで設定
 			m_defaultMaterialSetting.SetLightingTexture(*return_textureData);

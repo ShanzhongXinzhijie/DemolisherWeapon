@@ -67,6 +67,10 @@ bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam, GameO
 	//垂直同期設定
 	m_useVSync = initParam.useVSync;
 
+	//モデル設定
+	m_isPointFiltering = initParam.isPointFiltering;
+	m_isCreateMipmap = initParam.isCreateMipmap;
+
 	//レンダークラスに参照渡す
 	m_directxtkRender.Init(gom, fc);
 
