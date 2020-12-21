@@ -113,7 +113,7 @@ void GBufferRender::Render() {
 	float clearColor[enGBufferNum][4] = {
 		{ 0.5f, 0.5f, 0.5f, 0.0f }, //enGBufferAlbedo
 		{ 0.5f, 0.5f, 1.0f, 1.0f }, //enGBufferNormal
-		{ 0.0f, 0.0f, 0.0f, 0.0f }, //enGBufferPosition
+		{ 0.0f, 0.0f, GetMainCamera()->GetFar(), 1.0f }, //enGBufferPosition
 		{ 0.0f, 0.0f, GetMainCamera()->GetFar(), GetMainCamera()->GetFar() }, //enGBufferVelocity
 		{ 0.0f, 0.0f, GetMainCamera()->GetFar(), GetMainCamera()->GetFar() }, //enGBufferVelocityPS
 		{ 0.0f, 0.0f, 0.0f, 1.0f }, //enGBufferLightParam

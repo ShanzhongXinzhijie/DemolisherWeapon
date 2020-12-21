@@ -271,6 +271,16 @@ public:
 		return m_modelDrawMode;
 	}
 
+	//モデルの描画にポイントフィルタリングを使用するか取得
+	bool GetIsPointFiltering()const {
+		return m_isPointFiltering;	
+	}
+
+	//モデルテクスチャのミップマップを作成するか取得
+	bool GetIsCreateMipMap()const {
+		return m_isCreateMipmap;
+	}
+
 	//レンダーマネージャーの取得
 	RanderManager& GetRenderManager(){
 		return m_renderManager;
@@ -453,6 +463,10 @@ private:
 
 	//モデル描画モード
 	ModelDrawMode m_modelDrawMode;
+
+	//モデル関係設定
+	bool m_isPointFiltering = false;	//モデルの描画にポイントフィルタリングを使用するか
+	bool m_isCreateMipmap = true;		//モデルテクスチャのミップマップを作成するか
 
 	//レンダー
 	int m_freeRenderPriority = -1;

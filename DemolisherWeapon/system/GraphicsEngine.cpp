@@ -67,6 +67,10 @@ bool GraphicsEngine::Init(HWND hWnd, const InitEngineParameter& initParam, GameO
 	//垂直同期設定
 	m_useVSync = initParam.useVSync;
 
+	//モデル設定
+	m_isPointFiltering = initParam.isPointFiltering;
+	m_isCreateMipmap = initParam.isCreateMipmap;
+
 	//レンダークラスに参照渡す
 	m_directxtkRender.Init(gom, fc);
 
@@ -245,7 +249,7 @@ bool GraphicsEngine::InnerInitDX11(HWND hWnd, const InitEngineParameter& initPar
 	m_shadowMapRender.SetSetting(initParam.shadowMapSetting);
 	m_postDrawModelRender.Init();
 	m_ambientOcclusionRender.Init(initParam.SSAOBufferScale);	 m_ambientOcclusionRender.SetEnable(initParam.isEnableSSAO);
-	m_defferdRender.Init();
+	m_defferdRender.Init(initParam.isAtmosphericFog);
 	m_bloomRender.Init(initParam.bloomBufferScale);				 m_bloomRender.SetEnable(initParam.isEnableBloom);
 	m_DOFRender.Init(initParam.DOFBufferScale);					 m_DOFRender.SetEnable(initParam.isEnableDOF);
 	m_motionBlurRender.Init();									 m_motionBlurRender.SetEnable(initParam.isEnableMotionBlur);
