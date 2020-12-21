@@ -268,11 +268,20 @@ namespace DemolisherWeapon{
 			return m_raytracingGeometoryStartIndex;
 		}
 		/// <summary>
-		/// レイトレワールドでのジオメトリインデックスの開始地点設定
+		/// レイトレワールドでのジオメトリ数取得
 		/// </summary>
-		/// <param name="ind"></param>
-		void SetRayTracingWorldStartIndex(int ind) {
-			m_raytracingGeometoryStartIndex = ind;
+		/// <returns></returns>
+		int GetRayTracingWorldGeometoryNum()const {
+			return m_raytracingGeometoryEndIndex - m_raytracingGeometoryStartIndex + 1;
+		}
+		/// <summary>
+		/// レイトレワールドでのジオメトリインデックスの設定
+		/// </summary>
+		/// <param name="start">開始位置</param>
+		/// <param name="end">終了位置</param>
+		void SetRayTracingWorldIndex(int start, int end) {
+			m_raytracingGeometoryStartIndex = start;
+			m_raytracingGeometoryEndIndex = end;
 		}
 
 	private:
@@ -280,5 +289,6 @@ namespace DemolisherWeapon{
 		CModelMeshParts m_meshParts;	//メッシュパーツ。
 
 		int m_raytracingGeometoryStartIndex = -1;//レイトレジオメトリの開始インデックス
+		int m_raytracingGeometoryEndIndex = -1;	//レイトレジオメトリの終了インデックス
 	};
 }

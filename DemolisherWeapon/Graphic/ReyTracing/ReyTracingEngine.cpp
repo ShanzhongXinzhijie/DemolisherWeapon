@@ -109,7 +109,7 @@ namespace DemolisherWeapon {
 
 	void TLASBuffer::Init(
 		ID3D12GraphicsCommandList4* commandList,
-		const std::vector<std::unique_ptr<ReyTracingInstanceData>>& instances,
+		const std::list<std::unique_ptr<ReyTracingInstanceData>>& instances,
 		const std::vector<AccelerationStructureBuffers>& bottomLevelASBuffers,
 		bool update
 	)
@@ -175,17 +175,23 @@ namespace DemolisherWeapon {
 		}
 		ZeroMemory(instanceDescs, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * numInstance);		
 
-		for (int i = 0; i < numInstance; i++) {			
-			instanceDescs[i].InstanceID = i;
-			instanceDescs[i].InstanceContributionToHitGroupIndex = (int)eHitGroup_Num * i + eHitGroup_PBRCameraRay;//使用するヒットグループ
-			instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
-			instanceDescs[i].AccelerationStructure = instances[i]->m_geometory->m_pResultBLAS->GetGPUVirtualAddress();
-			instanceDescs[i].InstanceMask = 0xFF;//ゼロだとレイに当たらない //これで非表示とかやる?
+		//for (int i = 0; i < numInstance; i++) {	
+		{
+			int i = 0;
+			for (auto& ins : instances) {
+				instanceDescs[i].InstanceID = i;
+				instanceDescs[i].InstanceContributionToHitGroupIndex = (int)eHitGroup_Num * i + eHitGroup_PBRCameraRay;//使用するヒットグループ
+				instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
+				instanceDescs[i].AccelerationStructure = ins->m_geometory->m_pResultBLAS->GetGPUVirtualAddress();
+				instanceDescs[i].InstanceMask = 0xFF;//ゼロだとレイに当たらない //これで非表示とかやる?
 
-			//トランスフォーム行列設定
-			CMatrix mTrans = *instances[i]->m_worldMatrix;
-			mTrans.Transpose();
-			memcpy(instanceDescs[i].Transform, &mTrans, sizeof(instanceDescs[i].Transform));			
+				//トランスフォーム行列設定
+				CMatrix mTrans = *(ins->m_worldMatrix);
+				mTrans.Transpose();
+				memcpy(instanceDescs[i].Transform, &mTrans, sizeof(instanceDescs[i].Transform));
+
+				i++;
+			}
 		}
 
 		m_topLevelASBuffers.pInstanceDesc->Unmap(0, nullptr);
@@ -550,7 +556,7 @@ namespace DemolisherWeapon {
 		}
 	}
 
-	void ReyTracingWorld::RegisterModel(CModel& model, const CMatrix* worldMatrix) {
+	std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator ReyTracingWorld::RegisterModel(CModel& model, const CMatrix* worldMatrix) {
 		m_isUpdated = true;
 
 		//ジオメトリのインデックス取得
@@ -561,6 +567,10 @@ namespace DemolisherWeapon {
 			//ジオメトリのレイトレ用初期化
 			model.InitRayTracingVertex();
 		}
+
+		int startIndex = -1;
+		bool isFirst = true;
+		std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator startItr;
 
 		model.FindMesh([&](const std::unique_ptr<SModelMesh>& mesh){
 			const auto& vertexBufferView = dynamic_cast<VertexBufferDX12*>(mesh->m_vertexBufferDXR.get())->GetView();
@@ -596,7 +606,7 @@ namespace DemolisherWeapon {
 					//ジオメトリの開始インデックス設定
 					if (geometoryIndex < 0) {
 						geometoryIndex = (int)m_geometories.size() - 1;
-						model.SetRayTracingWorldStartIndex(geometoryIndex);
+						startIndex = geometoryIndex;
 					}
 				}
 
@@ -608,11 +618,42 @@ namespace DemolisherWeapon {
 				//配列にインスタンス追加
 				m_instances.emplace_back(std::move(instance));
 
+				if (isFirst) {
+					startItr = m_instances.end();
+					startItr--;
+					isFirst = false;
+				}
+
 				geometoryIndex++;
 			}
 		});
+
+		//ジオメトリのインデックス記録
+		if (startIndex >= 0) {
+			model.SetRayTracingWorldIndex(startIndex, geometoryIndex - 1);
+		}
+
+		//インスタンス配列の開始イテレーター返す
+		return startItr;
 	}
-	void ReyTracingWorld::UnregisterModel(CModel& model, const CMatrix* worldMatrix) {
+	void ReyTracingWorld::UnregisterModel(std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator startItr, const CModel& model) {
+#ifndef DW_MASTER
+		int geometoryIndex = model.GetRayTracingWorldStartIndex();
+		if (geometoryIndex < 0) {
+			DW_WARNING_MESSAGE(true, "ReyTracingWorld::UnregisterModel() 登録されていないインスタンスを登録解除しようとしています。\n")
+				return;
+		}
+#endif
+		//指定回数イテレーターまわして削除
+		int num = model.GetRayTracingWorldGeometoryNum();
+		auto endItr = startItr;
+		std::advance(endItr, num);
+		m_instances.erase(startItr, endItr);
+
+		//更新しました
+		m_isUpdated = true;
+	}
+	/*void ReyTracingWorld::UnregisterModel(CModel& model, const CMatrix* worldMatrix) {
 		int geometoryIndex = model.GetRayTracingWorldStartIndex();
 		if (geometoryIndex < 0) {
 			DW_WARNING_MESSAGE(true, "ReyTracingWorld::UnregisterModel() 登録されていないインスタンスを登録解除しようとしています。\n")
@@ -642,7 +683,7 @@ namespace DemolisherWeapon {
 		);
 		
 		m_isUpdated = true;
-	}
+	}*/
 	void ReyTracingWorld::CommitRegisterGeometry(ID3D12GraphicsCommandList4* commandList) {
 		//BLASを構築。
 		m_blasBuffer.Init(commandList, m_geometories);

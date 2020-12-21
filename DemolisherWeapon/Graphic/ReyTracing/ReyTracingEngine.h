@@ -180,7 +180,7 @@ namespace DemolisherWeapon {
 		/// <param name="instances"></param>
 		void Init(
 			ID3D12GraphicsCommandList4* commandList,
-			const std::vector<std::unique_ptr<ReyTracingInstanceData>>& instances,
+			const std::list<std::unique_ptr<ReyTracingInstanceData>>& instances,
 			const std::vector<AccelerationStructureBuffers>& bottomLevelASBuffers,
 			bool update
 		);
@@ -357,14 +357,17 @@ namespace DemolisherWeapon {
 		/// </summary>
 		/// <param name="model">モデル</param>
 		/// <param name="worldMatrix">ワールド行列</param>
-		void RegisterModel(CModel& model, const CMatrix* worldMatrix);
+		/// <returns>インスタンス配列の開始位置</returns>
+		std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator RegisterModel(CModel& model, const CMatrix* worldMatrix);
 
 		/// <summary>
 		/// ジオメトリ登録を解除。
 		/// </summary>
 		/// <param name="model">モデル</param>
 		/// <param name="worldMatrix">ワールド行列</param>
-		void UnregisterModel(CModel& model, const CMatrix* worldMatrix);
+		//void UnregisterModel(CModel& model, const CMatrix* worldMatrix);
+
+		void UnregisterModel(std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator instanceStartIndex, const CModel& model);
 
 		/// <summary>
 		/// ジオメトリの登録を確定。
@@ -413,7 +416,7 @@ namespace DemolisherWeapon {
 		}
 
 	private:
-		std::vector<std::unique_ptr<ReyTracingInstanceData>> m_instances;
+		std::list<std::unique_ptr<ReyTracingInstanceData>> m_instances;		
 		std::vector<std::unique_ptr<ReyTracingGeometoryData>> m_geometories;
 		BLASBuffer m_blasBuffer;
 		TLASBuffer m_topLevelASBuffers;
@@ -516,13 +519,13 @@ namespace DemolisherWeapon {
 		/// </summary>
 		/// <param name="model">モデル</param>
 		/// <param name="worldMatrix">ワールド行列</param>
-		void RegisterModel(CModel& model, const CMatrix* worldMatrix)
+		std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator RegisterModel(CModel& model, const CMatrix* worldMatrix)
 		{
-			m_world.RegisterModel(model, worldMatrix);
+			return m_world.RegisterModel(model, worldMatrix);
 		}
-		void RegisterModel(SkinModel& model)
+		std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator RegisterModel(SkinModel& model)
 		{
-			m_world.RegisterModel(*model.GetModel(), &model.GetWorldMatrix());
+			return m_world.RegisterModel(*model.GetModel(), &model.GetWorldMatrix());
 		}
 
 		/// <summary>
@@ -530,13 +533,16 @@ namespace DemolisherWeapon {
 		/// </summary>
 		/// <param name="model">モデル</param>
 		/// <param name="worldMatrix">ワールド行列</param>
-		void UnregisterModel(CModel& model, const CMatrix* worldMatrix)
+		/*void UnregisterModel(CModel& model, const CMatrix* worldMatrix)
 		{
 			m_world.UnregisterModel(model, worldMatrix);
 		}
 		void UnregisterModel(SkinModel& model)
 		{
 			m_world.UnregisterModel(*model.GetModel(), &model.GetWorldMatrix());
+		}*/
+		void UnregisterModel(std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator startItr, const CModel& model) {
+			m_world.UnregisterModel(startItr, model);
 		}
 
 		/// <summary>

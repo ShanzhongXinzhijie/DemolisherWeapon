@@ -10,7 +10,7 @@ namespace DemolisherWeapon {
 			return;
 		}
 		//レイトレエンジンにモデルとトランスフォーム行列設定
-		GetGraphicsEngine().GetDX12().GetRayTracingEngine().RegisterModel(model, &worldMat);
+		m_insStartItr = GetGraphicsEngine().GetDX12().GetRayTracingEngine().RegisterModel(model, &worldMat);
 		m_model = &model;
 		m_worldMat = &worldMat;
 	}
@@ -30,7 +30,7 @@ namespace DemolisherWeapon {
 			return;
 		}
 		//レイトレエンジンから登録解除
-		GetGraphicsEngine().GetDX12().GetRayTracingEngine().UnregisterModel(*m_model, m_worldMat);
+		GetGraphicsEngine().GetDX12().GetRayTracingEngine().UnregisterModel(m_insStartItr, *m_model);
 		m_model = nullptr;
 		m_worldMat = nullptr;
 	}
