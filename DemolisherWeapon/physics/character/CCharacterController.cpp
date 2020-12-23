@@ -232,11 +232,11 @@ namespace DemolisherWeapon {
 					vOffset = hitNormalXZ;
 					vOffset.Scale(-fT0 + m_radius + m_offsetOffset);
 					nextPosition.Add(vOffset);
-					CVector3 currentDir;
+					/*CVector3 currentDir;
 					currentDir.Subtract(nextPosition, m_position);
 					currentDir.y = 0.0f;
 					currentDir.Normalize();
-					/*if (currentDir.Dot(originalXZDir) < 0.0f) {
+					if (currentDir.Dot(originalXZDir) < 0.0f) {
 						//Šp‚É“ü‚Á‚½Žž‚ÌƒLƒƒƒ‰ƒNƒ^‚ÌU“®‚ð–hŽ~‚·‚é‚½‚ß‚ÉA
 						//ˆÚ“®æ‚ª‹tŒü‚«‚É‚È‚Á‚½‚çˆÚ“®‚ðƒLƒƒƒ“ƒZƒ‹‚·‚éB
 						nextPosition.x = m_position.x;
