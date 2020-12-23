@@ -125,6 +125,7 @@
     <ClInclude Include="Graphic\ReyTracing\ReyTracingEngine.h" />
     <ClInclude Include="Graphic\Model\Render\CRayTracingRender.h" />
     <ClInclude Include="Render\RayTracingRender.h" />
+    <ClInclude Include="Graphic\CAABBRender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />

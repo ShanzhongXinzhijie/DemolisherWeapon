@@ -322,6 +322,7 @@
   <ItemGroup>
     <CustomBuild Include="Preset\shader\MotionBlurHeader.h" />
     <CustomBuild Include="Preset\shader\ShadowMapHeader.h" />
+    <ClInclude Include="Graphic\CAABBRender.h" />
     <ClInclude Include="Graphic\Model\Render\CRayTracingRender.h" />
     <ClInclude Include="Graphic\Model\ModelDrawMode.h" />
     <ClInclude Include="Graphic\Shader\ConstantBuffer.h" />
