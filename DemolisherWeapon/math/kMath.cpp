@@ -12,6 +12,16 @@ std::mt19937 CMath::mt(rd());
 std::uniform_real_distribution<float> CMath::zeroToOne(0.0f, 1.0f);
 std::uniform_int_distribution<> CMath::intRandom(0, RAND_MAX);
 
+bool CMath::ColAABBs(const CVector3& box1min, const CVector3& box1max, const CVector3& box2min, const CVector3& box2max) {
+	if (box1min.x > box2max.x) return false;
+	if (box1max.x < box2min.x) return false;
+	if (box1min.y > box2max.y) return false;
+	if (box1max.y < box2min.y) return false;
+	if (box1min.z > box2max.z) return false;
+	if (box1max.z < box2min.z) return false;
+	return true;
+}
+
 bool CMath::ColSegments(
 	const CVector2 &seg1Start,	
 	const CVector2 &seg1Length,
