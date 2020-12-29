@@ -17,7 +17,7 @@ namespace DemolisherWeapon {
 		CCharacterController(bool colGhost = false) : m_isColGhost(colGhost){
 
 		}
-		~CCharacterController()
+		virtual ~CCharacterController()
 		{
 			RemoveRigidBoby();
 		}
