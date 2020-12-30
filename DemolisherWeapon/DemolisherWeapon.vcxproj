@@ -325,10 +325,15 @@
     <ClInclude Include="Graphic\CAABBRender.h" />
     <ClInclude Include="Graphic\Model\Render\CRayTracingRender.h" />
     <ClInclude Include="Graphic\Model\ModelDrawMode.h" />
+    <ClInclude Include="Graphic\ReyTracing\AccelerationStructure.h" />
+    <ClInclude Include="Graphic\ReyTracing\RaytracingHeader.h" />
     <ClInclude Include="Graphic\Shader\ConstantBuffer.h" />
     <ClInclude Include="GraphicsAPI\DirectX12\DescriptorHeapXTK12.h" />
     <ClInclude Include="Graphic\ReyTracing\ReyTracingEngine.h" />
     <ClInclude Include="Render\RayTracingRender.h" />
+    <ClInclude Include="Graphic\ReyTracing\ReyTracingDescriptorHeap.h" />
+    <ClInclude Include="ReyTracingPSO.h" />
+    <ClInclude Include="Graphic\ReyTracing\ShaderTable.h" />
     <ClInclude Include="util\Noncopyable.h" />
     <ClInclude Include="Graphic\Model\Model.h" />
     <ClInclude Include="Graphic\Model\tkTkmFile.h" />
@@ -444,6 +449,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Graphic\Model\Render\CRayTracingRender.cpp" />
+    <ClCompile Include="Graphic\ReyTracing\AccelerationStructure.cpp" />
     <ClCompile Include="Graphic\Shader\ConstantBuffer.cpp" />
     <ClCompile Include="Graphic\Model\Model.cpp" />
     <ClCompile Include="Graphic\Model\tkTkmFile.cpp" />
@@ -459,6 +465,9 @@
     <ClCompile Include="Graphic\Shader\StructuredBuffer.cpp" />
     <ClCompile Include="Graphic\Shader\ShaderPreloader.cpp" />
     <ClCompile Include="Graphic\ReyTracing\ReyTracingEngine.cpp" />
+    <ClCompile Include="Graphic\ReyTracing\ReyTracingDescriptorHeap.cpp" />
+    <ClCompile Include="Graphic\ReyTracing\ReyTracingPSO.cpp" />
+    <ClCompile Include="Graphic\ReyTracing\ShaderTable.cpp" />
     <ClCompile Include="Timer\CDeleteTimer.cpp" />
     <ClCompile Include="Graphic\Particle\CParticle.cpp" />
     <ClCompile Include="Graphic\FrustumCulling.cpp" />

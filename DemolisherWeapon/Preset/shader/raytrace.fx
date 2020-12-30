@@ -62,7 +62,6 @@ RWTexture2D<float4> gOutput : register(u0);//出力先
 
 SamplerState  s : register(s0);//サンプラー
 
-
 /// <summary>
 /// RayTracingEngine.cpp : RayPayload
 /// </summary>
@@ -73,6 +72,51 @@ struct RayPayload
     int depth;
 };
 
+//太陽の色
+static const float3 sunRed = float3(1.0f, 57 / 255.0f, 47 / 255.0f);
+
+//二乗する
+float square(in float f)
+{
+    return f * f;
+}
+//四乗する
+float fourth(in float f)
+{
+    return f * f * f * f;
+}
+
+//大気フォグ
+float3 AtmosphericSky(float3 solDir, float3 worldPosNorm)
+{
+    //青さ 
+    float3 skyC = float3(36.0 / 255.0, 67.0 / 255.0, 1.0) * saturate(solDir.y);
+   	
+    //地平線に近いほど白い
+    float heightScale = fourth(fourth(1.0f - saturate(worldPosNorm.y)));
+    skyC = lerp(skyC, float3(1.0f, 1.0f, 1.0f), square(saturate(solDir.y)) * heightScale);
+   
+	//夕焼け
+    float timeScale = saturate(1.0f - length(solDir.y) * 4.0f);
+    float solScale = fourth(fourth(saturate(dot(solDir, worldPosNorm))));
+    skyC = lerp(skyC, sunRed, timeScale * saturate(solScale + heightScale));
+	
+	//太陽
+    if (worldPosNorm.y > 0.0f && length(dot(solDir * -1.0f, worldPosNorm)) > 0.9998f)
+    {
+        if (solDir.y < 0.0f)
+        {
+            return float3(1.5f, 1.5f, 1.0f);
+        }
+        else
+        {
+            float heightScale = fourth(fourth(1.0f - saturate(worldPosNorm.y)));
+            return 10.0f * lerp(float3(1.0f, 1.0f, 1.0f), sunRed, heightScale);
+        }
+    }
+	
+    return skyC;
+}
 
 //UV座標を取得。
 float2 GetUV(BuiltInTriangleIntersectionAttributes attribs)
@@ -93,8 +137,8 @@ float2 GetUV(BuiltInTriangleIntersectionAttributes attribs)
     
     return uv;
 }
-//法線を取得。
-float3 GetNormal(BuiltInTriangleIntersectionAttributes attribs, float2 uv)
+//モデルローカル法線を取得。
+float3 GetLocalNormal(BuiltInTriangleIntersectionAttributes attribs, float2 uv)
 {
     float3 barycentrics = float3(1.0 - attribs.barycentrics.x - attribs.barycentrics.y, attribs.barycentrics.x, attribs.barycentrics.y);
 
@@ -217,14 +261,13 @@ void rayGen()
     TraceRay(g_raytracingWorld, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, 0, 0, ray, payload);
     
     //Output
-    float3 col = payload.color ;    
-    gOutput[launchIndex.xy] = float4(col, 1);
+    gOutput[launchIndex.xy] = float4(payload.color, 1.0f);
 }
 
 [shader("miss")]
 void miss(inout RayPayload payload)
 {
-    payload.color = float3(66.0 / 255.0, 167.0 / 255.0, 1.0);
+    payload.color = AtmosphericSky(normalize(float3(0.5, 0.1, 0.2)), WorldRayDirection()); //float3(66.0 / 255.0, 167.0 / 255.0, 1.0);
 }
 
 [shader("closesthit")]
@@ -235,50 +278,20 @@ void chs(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     //ヒットしたプリミティブのUV座標を取得。
     float2 uv = GetUV(attribs);    
     //ヒットしたプリミティブの法線を取得。
-    float3 normal = GetNormal(attribs, uv);
-    
-    
-    //ワールド空間に変換するのがめんどいので、超適当に・・・。さーせん。
-    {
-        float cs = cos(-1.57f);
-        float sn = sin(-1.57f);
-        float4x4 m;
-        m[0][0] = 1.0f;
-        m[0][1] = 0.0f;
-        m[0][2] = 0.0f;
-        m[0][3] = 0.0f;
-
-        m[1][0] = 0.0f;
-        m[1][1] = cs;
-        m[1][2] = sn;
-        m[1][3] = 0.0f;
-
-        m[2][0] = 0.0f;
-        m[2][1] = -sn;
-        m[2][2] = cs;
-        m[2][3] = 0.0f;
-
-        m[3][0] = 0.0f;
-        m[3][1] = 0.0f;
-        m[3][2] = 0.0f;
-        m[3][3] = 1.0f;
-
-        m = transpose(m);
-        normal = mul(m, normal);
-    }
+    float3 normal = GetLocalNormal(attribs, uv);
     
     //光源にむかってレイを飛ばす。
     TraceLightRay(payload, normal);
     float lig = 0.0f;
     if(payload.hit == 0){
-        float3 ligDir =  normalize(float3(0.5, 0.5, 0.2));
-        float t = max( 0.0f, dot( ligDir, normal) );
-        lig = t;
+        //float3 ligDir =  normalize(float3(0.5, 0.5, 0.2));
+        //float t = max( 0.0f, dot( ligDir, normal) );
+        //lig = t;
+        lig = 0.85f;
     }
     
     //環境光
-    lig += 0.15f;
-    
+    lig += 0.15f;    
     
     //反射レイ。
     //RayPayload refPayload;
@@ -291,9 +304,7 @@ void chs(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     float3 color = gAlbedoTexture.SampleLevel(s, uv, 0.0f).rgb ;
     color *= lig;
     payload.color = color; //payload.color = lerp( color, refPayload.color, reflectRate);     
-    
-    //payload.color = color;
-    
+        
     /*
     payload.color.rg = uv;
     payload.color.b = 0.0f;
