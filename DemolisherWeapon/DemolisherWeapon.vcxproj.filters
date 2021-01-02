@@ -129,8 +129,8 @@
     <ClInclude Include="Graphic\ReyTracing\AccelerationStructure.h" />
     <ClInclude Include="Graphic\ReyTracing\RaytracingHeader.h" />
     <ClInclude Include="Graphic\ReyTracing\ReyTracingDescriptorHeap.h" />
-    <ClInclude Include="ReyTracingPSO.h" />
     <ClInclude Include="Graphic\ReyTracing\ShaderTable.h" />
+    <ClInclude Include="Graphic\ReyTracing\ReyTracingPSO.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -268,5 +268,6 @@
     <CustomBuild Include="Preset\shader\ModelDX12Test.fx" />
     <CustomBuild Include="Preset\shader\raytrace.fx" />
     <CustomBuild Include="Preset\sprite\testcard.png" />
+    <CustomBuild Include="Preset\shader\hlslHelpers.hlsl" />
   </ItemGroup>
 </Project>

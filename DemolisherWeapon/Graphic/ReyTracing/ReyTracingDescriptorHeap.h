@@ -1,6 +1,7 @@
 #pragma once
 
 namespace DemolisherWeapon {
+	class ReyTracingWorld;
 
 	/// <summary>
 	/// レイトレのディスクリプタヒープ

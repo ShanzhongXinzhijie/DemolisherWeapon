@@ -129,20 +129,20 @@ namespace DemolisherWeapon {
 		// Create the root-signature
 		RootSignatureDesc desc;
 		desc.range.resize(3);
-		// gOutput
+
+		//出力バッファ
 		desc.range[0].BaseShaderRegister = 0;//範囲内のベースシェーダーレジスタ。たとえば、シェーダーリソースビュー（SRV）の場合、3は「：register（t3）;」にマップされます。HLSLで。
 		desc.range[0].NumDescriptors = 1;
 		desc.range[0].RegisterSpace = 0;//たとえば、SRVの場合、BaseShaderRegisterメンバーの説明の例を拡張することにより、5は「：register（t3、space5）;」にマップされます。HLSLで。
 		desc.range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 		desc.range[0].OffsetInDescriptorsFromTableStart = m_descriptorHeap->GetOffsetUAVDescriptorFromTableStart();
-
-		// gRtScene
+		//レイトレワールド
 		desc.range[1].BaseShaderRegister = 0;
 		desc.range[1].NumDescriptors = (int)ESRV_OneEntry::eNumRayGenerationSRV;
 		desc.range[1].RegisterSpace = 0;
 		desc.range[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		desc.range[1].OffsetInDescriptorsFromTableStart = m_descriptorHeap->GetOffsetSRVDescriptorFromTableStart();
-
+		//定数バッファ
 		desc.range[2].BaseShaderRegister = 0;
 		desc.range[2].NumDescriptors = 1;
 		desc.range[2].RegisterSpace = 0;
@@ -163,28 +163,29 @@ namespace DemolisherWeapon {
 	}
 	ReyTracingPSO::RootSignatureDesc ReyTracingPSO::CreatePBRMatterialHitRootSignatureDesc()
 	{
-		RootSignatureDesc desc;
-
 		enum ERange {
 			eRange_SRV,		//SRV
 			eRange_Sampler,	//サンプラ
 			eRange_Num,		//範囲の数。
 		};
+
+		RootSignatureDesc desc;
 		desc.range.resize(eRange_Num);
 
-		desc.rootParams.resize(eHitShaderDescriptorTable_Num);
-
+		//SRVs
 		desc.range[eRange_SRV].BaseShaderRegister = 0;
 		desc.range[eRange_SRV].NumDescriptors = (int)ESRV_OneEntry::eNum;
 		desc.range[eRange_SRV].RegisterSpace = 0;
 		desc.range[eRange_SRV].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 		desc.range[eRange_SRV].OffsetInDescriptorsFromTableStart = 0;
-
+		//サンプラー
 		desc.range[eRange_Sampler].BaseShaderRegister = 0;
 		desc.range[eRange_Sampler].NumDescriptors = 1;
 		desc.range[eRange_Sampler].RegisterSpace = 0;
 		desc.range[eRange_Sampler].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
 		desc.range[eRange_Sampler].OffsetInDescriptorsFromTableStart = 0;
+
+		desc.rootParams.resize(eHitShaderDescriptorTable_Num);
 
 		desc.rootParams[eHitShaderDescriptorTable_SRV_CBV].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		desc.rootParams[eHitShaderDescriptorTable_SRV_CBV].DescriptorTable.NumDescriptorRanges = 1;
@@ -194,7 +195,7 @@ namespace DemolisherWeapon {
 		desc.rootParams[eHitShaderDescriptorTable_Sampler].DescriptorTable.NumDescriptorRanges = 1;
 		desc.rootParams[eHitShaderDescriptorTable_Sampler].DescriptorTable.pDescriptorRanges = &desc.range[1];
 
-
+		// Create the desc
 		desc.desc.NumParameters = static_cast<UINT>(desc.rootParams.size());
 		desc.desc.pParameters = desc.rootParams.data();
 		desc.desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;

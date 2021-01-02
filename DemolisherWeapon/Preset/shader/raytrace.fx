@@ -26,6 +26,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************/
 
+#include "hlslHelpers.hlsl"
+
 //頂点構造
 struct SVertex{    
     float3 position;
@@ -57,6 +59,8 @@ Texture2D<float4> g_refractionMap : register(t5);   //屈折マップ。
 
 StructuredBuffer<SVertex> g_vertexBuffers : register(t6);   //頂点バッファ。
 StructuredBuffer<int> g_indexBuffers : register(t7);        //インデックスバッファ。
+
+StructuredBuffer<float4x4> g_worldMatrixs : register(t8); //ワールド行列
 
 RWTexture2D<float4> gOutput : register(u0);//出力先
 
@@ -174,39 +178,94 @@ float3 GetLocalNormal(BuiltInTriangleIntersectionAttributes attribs, float2 uv)
     
     return normal;
 }
+
+static const int SOFT_SHADOW_RAY_MAX = 3;
+static const float3 DirLightSizeOffset[] = { 
+    float3(0.0f,0.002f,0.0f),
+    float3(0.002f,0.0f,0.0f),
+    float3(-0.002f,0.0f,0.0f)
+};
+
 //光源に向けてレイを飛ばす。
-void TraceLightRay(inout RayPayload raypayload, float3 normal)
+float TraceLightRay(inout RayPayload raypayload, float3 normal)
 {
-    float hitT = RayTCurrent();
-    float3 rayDirW = WorldRayDirection();
-    float3 rayOriginW = WorldRayOrigin();
+    //int result = SOFT_SHADOW_RAY_MAX;
+    if (raypayload.depth < 3)
+    {
+        float hitT = RayTCurrent();
+        float3 rayDirW = WorldRayDirection();
+        float3 rayOriginW = WorldRayOrigin();
 
-    // Find the world-space hit position
-    float3 posW = rayOriginW + hitT * rayDirW;
+        // Find the world-space hit position
+        float3 posW = rayOriginW + hitT * rayDirW;
 
-    RayDesc ray;
-    ray.Origin = posW;
-    ray.Direction = normalize(float3(0.5, 0.5, 0.2));
-    ray.TMin = 0.01f;
-    ray.TMax = 2500;
+        RayDesc ray;
+        ray.Origin = posW;
+        ray.TMin = 0.01f;
+        ray.TMax = 2500;        
+        
+        float3 toLight = normalize(float3(0.5, 0.5, 0.2));
+        // Calculate a vector perpendicular to L
+        float3 perpL = cross(toLight, float3(0.f, 1.0f, 0.f));
+        // Handle case where L = up -> perpL should then be (1,0,0)
+        if (all(perpL == 0.0f)){ perpL.x = 1.0; }
+        // Use perpL to get a vector from worldPosition to the edge of the light sphere
+        const float radius = 10.0f;
+        float3 lightPosition = posW + toLight * 2500.0f;
+        float3 toLightEdge = normalize((lightPosition + perpL * radius) - posW);
+        // Angle between L and toLightEdge. Used as the cone angle when sampling shadow rays
+        float coneAngle = acos(dot(toLight, toLightEdge)) * 2.0f;        
+       
+        uint seed = square(posW.x * 133 + posW.z * 15 + posW.y * 2000); 
+        seed = initRand((uint) square(posW.x * 10), (uint) square(posW.z * 10));
+        ray.Direction = getConeSample(
+        seed,
+        toLight,
+        coneAngle
+        );
 
-    raypayload.hit = 1;
-    TraceRay(
-        g_raytracingWorld,
-        RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-        0xFF,
-        1,
-        0,
-        1,
-        ray,
-        raypayload
-    );
+        raypayload.hit = 1;
+        TraceRay(
+                g_raytracingWorld,
+                RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+                0xFF,
+                1,
+                0,
+                1,
+                ray,
+                raypayload
+            );
+        
+        return 1.0f - raypayload.hit;
+        
+        /*
+        [unroll]
+        for (int i = 0; i < SOFT_SHADOW_RAY_MAX; i++)
+        {        
+            raypayload.hit = 1;
+            ray.Direction = normalize(float3(0.5, 0.5, 0.2) + DirLightSizeOffset[i]);
+            TraceRay(
+                g_raytracingWorld,
+                RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+                0xFF,
+                1,
+                0,
+                1,
+                ray,
+                raypayload
+            );
+            result -= raypayload.hit;
+        }
+        */
+    }
+    return 1.0f;
+    //return (float) result / SOFT_SHADOW_RAY_MAX;
 }
 //反射レイを飛ばす。
 void TraceReflectionRay(inout RayPayload raypayload, float3 normal)
 {
-    if( raypayload.depth < 3
-    ){
+    if( raypayload.depth < 3)
+    {
         float hitT = RayTCurrent();
         float3 rayDirW = WorldRayDirection();
         float3 rayOriginW = WorldRayOrigin();
@@ -220,15 +279,15 @@ void TraceReflectionRay(inout RayPayload raypayload, float3 normal)
         ray.Origin = posW;
         ray.Direction = refDir;
         ray.TMin = 0.01f;
-        ray.TMax = 10000;
-    
+        ray.TMax = 10000;    
+         
         TraceRay(
             g_raytracingWorld,
             0,
             0xFF,
             0,
             0,
-            1,
+            0,//1,
             ray,
             raypayload
         );
@@ -278,33 +337,37 @@ void chs(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     //ヒットしたプリミティブのUV座標を取得。
     float2 uv = GetUV(attribs);    
     //ヒットしたプリミティブの法線を取得。
-    float3 normal = GetLocalNormal(attribs, uv);
+    float3 normal = GetLocalNormal(attribs, uv);    
+    //法線をワールド空間に変換
+    normal = mul(g_worldMatrixs[InstanceID()], normal);
     
-    //光源にむかってレイを飛ばす。
-    TraceLightRay(payload, normal);
     float lig = 0.0f;
-    if(payload.hit == 0){
-        //float3 ligDir =  normalize(float3(0.5, 0.5, 0.2));
-        //float t = max( 0.0f, dot( ligDir, normal) );
-        //lig = t;
-        lig = 0.85f;
-    }
+    
+    //シャドウ
+    //光源にむかってレイを飛ばす。
+    lig = TraceLightRay(payload, normal);
+    
+    //ディフューズライティング
+    float3 ligDir = normalize(float3(0.5, 0.5, 0.2));
+    float t = max(0.0f, dot(ligDir, normal));
+    lig *= t;
     
     //環境光
-    lig += 0.15f;    
+    lig += 0.615f;    
     
     //反射レイ。
     //RayPayload refPayload;
     //refPayload.depth = payload.depth;
-    //refPayload.color = 0;    
-    //TraceReflectionRay(refPayload, normal);    
+    //refPayload.color = 0;
+    //TraceReflectionRay(refPayload, normal);
     
     //このプリミティブの反射率を取得。
     float reflectRate = 0.25f;//g_reflectionMap.SampleLevel(s, uv, 0.0f).r;
     float3 color = gAlbedoTexture.SampleLevel(s, uv, 0.0f).rgb ;
     color *= lig;
     payload.color = color; //payload.color = lerp( color, refPayload.color, reflectRate);     
-        
+    //payload.color += refPayload.color * reflectRate;
+    
     /*
     payload.color.rg = uv;
     payload.color.b = 0.0f;

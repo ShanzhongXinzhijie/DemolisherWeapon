@@ -164,6 +164,8 @@ namespace DemolisherWeapon {
 				L"TLASpInstanceDesc"
 			);
 			//tlasSize = info.ResultDataMaxSizeInBytes;
+
+			m_worldMatrixSB.Init(numInstance);
 		}
 
 		//Map the instance desc buffer
@@ -176,6 +178,8 @@ namespace DemolisherWeapon {
 		ZeroMemory(instanceDescs, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * numInstance);
 
 		{
+			auto& worldMats = m_worldMatrixSB.GetData();
+
 			int i = 0;
 			for (auto& ins : instances) {
 				instanceDescs[i].InstanceID = i;
@@ -189,8 +193,11 @@ namespace DemolisherWeapon {
 				mTrans.Transpose();
 				memcpy(instanceDescs[i].Transform, &mTrans, sizeof(instanceDescs[i].Transform));
 
+				worldMats[i] = *(ins->m_worldMatrix);
+
 				i++;
 			}
+			m_worldMatrixSB.UpdateSubresource();
 		}
 
 		m_topLevelASBuffers.pInstanceDesc->Unmap(0, nullptr);

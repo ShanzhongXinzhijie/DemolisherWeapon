@@ -332,7 +332,7 @@
     <ClInclude Include="Graphic\ReyTracing\ReyTracingEngine.h" />
     <ClInclude Include="Render\RayTracingRender.h" />
     <ClInclude Include="Graphic\ReyTracing\ReyTracingDescriptorHeap.h" />
-    <ClInclude Include="ReyTracingPSO.h" />
+    <ClInclude Include="Graphic\ReyTracing\ReyTracingPSO.h" />
     <ClInclude Include="Graphic\ReyTracing\ShaderTable.h" />
     <ClInclude Include="util\Noncopyable.h" />
     <ClInclude Include="Graphic\Model\Model.h" />
@@ -653,6 +653,11 @@
       <FileType>Document</FileType>
     </CustomBuild>
     <CustomBuild Include="Preset\sprite\testcard.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Preset\shader\hlslHelpers.hlsl">
+      <FileType>Document</FileType>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

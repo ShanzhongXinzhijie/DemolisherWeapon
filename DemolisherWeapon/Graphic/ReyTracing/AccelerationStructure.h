@@ -52,6 +52,7 @@ namespace DemolisherWeapon {
 			return m_topLevelASBuffers.pResult->GetGPUVirtualAddress();
 		}
 
+		//ディスクリプタハンドルを取得
 		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle() const {
 			return m_GPUdescriptorHandle;
 		}
@@ -59,12 +60,20 @@ namespace DemolisherWeapon {
 			return m_CPUdescriptorHandle;
 		}
 
+		//ワールド行列のデスクリプタハンドルを取得
+		D3D12_GPU_DESCRIPTOR_HANDLE GetWorldMatrixGPUDescriptorHandle() const {
+			return m_worldMatrixSB.GetGPUDescriptorHandle();
+		}
+		D3D12_CPU_DESCRIPTOR_HANDLE GetWorldMatrixCPUDescriptorHandle() const {
+			return m_worldMatrixSB.GetCPUDescriptorHandle();
+		}
+
 	private:
 		AccelerationStructureBuffers m_topLevelASBuffers;
 		D3D12_GPU_DESCRIPTOR_HANDLE m_GPUdescriptorHandle;
 		D3D12_CPU_DESCRIPTOR_HANDLE m_CPUdescriptorHandle;
 
-		StructuredBuffer<CMatrix> m_instanceWorldMatrixSB;
+		StructuredBuffer<CMatrix> m_worldMatrixSB;//ワールド行列
 	};
 
 }

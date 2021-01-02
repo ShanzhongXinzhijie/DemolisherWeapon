@@ -308,6 +308,18 @@ namespace DemolisherWeapon {
 			return sb11->GetSRV().GetAddressOf();
 		}
 
+		//ディスクリプタハンドルの取得(DX12)
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle()const {
+			StructuredBufferInnerDX12* sb12 = dynamic_cast<StructuredBufferInnerDX12*>(m_innerIns.get());
+			if (sb12 == nullptr) { return {}; }
+			return sb12->GetCPUDescriptorHandle();
+		}
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle()const {
+			StructuredBufferInnerDX12* sb12 = dynamic_cast<StructuredBufferInnerDX12*>(m_innerIns.get());
+			if (sb12 == nullptr) { return {}; }
+			return sb12->GetGPUDescriptorHandle();
+		}
+
 	private:
 		std::unique_ptr<T[]>					m_t;
 		std::unique_ptr<IStructuredBufferInner> m_innerIns;

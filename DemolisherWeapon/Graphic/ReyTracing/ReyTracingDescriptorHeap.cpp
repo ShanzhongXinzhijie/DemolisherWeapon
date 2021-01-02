@@ -21,7 +21,7 @@ namespace DemolisherWeapon {
 
 		//CBV開始位置
 		m_cbvStartNum = srvIndex;
-		//定数		
+		//カメラ定数		
 		device->CopyDescriptorsSimple(
 			1,
 			m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),//dest
@@ -145,6 +145,15 @@ namespace DemolisherWeapon {
 				instance.m_geometory->m_indexBufferRWSB.GetCPUDescriptorHandle(),//src
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 			);
+
+			//ワールド行列
+			device->CopyDescriptorsSimple(
+				1,
+				CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eWorldMatrixs, m_srvsDescriptorSize),//dest
+				world.GetTLASBuffer().GetWorldMatrixCPUDescriptorHandle(),//src
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+			);
+
 			srvIndex += (int)ESRV_OneEntry::eNum;
 		}
 		);

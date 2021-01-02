@@ -9,7 +9,6 @@ namespace DemolisherWeapon {
 		0,
 		0
 	};
-
 	inline constexpr D3D12_HEAP_PROPERTIES kUploadHeapProps =
 	{
 		D3D12_HEAP_TYPE_UPLOAD,
@@ -133,20 +132,16 @@ namespace DemolisherWeapon {
 		eRefractionMap,						//屈折マップ。
 		eVertexBuffer,						//頂点バッファ。
 		eIndexBuffer,						//インデックスバッファ。
+		eWorldMatrixs,						//ワールド行列
 		eNum,								//SRVの数。
 		eNumRayGenerationSRV = eEndRayGenerationSRV - eStartRayGenerationSRV,//レイジェネレーションシェーダーで使用するSRVの数。
 	};
 
-	/// <summary>
-	/// ヒットシェーダーのディスクリプタテーブル
-	/// </summary>
 	enum EHitShaderDescriptorTable {
 		eHitShaderDescriptorTable_SRV_CBV,	//SRVとCBV
 		eHitShaderDescriptorTable_Sampler,	//サンプラ
 		eHitShaderDescriptorTable_Num       //テーブルの数。
 	};
-
-	class ReyTracingWorld;
 
 	/// <summary>
 	/// 定数バッファ
