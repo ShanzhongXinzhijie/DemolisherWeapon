@@ -102,6 +102,11 @@ public:
 	2 交点がない　    resultには最近点を格納
 	*/
 	static int IntersectLines(CVector3* result, const CVector3& A, const CVector3& B, const CVector3& C, const CVector3& D);
+
+	/// <summary>
+	/// 線分と平面の衝突
+	/// </summary>
+	static bool ColPlaneAndSegment(CVector3* hitPos, const CVector3& SegStart, const CVector3& SegEnd, const CVector3& PlanePoint, const CVector3& PlaneNormal);
 	
 	/// <summary>
 	/// 反射ベクトルを計算

@@ -12,6 +12,30 @@ std::mt19937 CMath::mt(rd());
 std::uniform_real_distribution<float> CMath::zeroToOne(0.0f, 1.0f);
 std::uniform_int_distribution<> CMath::intRandom(0, RAND_MAX);
 
+bool CMath::ColPlaneAndSegment(CVector3* hitPos, const CVector3& SegStart, const CVector3& SegEnd, const CVector3& PlanePoint, const CVector3& PlaneNormal)
+{
+	CVector3 PS = PlanePoint - SegStart;
+	CVector3 PE = PlanePoint - SegEnd;
+	float dot_s = PS.Dot(PlaneNormal);
+	float dot_e = PE.Dot(PlaneNormal);
+
+	// 交点なし
+	if (abs(dot_s) < FLT_EPSILON && abs(dot_e) < FLT_EPSILON) {
+		return false;
+	}
+	if (dot_s * dot_e > 0.0f) {//両方の符号が揃っている
+		return false;
+	}
+
+	// 交点あり
+	CVector3 segment = SegEnd - SegStart;
+	//(交点-線分始点) / (交点-線分終点) 
+	float ratio = abs(dot_s) / (abs(dot_s) + abs(dot_e));
+	*hitPos = SegStart + segment * ratio;
+
+	return true;
+}
+
 bool CMath::ColAABBs(const CVector3& box1min, const CVector3& box1max, const CVector3& box2min, const CVector3& box2max) {
 	if (box1min.x > box2max.x) return false;
 	if (box1max.x < box2min.x) return false;
