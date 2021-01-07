@@ -293,7 +293,6 @@ namespace DemolisherWeapon {
 		struct RayPayload
 		{
 			CVector3 color;
-			int hit;
 			int depth;
 		};
 		uint32_t attributesSize = sizeof(float) * 2;// BuiltInTriangleIntersectionAttributesÇÃÉTÉCÉY

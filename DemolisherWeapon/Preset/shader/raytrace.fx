@@ -28,6 +28,8 @@
 
 #include "hlslHelpers.hlsl"
 
+static const int MAX_TRACE_RECURSION_DEPTH = 4;
+
 //頂点構造
 struct SVertex{    
     float3 position;
@@ -72,8 +74,16 @@ SamplerState  s : register(s0);//サンプラー
 struct RayPayload
 {
     float3 color;
-    int hit;
     int depth;
+};
+struct RayPayloadShadow
+{
+    int hit;
+};
+struct RayPayloadAO
+{
+    float3 color;
+    float distance;
 };
 
 //太陽の色
@@ -120,6 +130,15 @@ float3 AtmosphericSky(float3 solDir, float3 worldPosNorm)
     }
 	
     return skyC;
+}
+
+//フレネル
+//specAlbedo = フレネル反射率
+//halfVec = ハーフベクトル = normalize(lightDir + viewDir);
+//lightDir = ライト方向
+float3 Fresnel(in float3 specAlbedo, in float3 halfVec, in float3 lightDir)
+{
+    return specAlbedo + (1.0f - specAlbedo) * pow((1.0f - dot(lightDir, halfVec)), 5.0f);
 }
 
 //UV座標を取得。
@@ -186,11 +205,82 @@ static const float3 DirLightSizeOffset[] = {
     float3(-0.002f,0.0f,0.0f)
 };
 
+//アンビエントオクルージョン
+float TraceAORay(inout RayPayload raypayload, float3 normal)
+{
+    if (raypayload.depth < MAX_TRACE_RECURSION_DEPTH)
+    {
+        float hitT = RayTCurrent();
+        float3 rayDirW = WorldRayDirection();
+        float3 rayOriginW = WorldRayOrigin();
+        // Find the world-space hit position
+        float3 posW = rayOriginW + hitT * rayDirW;
+
+        RayDesc ray;
+        ray.Origin = posW;
+        ray.TMin = 0.01f;
+        ray.TMax = 25;
+        
+        //シード値
+        uint seed = initRand((uint) square(posW.x * 10), (uint) square(posW.z * 10));
+        
+        //ランダムに半球コーン?内をサンプル
+        ray.Direction = getConeSample(
+            seed,
+            normal,
+            PI
+        );
+
+        RayPayloadAO payloadAO;    
+        payloadAO.distance = ray.TMax;
+        TraceRay(
+            g_raytracingWorld,
+            0,
+            0xFF,
+            2,//ヒットグループのインデックス
+            0,
+            2,//ミスシェーダのインデックス
+            ray,
+            payloadAO
+        );
+        
+        float result = (1.0f - (payloadAO.distance / ray.TMax)) * saturate(dot(ray.Direction, normal));
+        
+        //シード値
+        seed = initRand((uint) square(posW.x * 20), (uint) square(posW.z * 30));
+        
+        //ランダムに半球コーン?内をサンプル
+        ray.Direction = getConeSample(
+            seed,
+            normal,
+            PI
+        );
+
+        payloadAO.distance = ray.TMax;
+        TraceRay(
+            g_raytracingWorld,
+            0,
+            0xFF,
+            2, //ヒットグループのインデックス
+            0,
+            2, //ミスシェーダのインデックス
+            ray,
+            payloadAO
+        );
+        
+        result += (1.0f - (payloadAO.distance / ray.TMax)) * saturate(dot(ray.Direction, normal));
+        result /= 2.0f;
+        
+        return result; //  cos(); //payload.val = exp(-distance * g_optionsCB.m_falloff);
+    }
+    return 0.0f;
+}
+
 //光源に向けてレイを飛ばす。
 float TraceLightRay(inout RayPayload raypayload, float3 normal)
 {
     //int result = SOFT_SHADOW_RAY_MAX;
-    if (raypayload.depth < 3)
+    if (raypayload.depth < MAX_TRACE_RECURSION_DEPTH)
     {
         float hitT = RayTCurrent();
         float3 rayDirW = WorldRayDirection();
@@ -216,27 +306,30 @@ float TraceLightRay(inout RayPayload raypayload, float3 normal)
         // Angle between L and toLightEdge. Used as the cone angle when sampling shadow rays
         float coneAngle = acos(dot(toLight, toLightEdge)) * 2.0f;        
        
-        uint seed = square(posW.x * 133 + posW.z * 15 + posW.y * 2000); 
-        seed = initRand((uint) square(posW.x * 10), (uint) square(posW.z * 10));
+        //シード値
+        uint seed = initRand((uint) square(posW.x * 10), (uint) square(posW.z * 10));
+        
+        //ランダムにコーン内をサンプル
         ray.Direction = getConeSample(
-        seed,
-        toLight,
-        coneAngle
+            seed,
+            toLight,
+            coneAngle
         );
 
-        raypayload.hit = 1;
+        RayPayloadShadow payloadShadow;
+        payloadShadow.hit = 1;
         TraceRay(
-                g_raytracingWorld,
-                RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-                0xFF,
-                1,
-                0,
-                1,
-                ray,
-                raypayload
-            );
+            g_raytracingWorld,
+            RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+            0xFF,
+            1,
+            0,
+            1,
+            ray,
+            payloadShadow
+        );
         
-        return 1.0f - raypayload.hit;
+        return 1.0f - payloadShadow.hit;
         
         /*
         [unroll]
@@ -264,7 +357,7 @@ float TraceLightRay(inout RayPayload raypayload, float3 normal)
 //反射レイを飛ばす。
 void TraceReflectionRay(inout RayPayload raypayload, float3 normal)
 {
-    if( raypayload.depth < 3)
+    if (raypayload.depth < MAX_TRACE_RECURSION_DEPTH)
     {
         float hitT = RayTCurrent();
         float3 rayDirW = WorldRayDirection();
@@ -281,6 +374,7 @@ void TraceReflectionRay(inout RayPayload raypayload, float3 normal)
         ray.TMin = 0.01f;
         ray.TMax = 10000;    
          
+        raypayload.depth++;
         TraceRay(
             g_raytracingWorld,
             0,
@@ -291,6 +385,10 @@ void TraceReflectionRay(inout RayPayload raypayload, float3 normal)
             ray,
             raypayload
         );
+        raypayload.depth--;      
+        
+        //フレネル        
+        raypayload.color *= Fresnel(0.03f, normalize(refDir + rayDirW*-1.0f), refDir);
     }
 }
 [shader("raygeneration")]
@@ -347,26 +445,30 @@ void chs(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     //光源にむかってレイを飛ばす。
     lig = TraceLightRay(payload, normal);
     
+    //アンビエントオクルージョン
+    //float3 AOC = 1.0f - TraceAORay(payload, normal);;
+    float ao = 1.0f - TraceAORay(payload, normal);
+    
     //ディフューズライティング
     float3 ligDir = normalize(float3(0.5, 0.5, 0.2));
     float t = max(0.0f, dot(ligDir, normal));
     lig *= t;
     
     //環境光
-    lig += 0.615f;    
+    lig += 0.615f * ao;
     
     //反射レイ。
-    //RayPayload refPayload;
-    //refPayload.depth = payload.depth;
-    //refPayload.color = 0;
-    //TraceReflectionRay(refPayload, normal);
+    RayPayload refPayload;
+    refPayload.depth = payload.depth;
+    refPayload.color = 0;
+    TraceReflectionRay(refPayload, normal);
     
     //このプリミティブの反射率を取得。
-    float reflectRate = 0.25f;//g_reflectionMap.SampleLevel(s, uv, 0.0f).r;
+    float reflectRate = 0.35f;//g_reflectionMap.SampleLevel(s, uv, 0.0f).r;
     float3 color = gAlbedoTexture.SampleLevel(s, uv, 0.0f).rgb ;
     color *= lig;
     payload.color = color; //payload.color = lerp( color, refPayload.color, reflectRate);     
-    //payload.color += refPayload.color * reflectRate;
+    payload.color += refPayload.color * reflectRate * reflectRate; //shininess * shininess    
     
     /*
     payload.color.rg = uv;
@@ -378,23 +480,64 @@ void chs(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     payload.depth--;
 }
 
-[shader("closesthit")]
-void shadowChs(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
+[shader("anyhit")]
+void any(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
 {
-    payload.hit = 1;
+    //ヒットしたプリミティブのUV座標を取得。
+    float2 uv = GetUV(attribs);
+
+    //αテスト
+    float opacity = gAlbedoTexture.SampleLevel(s, uv, 0.0f).a;
+    if (opacity < 0.33)
+    {
+        IgnoreHit();
+    }
+}
+
+//シャドウレイ
+[shader("closesthit")]
+void shadowChs(inout RayPayloadShadow payload, in BuiltInTriangleIntersectionAttributes attribs)
+{
+   payload.hit = 1;
 }
 
 [shader("miss")]
-void shadowMiss(inout RayPayload payload)
+void shadowMiss(inout RayPayloadShadow payload)
 {
    payload.hit = 0;
 }
 
 [shader("anyhit")]
-void shadowAny(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
+void shadowAny(inout RayPayloadShadow payload, in BuiltInTriangleIntersectionAttributes attribs)
 {
     //ヒットしたプリミティブのUV座標を取得。
     float2 uv = GetUV(attribs);    
+
+    //αテスト
+    float opacity = gAlbedoTexture.SampleLevel(s, uv, 0.0f).a;
+    if (opacity < 0.33)
+    {
+        IgnoreHit();
+    }
+}
+
+//AOレイ
+[shader("closesthit")]
+void aoChs(inout RayPayloadAO payload, in BuiltInTriangleIntersectionAttributes attribs)
+{
+    payload.distance = RayTCurrent();
+}
+
+[shader("miss")]
+void aoMiss(inout RayPayloadAO payload)
+{
+}
+
+[shader("anyhit")]
+void aoAny(inout RayPayloadAO payload, in BuiltInTriangleIntersectionAttributes attribs)
+{
+    //ヒットしたプリミティブのUV座標を取得。
+    float2 uv = GetUV(attribs);
 
     //αテスト
     float opacity = gAlbedoTexture.SampleLevel(s, uv, 0.0f).a;

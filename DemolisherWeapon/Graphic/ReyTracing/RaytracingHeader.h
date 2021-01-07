@@ -61,11 +61,19 @@ namespace DemolisherWeapon {
 	//シェーダー
 	enum EShader {
 		eShader_Raygeneration,		//カメラレイを生成するシェーダー。
+		
 		eShader_Miss,				//カメラレイがどこにもぶつからなかった時に呼ばれるシェーダー。
 		eShader_PBRChs,				//もっとも近いポリゴンとカメラレイが交差したときに呼ばれるシェーダー。
+		eShader_Any,	
+
+		eShader_ShadowMiss,			//シャドウレイがどこにもぶつからなかった時に呼ばれるシェーダー。
 		eShader_ShadowChs,			//もっとも近いポリゴンとシャドウレイが交差したときに呼ばれるシェーダー。
 		eShader_ShadowAny,
-		eShader_ShadowMiss,			//シャドウレイがどこにもぶつからなかった時に呼ばれるシェーダー。
+
+		eShader_AoMiss,			
+		eShader_AoChs,			
+		eShader_AoAny,
+
 		eShader_Num,				//シェーダーの数。
 	};
 	//シェーダーのカテゴリ。
@@ -80,6 +88,7 @@ namespace DemolisherWeapon {
 		eHitGroup_Undef = -1,
 		eHitGroup_PBRCameraRay,	//PBRマテリアルにカメラレイが衝突するときのヒットグループ。
 		eHitGroup_PBRShadowRay,	//PBRマテリアルにシャドウレイが衝突するときのヒットグループ。
+		eHitGroup_PBRAoRay,		//PBRマテリアルにAOレイが衝突するときのヒットグループ。
 		eHitGroup_Num,			//ヒットグループの数。
 	};
 	//シェーダーデータ構造体。
@@ -93,11 +102,18 @@ namespace DemolisherWeapon {
 	constexpr inline ShaderData shaderDatas[] = {
 		//entryPointName	useLocalRootSignature				category						hitgroup
 		{ L"rayGen",		eLocalRootSignature_Raygen,			eShaderCategory_RayGenerator,	eHitGroup_Undef },
+
 		{ L"miss",			eLocalRootSignature_Empty,			eShaderCategory_Miss,			eHitGroup_Undef },
 		{ L"chs",			eLocalRootSignature_PBRMaterialHit,	eShaderCategory_ClosestHit,		eHitGroup_PBRCameraRay },
+		{ L"any",			eLocalRootSignature_PBRMaterialHit,	eShaderCategory_AnyHit,			eHitGroup_PBRCameraRay },
+
+		{ L"shadowMiss",	eLocalRootSignature_Empty,			eShaderCategory_Miss,			eHitGroup_Undef },
 		{ L"shadowChs",		eLocalRootSignature_PBRMaterialHit,	eShaderCategory_ClosestHit,		eHitGroup_PBRShadowRay },
 		{ L"shadowAny",		eLocalRootSignature_PBRMaterialHit,	eShaderCategory_AnyHit,			eHitGroup_PBRShadowRay },
-		{ L"shadowMiss",	eLocalRootSignature_Empty,			eShaderCategory_Miss,			eHitGroup_Undef },
+
+		{ L"aoMiss",		eLocalRootSignature_Empty,			eShaderCategory_Miss,			eHitGroup_Undef },
+		{ L"aoChs",			eLocalRootSignature_PBRMaterialHit,	eShaderCategory_ClosestHit,		eHitGroup_PBRAoRay },
+		{ L"aoAny",			eLocalRootSignature_PBRMaterialHit,	eShaderCategory_AnyHit,			eHitGroup_PBRAoRay },
 	};
 	static_assert(ARRAYSIZE(shaderDatas) == eShader_Num, "shaderDatas arraySize is invalid!! shaderDatas arraySize must be equal to eShader_Num");
 
@@ -110,6 +126,7 @@ namespace DemolisherWeapon {
 	constexpr inline  SHitGroup hitGroups[] = {
 		{ L"HitGroup",			shaderDatas[eShader_PBRChs].entryPointName,	shaderDatas[eShader_ShadowAny].entryPointName },
 		{ L"ShadowHitGroup",	shaderDatas[eShader_ShadowChs].entryPointName, shaderDatas[eShader_ShadowAny].entryPointName },
+		{ L"AoHitGroup",		shaderDatas[eShader_AoChs].entryPointName, shaderDatas[eShader_AoAny].entryPointName },
 	};
 	static_assert(ARRAYSIZE(hitGroups) == eHitGroup_Num, "hitGroups arraySize is invalid!! hitGroups arraySize must be equal to eHitGoup_Num");
 
@@ -137,6 +154,9 @@ namespace DemolisherWeapon {
 		eNumRayGenerationSRV = eEndRayGenerationSRV - eStartRayGenerationSRV,//レイジェネレーションシェーダーで使用するSRVの数。
 	};
 
+	/// <summary>
+	/// ディスクリプタテーブル
+	/// </summary>
 	enum EHitShaderDescriptorTable {
 		eHitShaderDescriptorTable_SRV_CBV,	//SRVとCBV
 		eHitShaderDescriptorTable_Sampler,	//サンプラ
