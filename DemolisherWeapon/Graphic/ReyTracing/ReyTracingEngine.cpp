@@ -146,7 +146,7 @@ namespace DemolisherWeapon {
 
 	void RayTracingEngine::Dispatch(ID3D12GraphicsCommandList4* commandList)
 	{
-		if (!m_isCommit) {
+		if (!m_isCommit || m_world.GetNumInstance() == 0) {
 			return;//コミットしてない
 		}
 
@@ -240,15 +240,22 @@ namespace DemolisherWeapon {
 	}
 	void RayTracingEngine::Update(ID3D12GraphicsCommandList4* commandList)
 	{
+		//インスタンスなし
+		if (m_world.GetNumInstance() == 0) {
+			return;
+
+		}
+
+		//インスタンスの追加削除がない場合
 		if (!m_world.GetIsUpdated()) {
 			if (m_isCommit) {
 				m_world.UpdateTLAS(commandList);//TLASのみ更新
+				//m_descriptorHeap.Update(m_world);
 			}
 			return;//更新なし
 		}
 
 		//ASの構築
-		//TODO 更新いる　(このままでいける？)
 		m_world.CommitRegisterGeometry(commandList);
 
 		//シェーダーリソース(定数バッファとか)作成。
@@ -270,7 +277,6 @@ namespace DemolisherWeapon {
 		}
 
 		//シェーダーテーブルを作成。
-		//TODO 更新いる　(このままでいける？)
 		m_shaderTable.Init(m_world, m_pipelineStateObject, m_descriptorHeap);
 
 		m_isCommit = true;

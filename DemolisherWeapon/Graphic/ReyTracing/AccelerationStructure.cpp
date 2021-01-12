@@ -116,8 +116,10 @@ namespace DemolisherWeapon {
 	{
 		auto d3dDevice = GetGraphicsEngine().GetD3D12Device();
 		size_t numInstance = instances.size();
-
-		//uint64_t tlasSize;
+		if (numInstance == 0) {
+			DW_ERRORBOX(true, "TLASBuffer::Init() インスタンスの数が0です")
+			return;
+		}
 
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
 		inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
@@ -165,7 +167,7 @@ namespace DemolisherWeapon {
 			);
 			//tlasSize = info.ResultDataMaxSizeInBytes;
 
-			m_worldMatrixSB.Init(numInstance);
+			m_worldMatrixSB.Init((int)numInstance);
 		}
 
 		//Map the instance desc buffer

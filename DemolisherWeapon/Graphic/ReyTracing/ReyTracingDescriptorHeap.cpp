@@ -80,7 +80,6 @@ namespace DemolisherWeapon {
 		world.QueryInstances([&](ReyTracingInstanceData& instance)
 		{
 			//TLAS‚Ì“o˜^
-		//TODO ‚±‚±‚É‚¢‚é?
 			device->CopyDescriptorsSimple(
 				1,
 				CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvIndex + (int)ESRV_OneEntry::eTLAS, m_srvsDescriptorSize),//dest
