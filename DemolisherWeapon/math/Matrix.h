@@ -340,6 +340,34 @@ public:
 		);
 		return identity;
 	}
+
+	/// <summary>
+	/// ‚·‚×‚Ä‚Ì—v‘f‚ªƒ[ƒ‚Ìs—ñ‚ğæ“¾
+	/// </summary>
+	static const CMatrix Zero()
+	{
+		static const CMatrix zero(
+			0.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 0.0f
+		);
+		return zero;
+	}
+
+	/// <summary>
+	/// ‚·‚×‚Ä‚Ì—v‘f‚ª1‚Ìs—ñ‚ğæ“¾
+	/// </summary>
+	static const CMatrix One()
+	{
+		static const CMatrix one(
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f
+		);
+		return one;
+	}
 };
 
 /*!
