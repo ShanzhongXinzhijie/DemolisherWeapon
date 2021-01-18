@@ -392,6 +392,13 @@ float4 PSMain(PSDefferdInput In) : SV_Target0
 		
 	//ライティング無効
 	if (!lightParam.y) {
+#if defined(ATMOSPHERIC_FOG)
+		float4 viewpos = PosMap.Sample(Sampler, In.uv);
+		float3 worldpos = CalcWorldPosFromUVZ(In.uv, saturate(viewpos.w));
+		float diskaku = 1.0f - exp(-(max(0.0f, (length(float3(worldpos.x - eyePos.x, 0.0f, worldpos.z - eyePos.z)) - min(0.0f, worldpos.y - eyePos.y) * fogHeightScale) - fogNear) / (fogFar - fogNear)));
+		diskaku = square(diskaku); 
+		return float4(lerp(albedo.rgb + emissive, AtmosphericSky(fogLightDir, normalize(worldpos - eyePos)), fogEnable * diskaku), albedo.w);
+#endif
         return float4(albedo.rgb + emissive, albedo.w);
     }	
 
