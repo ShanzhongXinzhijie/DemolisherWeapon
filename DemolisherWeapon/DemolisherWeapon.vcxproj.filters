@@ -126,6 +126,11 @@
     <ClInclude Include="Graphic\Model\Render\CRayTracingRender.h" />
     <ClInclude Include="Render\RayTracingRender.h" />
     <ClInclude Include="Graphic\CAABBRender.h" />
+    <ClInclude Include="Graphic\ReyTracing\AccelerationStructure.h" />
+    <ClInclude Include="Graphic\ReyTracing\RaytracingHeader.h" />
+    <ClInclude Include="Graphic\ReyTracing\ReyTracingDescriptorHeap.h" />
+    <ClInclude Include="Graphic\ReyTracing\ShaderTable.h" />
+    <ClInclude Include="Graphic\ReyTracing\ReyTracingPSO.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="system\GraphicsEngine.cpp" />
@@ -233,6 +238,10 @@
     <ClCompile Include="Graphic\ReyTracing\ReyTracingEngine.cpp" />
     <ClCompile Include="Graphic\Model\Render\CRayTracingRender.cpp" />
     <ClCompile Include="Render\RayTracingRender.cpp" />
+    <ClCompile Include="Graphic\ReyTracing\AccelerationStructure.cpp" />
+    <ClCompile Include="Graphic\ReyTracing\ReyTracingDescriptorHeap.cpp" />
+    <ClCompile Include="Graphic\ReyTracing\ReyTracingPSO.cpp" />
+    <ClCompile Include="Graphic\ReyTracing\ShaderTable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Preset\Font\myfile.spritefont" />
@@ -259,5 +268,6 @@
     <CustomBuild Include="Preset\shader\ModelDX12Test.fx" />
     <CustomBuild Include="Preset\shader\raytrace.fx" />
     <CustomBuild Include="Preset\sprite\testcard.png" />
+    <CustomBuild Include="Preset\shader\hlslHelpers.hlsl" />
   </ItemGroup>
 </Project>

@@ -56,35 +56,10 @@ namespace DemolisherWeapon {
 		void ExecuteCommand()override;
 
 		//前フレームの描画完了を待つ
-		bool WaitForPreviousFrame(){
-			//待つ
-			if (m_fence->GetCompletedValue() < m_fenceValue[m_currentBackBufferIndex]) {
-				if (FAILED(m_fence->SetEventOnCompletion(m_fenceValue[m_currentBackBufferIndex], m_fenceEvent))) {
-					return false;
-				}
-				WaitForSingleObject(m_fenceEvent, INFINITE);
-			}
-			//描画バッファ入れ替え
-			m_currentBackBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
-			return true;
-		}
+		bool WaitForPreviousFrame();
 
 		//GPUのすべての処理の終わりを待つ
-		bool WaitForGpu(){
-			//ふやす
-			m_currentFenceValue++;
-			m_fenceValue[m_currentBackBufferIndex] = m_currentFenceValue;
-			//フェンスの値変更
-			if (FAILED(m_commandQueue->Signal(m_fence.Get(), m_fenceValue[m_currentBackBufferIndex]))) {
-				return false;
-			}
-			//待つ
-			if (FAILED(m_fence->SetEventOnCompletion(m_fenceValue[m_currentBackBufferIndex], m_fenceEvent))) {
-				return false;
-			}
-			WaitForSingleObject(m_fenceEvent, INFINITE);
-			return true;
-		}
+		bool WaitForGpu();
 
 		/// <summary>
 		/// D3D12デバイスを取得

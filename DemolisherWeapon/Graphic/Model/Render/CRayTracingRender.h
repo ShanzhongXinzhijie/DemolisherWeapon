@@ -1,4 +1,5 @@
 #pragma once
+#include "Graphic/ReyTracing/ReyTracingEngine.h"
 
 namespace DemolisherWeapon {
 
@@ -33,6 +34,7 @@ namespace DemolisherWeapon {
 	private:
 		CModel* m_model = nullptr;
 		const CMatrix* m_worldMat = nullptr;
+		std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator m_insStartItr;
 	};
 
 }

@@ -668,6 +668,36 @@ namespace DemolisherWeapon {
 		}
 	}
 
+	bool DX12Test::WaitForPreviousFrame() {
+		//待つ
+		DWORD hr;
+		if (m_fence->GetCompletedValue() < m_fenceValue[m_currentBackBufferIndex]) {
+			if (FAILED(m_fence->SetEventOnCompletion(m_fenceValue[m_currentBackBufferIndex], m_fenceEvent))) {
+				return false;
+			}
+			hr = WaitForSingleObject(m_fenceEvent, INFINITE);
+		}
+		//描画バッファ入れ替え
+		m_currentBackBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+		return true;
+	}
+
+	bool DX12Test::WaitForGpu() {
+		//ふやす
+		m_currentFenceValue++;
+		m_fenceValue[m_currentBackBufferIndex] = m_currentFenceValue;
+		//フェンスの値変更
+		if (FAILED(m_commandQueue->Signal(m_fence.Get(), m_fenceValue[m_currentBackBufferIndex]))) {
+			return false;
+		}
+		//待つ
+		if (FAILED(m_fence->SetEventOnCompletion(m_fenceValue[m_currentBackBufferIndex], m_fenceEvent))) {
+			return false;
+		}
+		WaitForSingleObject(m_fenceEvent, INFINITE);
+		return true;
+	}
+
 	void DX12Test::SetBackBufferToRenderTarget() {		
 		//前フレームの描画完了を待つ
 		if (!WaitForPreviousFrame()) {
