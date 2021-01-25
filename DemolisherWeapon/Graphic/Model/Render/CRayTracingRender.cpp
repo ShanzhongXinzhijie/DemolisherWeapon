@@ -30,7 +30,7 @@ namespace DemolisherWeapon {
 			return;
 		}
 		//レイトレエンジンから登録解除
-		GetGraphicsEngine().GetDX12().GetRayTracingEngine().UnregisterModel(m_insStartItr, *m_model);
+		GetGraphicsEngine().GetDX12().GetRayTracingEngine().UnregisterModel(m_insStartItr);
 		m_model = nullptr;
 		m_worldMat = nullptr;
 	}

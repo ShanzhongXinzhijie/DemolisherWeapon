@@ -79,58 +79,28 @@ namespace DemolisherWeapon {
 		if (startIndex >= 0) {
 			model.SetRayTracingWorldIndex(startIndex, geometoryIndex - 1);
 		}
+		startItr->get()->m_geometoryNum = model.GetRayTracingWorldGeometoryNum();
 
 		//インスタンス配列の開始イテレーター返す
 		return startItr;
 	}
-	void ReyTracingWorld::UnregisterModel(std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator startItr, const CModel& model) {
-#ifndef DW_MASTER
-		int geometoryIndex = model.GetRayTracingWorldStartIndex();
-		if (geometoryIndex < 0) {
-			DW_WARNING_MESSAGE(true, "ReyTracingWorld::UnregisterModel() 登録されていないインスタンスを登録解除しようとしています。\n")
-				return;
-		}
-#endif
+	void ReyTracingWorld::UnregisterModel(std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator startItr) {
+//#ifndef DW_MASTER
+//		int geometoryIndex = model.GetRayTracingWorldStartIndex();
+//		if (geometoryIndex < 0) {
+//			DW_WARNING_MESSAGE(true, "ReyTracingWorld::UnregisterModel() 登録されていないインスタンスを登録解除しようとしています。\n")
+//				return;
+//		}
+//#endif
 		//指定回数イテレーターまわして削除
-		int num = model.GetRayTracingWorldGeometoryNum();
+		int num = startItr->get()->m_geometoryNum;
 		auto endItr = startItr;
 		std::advance(endItr, num);
 		m_instances.erase(startItr, endItr);
 
 		//更新しました
 		m_isUpdated = true;
-	}
-	/*void ReyTracingWorld::UnregisterModel(CModel& model, const CMatrix* worldMatrix) {
-		int geometoryIndex = model.GetRayTracingWorldStartIndex();
-		if (geometoryIndex < 0) {
-			DW_WARNING_MESSAGE(true, "ReyTracingWorld::UnregisterModel() 登録されていないインスタンスを登録解除しようとしています。\n")
-			return;
-		}
-
-		//インスタンス削除
-		auto itr = m_instances.end();
-
-		model.FindMesh([&](const std::unique_ptr<SModelMesh>& mesh) {
-			for (int i = 0; i < mesh->m_materials.size(); i++) {
-				itr = std::remove_if(
-					m_instances.begin(),
-					itr,
-					[&](const auto& ins) {
-						return ins->m_geometory == m_geometories[geometoryIndex].get() && ins->m_worldMatrix == worldMatrix;
-					}
-				);
-				geometoryIndex++;
-			}
-			}
-		);
-
-		m_instances.erase(
-			itr,
-			m_instances.end()
-		);
-		
-		m_isUpdated = true;
-	}*/
+	}	
 	void ReyTracingWorld::CommitRegisterGeometry(ID3D12GraphicsCommandList4* commandList) {
 		//BLASを構築。
 		m_blasBuffer.Init(commandList, m_geometories);

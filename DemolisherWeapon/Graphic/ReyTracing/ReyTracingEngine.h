@@ -24,10 +24,7 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// ジオメトリ登録を解除。
 		/// </summary>
-		/// <param name="model">モデル</param>
-		/// <param name="worldMatrix">ワールド行列</param>
-		//void UnregisterModel(CModel& model, const CMatrix* worldMatrix);
-		void UnregisterModel(std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator instanceStartIndex, const CModel& model);
+		void UnregisterModel(std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator instanceStartIndex);
 
 		/// <summary>
 		/// ジオメトリの登録を確定。
@@ -113,18 +110,8 @@ namespace DemolisherWeapon {
 		/// <summary>
 		/// モデル登録を解除
 		/// </summary>
-		/// <param name="model">モデル</param>
-		/// <param name="worldMatrix">ワールド行列</param>
-		/*void UnregisterModel(CModel& model, const CMatrix* worldMatrix)
-		{
-			m_world.UnregisterModel(model, worldMatrix);
-		}
-		void UnregisterModel(SkinModel& model)
-		{
-			m_world.UnregisterModel(*model.GetModel(), &model.GetWorldMatrix());
-		}*/
-		void UnregisterModel(std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator startItr, const CModel& model) {
-			m_world.UnregisterModel(startItr, model);
+		void UnregisterModel(std::list<std::unique_ptr<ReyTracingInstanceData>>::iterator startItr) {
+			m_world.UnregisterModel(startItr);
 		}
 
 		/// <summary>

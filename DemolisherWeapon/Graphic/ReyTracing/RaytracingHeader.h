@@ -45,6 +45,7 @@ namespace DemolisherWeapon {
 		const ReyTracingGeometoryData* m_geometory = nullptr;	//ジオメトリ情報
 		const MaterialSetting* m_material = nullptr;			//マテリアル
 		const CMatrix* m_worldMatrix = nullptr;					//ワールド行列
+		int m_geometoryNum = 0;									//このモデルのインスタンス総数
 	};
 
 	//レイトレースの再帰呼び出しの最大数。
