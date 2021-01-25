@@ -47,9 +47,14 @@ namespace DemolisherWeapon {
 		}
 
 		//警告メッセージを出力
-		inline void WarningMessage(const char* str) {
+		inline void WarningMessage(const char* format, ...) {
 #ifndef DW_MASTER
-			OutputDebugStringA(str);
+			va_list va;
+			va_start(va, format);
+			vsprintf_s(log, format, va);
+			va_end(va);
+
+			OutputDebugStringA(log);
 #endif
 		}	
 	}
@@ -58,9 +63,9 @@ namespace DemolisherWeapon {
 #ifndef DW_MASTER
 #define 	DW_ERRORBOX( flg, format, ... );	if(flg){DemolisherWeapon::Error::Box(__FILE__, __LINE__,  format, __VA_ARGS__);}
 #define 	DW_WARNING_BOX( flg, format, ... );	if(flg){DemolisherWeapon::Error::WarningBox(__FILE__, __LINE__,  format, __VA_ARGS__);}
-#define 	DW_WARNING_MESSAGE( flg, str );	if(flg){DemolisherWeapon::Error::WarningMessage(str);}
+#define 	DW_WARNING_MESSAGE( flg, format, ... );	if(flg){DemolisherWeapon::Error::WarningMessage(format, __VA_ARGS__);}
 #else
 #define 	DW_ERRORBOX( flg, format, ... );
 #define 	DW_WARNING_BOX( flg, format, ... );
-#define 	DW_WARNING_MESSAGE( flg, str );
+#define 	DW_WARNING_MESSAGE( flg, format, ... );
 #endif 
