@@ -67,6 +67,11 @@ namespace DemolisherWeapon {
 			return m_texdata.height;
 		}
 
+		//‰æ‘œƒf[ƒ^‚ğæ“¾
+		const TextueData& GetTextueData()const {
+			return m_texdata;
+		}
+
 	private:
 		DirectX::SpriteBatch* m_spriteBatch = nullptr;
 
