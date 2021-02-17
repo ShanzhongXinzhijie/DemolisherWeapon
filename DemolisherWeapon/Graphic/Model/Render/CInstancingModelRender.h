@@ -261,7 +261,8 @@ namespace GameObj {
 			const AnimationClip* animationClip = nullptr,
 			EnFbxUpAxis fbxUpAxis = enFbxUpAxisZ,					//新規読み込み時のみ使用
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//新規読み込み時のみ使用
-			const wchar_t* identifier = nullptr
+			const wchar_t* identifier = nullptr,
+			bool* return_isNewload = nullptr
 		);
 
 	private:
@@ -290,7 +291,8 @@ namespace GameObj {
 		~CInstancingModelRender();
 
 		//初期化
-		void Init(int instanceMax,									//最大描画数
+		//戻り値: 新規モデルロードが発生したか
+		bool Init(int instanceMax,									//最大描画数
 			const wchar_t* filePath,								//モデルのファイルパス
 			const AnimationClip* animationClips = nullptr,			//アニメーションクリップの配列
 			int numAnimationClips = 0,								//アニメーションクリップの数
@@ -298,11 +300,17 @@ namespace GameObj {
 			EnFbxCoordinateSystem fbxCoordinate = enFbxRightHanded,	//座標系			//新規読み込み時のみ使用
 			std::wstring_view identifiers[] = nullptr				//識別子、これが違うと別モデルとして扱われる //numAnimationClipsと同数必要
 		) {
+			bool returnIsNew = false;
+
 			//アニメーションの数だけモデルロード
 			m_model.clear();
 			for (int i = 0; i < max(numAnimationClips,1); i++) {
 				const wchar_t* identifier = nullptr; if (identifiers) { identifier = identifiers[i].data(); }
-				m_model.emplace_back(m_s_instancingModelManager.Load(instanceMax, filePath, &animationClips[i], fbxUpAxis, fbxCoordinate, identifier));
+				bool isNew = false;
+				m_model.emplace_back(m_s_instancingModelManager.Load(instanceMax, filePath, &animationClips[i], fbxUpAxis, fbxCoordinate, identifier, &isNew));
+				if (isNew) {
+					returnIsNew = true;
+				}
 				if (m_model.back()->GetInstanceMax() < instanceMax) {
 					m_model.back()->SetInstanceMax(instanceMax);
 				}
@@ -313,8 +321,16 @@ namespace GameObj {
 			m_model[m_playingAnimNum]->GetModelRender().GetSkinModel().CalcBoundingBoxWithWorldMatrix(m_worldMatrix, m_minAABB, m_maxAABB);
 
 			m_isInit = true;
+
+			return returnIsNew;
 		}
-		
+		bool Init(int instanceMax,									//最大描画数
+			const wchar_t* filePath,								//モデルのファイルパス
+			std::wstring_view identifier							//識別子、これが違うと別モデルとして扱われる
+		) {
+			return Init(instanceMax, filePath, nullptr, 0, enFbxUpAxisZ, enFbxRightHanded, &identifier);
+		}
+
 		void PostLoopPostUpdate()override final {
 			if (!m_isInit) { return; }
 			if (!m_isDraw) { m_isFirstWorldMatRef = true; return; }

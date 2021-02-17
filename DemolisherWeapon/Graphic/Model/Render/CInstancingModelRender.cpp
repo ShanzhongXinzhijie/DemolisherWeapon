@@ -30,7 +30,8 @@ namespace DemolisherWeapon {
 		const AnimationClip* animationClip,
 		EnFbxUpAxis fbxUpAxis,
 		EnFbxCoordinateSystem fbxCoordinate,
-		const wchar_t* identifier
+		const wchar_t* identifier,
+		bool* return_isNewload 
 	) {
 		//ƒL[‚ğì¬
 		std::tuple<std::size_t, std::size_t, std::size_t> key = CreateInstancingModelMapKey(filePath, animationClip, identifier);
@@ -38,10 +39,12 @@ namespace DemolisherWeapon {
 		//Šù‚É“o˜^‚³‚ê‚Ä‚È‚¢‚©?
 		if (m_instancingModelMap.count(key) > 0) {
 			//“o˜^‚³‚ê‚Ä‚½‚çƒ}ƒbƒv‚©‚çæ“¾
+			if (return_isNewload) { *return_isNewload = false; }
 			return m_instancingModelMap[key];
 		}
 		else {
 			//V‹K“Ç‚İ‚İ
+			if (return_isNewload) { *return_isNewload = true; }
 			m_instancingModelMap[key] = new GameObj::InstancingModel(instanceMax, filePath, animationClip, fbxUpAxis, fbxCoordinate);
 			return m_instancingModelMap[key];
 		}
