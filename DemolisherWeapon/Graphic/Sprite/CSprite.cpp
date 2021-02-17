@@ -28,7 +28,7 @@ namespace DemolisherWeapon {
 #endif
 
 		//ファイルがDDSかどうかで乗算済みアルファ画像か判断
-		if (m_texdata.isDDS) {
+		if (m_texdata.isDDS || m_sIsOneSpriteBatchMode) {
 			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
 		}
 		else {
@@ -48,7 +48,7 @@ namespace DemolisherWeapon {
 		m_texdata = texture;
 
 		//ファイルがDDSかどうかで乗算済みアルファ画像か判断
-		if (m_texdata.isDDS) {
+		if (m_texdata.isDDS || m_sIsOneSpriteBatchMode) {
 			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
 		}
 		else {
@@ -69,7 +69,7 @@ namespace DemolisherWeapon {
 		texData.textureView = srv;
 		texData.textureView->AddRef();
 
-		if (!isPMA) {
+		if (!isPMA || m_sIsOneSpriteBatchMode) {
 			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
 		}
 		else {
@@ -99,7 +99,7 @@ namespace DemolisherWeapon {
 
 		m_texdata = ImposterTexBank::GetInstance().LoadSprite(identifier, model, resolusuon, rotOffset);
 
-		if (m_texdata.isDDS) {
+		if (m_texdata.isDDS || m_sIsOneSpriteBatchMode) {
 			m_spriteBatch = GetEngine().GetGraphicsEngine().GetSpriteBatch();
 		}
 		else {

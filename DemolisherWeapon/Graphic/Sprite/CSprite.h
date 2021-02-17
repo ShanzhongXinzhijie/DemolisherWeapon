@@ -81,6 +81,10 @@ namespace DemolisherWeapon {
 		D3D12_GPU_DESCRIPTOR_HANDLE m_gpuHandle;
 
 		RECT m_sourceRectangle;
+
+	public:
+		//スプライトパッチを一つだけ使うモード
+		static inline bool m_sIsOneSpriteBatchMode = false;
 	};
 
 	namespace GameObj {
