@@ -46,6 +46,43 @@ bool CMath::ColAABBs(const CVector3& box1min, const CVector3& box1max, const CVe
 	return true;
 }
 
+bool CMath::ColRayAndAABB(const CVector3& pos, const CVector3& dir_w, const CVector3& aabbmin, const CVector3& aabbmax, CVector3* colPos ) {
+	// 交差判定
+	float t = -FLT_MAX;
+	float t_max = FLT_MAX;
+
+	for (int i = 0; i < 3; ++i) {
+		if (abs(dir_w.v[i]) < FLT_EPSILON) {
+			if (pos.v[i] < aabbmin.v[i] || pos.v[i] > aabbmax.v[i])
+				return false; // 交差していない
+		}
+		else {
+			// スラブとの距離を算出
+			// t1が近スラブ、t2が遠スラブとの距離
+			float odd = 1.0f / dir_w.v[i];
+			float t1 = (aabbmin.v[i] - pos.v[i]) * odd;
+			float t2 = (aabbmax.v[i] - pos.v[i]) * odd;
+			if (t1 > t2) {
+				float tmp = t1; t1 = t2; t2 = tmp;
+			}
+
+			if (t1 > t) t = t1;
+			if (t2 < t_max) t_max = t2;
+
+			// スラブ交差チェック
+			if (t >= t_max)
+				return false;
+		}
+	}
+
+	// 交差している
+	if (colPos) {
+		*colPos = pos + dir_w * t;
+	}
+
+	return true;
+}
+
 bool CMath::ColSegments(
 	const CVector2 &seg1Start,	
 	const CVector2 &seg1Length,

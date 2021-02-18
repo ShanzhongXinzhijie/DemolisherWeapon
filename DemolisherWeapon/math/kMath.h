@@ -81,6 +81,10 @@ public:
 	//AABB“¯m‚ÌÕ“Ë
 	static bool ColAABBs(const CVector3& box1min, const CVector3& box1max, const CVector3& box2min, const CVector3& box2max);
 
+	//AABB‚Æ’¼ü‚ÌÕ“Ë
+	//http://marupeke296.com/COL_3D_No18_LineAndAABB.html
+	static bool ColRayAndAABB(const CVector3& pos, const CVector3& dir_w, const CVector3& aabbmin, const CVector3& aabbmax,  CVector3* colPos = nullptr);
+
 	// ü•ª‚ÌÕ“Ë(2D)
 	//http://marupeke296.com/COL_2D_No10_SegmentAndSegment.html
 	static bool ColSegments(
