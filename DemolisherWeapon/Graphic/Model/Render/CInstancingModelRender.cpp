@@ -178,7 +178,7 @@ namespace GameObj {
 
 		//m_insWatchers.reset();
 
-		m_instanceData.clear();
+		//m_instanceData.clear();
 	}
 
 	void InstancingModel::SetInstanceMax(int instanceMax) {
