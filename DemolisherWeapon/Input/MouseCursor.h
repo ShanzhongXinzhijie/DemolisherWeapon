@@ -24,14 +24,14 @@ public:
 		if (b) {
 			//•\Ž¦
 			int cnt = ShowCursor(TRUE);
-			while (cnt < 1) {
+			while (cnt < 0) {
 				cnt = ShowCursor(TRUE);
 			}
 		}
 		else {
 			//”ñ•\Ž¦
 			int cnt = ShowCursor(FALSE);
-			while (cnt > 0) {
+			while (cnt >= 0) {
 				cnt = ShowCursor(FALSE);
 			}
 		}
